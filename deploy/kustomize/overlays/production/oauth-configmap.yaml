@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: savvy-oauth
+  labels:
+    app.kubernetes.io/name: savvy
+data:
+  CLIENT_ID: "savvy-production"
+  ISSUER: "https://auth.example.com/application/o/savvy/"
+  REDIRECT_URL: "https://savvy.example.com/callback"

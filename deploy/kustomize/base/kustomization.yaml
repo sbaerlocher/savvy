@@ -1,0 +1,36 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-base
+
+namespace: savvy
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+  - externalsecret.yaml
+  - deployment.yaml
+  - service.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: savvy
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/part-of: savvy
+      app.kubernetes.io/managed-by: kustomize
+
+images:
+  - name: ghcr.io/sbaerlocher/savvy
+    newTag: 1.1.0
+
+configMapGenerator:
+  - name: savvy-version
+    literals:
+      - VERSION=1.1.0
+      - BUILD_DATE=2026-01-27
+
+generatorOptions:
+  disableNameSuffixHash: false

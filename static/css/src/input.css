@@ -1,0 +1,5 @@
+/* static/css/src/input.css - Tailwind CSS Entry Point */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

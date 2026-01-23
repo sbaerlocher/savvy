@@ -1,3 +1,4 @@
+# Node
 node_modules/
 .pnp.*
 .yarn/*
@@ -7,4 +8,35 @@ node_modules/
 !.yarn/sdks
 !.yarn/versions
 *.log
+
+# Build artifacts
 bin/
+tmp/
+dist/
+
+# Generated bundles (will be rebuilt in container)
+static/js/bundle.js
+static/js/bundle.js.map
+static/css/bundle.css
+static/css/bundle.css.map
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+!README.md
+
+# Tests
+*_test.go
+coverage.txt

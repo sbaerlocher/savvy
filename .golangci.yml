@@ -1,0 +1,28 @@
+---
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.23"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - gosec
+    - misspell
+    - unconvert
+    - unparam
+    - gocyclo
+    - goconst
+    - dupl
+    - bodyclose
+    - noctx
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 3

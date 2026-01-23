@@ -1,0 +1,205 @@
+---
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+    - templ generate
+
+builds:
+  - main: ./cmd/server
+    binary: savvy
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.buildTime={{.Date}}
+      - -extldflags "-static"
+    flags:
+      - -trimpath
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    formats:
+      - tar.gz
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - .env.example
+  - id: windows
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    formats:
+      - zip
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - .env.example
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+# Docker multi-platform images
+dockers:
+  # AMD64 image
+  - image_templates:
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/savvy:latest-amd64"
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title=savvy"
+      - "--label=org.opencontainers.image.description=Digital savvy card, voucher and gift card management system"
+      - "--label=org.opencontainers.image.source=https://github.com/sbaerlocher/savvy"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--build-arg=VERSION={{ .Version }}"
+      - "--build-arg=BUILD_TIME={{ .Date }}"
+    extra_files:
+      - go.mod
+      - go.sum
+
+  # ARM64 image
+  - image_templates:
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+      - "ghcr.io/sbaerlocher/savvy:latest-arm64"
+    use: buildx
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title=savvy"
+      - "--label=org.opencontainers.image.description=Digital savvy card, voucher and gift card management system"
+      - "--label=org.opencontainers.image.source=https://github.com/sbaerlocher/savvy"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--build-arg=VERSION={{ .Version }}"
+      - "--build-arg=BUILD_TIME={{ .Date }}"
+    extra_files:
+      - go.mod
+      - go.sum
+    goarch: arm64
+
+# Docker manifests for multi-arch
+docker_manifests:
+  # Multi-arch manifest for versioned tag
+  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+
+  # Multi-arch manifest for latest tag
+  - name_template: "ghcr.io/sbaerlocher/savvy:latest"
+    image_templates:
+      - "ghcr.io/sbaerlocher/savvy:latest-amd64"
+      - "ghcr.io/sbaerlocher/savvy:latest-arm64"
+    skip_push: auto
+
+  # Semantic version tags
+  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Major }}"
+    image_templates:
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+    skip_push: auto
+
+  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+    skip_push: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^build:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Performance Improvements"
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: "Other Changes"
+      order: 999
+
+release:
+  github:
+    owner: sbaerlocher
+    name: savvy
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## 🎁 Savvy {{.Tag}}
+
+    Savvy is a digital savvy card, voucher and gift card management system.
+
+    ### 📦 Installation
+
+    **Binary Downloads:**
+    Choose the appropriate binary for your platform from the assets below.
+
+    **Docker (Multi-Platform):**
+    ```bash
+    # Latest release (supports linux/amd64, linux/arm64)
+    docker pull ghcr.io/sbaerlocher/savvy:{{.Tag}}
+    ```
+
+    **Docker Compose:**
+    ```bash
+    wget https://raw.githubusercontent.com/sbaerlocher/savvy/{{.Tag}}/docker-compose.yml
+    wget https://raw.githubusercontent.com/sbaerlocher/savvy/{{.Tag}}/.env.example -O .env
+    # Edit .env with your configuration
+    docker compose up -d
+    ```
+
+    ### 🐳 Container Images
+    - **Registry**: ghcr.io/sbaerlocher/savvy:{{.Tag}}
+    - **Platforms**: linux/amd64, linux/arm64
+    - **Tags**: `{{.Tag}}`, `{{.Major}}`, `{{.Major}}.{{.Minor}}`, `latest`
+
+  footer: |
+    **Full Changelog**: https://github.com/sbaerlocher/savvy/compare/{{.PreviousTag}}...{{.Tag}}
+
+    ### 🔐 Verification
+    ```bash
+    sha256sum -c checksums.txt
+    ```

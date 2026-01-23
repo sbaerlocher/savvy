@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: savvy
+data:
+  GO_ENV: "staging"
+  DATABASE_URL: "postgres://savvy:$(DATABASE_PASSWORD)@postgres.database.svc.cluster.local:5432/savvy_staging?sslmode=require"
+  ENABLE_LOCAL_LOGIN: "false"
+  ENABLE_REGISTRATION: "false"
+  OTEL_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "grafana-alloy.observability.svc.cluster.local:4318"

@@ -1,0 +1,1647 @@
+[
+  {
+    "id": "admin.impersonate_info.actions_as_user",
+    "translation": "Alle Aktionen werden als dieser Benutzer ausgeführt"
+  },
+  {
+    "id": "admin.impersonate_info.can_return",
+    "translation": "Sie können jederzeit zu Ihrem Konto zurückkehren"
+  },
+  {
+    "id": "admin.impersonate_info.desc",
+    "translation": "Als Benutzer agieren ermöglicht es Ihnen, die Anwendung aus der Perspektive eines anderen Benutzers zu sehen."
+  },
+  {
+    "id": "admin.impersonate_info.description",
+    "translation": "Als Benutzer agieren ermöglicht es Ihnen, die Anwendung aus der Perspektive eines anderen Benutzers zu sehen."
+  },
+  {
+    "id": "admin.impersonate_info.keep_rights",
+    "translation": "Sie behalten Ihre Admin-Rechte"
+  },
+  {
+    "id": "admin.impersonate_info.title",
+    "translation": "ℹ️ Personifikation"
+  },
+  {
+    "id": "admin.impersonate_info.user_name",
+    "translation": "Alle Aktionen werden unter dem Namen des anderen Benutzers ausgeführt"
+  },
+  {
+    "id": "admin.impersonate_info.warning_shown",
+    "translation": "Eine Warnung zeigt an, dass Sie als ein anderer Benutzer agieren"
+  },
+  {
+    "id": "admin.impersonate_user",
+    "translation": "Als Benutzer agieren"
+  },
+  {
+    "id": "admin.impersonating_warning",
+    "translation": "⚠️ Sie agieren als ein anderer Benutzer"
+  },
+  {
+    "id": "admin.role.admin",
+    "translation": "👑 Administrator"
+  },
+  {
+    "id": "admin.role.user",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.stats.admins",
+    "translation": "Administratoren"
+  },
+  {
+    "id": "admin.stats.sessions",
+    "translation": "Aktive Sitzungen"
+  },
+  {
+    "id": "admin.stats.total",
+    "translation": "Gesamt"
+  },
+  {
+    "id": "admin.stats.users",
+    "translation": "Reguläre Benutzer"
+  },
+  {
+    "id": "admin.stop_impersonating",
+    "translation": "Zurück zu Ihrem Konto"
+  },
+  {
+    "id": "admin.heading",
+    "translation": "Benutzerverwaltung"
+  },
+  {
+    "id": "admin.subtitle",
+    "translation": "Verwalten Sie alle Benutzer im System"
+  },
+  {
+    "id": "admin.table.actions",
+    "translation": "Aktionen"
+  },
+  {
+    "id": "admin.table.email",
+    "translation": "E-Mail"
+  },
+  {
+    "id": "admin.table.registered",
+    "translation": "Registriert"
+  },
+  {
+    "id": "admin.table.role",
+    "translation": "Rolle"
+  },
+  {
+    "id": "admin.table.user",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.title",
+    "translation": "Benutzerverwaltung"
+  },
+  {
+    "id": "admin.you",
+    "translation": "(Sie)"
+  },
+  {
+    "id": "admin.users.show_details",
+    "translation": "Details anzeigen"
+  },
+  {
+    "id": "admin.users.user_id",
+    "translation": "Benutzer-ID"
+  },
+  {
+    "id": "admin.users.registered",
+    "translation": "Registriert"
+  },
+  {
+    "id": "admin.users.role.admin",
+    "translation": "👑 Admin"
+  },
+  {
+    "id": "admin.users.role.user",
+    "translation": "👤 Benutzer"
+  },
+  {
+    "id": "admin.users.first_name",
+    "translation": "Vorname"
+  },
+  {
+    "id": "admin.users.last_name",
+    "translation": "Nachname"
+  },
+  {
+    "id": "admin.users.auth_provider",
+    "translation": "Authentifizierung"
+  },
+  {
+    "id": "admin.users.change_role_title",
+    "translation": "Rolle ändern"
+  },
+  {
+    "id": "admin.users.change_role",
+    "translation": "Rolle ändern"
+  },
+  {
+    "id": "admin.users.oauth_role_managed",
+    "translation": "Rollen von OAuth-Benutzern werden über den OAuth-Anbieter verwaltet"
+  },
+  {
+    "id": "admin.users.no_users_found",
+    "translation": "Keine Benutzer gefunden"
+  },
+  {
+    "id": "admin.users.search_info_title",
+    "translation": "Suche & Info"
+  },
+  {
+    "id": "admin.users.search_placeholder",
+    "translation": "Name oder E-Mail..."
+  },
+  {
+    "id": "admin.users.stats.total",
+    "translation": "Gesamt"
+  },
+  {
+    "id": "admin.users.stats.admins",
+    "translation": "Admins"
+  },
+  {
+    "id": "admin.users.stats.users",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.users.quick_actions",
+    "translation": "Schnellaktionen"
+  },
+  {
+    "id": "admin.tabs.users",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.tabs.audit_log",
+    "translation": "Audit Log"
+  },
+  {
+    "id": "admin.audit_log.title",
+    "translation": "Audit Log"
+  },
+  {
+    "id": "admin.audit_log.subtitle",
+    "translation": "Protokollierung aller Löschvorgänge"
+  },
+  {
+    "id": "admin.audit_log.table.timestamp",
+    "translation": "Zeitstempel"
+  },
+  {
+    "id": "admin.audit_log.table.action",
+    "translation": "Aktion"
+  },
+  {
+    "id": "admin.audit_log.table.resource",
+    "translation": "Ressource"
+  },
+  {
+    "id": "admin.audit_log.table.user",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.audit_log.show_data",
+    "translation": "Daten anzeigen"
+  },
+  {
+    "id": "admin.audit_log.restore",
+    "translation": "Wiederherstellen"
+  },
+  {
+    "id": "admin.audit_log.restored",
+    "translation": "Wiederhergestellt"
+  },
+  {
+    "id": "admin.audit_log.restore_confirm",
+    "translation": "Möchten Sie dieses Element wirklich wiederherstellen?"
+  },
+  {
+    "id": "admin.audit_log.no_entries",
+    "translation": "Keine Audit Log Einträge gefunden"
+  },
+  {
+    "id": "admin.audit_log.no_entries_desc",
+    "translation": "Gelöschte Ressourcen werden hier protokolliert"
+  },
+  {
+    "id": "admin.audit_log.info.title",
+    "translation": "Über das Audit Log"
+  },
+  {
+    "id": "admin.audit_log.info.description",
+    "translation": "Das Audit Log protokolliert alle Lösch- und Wiederherstellungsvorgänge im System."
+  },
+  {
+    "id": "admin.audit_log.info.soft_delete",
+    "translation": "Gelöschte Ressourcen werden nicht permanent entfernt, sondern nur markiert"
+  },
+  {
+    "id": "admin.audit_log.info.json_snapshot",
+    "translation": "Zusätzlich wird der Zustand zum Zeitpunkt der Löschung gespeichert"
+  },
+  {
+    "id": "admin.audit_log.info.restore",
+    "translation": "Gelöschte Elemente können über den \"Wiederherstellen\"-Button reaktiviert werden"
+  },
+  {
+    "id": "admin.audit_log.info.metadata",
+    "translation": "IP-Adresse und Benutzer werden für jede Aktion protokolliert"
+  },
+  {
+    "id": "admin.audit_log.info.immutable",
+    "translation": "Audit Logs können nicht gelöscht oder bearbeitet werden"
+  },
+  {
+    "id": "admin.audit_log.search_filter_info",
+    "translation": "Suche & Filter + Info"
+  },
+  {
+    "id": "admin.audit_log.stats.total_entries",
+    "translation": "Einträge gesamt"
+  },
+  {
+    "id": "admin.audit_log.stats.on_this_page",
+    "translation": "Auf dieser Seite"
+  },
+  {
+    "id": "admin.audit_log.stats.cards_deleted",
+    "translation": "Karten gelöscht"
+  },
+  {
+    "id": "admin.audit_log.stats.vouchers_deleted",
+    "translation": "Gutscheine gelöscht"
+  },
+  {
+    "id": "admin.audit_log.filter.title",
+    "translation": "Filter"
+  },
+  {
+    "id": "admin.audit_log.filter.search",
+    "translation": "Suche"
+  },
+  {
+    "id": "admin.audit_log.filter.search_placeholder",
+    "translation": "JSON-Daten durchsuchen..."
+  },
+  {
+    "id": "admin.audit_log.filter.user",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.audit_log.filter.all_users",
+    "translation": "Alle Benutzer"
+  },
+  {
+    "id": "admin.audit_log.filter.resource_type",
+    "translation": "Ressourcentyp"
+  },
+  {
+    "id": "admin.audit_log.filter.all_types",
+    "translation": "Alle Typen"
+  },
+  {
+    "id": "admin.audit_log.filter.action_label",
+    "translation": "Aktion"
+  },
+  {
+    "id": "admin.audit_log.filter.all_actions",
+    "translation": "Alle Aktionen"
+  },
+  {
+    "id": "admin.audit_log.filter.date_from",
+    "translation": "Von Datum"
+  },
+  {
+    "id": "admin.audit_log.filter.date_to",
+    "translation": "Bis Datum"
+  },
+  {
+    "id": "admin.audit_log.filter.submit",
+    "translation": "Filtern"
+  },
+  {
+    "id": "admin.audit_log.filter.reset",
+    "translation": "Filter zurücksetzen"
+  },
+  {
+    "id": "admin.audit_log.resource_type.cards",
+    "translation": "🎫 Karten"
+  },
+  {
+    "id": "admin.audit_log.resource_type.card_shares",
+    "translation": "🔗 Karten-Freigaben"
+  },
+  {
+    "id": "admin.audit_log.resource_type.vouchers",
+    "translation": "🎟️ Gutscheine"
+  },
+  {
+    "id": "admin.audit_log.resource_type.voucher_shares",
+    "translation": "🔗 Gutschein-Freigaben"
+  },
+  {
+    "id": "admin.audit_log.resource_type.gift_cards",
+    "translation": "🎁 Geschenkkarten"
+  },
+  {
+    "id": "admin.audit_log.resource_type.gift_card_shares",
+    "translation": "🔗 Geschenkkarten-Freigaben"
+  },
+  {
+    "id": "admin.audit_log.resource_type.gift_card_transactions",
+    "translation": "💳 Transaktionen"
+  },
+  {
+    "id": "admin.audit_log.resource_type.merchants",
+    "translation": "🏪 Händler"
+  },
+  {
+    "id": "admin.audit_log.details.resource_data",
+    "translation": "Ressourcen-Daten"
+  },
+  {
+    "id": "admin.audit_log.details.ip_address",
+    "translation": "IP-Adresse"
+  },
+  {
+    "id": "admin.audit_log.action.delete",
+    "translation": "Gelöscht"
+  },
+  {
+    "id": "admin.audit_log.action.hard_delete",
+    "translation": "Permanent gelöscht"
+  },
+  {
+    "id": "admin.audit_log.action.restore",
+    "translation": "Wiederhergestellt"
+  },
+  {
+    "id": "admin.audit_log.action.update",
+    "translation": "Aktualisiert"
+  },
+  {
+    "id": "admin.audit_log.resource.card",
+    "translation": "Karte"
+  },
+  {
+    "id": "admin.audit_log.resource.card_share",
+    "translation": "Karten-Freigabe"
+  },
+  {
+    "id": "admin.audit_log.resource.voucher",
+    "translation": "Gutschein"
+  },
+  {
+    "id": "admin.audit_log.resource.voucher_share",
+    "translation": "Gutschein-Freigabe"
+  },
+  {
+    "id": "admin.audit_log.resource.gift_card",
+    "translation": "Geschenkkarte"
+  },
+  {
+    "id": "admin.audit_log.resource.gift_card_share",
+    "translation": "Geschenkkarten-Freigabe"
+  },
+  {
+    "id": "admin.audit_log.resource.transaction",
+    "translation": "Transaktion"
+  },
+  {
+    "id": "admin.audit_log.resource.merchant",
+    "translation": "Händler"
+  },
+  {
+    "id": "admin.audit_log.resource.user",
+    "translation": "Benutzer"
+  },
+  {
+    "id": "admin.audit_log.restore_success_title",
+    "translation": "Erfolgreich wiederhergestellt"
+  },
+  {
+    "id": "admin.audit_log.restore_success_message",
+    "translation": "Das Element wurde erfolgreich wiederhergestellt und ist jetzt wieder verfügbar."
+  },
+  {
+    "id": "admin.audit_log.error.not_found_title",
+    "translation": "Element nicht gefunden"
+  },
+  {
+    "id": "admin.audit_log.error.not_found_message",
+    "translation": "Das angeforderte Element konnte nicht in der Datenbank gefunden werden."
+  },
+  {
+    "id": "admin.audit_log.error.not_deleted_title",
+    "translation": "Element ist nicht gelöscht"
+  },
+  {
+    "id": "admin.audit_log.error.not_deleted_message",
+    "translation": "Dieses Element ist nicht gelöscht und kann daher nicht wiederhergestellt werden."
+  },
+  {
+    "id": "common.system",
+    "translation": "System"
+  },
+  {
+    "id": "app.name",
+    "translation": "Savvy"
+  },
+  {
+    "id": "app.tagline",
+    "translation": "Ihre digitale Geldbörse für Kundenkarten, Gutscheine & Geschenkkarten"
+  },
+  {
+    "id": "auth.email",
+    "translation": "E-Mail"
+  },
+  {
+    "id": "auth.first_name",
+    "translation": "Vorname"
+  },
+  {
+    "id": "auth.have_account",
+    "translation": "Haben Sie bereits ein Konto?"
+  },
+  {
+    "id": "auth.last_name",
+    "translation": "Nachname"
+  },
+  {
+    "id": "auth.login",
+    "translation": "Anmelden"
+  },
+
+  {
+    "id": "auth.login_with_oauth",
+    "translation": "Mit SSO anmelden"
+  },
+  {
+    "id": "auth.no_account",
+    "translation": "Haben Sie noch kein Konto?"
+  },
+  {
+    "id": "auth.or",
+    "translation": "oder"
+  },
+  {
+    "id": "auth.password",
+    "translation": "Passwort"
+  },
+  {
+    "id": "auth.register",
+    "translation": "Registrieren"
+  },
+  {
+    "id": "cards.add_new",
+    "translation": "Neue Karte"
+  },
+  {
+    "id": "cards.back_to_card",
+    "translation": "Zurück zur Karte"
+  },
+  {
+    "id": "cards.back_to_overview",
+    "translation": "Zurück zur Übersicht"
+  },
+  {
+    "id": "cards.barcode_type",
+    "translation": "Barcode-Typ"
+  },
+  {
+    "id": "cards.card_from",
+    "translation": "Karte von {{.Name}}"
+  },
+  {
+    "id": "cards.card_number",
+    "translation": "Kartennummer"
+  },
+  {
+    "id": "cards.create_first",
+    "translation": "Erstellen Sie Ihre erste Karte"
+  },
+  {
+    "id": "cards.delete_confirm",
+    "translation": "Sind Sie sicher, dass Sie diese Karte löschen möchten?"
+  },
+  {
+    "id": "cards.edit.title",
+    "translation": "Karte bearbeiten"
+  },
+  {
+    "id": "cards.filter.active_only",
+    "translation": "Nur aktive"
+  },
+  {
+    "id": "cards.filter.all_cards",
+    "translation": "Alle Karten"
+  },
+  {
+    "id": "cards.filter.all_status",
+    "translation": "Alle Status"
+  },
+  {
+    "id": "cards.filter.inactive_only",
+    "translation": "Nur inaktive"
+  },
+  {
+    "id": "cards.form.card_number_placeholder",
+    "translation": "1234567890123"
+  },
+  {
+    "id": "cards.form.card_number_required",
+    "translation": "Kartennummer *"
+  },
+  {
+    "id": "cards.form.create_button",
+    "translation": "Karte erstellen"
+  },
+  {
+    "id": "cards.form.merchant_help",
+    "translation": "Wählen Sie einen Händler aus oder erstellen Sie einen neuen"
+  },
+  {
+    "id": "cards.form.merchant_required",
+    "translation": "Händler *"
+  },
+  {
+    "id": "cards.form.merchant_select",
+    "translation": "-- Händler auswählen --"
+  },
+  {
+    "id": "cards.form.new_merchant",
+    "translation": "+ Neuer Händler"
+  },
+  {
+    "id": "cards.form.new_merchant_placeholder",
+    "translation": "Namen des neuen Händlers eingeben"
+  },
+  {
+    "id": "cards.form.notes_placeholder",
+    "translation": "Optionale Notizen..."
+  },
+  {
+    "id": "cards.form.program_placeholder",
+    "translation": "z.B. Rewards, Club, ..."
+  },
+  {
+    "id": "cards.form.program_required",
+    "translation": "Programm *"
+  },
+  {
+    "id": "cards.form.save_button",
+    "translation": "Änderungen speichern"
+  },
+  {
+    "id": "cards.form.scan_button",
+    "translation": "Scannen"
+  },
+  {
+    "id": "cards.form.scan_camera",
+    "translation": "Barcode mit Kamera scannen"
+  },
+  {
+    "id": "cards.form.scan_title",
+    "translation": "Kartennummer scannen"
+  },
+  {
+    "id": "cards.form.status.active",
+    "translation": "Aktiv"
+  },
+  {
+    "id": "cards.form.status.expired",
+    "translation": "Abgelaufen"
+  },
+  {
+    "id": "cards.form.status.suspended",
+    "translation": "Ausgesetzt"
+  },
+  {
+    "id": "cards.manage",
+    "translation": "Verwalten →"
+  },
+  {
+    "id": "cards.merchant",
+    "translation": "Händler"
+  },
+  {
+    "id": "cards.my_card",
+    "translation": "Meine Karte"
+  },
+  {
+    "id": "cards.new.title",
+    "translation": "Neue Kundenkarte"
+  },
+  {
+    "id": "cards.no_cards",
+    "translation": "Sie haben noch keine Kundenkarten."
+  },
+  {
+    "id": "cards.no_results",
+    "translation": "Keine Karten gefunden."
+  },
+  {
+    "id": "cards.notes",
+    "translation": "Notizen"
+  },
+  {
+    "id": "cards.owner",
+    "translation": "Besitzer"
+  },
+  {
+    "id": "cards.program",
+    "translation": "Programm"
+  },
+  {
+    "id": "cards.scan_barcode",
+    "translation": "Barcode scannen"
+  },
+  {
+    "id": "cards.shared_by",
+    "translation": "Geteilt von {{.Name}}"
+  },
+  {
+    "id": "cards.shared_by_label",
+    "translation": "Geteilt von"
+  },
+  {
+    "id": "cards.shared_with_count",
+    "translation": "Geteilt mit {{.Count}} Person(en)"
+  },
+  {
+    "id": "cards.sort.name_asc",
+    "translation": "A-Z"
+  },
+  {
+    "id": "cards.sort.name_desc",
+    "translation": "Z-A"
+  },
+  {
+    "id": "cards.sort.newest",
+    "translation": "Neueste"
+  },
+  {
+    "id": "cards.sort.oldest",
+    "translation": "Älteste"
+  },
+  {
+    "id": "cards.status",
+    "translation": "Status"
+  },
+  {
+    "id": "cards.title",
+    "translation": "Meine Kundenkarten"
+  },
+  {
+    "id": "common.all",
+    "translation": "Alle"
+  },
+  {
+    "id": "common.back",
+    "translation": "Zurück"
+  },
+  {
+    "id": "common.cancel",
+    "translation": "Abbrechen"
+  },
+  {
+    "id": "common.created_at",
+    "translation": "Erstellt am"
+  },
+  {
+    "id": "common.delete",
+    "translation": "Löschen"
+  },
+  {
+    "id": "common.edit",
+    "translation": "Bearbeiten"
+  },
+  {
+    "id": "common.filter",
+    "translation": "Filter"
+  },
+  {
+    "id": "common.mine",
+    "translation": "Nur meine"
+  },
+  {
+    "id": "common.owner",
+    "translation": "Besitzer"
+  },
+  {
+    "id": "common.required",
+    "translation": "*"
+  },
+  {
+    "id": "common.save",
+    "translation": "Speichern"
+  },
+  {
+    "id": "common.search",
+    "translation": "Suchen"
+  },
+  {
+    "id": "common.search_placeholder",
+    "translation": "Suchen..."
+  },
+  {
+    "id": "common.shared",
+    "translation": "Geteilt"
+  },
+  {
+    "id": "common.sort",
+    "translation": "Sortieren"
+  },
+  {
+    "id": "common.updated_at",
+    "translation": "Aktualisiert am"
+  },
+  {
+    "id": "common.valid_until",
+    "translation": "Gültig bis"
+  },
+  {
+    "id": "common.view",
+    "translation": "Ansehen"
+  },
+  {
+    "id": "error.not_found",
+    "translation": "Nicht gefunden"
+  },
+  {
+    "id": "error.server_error",
+    "translation": "Serverfehler"
+  },
+  {
+    "id": "error.unauthorized",
+    "translation": "Nicht autorisiert"
+  },
+  {
+    "id": "giftcards.add_new",
+    "translation": "Neue Geschenkkarte"
+  },
+  {
+    "id": "giftcards.add_transaction",
+    "translation": "Transaktion hinzufügen"
+  },
+  {
+    "id": "giftcards.back_to_card",
+    "translation": "Zurück zur Geschenkkarte"
+  },
+  {
+    "id": "giftcards.back_to_overview",
+    "translation": "Zurück zur Übersicht"
+  },
+  {
+    "id": "giftcards.balance",
+    "translation": "Guthaben"
+  },
+  {
+    "id": "giftcards.create_first",
+    "translation": "Erstellen Sie Ihre erste Geschenkkarte"
+  },
+  {
+    "id": "giftcards.current_balance",
+    "translation": "Aktuelles Guthaben"
+  },
+  {
+    "id": "giftcards.delete_confirm",
+    "translation": "Sind Sie sicher, dass Sie diese Geschenkkarte löschen möchten?"
+  },
+  {
+    "id": "giftcards.edit.title",
+    "translation": "Geschenkkarte bearbeiten"
+  },
+  {
+    "id": "giftcards.filter.active_only",
+    "translation": "Nur aktive"
+  },
+  {
+    "id": "giftcards.filter.all_cards",
+    "translation": "Alle Karten"
+  },
+  {
+    "id": "giftcards.filter.expired_only",
+    "translation": "Nur abgelaufene"
+  },
+  {
+    "id": "giftcards.filter.redeemed_only",
+    "translation": "Nur eingelöste"
+  },
+  {
+    "id": "giftcards.form.card_number_placeholder",
+    "translation": "MM1234567890"
+  },
+  {
+    "id": "giftcards.form.create_button",
+    "translation": "Geschenkkarte erstellen"
+  },
+  {
+    "id": "giftcards.form.currency",
+    "translation": "Währung"
+  },
+  {
+    "id": "giftcards.form.expiry_optional",
+    "translation": "Ablaufdatum (optional)"
+  },
+  {
+    "id": "giftcards.form.initial_balance_placeholder",
+    "translation": "100.00"
+  },
+  {
+    "id": "giftcards.form.initial_balance_required",
+    "translation": "Anfangsguthaben *"
+  },
+  {
+    "id": "giftcards.form.notes_placeholder",
+    "translation": "Optionale Notizen..."
+  },
+  {
+    "id": "giftcards.form.pin_optional",
+    "translation": "PIN (optional)"
+  },
+  {
+    "id": "giftcards.form.pin_placeholder",
+    "translation": "1234"
+  },
+  {
+    "id": "giftcards.form.status.active",
+    "translation": "Aktiv"
+  },
+  {
+    "id": "giftcards.form.status.expired",
+    "translation": "Abgelaufen"
+  },
+  {
+    "id": "giftcards.form.status.redeemed",
+    "translation": "Eingelöst"
+  },
+  {
+    "id": "giftcards.initial_balance",
+    "translation": "Anfangsguthaben"
+  },
+  {
+    "id": "giftcards.new.title",
+    "translation": "Neue Geschenkkarte"
+  },
+  {
+    "id": "giftcards.no_expiry",
+    "translation": "Kein Ablaufdatum"
+  },
+  {
+    "id": "giftcards.no_giftcards",
+    "translation": "Sie haben noch keine Geschenkkarten."
+  },
+  {
+    "id": "giftcards.no_results",
+    "translation": "Keine Geschenkkarten gefunden."
+  },
+  {
+    "id": "giftcards.no_transactions",
+    "translation": "Noch keine Transaktionen"
+  },
+  {
+    "id": "giftcards.shared_by",
+    "translation": "Geteilt von {{.Name}}"
+  },
+  {
+    "id": "giftcards.shared_with_count",
+    "translation": "Geteilt mit {{.Count}} Person(en)"
+  },
+  {
+    "id": "giftcards.sort.merchant_asc",
+    "translation": "Händler A-Z"
+  },
+  {
+    "id": "giftcards.sort.merchant_desc",
+    "translation": "Händler Z-A"
+  },
+  {
+    "id": "giftcards.sort.newest_first",
+    "translation": "Neueste zuerst"
+  },
+  {
+    "id": "giftcards.sort.oldest_first",
+    "translation": "Älteste zuerst"
+  },
+  {
+    "id": "giftcards.title",
+    "translation": "Meine Geschenkkarten"
+  },
+  {
+    "id": "giftcards.transaction.add_button",
+    "translation": "Hinzufügen"
+  },
+  {
+    "id": "giftcards.transaction.amount",
+    "translation": "Betrag"
+  },
+  {
+    "id": "giftcards.transaction.amount_placeholder",
+    "translation": "25.50"
+  },
+  {
+    "id": "giftcards.transaction.date",
+    "translation": "Datum"
+  },
+  {
+    "id": "giftcards.transaction.delete_confirm",
+    "translation": "Transaktion löschen?"
+  },
+  {
+    "id": "giftcards.transaction.description",
+    "translation": "Beschreibung"
+  },
+  {
+    "id": "giftcards.transaction.description_placeholder",
+    "translation": "Kopfhörer gekauft"
+  },
+  {
+    "id": "giftcards.transaction.new",
+    "translation": "Neu"
+  },
+  {
+    "id": "giftcards.transaction_count",
+    "translation": "{{.Count}} Transaktionen"
+  },
+  {
+    "id": "giftcards.transactions",
+    "translation": "Transaktionen"
+  },
+  {
+    "id": "home.add_first",
+    "translation": "Fügen Sie Ihre erste Karte hinzu!"
+  },
+  {
+    "id": "home.getting_started",
+    "translation": "Los geht's! 🚀"
+  },
+  {
+    "id": "home.getting_started.cards",
+    "translation": "Verfolgen Sie Ihre Kundenkarten und behalten Sie Ihre Punkte im Blick"
+  },
+  {
+    "id": "home.getting_started.giftcards",
+    "translation": "Verfolgen Sie Ihr Guthaben mit Transaktionsverlauf"
+  },
+  {
+    "id": "home.getting_started.vouchers",
+    "translation": "Verwalten Sie Rabatte und verpassen Sie keine Aktionen"
+  },
+  {
+    "id": "home.no_activity",
+    "translation": "Noch keine Einträge."
+  },
+  {
+    "id": "home.overview",
+    "translation": "Ihre Übersicht über alle Karten und Guthaben"
+  },
+  {
+    "id": "home.quick_access",
+    "translation": "Schnellzugriff"
+  },
+  {
+    "id": "home.quick_actions.add_card",
+    "translation": "Kundenkarte hinzufügen"
+  },
+  {
+    "id": "home.quick_actions.add_card_desc",
+    "translation": "Fügen Sie eine neue Kundenkarte hinzu"
+  },
+  {
+    "id": "home.quick_actions.add_giftcard",
+    "translation": "Geschenkkarte hinzufügen"
+  },
+  {
+    "id": "home.quick_actions.add_giftcard_desc",
+    "translation": "Fügen Sie ein neues Guthaben hinzu"
+  },
+  {
+    "id": "home.quick_actions.add_voucher",
+    "translation": "Gutschein erstellen"
+  },
+  {
+    "id": "home.quick_actions.add_voucher_desc",
+    "translation": "Fügen Sie einen neuen Rabatt hinzu"
+  },
+  {
+    "id": "home.recent_activity",
+    "translation": "Neueste Aktivität"
+  },
+  {
+    "id": "home.recent_added",
+    "translation": "Kürzlich hinzugefügt"
+  },
+  {
+    "id": "home.favorites",
+    "translation": "Favoriten"
+  },
+  {
+    "id": "home.recent_items.card",
+    "translation": "Kundenkarte"
+  },
+  {
+    "id": "home.recent_items.giftcard",
+    "translation": "Geschenkkarte"
+  },
+  {
+    "id": "home.recent_items.voucher",
+    "translation": "Gutschein"
+  },
+  {
+    "id": "home.stats.balance",
+    "translation": "Gesamtguthaben"
+  },
+  {
+    "id": "home.stats.cards",
+    "translation": "Kundenkarten"
+  },
+  {
+    "id": "home.stats.giftcards",
+    "translation": "Geschenkkarten"
+  },
+  {
+    "id": "home.stats.vouchers",
+    "translation": "Gutscheine"
+  },
+  {
+    "id": "home.welcome",
+    "translation": "Willkommen, {{.Name}}! 👋"
+  },
+  {
+    "id": "merchants.add_first",
+    "translation": "Fügen Sie Ihren ersten Händler hinzu!"
+  },
+  {
+    "id": "merchants.add_new",
+    "translation": "Neuer Händler"
+  },
+  {
+    "id": "merchants.back_to_overview",
+    "translation": "Zurück zur Übersicht"
+  },
+  {
+    "id": "merchants.create_first",
+    "translation": "Ersten Händler hinzufügen"
+  },
+  {
+    "id": "merchants.delete_confirm",
+    "translation": "Händler wirklich löschen?"
+  },
+  {
+    "id": "merchants.edit.title",
+    "translation": "Händler bearbeiten"
+  },
+  {
+    "id": "merchants.edit_title",
+    "translation": "Händler bearbeiten"
+  },
+  {
+    "id": "merchants.empty",
+    "translation": "Keine Händler verfügbar."
+  },
+  {
+    "id": "merchants.form.color",
+    "translation": "Farbe"
+  },
+  {
+    "id": "merchants.form.color_help",
+    "translation": "Wird für alle Karten dieses Händlers verwendet"
+  },
+  {
+    "id": "merchants.form.create_button",
+    "translation": "Händler erstellen"
+  },
+  {
+    "id": "merchants.form.logo_help",
+    "translation": "Optional: URL zum Händler-Logo"
+  },
+  {
+    "id": "merchants.form.logo_url",
+    "translation": "Logo URL"
+  },
+  {
+    "id": "merchants.form.logo_url_help",
+    "translation": "Optional: URL zum Händler-Logo (für Kartenanzeige)"
+  },
+  {
+    "id": "merchants.form.logo_url_placeholder",
+    "translation": "https://example.com/logo.png"
+  },
+  {
+    "id": "merchants.form.name",
+    "translation": "Name"
+  },
+  {
+    "id": "merchants.form.name_placeholder",
+    "translation": "z.B. Migros, Coop, Manor"
+  },
+  {
+    "id": "merchants.form.name_required",
+    "translation": "Name *"
+  },
+  {
+    "id": "merchants.form.website",
+    "translation": "Webseite"
+  },
+  {
+    "id": "merchants.form.website_help",
+    "translation": "Optional: Webseite des Händlers"
+  },
+  {
+    "id": "merchants.form.website_placeholder",
+    "translation": "https://www.example.com"
+  },
+  {
+    "id": "merchants.new.title",
+    "translation": "Neuer Händler"
+  },
+  {
+    "id": "merchants.no_merchants",
+    "translation": "Noch keine Händler erfasst."
+  },
+  {
+    "id": "merchants.title",
+    "translation": "Händler"
+  },
+  {
+    "id": "nav.admin",
+    "translation": "Administration"
+  },
+  {
+    "id": "nav.cards",
+    "translation": "Kundenkarten"
+  },
+  {
+    "id": "nav.giftcards",
+    "translation": "Geschenkkarten"
+  },
+  {
+    "id": "nav.home",
+    "translation": "Startseite"
+  },
+  {
+    "id": "nav.logout",
+    "translation": "Abmelden"
+  },
+  {
+    "id": "nav.merchants",
+    "translation": "Händler"
+  },
+  {
+    "id": "nav.vouchers",
+    "translation": "Gutscheine"
+  },
+  {
+    "id": "share.add",
+    "translation": "Hinzufügen"
+  },
+  {
+    "id": "share.allow_delete",
+    "translation": "Löschen erlauben"
+  },
+  {
+    "id": "share.allow_delete_desc",
+    "translation": "Benutzer kann die {{.Type}} löschen"
+  },
+  {
+    "id": "share.allow_edit",
+    "translation": "Bearbeiten erlauben"
+  },
+  {
+    "id": "share.allow_edit_desc",
+    "translation": "Benutzer kann die {{.Type}} bearbeiten"
+  },
+  {
+    "id": "share.allow_transactions",
+    "translation": "Transaktionen bearbeiten erlauben"
+  },
+  {
+    "id": "share.allow_transactions_desc",
+    "translation": "Benutzer kann Transaktionen hinzufügen und löschen"
+  },
+  {
+    "id": "share.can_delete",
+    "translation": "Löschen"
+  },
+  {
+    "id": "share.can_edit",
+    "translation": "Bearbeiten"
+  },
+  {
+    "id": "share.can_edit_transactions",
+    "translation": "Transaktionen bearbeiten"
+  },
+  {
+    "id": "share.edit_permissions",
+    "translation": "Berechtigungen bearbeiten"
+  },
+  {
+    "id": "share.email",
+    "translation": "E-Mail-Adresse"
+  },
+  {
+    "id": "share.email_help",
+    "translation": "Der Benutzer muss bereits im System registriert sein."
+  },
+  {
+    "id": "share.email_placeholder",
+    "translation": "benutzer@example.com"
+  },
+  {
+    "id": "share.email_required",
+    "translation": "E-Mail-Adresse des Benutzers *"
+  },
+  {
+    "id": "share.email_optional",
+    "translation": "E-Mail-Adresse des Benutzers"
+  },
+  {
+    "id": "share.share_card",
+    "translation": "Karte teilen"
+  },
+  {
+    "id": "share.share_voucher",
+    "translation": "Gutschein teilen"
+  },
+  {
+    "id": "share.share_gift_card",
+    "translation": "Geschenkkarte teilen"
+  },
+  {
+    "id": "share.share_on_create_help",
+    "translation": "Optional: Teilen Sie diese Ressource direkt beim Erstellen mit einem anderen Benutzer."
+  },
+  {
+    "id": "share.not_shared",
+    "translation": "Diese {{.Type}} ist noch mit niemandem geteilt."
+  },
+  {
+    "id": "share.not_shared_card",
+    "translation": "Diese Karte ist noch mit niemandem geteilt."
+  },
+  {
+    "id": "share.not_shared_voucher",
+    "translation": "Dieser Gutschein ist noch mit niemandem geteilt."
+  },
+  {
+    "id": "share.not_shared_giftcard",
+    "translation": "Diese Geschenkkarte ist noch mit niemandem geteilt."
+  },
+  {
+    "id": "share.permissions",
+    "translation": "Berechtigungen"
+  },
+  {
+    "id": "favorites.add_to_favorites",
+    "translation": "Zu Favoriten hinzufügen"
+  },
+  {
+    "id": "favorites.remove_from_favorites",
+    "translation": "Von Favoriten entfernen"
+  },
+  {
+    "id": "favorites.title",
+    "translation": "Meine Favoriten"
+  },
+  {
+    "id": "favorites.no_favorites",
+    "translation": "Noch keine Favoriten vorhanden"
+  },
+  {
+    "id": "share.permissions.transactions",
+    "translation": "Transaktionen"
+  },
+  {
+    "id": "share.permissions_info.delete_removes",
+    "translation": "Löschen erlaubt das Entfernen der {{.Type}}"
+  },
+  {
+    "id": "share.permissions_info.edit_changes",
+    "translation": "Bearbeiten erlaubt das Ändern der {{.Type}}-Details"
+  },
+  {
+    "id": "share.permissions_info.title",
+    "translation": "Berechtigungen"
+  },
+  {
+    "id": "share.permissions_info.transactions_manage",
+    "translation": "Transaktionen erlaubt das Hinzufügen/Löschen von Transaktionen"
+  },
+  {
+    "id": "share.permissions_info.view_always",
+    "translation": "Ansehen ist immer erlaubt"
+  },
+  {
+    "id": "share.permissions_info.view_only_help",
+    "translation": "Geteilte Benutzer können die {{.Type}} immer ansehen"
+  },
+  {
+    "id": "share.remove",
+    "translation": "Entfernen"
+  },
+  {
+    "id": "share.revoke_confirm",
+    "translation": "Freigabe widerrufen?"
+  },
+  {
+    "id": "share.share_button",
+    "translation": "{{.Type}} teilen"
+  },
+  {
+    "id": "share.share_now",
+    "translation": "Jetzt teilen"
+  },
+  {
+    "id": "share.share_with_user",
+    "translation": "Mit Benutzer teilen"
+  },
+  {
+    "id": "share.shared_items.card.details",
+    "translation": "Alle Kartendetails"
+  },
+  {
+    "id": "share.shared_items.card.notes",
+    "translation": "Notizen (falls vorhanden)"
+  },
+  {
+    "id": "share.shared_items.card.number",
+    "translation": "Kartennummer und Barcode"
+  },
+  {
+    "id": "share.shared_items.giftcard.balance",
+    "translation": "Aktuelles Guthaben"
+  },
+  {
+    "id": "share.shared_items.giftcard.number",
+    "translation": "Kartennummer und Barcode"
+  },
+  {
+    "id": "share.shared_items.giftcard.pin",
+    "translation": "PIN (falls vorhanden)"
+  },
+  {
+    "id": "share.shared_items.giftcard.transactions",
+    "translation": "Alle Transaktionen"
+  },
+  {
+    "id": "share.shared_items.voucher.code",
+    "translation": "Gutscheincode"
+  },
+  {
+    "id": "share.shared_items.voucher.value",
+    "translation": "Wert und Rabatt"
+  },
+  {
+    "id": "share.shared_items.voucher.validity",
+    "translation": "Gültigkeitszeitraum"
+  },
+  {
+    "id": "share.shared_with",
+    "translation": "Geteilt mit"
+  },
+  {
+    "id": "share.title",
+    "translation": "Teilen"
+  },
+  {
+    "id": "share.update_permissions",
+    "translation": "Berechtigungen aktualisieren"
+  },
+  {
+    "id": "share.view_only",
+    "translation": "Nur ansehen"
+  },
+  {
+    "id": "share.voucher_readonly_note",
+    "translation": "Hinweis: Gutscheine werden immer als \"Nur ansehen\" geteilt"
+  },
+  {
+    "id": "share.what_is_shared",
+    "translation": "Was wird geteilt?"
+  },
+  {
+    "id": "share.with",
+    "translation": "Teilen mit"
+  },
+  {
+    "id": "success.created",
+    "translation": "Erfolgreich erstellt"
+  },
+  {
+    "id": "success.deleted",
+    "translation": "Erfolgreich gelöscht"
+  },
+  {
+    "id": "success.updated",
+    "translation": "Erfolgreich aktualisiert"
+  },
+  {
+    "id": "vouchers.add_new",
+    "translation": "Neuer Gutschein"
+  },
+  {
+    "id": "vouchers.back_to_overview",
+    "translation": "Zurück zur Übersicht"
+  },
+  {
+    "id": "vouchers.back_to_voucher",
+    "translation": "Zurück zum Gutschein"
+  },
+  {
+    "id": "vouchers.code",
+    "translation": "Code"
+  },
+  {
+    "id": "vouchers.create_first",
+    "translation": "Erstellen Sie Ihren ersten Gutschein"
+  },
+  {
+    "id": "vouchers.delete_confirm",
+    "translation": "Sind Sie sicher, dass Sie diesen Gutschein löschen möchten?"
+  },
+  {
+    "id": "vouchers.description",
+    "translation": "Beschreibung"
+  },
+  {
+    "id": "vouchers.edit.title",
+    "translation": "Gutschein bearbeiten"
+  },
+  {
+    "id": "vouchers.filter.all_vouchers",
+    "translation": "Alle Gutscheine"
+  },
+  {
+    "id": "vouchers.filter.exhausted_only",
+    "translation": "Nur aufgebrauchte"
+  },
+  {
+    "id": "vouchers.filter.expired_only",
+    "translation": "Nur abgelaufene"
+  },
+  {
+    "id": "vouchers.filter.valid_only",
+    "translation": "Nur gültige"
+  },
+  {
+    "id": "vouchers.form.code_placeholder",
+    "translation": "SOMMER2026"
+  },
+  {
+    "id": "vouchers.form.code_required",
+    "translation": "Code *"
+  },
+  {
+    "id": "vouchers.form.create_button",
+    "translation": "Gutschein erstellen"
+  },
+  {
+    "id": "vouchers.form.description_placeholder",
+    "translation": "20% Sommerrabatt auf alle Artikel"
+  },
+  {
+    "id": "vouchers.form.description_required",
+    "translation": "Beschreibung *"
+  },
+  {
+    "id": "vouchers.form.min_purchase",
+    "translation": "Mindestbestellwert (CHF)"
+  },
+  {
+    "id": "vouchers.form.scan_code_title",
+    "translation": "Gutscheincode scannen"
+  },
+  {
+    "id": "vouchers.form.type.fixed_amount",
+    "translation": "Fester Betrag (CHF)"
+  },
+  {
+    "id": "vouchers.form.type.percentage",
+    "translation": "Prozentsatz (%)"
+  },
+  {
+    "id": "vouchers.form.type.points_multiplier",
+    "translation": "Punkte-Multiplikator"
+  },
+  {
+    "id": "vouchers.form.type_required",
+    "translation": "Typ *"
+  },
+  {
+    "id": "vouchers.form.usage.multiple_with_card",
+    "translation": "Mehrfachnutzung mit Kundenkarte"
+  },
+  {
+    "id": "vouchers.form.usage.multiple_without_card",
+    "translation": "Mehrfachnutzung ohne Kundenkarte"
+  },
+  {
+    "id": "vouchers.form.usage.one_per_customer",
+    "translation": "Einmal pro Kunde (mit Kundenkarte)"
+  },
+  {
+    "id": "vouchers.form.usage.single_use",
+    "translation": "Nur einmalige Nutzung"
+  },
+  {
+    "id": "vouchers.form.usage.unlimited",
+    "translation": "Unbegrenzt"
+  },
+  {
+    "id": "vouchers.form.usage_limit",
+    "translation": "Nutzungslimit *"
+  },
+  {
+    "id": "vouchers.form.valid_from",
+    "translation": "Gültig ab *"
+  },
+  {
+    "id": "vouchers.form.valid_until",
+    "translation": "Gültig bis *"
+  },
+  {
+    "id": "vouchers.form.value_placeholder",
+    "translation": "20.00"
+  },
+  {
+    "id": "vouchers.form.value_required",
+    "translation": "Wert *"
+  },
+  {
+    "id": "vouchers.new.title",
+    "translation": "Neuer Gutschein"
+  },
+  {
+    "id": "vouchers.no_vouchers",
+    "translation": "Sie haben noch keine Gutscheine."
+  },
+  {
+    "id": "vouchers.shared_by",
+    "translation": "Geteilt von {{.Name}}"
+  },
+  {
+    "id": "vouchers.shared_with_count",
+    "translation": "Geteilt mit {{.Count}} Person(en)"
+  },
+  {
+    "id": "vouchers.status.expired",
+    "translation": "Abgelaufen"
+  },
+  {
+    "id": "vouchers.status.not_yet_valid",
+    "translation": "Noch nicht gültig"
+  },
+  {
+    "id": "vouchers.status.valid",
+    "translation": "Gültig"
+  },
+  {
+    "id": "vouchers.title",
+    "translation": "Meine Gutscheine"
+  },
+  {
+    "id": "vouchers.type",
+    "translation": "Typ"
+  },
+  {
+    "id": "vouchers.valid_until",
+    "translation": "Gültig bis"
+  },
+  {
+    "id": "vouchers.value",
+    "translation": "Wert"
+  },
+  {
+    "id": "vouchers.view_only",
+    "translation": "Nur ansehen"
+  },
+  {
+    "id": "vouchers.my_voucher",
+    "translation": "Mein Gutschein"
+  },
+  {
+    "id": "vouchers.voucher_from",
+    "translation": "Gutschein von {{.Name}}"
+  },
+  {
+    "id": "giftcards.my_gift_card",
+    "translation": "Meine Geschenkkarte"
+  },
+  {
+    "id": "giftcards.gift_card_from",
+    "translation": "Geschenkkarte von {{.Name}}"
+  },
+  {
+    "id": "offline.badge",
+    "translation": "Offline"
+  }
+]

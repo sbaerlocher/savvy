@@ -1,0 +1,1761 @@
+package templates
+
+import "context"
+
+import (
+	"savvy/internal/models"
+	"savvy/internal/views"
+	"fmt"
+)
+
+// GiftCardsIndex lists all gift cards
+templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
+	@Layout(ctx, T(ctx, "giftcards.title"), view.User, view.IsImpersonating) {
+		<script>
+			function giftCardsFilter(currentUserId) {
+				return {
+					search: '',
+					ownerFilter: 'all',
+					statusFilter: 'active',
+					sortBy: 'merchant-asc',
+					currentUserId: currentUserId,
+					giftCards: [],
+					visibleCount: 0,
+
+					init() {
+						const cardElements = document.querySelectorAll('[x-show]');
+						this.giftCards = Array.from(cardElements).map(el => {
+							const match = el.getAttribute('x-show').match(/isVisible\('([^']*)', '([^']*)', '([^']*)', '([^']*)'\)/);
+							return match ? {
+								element: el,
+								merchant: match[1],
+								created: match[2],
+								status: match[3],
+								ownerId: match[4]
+							} : null;
+						}).filter(Boolean);
+						this.updateVisibility();
+					},
+
+					isVisible(merchant, created, status, ownerId) {
+						const searchMatches = merchant.toLowerCase().includes(this.search.toLowerCase());
+
+						const ownerMatches = this.ownerFilter === 'all' ||
+						                    (this.ownerFilter === 'mine' && ownerId === this.currentUserId);
+
+						const statusMatches = this.statusFilter === 'all-status' ||
+						                     (this.statusFilter === 'active' && status === 'active') ||
+						                     (this.statusFilter === 'redeemed' && status === 'redeemed') ||
+						                     (this.statusFilter === 'expired' && status === 'expired');
+
+						const matches = searchMatches && ownerMatches && statusMatches;
+
+						if (matches) {
+							this.$nextTick(() => this.updateSort());
+						}
+
+						return matches;
+					},
+
+					updateVisibility() {
+						this.$nextTick(() => {
+							const visible = this.giftCards.filter(card =>
+								card.merchant.toLowerCase().includes(this.search.toLowerCase())
+							);
+							this.visibleCount = visible.length;
+						});
+					},
+
+					updateSort() {
+						const container = this.giftCards[0]?.element.parentElement;
+						if (!container) return;
+
+						const sortedCards = [...this.giftCards].sort((a, b) => {
+							switch(this.sortBy) {
+								case 'merchant-asc': return a.merchant.localeCompare(b.merchant);
+								case 'merchant-desc': return b.merchant.localeCompare(a.merchant);
+								case 'newest': return b.created.localeCompare(a.created);
+								case 'oldest': return a.created.localeCompare(b.created);
+								default: return 0;
+							}
+						});
+
+						sortedCards.forEach(card => {
+							if (card.element.style.display !== 'none') {
+								container.appendChild(card.element);
+							}
+						});
+					}
+				}
+			}
+		</script>
+		<div class="px-4 py-8" x-data={ fmt.Sprintf("giftCardsFilter('%s')", view.User.ID.String()) } x-init="init()">
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">
+					{ T(ctx, "giftcards.title") }
+				</h1>
+				if len(view.GiftCards) > 0 {
+					// Suche, Filter, Sortierung und Neuer Button
+					<div class="space-y-3 mb-4">
+						<!-- Mobile: Stack vertically, Desktop: Row -->
+						<div class="flex flex-col sm:flex-row gap-3">
+							<!-- Search Bar -->
+							<div class="flex-1">
+								<input
+									type="text"
+									x-model="search"
+									@input="updateVisibility()"
+									placeholder={ T(ctx, "common.search_placeholder") }
+									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+							</div>
+							<!-- New Gift Card Button (Desktop) -->
+							<div class="relative hidden sm:block">
+								<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+									{ T(ctx, "giftcards.add_new") }
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						</div>
+
+						<!-- Filters Row -->
+						<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+							<select
+								x-model="ownerFilter"
+								@change="updateVisibility()"
+								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								<option value="all">{ T(ctx, "giftcards.filter.all_cards") }</option>
+								<option value="mine">{ T(ctx, "common.mine") }</option>
+							</select>
+							<select
+								x-model="statusFilter"
+								@change="updateVisibility()"
+								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								<option value="active">{ T(ctx, "giftcards.filter.active_only") }</option>
+								<option value="all-status">{ T(ctx, "cards.filter.all_status") }</option>
+								<option value="redeemed">{ T(ctx, "giftcards.filter.redeemed_only") }</option>
+								<option value="expired">{ T(ctx, "giftcards.filter.expired_only") }</option>
+							</select>
+							<select
+								x-model="sortBy"
+								@change="updateSort()"
+								class="col-span-2 sm:col-span-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								<option value="merchant-asc">{ T(ctx, "giftcards.sort.merchant_asc") }</option>
+								<option value="merchant-desc">{ T(ctx, "giftcards.sort.merchant_desc") }</option>
+								<option value="newest">{ T(ctx, "giftcards.sort.newest_first") }</option>
+								<option value="oldest">{ T(ctx, "giftcards.sort.oldest_first") }</option>
+							</select>
+							<!-- New Gift Card Button (Mobile only) -->
+							<div class="relative sm:hidden col-span-2">
+								<a
+									href="/gift-cards/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''"
+									class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-medium text-center text-sm block">
+									+ Neu
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						</div>
+					</div>
+				} else {
+					<div class="relative inline-block">
+						<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium inline-block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+							{ T(ctx, "giftcards.add_new") }
+						</a>
+						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+							🔒 { T(ctx, "offline.badge") }
+						</div>
+					</div>
+				}
+			</div>
+
+			if len(view.GiftCards) == 0 {
+				<div class="bg-gray-50 rounded-lg p-12 text-center">
+					<p class="text-gray-600 text-lg mb-4">{ T(ctx, "giftcards.no_giftcards") }</p>
+					<div class="relative inline-block">
+						<a href="/gift-cards/new" class="text-red-600 hover:text-red-700 font-medium" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+							{ T(ctx, "giftcards.create_first") }
+						</a>
+						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+							🔒 { T(ctx, "offline.badge") }
+						</div>
+					</div>
+				</div>
+			} else {
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					for _, giftCard := range view.GiftCards {
+						<a href={ templ.URL(fmt.Sprintf("/gift-cards/%s", giftCard.ID.String())) }
+						   class="block bg-white rounded-lg shadow-md hover:shadow-xl transition p-6"
+						   style={ fmt.Sprintf("border-left: 4px solid %s", giftCard.GetColor()) }
+						   x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s', '%s')",
+						   	giftCard.MerchantName,
+						   	giftCard.CreatedAt.Format("2006-01-02"),
+						   	giftCard.Status,
+						   	func() string { if giftCard.UserID != nil { return giftCard.UserID.String() } else { return "" } }()) }>
+							// Header: Händler + Status
+							<div class="flex items-center justify-between mb-3">
+								<h3 class="text-xl font-semibold text-gray-900">{ giftCard.MerchantName }</h3>
+								<span class={ "px-2 py-1 text-xs rounded-full " + giftCardStatusClass(giftCard.Status) }>
+									{ giftCardStatusText(ctx, giftCard.Status) }
+								</span>
+							</div>
+
+							// Geteilt-Info (falls vorhanden)
+							if giftCard.UserID != nil && giftCard.User != nil && *giftCard.UserID != view.User.ID {
+								<div class="flex items-center gap-1 mb-3">
+									<svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+									</svg>
+									<span class="text-xs text-blue-600 font-medium">
+										{ T(ctx, "giftcards.shared_by", map[string]any{"Name": giftCard.User.DisplayName()}) }
+									</span>
+								</div>
+							}
+
+							// Guthaben: Label + Wert auf einer Linie
+							<div class="flex items-baseline justify-between mb-3">
+								<p class="text-xs text-gray-600">{ T(ctx, "giftcards.current_balance") }</p>
+								<p class="text-2xl font-bold" style={ fmt.Sprintf("color: %s", giftCard.GetColor()) }>
+									{ fmt.Sprintf("%.2f %s", giftCard.CurrentBalance, giftCard.Currency) }
+								</p>
+							</div>
+
+							// Barcode kompakt
+							<div class="bg-white border border-gray-200 rounded p-3 mb-3">
+								<div class="flex justify-center mb-2">
+									<img
+										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)) }
+										alt={ fmt.Sprintf("%s Barcode", giftCard.BarcodeType) }
+										class="h-12 w-auto object-contain"/>
+								</div>
+								<p class="text-center text-xs text-gray-600 font-mono">{ giftCard.CardNumber }</p>
+							</div>
+
+							<div class="flex justify-between text-xs text-gray-600">
+								if giftCard.ExpiresAt != nil {
+									<span>{ T(ctx, "vouchers.valid_until") }: { giftCard.ExpiresAt.Format("02.01.2006") }</span>
+								} else {
+									<span>{ T(ctx, "giftcards.no_expiry") }</span>
+								}
+								<span>{ T(ctx, "giftcards.transaction_count", map[string]any{"Count": len(giftCard.Transactions)}) }</span>
+							</div>
+						</a>
+					}
+				</div>
+
+				// Keine Ergebnisse Nachricht
+				<div x-show="visibleCount === 0" class="bg-gray-50 rounded-lg p-12 text-center">
+					<p class="text-gray-600 text-lg">{ T(ctx, "giftcards.no_results") }</p>
+				</div>
+			}
+		</div>
+	}
+}
+
+// GiftCardsShow displays a single gift card with transactions
+templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardShowView) {
+	@Layout(ctx, fmt.Sprintf("%s %s", T(ctx, "home.recent_items.giftcard"), view.GiftCard.MerchantName), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-6xl mx-auto" x-data>
+			<div class="mb-6">
+				<a href="/gift-cards" class="text-red-600 hover:text-red-700">
+					{ T(ctx, "giftcards.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Gift Card Details -->
+				<div class="lg:col-span-2" id="gift-card-detail">
+					@GiftCardDetailView(ctx, csrfToken, view.GiftCard, view.User, view.Permissions.CanEdit, view.Permissions.IsFavorite)
+				</div>
+
+				<!-- Right column: Balance & Transactions -->
+				<div class="lg:col-span-1">
+					<div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+						// Guthaben
+						<div class="mb-6">
+							<p class="text-sm text-gray-700 mb-1">{ T(ctx, "giftcards.current_balance") }</p>
+							<p class="text-3xl font-bold" style={ fmt.Sprintf("color: %s", view.GiftCard.GetColor()) }>
+								{ fmt.Sprintf("%.2f %s", view.GiftCard.CurrentBalance, view.GiftCard.Currency) }
+							</p>
+							<div class="mt-3 bg-gray-200 rounded-full h-3">
+								<div class="bg-red-600 h-3 rounded-full transition-all" style={ fmt.Sprintf("width: %d%%", giftCardBalancePercent(view.GiftCard)) }></div>
+							</div>
+							<p class="text-xs text-gray-600 mt-2">
+								{ T(ctx, "giftcards.initial_balance") }: { fmt.Sprintf("%.2f %s", view.GiftCard.InitialBalance, view.GiftCard.Currency) }
+							</p>
+						</div>
+
+						// Transaktionen
+						<div class="border-t pt-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-sm font-medium text-gray-700">
+									{ T(ctx, "giftcards.transactions") }
+								</h3>
+								if view.Permissions.CanEditTransactions {
+									<button
+										hx-get={ fmt.Sprintf("/gift-cards/%s/transactions/new", view.GiftCard.ID.String()) }
+										hx-target="#transaction-form"
+										hx-swap="innerHTML"
+										class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+										:disabled="$store.offline && !$store.offline.isOnline"
+										:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
+										<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "giftcards.transaction.new") }</span>
+										<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "giftcards.transaction.new") }</span>
+									</button>
+								}
+							</div>
+
+							<div id="transaction-form" class="mb-4"></div>
+
+							if len(view.GiftCard.Transactions) == 0 {
+								<div class="text-center py-8 bg-gray-50 rounded">
+									<p class="text-gray-500 text-sm">{ T(ctx, "giftcards.no_transactions") }</p>
+								</div>
+							} else {
+								<div class="space-y-2 max-h-96 overflow-y-auto">
+									for _, tx := range view.GiftCard.Transactions {
+										<div class="flex items-start justify-between text-sm bg-gray-50 rounded px-3 py-2">
+											<div class="flex-1">
+												<p class="font-medium text-gray-900">-{ fmt.Sprintf("%.2f %s", tx.Amount, view.GiftCard.Currency) }</p>
+												<p class="text-xs text-gray-600">{ tx.Description }</p>
+												<p class="text-xs text-gray-500 mt-0.5">{ tx.TransactionDate.Format("02.01.2006") }</p>
+											</div>
+											if view.Permissions.CanEditTransactions {
+												<button
+													hx-delete={ fmt.Sprintf("/gift-cards/%s/transactions/%s", view.GiftCard.ID.String(), tx.ID.String()) }
+													hx-confirm={ T(ctx, "giftcards.transaction.delete_confirm") }
+													hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+													class="text-red-600 hover:text-red-800 text-xs ml-2"
+											:disabled="$store.offline && !$store.offline.isOnline"
+											:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+											:title="$store.offline && !$store.offline.isOnline ? 'Löschen nur online möglich' : ''">
+													✕
+												</button>
+											}
+										</div>
+									}
+								</div>
+							}
+						</div>
+					</div>
+
+					// Sharing Card (only for owners)
+					if view.GiftCard.UserID != nil && *view.GiftCard.UserID == view.User.ID {
+						<div class="bg-white rounded-lg shadow-lg p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold text-gray-900">{ T(ctx, "share.title") }</h3>
+								<button
+									hx-get={ fmt.Sprintf("/gift-cards/%s/shares/new-inline", view.GiftCard.ID.String()) }
+									hx-target="#share-form"
+									hx-swap="innerHTML"
+									class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+									:disabled="$store.offline && !$store.offline.isOnline"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
+									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "share.add") }</span>
+									<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "share.add") }</span>
+								</button>
+							</div>
+
+							<div id="share-form" class="mb-4"></div>
+
+							if len(view.Shares) > 0 {
+								<div class="space-y-3">
+									for _, share := range view.Shares {
+										<div class="border border-gray-200 rounded-lg p-3" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+											<div class="flex justify-between items-start mb-2">
+												<div class="flex-1">
+													<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+													<p class="text-xs text-gray-500">{ share.SharedWithUser.Email }</p>
+												</div>
+												<button
+													hx-get={ fmt.Sprintf("/gift-cards/%s/shares/%s/edit-inline", view.GiftCard.ID.String(), share.ID.String()) }
+													hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+													hx-swap="outerHTML"
+													class="text-blue-600 hover:text-blue-800 text-xs"
+													:disabled="$store.offline && !$store.offline.isOnline"
+													:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
+													<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
+													<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+												</button>
+											</div>
+											<div class="flex flex-wrap gap-1">
+												if share.CanEdit {
+													<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit") }</span>
+												}
+												if share.CanDelete {
+													<span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_delete") }</span>
+												}
+												if share.CanEditTransactions {
+													<span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit_transactions") }</span>
+												}
+												if !share.CanEdit && !share.CanDelete && !share.CanEditTransactions {
+													<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{ T(ctx, "common.view") }</span>
+												}
+											</div>
+										</div>
+									}
+								</div>
+							} else {
+								<p class="text-sm text-gray-500 text-center py-4">{ T(ctx, "share.not_shared_giftcard") }</p>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// GiftCardsNew shows the form to create a new gift card
+templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEditView) {
+	@Layout(ctx, T(ctx, "giftcards.new.title"), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-7xl mx-auto" x-data="Object.assign(giftCardForm(), emailAutocomplete(), { canEdit: false, canDelete: false, canEditTransactions: false })">
+			<div class="mb-6">
+				<a href="/gift-cards" class="text-red-600 hover:text-red-700">
+					{ T(ctx, "giftcards.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Form (2/3 width) -->
+				<div class="lg:col-span-2">
+					<div class="bg-white rounded-lg shadow-lg p-8">
+						<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "giftcards.new.title") }</h1>
+
+						<form method="POST" action="/gift-cards" class="space-y-6">
+							@CSRFField(csrfToken)
+							<div>
+								<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "cards.form.merchant_required") }
+								</label>
+								<select
+									id="merchant-select"
+									name="merchant_id"
+									required
+									style="font-size: 16px; line-height: 2.5;"
+									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+									<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+									for _, merchant := range view.Merchants {
+										<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+									}
+								</select>
+								<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+							</div>
+
+							<div>
+								<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "cards.form.card_number_required") }
+								</label>
+								<div class="flex gap-2">
+									<input
+										type="text"
+										id="card_number"
+										name="card_number"
+										x-model="cardNumber"
+										required
+										class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"
+										placeholder={ T(ctx, "giftcards.form.card_number_placeholder") }/>
+									<button
+										type="button"
+										@click="startScanning()"
+										class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+										title={ T(ctx, "cards.form.scan_camera") }>
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+										</svg>
+										<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+									</button>
+								</div>
+							</div>
+
+							// Scanner Modal
+							<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+								<div class="bg-white rounded-lg max-w-md w-full p-6">
+									<div class="flex justify-between items-center mb-4">
+										<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+										<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+											<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+											</svg>
+										</button>
+									</div>
+									<div class="relative">
+										<div id="qr-reader" class="w-full rounded-lg"></div>
+										<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+											<div class="w-3/4 h-16 border-2 border-red-500 rounded"></div>
+										</div>
+									</div>
+									<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+								</div>
+							</div>
+
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<label for="initial_balance" class="block text-sm font-medium text-gray-700 mb-1">
+										{ T(ctx, "giftcards.form.initial_balance_required") }
+									</label>
+									<input
+										type="number"
+										id="initial_balance"
+										name="initial_balance"
+										step="0.01"
+										min="0"
+										required
+										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+										placeholder={ T(ctx, "giftcards.form.initial_balance_placeholder") }/>
+								</div>
+
+								<div>
+									<label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
+										{ T(ctx, "giftcards.form.currency") }
+									</label>
+									<select
+										id="currency"
+										name="currency"
+										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+										<option value="CHF" selected>CHF</option>
+										<option value="EUR">EUR</option>
+										<option value="USD">USD</option>
+									</select>
+								</div>
+							</div>
+
+							<div>
+								<label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "giftcards.form.pin_optional") }
+								</label>
+								<input
+									type="text"
+									id="pin"
+									name="pin"
+									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"
+									placeholder={ T(ctx, "giftcards.form.pin_placeholder") }/>
+							</div>
+
+							<div>
+								<label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "giftcards.form.expiry_optional") }
+								</label>
+								<input
+									type="date"
+									id="expires_at"
+									name="expires_at"
+									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+							</div>
+
+							<div>
+								<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "cards.barcode_type") }
+								</label>
+								<select
+									id="barcode_type"
+									name="barcode_type"
+									style="font-size: 16px; line-height: 2.5;"
+									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+									<option value="CODE128" selected>CODE128</option>
+									<option value="CODE39">CODE39</option>
+									<option value="CODE93">CODE93</option>
+									<option value="CODABAR">CODABAR</option>
+									<option value="QR">QR Code</option>
+									<option value="EAN13">EAN-13</option>
+									<option value="EAN8">EAN-8</option>
+									<option value="UPCA">UPC-A</option>
+									<option value="UPCE">UPC-E</option>
+									<option value="ITF">ITF</option>
+									<option value="ITF14">ITF-14</option>
+									<option value="ISBN13">ISBN-13</option>
+									<option value="PDF417">PDF417</option>
+									<option value="DATAMATRIX">Data Matrix</option>
+									<option value="AZTEC">Aztec</option>
+									<option value="MAXICODE">MaxiCode</option>
+								</select>
+							</div>
+
+							<div>
+								<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "cards.notes") }
+								</label>
+								<textarea
+									id="notes"
+									name="notes"
+									rows="3"
+									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+									placeholder={ T(ctx, "giftcards.form.notes_placeholder") }></textarea>
+							</div>
+
+							<div class="flex gap-3 pt-4">
+								<button
+									type="submit"
+									class="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium">
+									{ T(ctx, "giftcards.form.create_button") }
+								</button>
+								<a
+									href="/gift-cards"
+									class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+									{ T(ctx, "common.cancel") }
+								</a>
+							</div>
+
+							<!-- Hidden fields for sharing -->
+							<input type="hidden" name="share_with_email" x-model="email"/>
+							<input type="hidden" name="share_can_edit" :value="canEdit ? 'true' : 'false'"/>
+							<input type="hidden" name="share_can_delete" :value="canDelete ? 'true' : 'false'"/>
+							<input type="hidden" name="share_can_edit_transactions" :value="canEditTransactions ? 'true' : 'false'"/>
+						</form>
+					</div>
+				</div>
+
+				<!-- Right column: Sharing (1/3 width) -->
+				<div class="lg:col-span-1">
+					<div class="bg-white rounded-lg shadow-lg p-6">
+						<h2 class="text-xl font-bold text-gray-900 mb-4">
+							{ T(ctx, "share.share_gift_card") }
+						</h2>
+						<p class="text-sm text-gray-600 mb-4">
+							{ T(ctx, "share.share_on_create_help") }
+						</p>
+
+						<div class="space-y-4">
+							<!-- Email Input with Autocomplete -->
+							<div class="relative">
+								<label for="share_email_gc" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "share.email_optional") }
+								</label>
+								<input
+									type="email"
+									id="share_email_gc"
+									x-model="email"
+									@input.debounce.300ms="fetchSuggestions()"
+									@keydown="handleKeydown($event)"
+									@blur="hideSuggestions()"
+									class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+									placeholder={ T(ctx, "share.email_placeholder") }
+									autocomplete="off"/>
+
+								<!-- Autocomplete Dropdown -->
+								<div
+									x-show="showSuggestions"
+									x-cloak
+									class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+									<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+										<button
+											type="button"
+											@click="selectSuggestion(suggestion)"
+											:class="{ 'bg-red-50': index === selectedIndex }"
+											class="w-full text-left px-4 py-2 hover:bg-red-50 border-b border-gray-100 last:border-b-0">
+											<div class="flex flex-col">
+												<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+												<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+											</div>
+										</button>
+									</template>
+								</div>
+							</div>
+
+							<!-- Permissions -->
+							<div class="space-y-3" x-show="email.length > 0">
+								<div class="flex items-start">
+									<input
+										type="checkbox"
+										id="share_can_edit_gc"
+										x-model="canEdit"
+										class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+									<label for="share_can_edit_gc" class="ml-2 block text-sm text-gray-900">
+										<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+										<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+									</label>
+								</div>
+								<div class="flex items-start">
+									<input
+										type="checkbox"
+										id="share_can_delete_gc"
+										x-model="canDelete"
+										class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+									<label for="share_can_delete_gc" class="ml-2 block text-sm text-gray-900">
+										<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+										<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+									</label>
+								</div>
+								<div class="flex items-start">
+									<input
+										type="checkbox"
+										id="share_can_edit_transactions_gc"
+										x-model="canEditTransactions"
+										class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+									<label for="share_can_edit_transactions_gc" class="ml-2 block text-sm text-gray-900">
+										<span class="font-medium">{ T(ctx, "share.allow_transactions") }</span>
+										<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_transactions_desc") }</p>
+									</label>
+								</div>
+							</div>
+
+							<!-- Info Box -->
+							<div class="bg-red-50 border border-red-200 rounded-lg p-3">
+								<h4 class="font-medium text-red-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+								<ul class="text-xs text-red-800 space-y-1">
+									<li>✓ { T(ctx, "share.shared_items.giftcard.number") }</li>
+									<li>✓ { T(ctx, "share.shared_items.giftcard.balance") }</li>
+									<li>✓ { T(ctx, "share.shared_items.giftcard.transactions") }</li>
+									<li>✓ { T(ctx, "share.shared_items.giftcard.pin") }</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// GiftCardsEdit shows the form to edit a gift card
+templ GiftCardsEdit(ctx context.Context, csrfToken string, view views.GiftCardEditView) {
+	@Layout(ctx, T(ctx, "giftcards.edit.title"), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href={ templ.URL(fmt.Sprintf("/gift-cards/%s", view.GiftCard.ID.String())) } class="text-red-600 hover:text-red-700">
+					{ T(ctx, "giftcards.back_to_card") }
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8" x-data={ fmt.Sprintf("giftCardForm('%s')", view.GiftCard.CardNumber) }>
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "giftcards.edit.title") }</h1>
+
+				<form method="POST" action={ templ.URL(fmt.Sprintf("/gift-cards/%s", view.GiftCard.ID.String())) } class="space-y-6">
+					@CSRFField(csrfToken)
+					<input type="hidden" name="_method" value="PUT"/>
+
+					<div>
+						<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.merchant_required") }
+						</label>
+						<select
+							id="merchant-select"
+							name="merchant_id"
+							required
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+							for _, merchant := range view.Merchants {
+								if view.GiftCard.MerchantID != nil && merchant.ID == *view.GiftCard.MerchantID {
+									<option value={ merchant.ID.String() } selected>{ merchant.Name }</option>
+								} else {
+									<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+								}
+							}
+						</select>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+					</div>
+
+					<div>
+						<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.card_number_required") }
+						</label>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="card_number"
+								name="card_number"
+								x-model="cardNumber"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"/>
+							<button
+								type="button"
+								@click="startScanning()"
+								class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+								title={ T(ctx, "cards.form.scan_camera") }>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+							</button>
+						</div>
+					</div>
+
+					// Scanner Modal
+					<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+						<div class="bg-white rounded-lg max-w-md w-full p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+								<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+									<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="relative">
+								<div id="qr-reader" class="w-full rounded-lg"></div>
+								<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+									<div class="w-3/4 h-16 border-2 border-red-500 rounded"></div>
+								</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="initial_balance" class="block text-sm font-medium text-gray-700 mb-1">
+								{ T(ctx, "giftcards.form.initial_balance_required") }
+							</label>
+							<input
+								type="number"
+								id="initial_balance"
+								name="initial_balance"
+								step="0.01"
+								min="0"
+								value={ fmt.Sprintf("%.2f", view.GiftCard.InitialBalance) }
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+						</div>
+
+						<div>
+							<label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
+								{ T(ctx, "giftcards.form.currency") }
+							</label>
+							<select
+								id="currency"
+								name="currency"
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+								<option value="CHF" selected?={ view.GiftCard.Currency == "CHF" }>CHF</option>
+								<option value="EUR" selected?={ view.GiftCard.Currency == "EUR" }>EUR</option>
+								<option value="USD" selected?={ view.GiftCard.Currency == "USD" }>USD</option>
+							</select>
+						</div>
+					</div>
+
+					<div>
+						<label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "giftcards.form.pin_optional") }
+						</label>
+						<input
+							type="text"
+							id="pin"
+							name="pin"
+							value={ view.GiftCard.PIN }
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"/>
+					</div>
+
+					<div>
+						<label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "giftcards.form.expiry_optional") }
+						</label>
+						<input
+							type="date"
+							id="expires_at"
+							name="expires_at"
+							if view.GiftCard.ExpiresAt != nil {
+								value={ view.GiftCard.ExpiresAt.Format("2006-01-02") }
+							}
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+					</div>
+
+					<div>
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.status") }
+						</label>
+						<select
+							id="status"
+							name="status"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+							<option value="active" selected?={ view.GiftCard.Status == "active" }>{ T(ctx, "giftcards.form.status.active") }</option>
+							<option value="redeemed" selected?={ view.GiftCard.Status == "redeemed" }>{ T(ctx, "giftcards.form.status.redeemed") }</option>
+							<option value="expired" selected?={ view.GiftCard.Status == "expired" }>{ T(ctx, "giftcards.form.status.expired") }</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.barcode_type") }
+						</label>
+						<select
+							id="barcode_type"
+							name="barcode_type"
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+							<option value="CODE128" selected?={ view.GiftCard.BarcodeType == "CODE128" }>CODE128</option>
+							<option value="CODE39" selected?={ view.GiftCard.BarcodeType == "CODE39" }>CODE39</option>
+							<option value="CODE93" selected?={ view.GiftCard.BarcodeType == "CODE93" }>CODE93</option>
+							<option value="CODABAR" selected?={ view.GiftCard.BarcodeType == "CODABAR" }>CODABAR</option>
+							<option value="QR" selected?={ view.GiftCard.BarcodeType == "QR" }>QR Code</option>
+							<option value="EAN13" selected?={ view.GiftCard.BarcodeType == "EAN13" }>EAN-13</option>
+							<option value="EAN8" selected?={ view.GiftCard.BarcodeType == "EAN8" }>EAN-8</option>
+							<option value="UPCA" selected?={ view.GiftCard.BarcodeType == "UPCA" }>UPC-A</option>
+							<option value="UPCE" selected?={ view.GiftCard.BarcodeType == "UPCE" }>UPC-E</option>
+							<option value="ITF" selected?={ view.GiftCard.BarcodeType == "ITF" }>ITF</option>
+							<option value="ITF14" selected?={ view.GiftCard.BarcodeType == "ITF14" }>ITF-14</option>
+							<option value="ISBN13" selected?={ view.GiftCard.BarcodeType == "ISBN13" }>ISBN-13</option>
+							<option value="PDF417" selected?={ view.GiftCard.BarcodeType == "PDF417" }>PDF417</option>
+							<option value="DATAMATRIX" selected?={ view.GiftCard.BarcodeType == "DATAMATRIX" }>Data Matrix</option>
+							<option value="AZTEC" selected?={ view.GiftCard.BarcodeType == "AZTEC" }>Aztec</option>
+							<option value="MAXICODE" selected?={ view.GiftCard.BarcodeType == "MAXICODE" }>MaxiCode</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.notes") }
+						</label>
+						<textarea
+							id="notes"
+							name="notes"
+							rows="3"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">{ view.GiftCard.Notes }</textarea>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium">
+							{ T(ctx, "cards.form.save_button") }
+						</button>
+						<a
+							href={ templ.URL(fmt.Sprintf("/gift-cards/%s", view.GiftCard.ID.String())) }
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							{ T(ctx, "common.cancel") }
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// TransactionNewForm is the inline form for adding a new transaction
+templ TransactionNewForm(ctx context.Context, csrfToken string, giftCardID string) {
+	@TransactionNewFormWithError(ctx, csrfToken, giftCardID, "")
+}
+
+// TransactionNewFormWithError is the form with an optional error message
+templ TransactionNewFormWithError(ctx context.Context, csrfToken string, giftCardID string, errorMsg string) {
+	<form hx-post={ fmt.Sprintf("/gift-cards/%s/transactions", giftCardID) }
+	      hx-target="#transaction-form"
+	      hx-swap="innerHTML"
+	      class="bg-gray-50 rounded-lg p-4 mb-4"
+	      x-data="{ today: new Date().toISOString().split('T')[0] }"
+	      x-init="$nextTick(() => { $refs.dateInput.value = today })">
+		@CSRFField(csrfToken)
+		<h3 class="font-medium text-gray-900 mb-3">{ T(ctx, "giftcards.add_transaction") }</h3>
+		if errorMsg != "" {
+			<div class="mb-3 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded text-sm">
+				{ errorMsg }
+			</div>
+		}
+		<div class="space-y-3">
+			<div>
+				<label for="amount" class="block text-xs font-medium text-gray-700 mb-1">{ T(ctx, "giftcards.transaction.amount") }</label>
+				<input
+					type="number"
+					id="amount"
+					name="amount"
+					step="0.01"
+					min="0.01"
+					required
+					class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+					placeholder={ T(ctx, "giftcards.transaction.amount_placeholder") }/>
+			</div>
+			<div>
+				<label for="description" class="block text-xs font-medium text-gray-700 mb-1">{ T(ctx, "giftcards.transaction.description") }</label>
+				<input
+					type="text"
+					id="description"
+					name="description"
+					required
+					class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+					placeholder={ T(ctx, "giftcards.transaction.description_placeholder") }/>
+			</div>
+			<div>
+				<label for="transaction_date" class="block text-xs font-medium text-gray-700 mb-1">{ T(ctx, "giftcards.transaction.date") }</label>
+				<input
+					type="date"
+					id="transaction_date"
+					name="transaction_date"
+					x-ref="dateInput"
+					required
+					class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"/>
+			</div>
+			<div class="flex gap-2">
+				<button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Transaktion nur online möglich' : ''">
+					{ T(ctx, "giftcards.transaction.add_button") }
+				</button>
+				<button type="button"
+				        hx-get={ fmt.Sprintf("/gift-cards/%s/transactions/cancel", giftCardID) }
+				        hx-target="#transaction-form"
+				        hx-swap="innerHTML"
+				        class="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
+				        :disabled="$store.offline && !$store.offline.isOnline"
+				        :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+				        :title="$store.offline && !$store.offline.isOnline ? 'Abbrechen nur online möglich' : ''">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+		</div>
+	</form>
+}
+
+// Helper functions
+func giftCardStatusClass(status string) string {
+	switch status {
+	case "active":
+		return "bg-green-100 text-green-800"
+	case "redeemed":
+		return "bg-gray-100 text-gray-800"
+	case "expired":
+		return "bg-red-100 text-red-800"
+	default:
+		return "bg-gray-100 text-gray-800"
+	}
+}
+
+func giftCardStatusText(ctx context.Context, status string) string {
+	switch status {
+	case "active":
+		return T(ctx, "giftcards.form.status.active")
+	case "redeemed":
+		return T(ctx, "giftcards.form.status.redeemed")
+	case "expired":
+		return T(ctx, "giftcards.form.status.expired")
+	default:
+		return status
+	}
+}
+
+func giftCardBalancePercent(giftCard models.GiftCard) int {
+	if giftCard.InitialBalance == 0 {
+		return 0
+	}
+	return int((giftCard.CurrentBalance / giftCard.InitialBalance) * 100)
+}
+
+// Favorite button helper functions
+func giftCardFavoriteButtonClass(isFavorite bool) string {
+	if isFavorite {
+		return "bg-yellow-500 hover:bg-yellow-600 text-white"
+	}
+	return "bg-gray-200 hover:bg-gray-300 text-gray-700"
+}
+
+func giftCardFavoriteButtonTitle(ctx context.Context, isFavorite bool) string {
+	if isFavorite {
+		return T(ctx, "favorites.remove_from_favorites")
+	}
+	return T(ctx, "favorites.add_to_favorites")
+}
+
+// GiftCardFavoriteButton renders the favorite toggle button for gift cards
+templ GiftCardFavoriteButton(ctx context.Context, giftCardID string, isFavorite bool, csrfToken string) {
+	<button
+		hx-post={ fmt.Sprintf("/gift-cards/%s/favorite", giftCardID) }
+		hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+		hx-swap="outerHTML"
+		class={ "px-3 py-1 rounded text-sm transition " + giftCardFavoriteButtonClass(isFavorite) }
+		:disabled="$store.offline && !$store.offline.isOnline"
+		:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+		:title="$store.offline && !$store.offline.isOnline ? 'Favorit nur online möglich' : ''"
+		title={ giftCardFavoriteButtonTitle(ctx, isFavorite) }>
+		if isFavorite {
+			⭐
+		} else {
+			☆
+		}
+	</button>
+}
+
+// GiftCardShareInlineForm - Inline form to add a new share
+templ GiftCardShareInlineForm(ctx context.Context, csrfToken string, giftCardID string) {
+	<div class="border border-red-200 bg-red-50 rounded-lg p-4 mb-3">
+		<form
+			hx-post={ fmt.Sprintf("/gift-cards/%s/shares", giftCardID) }
+			hx-target="#share-form"
+			hx-swap="innerHTML"
+			class="space-y-4"
+			x-data="emailAutocomplete()">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div class="relative">
+				<label for="shared_with_email" class="block text-sm font-medium text-gray-700 mb-1">
+					{ T(ctx, "share.email_required") }
+				</label>
+				<input
+					type="email"
+					id="shared_with_email"
+					name="shared_with_email"
+					required
+					x-model="email"
+					@input.debounce.300ms="fetchSuggestions()"
+					@keydown="handleKeydown($event)"
+					@blur="hideSuggestions()"
+					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+					placeholder={ T(ctx, "share.email_placeholder") }
+					autocomplete="off"/>
+
+				<!-- Autocomplete Dropdown -->
+				<div
+					x-show="showSuggestions"
+					x-cloak
+					class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<button
+							type="button"
+							@click="selectSuggestion(suggestion)"
+							:class="{ 'bg-red-50': index === selectedIndex }"
+							class="w-full text-left px-4 py-2 hover:bg-red-50 border-b border-gray-100 last:border-b-0">
+							<div class="flex flex-col">
+								<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+								<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+							</div>
+						</button>
+					</template>
+				</div>
+
+				<p class="text-xs text-gray-500 mt-1">
+					{ T(ctx, "share.email_help") }
+				</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_inline"
+						name="can_edit"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_edit_inline" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_delete_inline"
+						name="can_delete"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_delete_inline" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_transactions_inline"
+						name="can_edit_transactions"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_edit_transactions_inline" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_transactions") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_transactions_desc") }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="bg-white border border-red-200 rounded-lg p-3">
+				<h4 class="font-medium text-red-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+				<ul class="text-xs text-red-800 space-y-1">
+					<li>✓ { T(ctx, "share.shared_items.giftcard.number") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.balance") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.transactions") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.pin") }</li>
+				</ul>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+						:disabled="$store.offline && !$store.offline.isOnline"
+						:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+						:title="$store.offline && !$store.offline.isOnline ? 'Teilen nur online möglich' : ''">
+					{ T(ctx, "share.share_now") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/gift-cards/%s/shares/cancel", giftCardID) }
+					hx-target="#share-form"
+					hx-swap="innerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Abbrechen nur online möglich' : ''">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// GiftCardShareInlineFormError - Inline form with error message
+templ GiftCardShareInlineFormError(ctx context.Context, csrfToken string, giftCardID string, errorMsg string) {
+	<div class="border border-red-200 bg-red-50 rounded-lg p-4 mb-3">
+		<div class="mb-3 bg-white border border-red-300 rounded-lg p-3">
+			<div class="flex items-center gap-2">
+				<svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				<p class="text-sm font-medium text-red-800">{ errorMsg }</p>
+			</div>
+		</div>
+
+		<form
+			hx-post={ fmt.Sprintf("/gift-cards/%s/shares", giftCardID) }
+			hx-target="#share-form"
+			hx-swap="innerHTML"
+			class="space-y-4"
+			x-data="emailAutocomplete()">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div class="relative">
+				<label for="shared_with_email" class="block text-sm font-medium text-gray-700 mb-1">
+					{ T(ctx, "share.email_required") }
+				</label>
+				<input
+					type="email"
+					id="shared_with_email"
+					name="shared_with_email"
+					required
+					x-model="email"
+					@input.debounce.300ms="fetchSuggestions()"
+					@keydown="handleKeydown($event)"
+					@blur="hideSuggestions()"
+					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+					placeholder={ T(ctx, "share.email_placeholder") }
+					autocomplete="off"/>
+
+				<!-- Autocomplete Dropdown -->
+				<div
+					x-show="showSuggestions"
+					x-cloak
+					class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<button
+							type="button"
+							@click="selectSuggestion(suggestion)"
+							:class="{ 'bg-red-50': index === selectedIndex }"
+							class="w-full text-left px-4 py-2 hover:bg-red-50 border-b border-gray-100 last:border-b-0">
+							<div class="flex flex-col">
+								<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+								<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+							</div>
+						</button>
+					</template>
+				</div>
+
+				<p class="text-xs text-gray-500 mt-1">
+					{ T(ctx, "share.email_help") }
+				</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_inline_err"
+						name="can_edit"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_edit_inline_err" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_delete_inline_err"
+						name="can_delete"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_delete_inline_err" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_transactions_inline_err"
+						name="can_edit_transactions"
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for="can_edit_transactions_inline_err" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_transactions") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_transactions_desc") }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="bg-white border border-red-200 rounded-lg p-3">
+				<h4 class="font-medium text-red-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+				<ul class="text-xs text-red-800 space-y-1">
+					<li>✓ { T(ctx, "share.shared_items.giftcard.number") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.balance") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.transactions") }</li>
+					<li>✓ { T(ctx, "share.shared_items.giftcard.pin") }</li>
+				</ul>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+						:disabled="$store.offline && !$store.offline.isOnline"
+						:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+						:title="$store.offline && !$store.offline.isOnline ? 'Teilen nur online möglich' : ''">
+					{ T(ctx, "share.share_now") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/gift-cards/%s/shares/cancel", giftCardID) }
+					hx-target="#share-form"
+					hx-swap="innerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Abbrechen nur online möglich' : ''">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// GiftCardShareInlineEdit - Inline form to edit share permissions
+templ GiftCardShareInlineEdit(ctx context.Context, csrfToken string, giftCardID string, share models.GiftCardShare) {
+	<div class="border border-red-200 bg-red-50 rounded-lg p-4" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+		<form
+			hx-post={ fmt.Sprintf("/gift-cards/%s/shares/%s", giftCardID, share.ID.String()) }
+			hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+			hx-swap="outerHTML"
+			class="space-y-3">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div>
+				<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+				<p class="text-xs text-gray-500 mb-3">{ share.SharedWithUser.Email }</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id={ fmt.Sprintf("can_edit_%s", share.ID.String()) }
+						name="can_edit"
+						checked?={ share.CanEdit }
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for={ fmt.Sprintf("can_edit_%s", share.ID.String()) } class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id={ fmt.Sprintf("can_delete_%s", share.ID.String()) }
+						name="can_delete"
+						checked?={ share.CanDelete }
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for={ fmt.Sprintf("can_delete_%s", share.ID.String()) } class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Geschenkkarte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id={ fmt.Sprintf("can_edit_transactions_%s", share.ID.String()) }
+						name="can_edit_transactions"
+						checked?={ share.CanEditTransactions }
+						class="mt-0.5 h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"/>
+					<label for={ fmt.Sprintf("can_edit_transactions_%s", share.ID.String()) } class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_transactions") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_transactions_desc") }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium"
+						:disabled="$store.offline && !$store.offline.isOnline"
+						:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+						:title="$store.offline && !$store.offline.isOnline ? 'Teilen nur online möglich' : ''">
+					{ T(ctx, "common.save") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/gift-cards/%s/shares/%s/cancel-edit", giftCardID, share.ID.String()) }
+					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+					hx-swap="outerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Abbrechen nur online möglich' : ''">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+			<div class="pt-3 border-t border-red-200 mt-3">
+				<button
+					type="button"
+					hx-delete={ fmt.Sprintf("/gift-cards/%s/shares/%s", giftCardID, share.ID.String()) }
+					hx-confirm={ T(ctx, "share.revoke_confirm") }
+					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+					hx-swap="outerHTML"
+					hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+					class="w-full text-red-600 hover:text-red-800 text-sm font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Löschen nur online möglich' : ''">
+					{ T(ctx, "share.remove") }
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// GiftCardShareDisplay - Display a share (for returning after edit)
+templ GiftCardShareDisplay(ctx context.Context, csrfToken string, giftCardID string, share models.GiftCardShare, isOwner bool) {
+	<div class="border border-gray-200 rounded-lg p-3" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+		<div class="flex justify-between items-start mb-2">
+			<div class="flex-1">
+				<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+				<p class="text-xs text-gray-500">{ share.SharedWithUser.Email }</p>
+			</div>
+			if isOwner {
+				<button
+					hx-get={ fmt.Sprintf("/gift-cards/%s/shares/%s/edit-inline", giftCardID, share.ID.String()) }
+					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+					hx-swap="outerHTML"
+					class="text-blue-600 hover:text-blue-800 text-xs"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
+					<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
+					<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+				</button>
+			}
+		</div>
+		<div class="flex flex-wrap gap-1">
+			if share.CanEdit {
+				<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit") }</span>
+			}
+			if share.CanDelete {
+				<span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_delete") }</span>
+			}
+			if share.CanEditTransactions {
+				<span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit_transactions") }</span>
+			}
+			if !share.CanEdit && !share.CanDelete && !share.CanEditTransactions {
+				<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{ T(ctx, "common.view") }</span>
+			}
+		</div>
+	</div>
+}
+
+// GiftCardDetailView - Gift card detail view mode
+templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.GiftCard, currentUser *models.User, canEdit bool, isFavorite bool) {
+	<div class="bg-white rounded-lg shadow-lg overflow-hidden"
+	     style={ fmt.Sprintf("border-top: 6px solid %s", giftCard.GetColor()) }>
+		<div class="p-6">
+			// Single row: Händler | "Meine Geschenkkarte"/"Geschenkkarte von..." | Bearbeiten (rechtsbündig)
+			<div class="mb-6">
+				<div class="flex items-center justify-between gap-4 mb-3">
+					<div class="flex items-baseline gap-3 flex-wrap">
+						<h1 class="text-2xl font-bold text-gray-900">{ giftCard.MerchantName }</h1>
+						if giftCard.UserID != nil && giftCard.User != nil {
+							if *giftCard.UserID == currentUser.ID {
+								<span class="text-sm text-gray-500 italic">{ T(ctx, "giftcards.my_gift_card") }</span>
+							} else {
+								<span class="text-sm text-gray-500 italic">{ T(ctx, "giftcards.gift_card_from", map[string]any{"Name": giftCard.User.DisplayName()}) }</span>
+							}
+						}
+					</div>
+					<div class="flex gap-2 flex-shrink-0">
+						<!-- Favorite Button -->
+						@GiftCardFavoriteButton(ctx, giftCard.ID.String(), isFavorite, csrfToken)
+						if canEdit {
+							<button
+								hx-get={ fmt.Sprintf("/gift-cards/%s/edit-inline", giftCard.ID.String()) }
+								hx-target="#gift-card-detail"
+								hx-swap="innerHTML"
+								class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm"
+								:disabled="$store.offline && !$store.offline.isOnline"
+								:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
+								<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
+								<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "common.edit") }</span>
+							</button>
+						}
+					</div>
+				</div>
+				// Notizen (falls vorhanden)
+				if giftCard.Notes != "" {
+					<div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+						<p class="text-sm text-gray-700">{ giftCard.Notes }</p>
+					</div>
+				}
+			</div>
+
+			// Barcode-Bereich: Status Badge oben → Barcode → Kartennummer unten
+			<div id="barcode-section" class="bg-gray-50 rounded-lg p-6 text-center">
+				// Status Badge + Expiry (if exists)
+				<div class="flex items-center justify-center gap-4 mb-4 flex-wrap">
+					<span class={ "inline-block px-3 py-1 text-xs rounded-full " + giftCardStatusClass(giftCard.Status) }>
+						{ giftCardStatusText(ctx, giftCard.Status) }
+					</span>
+					if giftCard.ExpiresAt != nil {
+						<span class="text-xs text-gray-600">
+							{ T(ctx, "vouchers.valid_until") }: { giftCard.ExpiresAt.Format("02.01.2006") }
+						</span>
+					}
+					if giftCard.PIN != "" {
+						<span class="text-xs text-gray-600">PIN: <span class="font-mono">{ giftCard.PIN }</span></span>
+					}
+				</div>
+
+				// Barcode image
+				<div class="mb-3">
+					<img
+						src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)) }
+						alt={ fmt.Sprintf("%s Barcode", giftCard.BarcodeType) }
+						class="mx-auto max-h-32"/>
+				</div>
+
+				// Card number (no barcode type)
+				<p class="font-mono text-sm text-gray-600">{ giftCard.CardNumber }</p>
+			</div>
+		</div>
+	</div>
+}
+
+// GiftCardDetailEdit - Inline edit form for gift card
+templ GiftCardDetailEdit(ctx context.Context, csrfToken string, giftCard models.GiftCard, merchants []models.Merchant) {
+	<div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-6 border-red-600" x-data={ fmt.Sprintf("giftCardForm('%s')", giftCard.CardNumber) }>
+		<div class="p-6">
+			<form
+				hx-post={ fmt.Sprintf("/gift-cards/%s/update-inline", giftCard.ID.String()) }
+				hx-target="#gift-card-detail"
+				hx-swap="innerHTML"
+				class="space-y-6">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+								<div>
+					<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.form.merchant_required") }
+					</label>
+					<select
+						id="merchant-select"
+						name="merchant_id"
+						required
+						style="font-size: 16px; line-height: 2.5;"
+						class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+						for _, merchant := range merchants {
+							if giftCard.MerchantID != nil && merchant.ID == *giftCard.MerchantID {
+								<option value={ merchant.ID.String() } selected>{ merchant.Name }</option>
+							} else {
+								<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+							}
+						}
+					</select>
+					<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+				</div>
+
+				<div>
+					<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.form.card_number_required") }
+					</label>
+					<div class="flex gap-2">
+						<input
+							type="text"
+							id="card_number"
+							name="card_number"
+							x-model="cardNumber"
+							required
+							class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"/>
+						<button
+							type="button"
+							@click="startScanning()"
+							class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+							title={ T(ctx, "cards.form.scan_camera") }>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+							</svg>
+							<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+						</button>
+					</div>
+				</div>
+
+				// Scanner Modal
+				<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+					<div class="bg-white rounded-lg max-w-md w-full p-6">
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+							<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+								</svg>
+							</button>
+						</div>
+						<div class="relative">
+							<div id="qr-reader" class="w-full rounded-lg"></div>
+							<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+								<div class="w-3/4 h-16 border-2 border-red-500 rounded"></div>
+							</div>
+						</div>
+						<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="initial_balance" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "giftcards.form.initial_balance_required") }
+						</label>
+						<input
+							type="number"
+							id="initial_balance"
+							name="initial_balance"
+							step="0.01"
+							min="0"
+							value={ fmt.Sprintf("%.2f", giftCard.InitialBalance) }
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+					</div>
+
+					<div>
+						<label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "giftcards.form.currency") }
+						</label>
+						<select
+							id="currency"
+							name="currency"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+							<option value="CHF" selected?={ giftCard.Currency == "CHF" }>CHF</option>
+							<option value="EUR" selected?={ giftCard.Currency == "EUR" }>EUR</option>
+							<option value="USD" selected?={ giftCard.Currency == "USD" }>USD</option>
+						</select>
+					</div>
+				</div>
+
+				<div>
+					<label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "giftcards.form.pin_optional") }
+					</label>
+					<input
+						type="text"
+						id="pin"
+						name="pin"
+						value={ giftCard.PIN }
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"/>
+				</div>
+
+				<div>
+					<label for="expires_at" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "giftcards.form.expiry_optional") }
+					</label>
+					<input
+						type="date"
+						id="expires_at"
+						name="expires_at"
+						if giftCard.ExpiresAt != nil {
+							value={ giftCard.ExpiresAt.Format("2006-01-02") }
+						}
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+				</div>
+
+				<div>
+					<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.barcode_type") }
+					</label>
+					<select
+						id="barcode_type"
+						name="barcode_type"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+						<option value="CODE128" selected?={ giftCard.BarcodeType == "CODE128" }>CODE128</option>
+						<option value="CODE39" selected?={ giftCard.BarcodeType == "CODE39" }>CODE39</option>
+						<option value="CODE93" selected?={ giftCard.BarcodeType == "CODE93" }>CODE93</option>
+						<option value="CODABAR" selected?={ giftCard.BarcodeType == "CODABAR" }>CODABAR</option>
+						<option value="QR" selected?={ giftCard.BarcodeType == "QR" }>QR Code</option>
+						<option value="EAN13" selected?={ giftCard.BarcodeType == "EAN13" }>EAN-13</option>
+						<option value="EAN8" selected?={ giftCard.BarcodeType == "EAN8" }>EAN-8</option>
+						<option value="UPCA" selected?={ giftCard.BarcodeType == "UPCA" }>UPC-A</option>
+						<option value="UPCE" selected?={ giftCard.BarcodeType == "UPCE" }>UPC-E</option>
+						<option value="ITF" selected?={ giftCard.BarcodeType == "ITF" }>ITF</option>
+						<option value="ITF14" selected?={ giftCard.BarcodeType == "ITF14" }>ITF-14</option>
+						<option value="ISBN13" selected?={ giftCard.BarcodeType == "ISBN13" }>ISBN-13</option>
+						<option value="PDF417" selected?={ giftCard.BarcodeType == "PDF417" }>PDF417</option>
+						<option value="DATAMATRIX" selected?={ giftCard.BarcodeType == "DATAMATRIX" }>Data Matrix</option>
+						<option value="AZTEC" selected?={ giftCard.BarcodeType == "AZTEC" }>Aztec</option>
+						<option value="MAXICODE" selected?={ giftCard.BarcodeType == "MAXICODE" }>MaxiCode</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.status") }
+					</label>
+					<select
+						id="status"
+						name="status"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+						<option value="active" selected?={ giftCard.Status == "active" }>{ T(ctx, "giftcards.form.status.active") }</option>
+						<option value="redeemed" selected?={ giftCard.Status == "redeemed" }>{ T(ctx, "giftcards.form.status.redeemed") }</option>
+						<option value="expired" selected?={ giftCard.Status == "expired" }>{ T(ctx, "giftcards.form.status.expired") }</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.notes") }
+					</label>
+					<textarea
+						id="notes"
+						name="notes"
+						rows="3"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">{ giftCard.Notes }</textarea>
+				</div>
+
+				<div class="flex gap-3 pt-4">
+					<button
+						type="submit"
+						class="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium"
+							:disabled="$store.offline && !$store.offline.isOnline"
+							:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+							:title="$store.offline && !$store.offline.isOnline ? 'Speichern nur online möglich' : ''">
+						{ T(ctx, "common.save") }
+					</button>
+					<button
+						type="button"
+						hx-get={ fmt.Sprintf("/gift-cards/%s/cancel-edit", giftCard.ID.String()) }
+						hx-target="#gift-card-detail"
+						hx-swap="innerHTML"
+						class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Abbrechen nur online möglich' : ''">
+						{ T(ctx, "common.cancel") }
+					</button>
+				</div>
+
+				<div class="pt-4 border-t border-gray-200">
+					<button
+						type="button"
+						hx-delete={ fmt.Sprintf("/gift-cards/%s", giftCard.ID.String()) }
+						hx-confirm={ T(ctx, "giftcards.delete_confirm") }
+						hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+						class="w-full text-red-600 hover:text-red-800 font-medium"
+					:disabled="$store.offline && !$store.offline.isOnline"
+					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed' : ''"
+					:title="$store.offline && !$store.offline.isOnline ? 'Löschen nur online möglich' : ''">
+						{ T(ctx, "common.delete") }
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}

@@ -1,0 +1,216 @@
+# Default values for savvy
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/sbaerlocher/savvy
+  pullPolicy: IfNotPresent
+  tag: ""  # Overrides the image tag whose default is the chart appVersion.
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  k8s.grafana.com/scrape: "true"
+  k8s.grafana.com/metrics.portNumber: "8080"
+  k8s.grafana.com/metrics.path: "/metrics"
+  k8s.grafana.com/job: "savvy"
+
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # false wegen Session-Storage
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: savvy.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: savvy-tls
+      hosts:
+        - savvy.example.com
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application Configuration
+config:
+  serverPort: 8080
+  goEnv: production
+
+  # Feature Toggles
+  enableCards: true
+  enableVouchers: true
+  enableGiftCards: true
+  enableLocalLogin: true
+  enableRegistration: false
+
+  # Observability
+  otelEnabled: false
+  otelExporterOtlpEndpoint: "localhost:4318"
+
+  # Session (secret wird via External Secrets geladen)
+  sessionSecret: ""  # REQUIRED: Set via external secret
+
+# Database Configuration
+database:
+  # External PostgreSQL (recommended for production)
+  external:
+    enabled: true
+    host: "postgres.default.svc.cluster.local"
+    port: 5432
+    name: "savvy"
+    user: "savvy"
+    sslMode: "require"
+    # Password wird via External Secrets geladen
+    existingSecret: "savvy-db"
+    existingSecretKey: "password"
+
+  # Internal PostgreSQL (for development/testing only)
+  postgresql:
+    enabled: false
+    auth:
+      username: savvy
+      password: changeme
+      database: savvy
+    primary:
+      persistence:
+        enabled: true
+        size: 8Gi
+
+# External Secrets Operator Integration
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secret-store
+    kind: ClusterSecretStore
+
+  # Secrets to sync from Secret Manager
+  # remoteRef structure varies by provider:
+  #
+  # Bitwarden:
+  #   remoteRef:
+  #     key: "item-name"
+  #     property: password
+  #
+  # Vault:
+  #   remoteRef:
+  #     key: "secret/path"
+  #     property: "fieldname"
+  #
+  # AWS Secrets Manager:
+  #   remoteRef:
+  #     key: "arn:aws:secretsmanager:region:account:secret:name"
+  #
+  # Google Secret Manager:
+  #   remoteRef:
+  #     key: "projects/PROJECT_ID/secrets/SECRET_NAME/versions/latest"
+
+  secrets:
+    # Session Secret (Bitwarden example)
+    - target:
+        key: SESSION_SECRET
+      remoteRef:
+        key: "savvy-session-secret"
+        property: password
+
+    # Database Password (Bitwarden example)
+    - target:
+        key: password
+      remoteRef:
+        key: "savvy-db-password"
+        property: password
+
+# OAuth/OIDC Configuration (optional)
+oauth:
+  enabled: false
+  clientId: ""
+  clientSecret: ""  # Via External Secret
+  issuer: ""
+  redirectUrl: ""
+  existingSecret: ""
+  existingSecretKey: "client-secret"
+
+# Monitoring (Prometheus ServiceMonitor)
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}

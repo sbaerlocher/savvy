@@ -1,28 +1,84 @@
-vendor/
-**/*.log
-**/*.sqlite
-.idea/
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 bin/
+dist/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage
+coverage.data
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+.vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+**/.DS_Store
+
+# Logs
+*.log
+**/*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
 tmp/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+savvy
+server
+
+# Database
+**/*.sqlite
+
+# Air tmp directory
+.air/
+
+# MegaLinter reports
+megalinter-reports/
+report/
+
+# Node modules (if using JS tooling)
 node_modules/
 .sass-cache/
 public/assets/
-.vscode/
 .grifter/
-.env
-**/.DS_Store
-*.pid
-coverage
-coverage.data
-.svn
-.console_history
 .sass-cache/*
 .jhw-cache/
 jhw.*
-*.sublime*
-dist/
 generated/
-.vendor/
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -30,3 +86,17 @@ generated/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Generated bundles
+static/js/bundle.js
+static/js/bundle.js.map
+static/js/vendor/
+static/css/bundle.css
+static/css/bundle.css.map
+
+# Deploy
+deploy/helm/*.tgz
+
+# SVN
+.svn
+.console_history

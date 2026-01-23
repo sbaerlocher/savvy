@@ -1,0 +1,863 @@
+package templates
+
+import "context"
+
+import (
+	"savvy/internal/models"
+	"fmt"
+	"time"
+)
+
+// VouchersIndex lists all vouchers
+templ VouchersIndex(ctx context.Context, vouchers []models.Voucher, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Meine Gutscheine", user, isImpersonating) {
+		<script>
+			function vouchersFilter(currentUserId) {
+				return {
+					search: '',
+					ownerFilter: 'all',
+					statusFilter: 'valid',
+					currentUserId: currentUserId,
+					vouchers: [],
+					visibleCount: 0,
+
+					init() {
+						const voucherElements = document.querySelectorAll('[x-show]');
+						this.vouchers = Array.from(voucherElements).map(el => {
+							const match = el.getAttribute('x-show').match(/isVisible\('([^']*)', '([^']*)', '([^']*)', '([^']*)'\)/);
+							return match ? {
+								element: el,
+								code: match[1],
+								description: match[2],
+								status: match[3],
+								ownerId: match[4]
+							} : null;
+						}).filter(Boolean);
+						this.updateVisibility();
+					},
+
+					isVisible(code, description, status, ownerId) {
+						const searchMatches = code.toLowerCase().includes(this.search.toLowerCase()) ||
+						                     description.toLowerCase().includes(this.search.toLowerCase());
+
+						const ownerMatches = this.ownerFilter === 'all' ||
+						                    (this.ownerFilter === 'mine' && ownerId === this.currentUserId);
+
+						const statusMatches = this.statusFilter === 'all-status' ||
+						                     (this.statusFilter === 'valid' && status === 'valid') ||
+						                     (this.statusFilter === 'expired' && status === 'expired') ||
+						                     (this.statusFilter === 'exhausted' && status === 'exhausted');
+
+						return searchMatches && ownerMatches && statusMatches;
+					},
+
+					updateVisibility() {
+						this.visibleCount = 0;
+						this.vouchers.forEach(voucher => {
+							const visible = this.isVisible(
+								voucher.code,
+								voucher.description,
+								voucher.status,
+								voucher.ownerId
+							);
+							if (visible) this.visibleCount++;
+						});
+					}
+				}
+			}
+		</script>
+		<div class="px-4 py-8" x-data={ fmt.Sprintf("vouchersFilter('%s')", user.ID.String()) } x-init="init()">
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">
+					Meine Gutscheine
+				</h1>
+				if len(vouchers) > 0 {
+					// Suche, Filter und Neuer Gutschein Button
+					<div class="flex gap-3 mb-4">
+						<div class="flex-1">
+							<input
+								type="text"
+								x-model="search"
+								@input="updateVisibility()"
+								placeholder="Suchen..."
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+						<select
+							x-model="ownerFilter"
+							@change="updateVisibility()"
+							class="px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="all">Alle Gutscheine</option>
+							<option value="mine">Nur meine</option>
+						</select>
+						<select
+							x-model="statusFilter"
+							@change="updateVisibility()"
+							class="px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="valid">Nur gültige</option>
+							<option value="all-status">Alle Status</option>
+							<option value="expired">Nur abgelaufene</option>
+							<option value="exhausted">Nur aufgebraucht</option>
+						</select>
+						<a href="/vouchers/new" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap">
+							+ Neuer Gutschein
+						</a>
+					</div>
+				} else {
+					<a href="/vouchers/new" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium inline-block">
+						+ Neuer Gutschein
+					</a>
+				}
+			</div>
+
+			if len(vouchers) == 0 {
+				<div class="bg-gray-50 rounded-lg p-12 text-center">
+					<p class="text-gray-600 text-lg mb-4">Du hast noch keine Gutscheine.</p>
+					<a href="/vouchers/new" class="text-green-600 hover:text-green-700 font-medium">
+						Erstelle deinen ersten Gutschein
+					</a>
+				</div>
+			} else {
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					for _, voucher := range vouchers {
+						<a href={ templ.URL(fmt.Sprintf("/vouchers/%s", voucher.ID.String())) }
+						   class="block bg-white rounded-lg shadow-md hover:shadow-xl transition p-6"
+						   style={ fmt.Sprintf("border-left: 4px solid %s", voucher.GetColor()) }
+						   x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s', '%s')",
+						   	voucher.Code,
+						   	voucher.Description,
+						   	getVoucherStatus(voucher),
+						   	getVoucherOwnerID(voucher)) }>
+							<div class="flex items-start justify-between mb-4">
+								<div class="flex-1">
+									<div class="flex items-center justify-between mb-2">
+										<div class="flex items-center gap-2">
+											<span class="text-2xl font-bold" style={ fmt.Sprintf("color: %s", voucher.GetColor()) }>
+												{ formatVoucherValue(voucher) }
+											</span>
+											<span class={ "px-2 py-1 text-xs rounded-full " + voucherStatusClass(voucher) }>
+												{ voucherStatusText(voucher) }
+											</span>
+										</div>
+										if voucher.MerchantName != "" {
+											<span class="text-sm text-gray-500 font-medium">
+												{ voucher.MerchantName }
+											</span>
+										}
+									</div>
+									<p class="text-sm text-gray-700 mb-2">{ voucher.Description }</p>
+								</div>
+							</div>
+
+							// Barcode Bild
+							if voucher.BarcodeType != "" {
+								<div class="bg-white rounded border border-gray-200 p-3 mb-3 text-center">
+									<img
+										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)) }
+										alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
+										class="mx-auto max-h-16"/>
+									<p class="text-xs text-gray-500 mt-1">{ voucher.BarcodeType }</p>
+								</div>
+							}
+
+							<div class="flex justify-between text-xs text-gray-600">
+								<span>Gültig bis: { voucher.ValidUntil.Format("02.01.2006") }</span>
+								<span>{ formatUsageLimitShort(voucher) }</span>
+							</div>
+
+							if voucher.UserID != nil && voucher.User != nil && *voucher.UserID != user.ID {
+								<div class="flex items-center gap-1 mt-2">
+									<svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+									</svg>
+									<span class="text-xs text-blue-600 font-medium">
+										Geteilt von { voucher.User.DisplayName() }
+									</span>
+								</div>
+							}
+						</a>
+					}
+				</div>
+			}
+		</div>
+	}
+}
+
+// VouchersShow displays a single voucher
+templ VouchersShow(ctx context.Context, csrfToken string, voucher models.Voucher, shares []models.VoucherShare, user *models.User, isImpersonating bool, canEdit bool, canDelete bool) {
+	@Layout(ctx, fmt.Sprintf("Gutschein %s", voucher.Code), user, isImpersonating) {
+		<div class="px-4 py-8 max-w-4xl mx-auto">
+			<div class="mb-6">
+				<a href="/vouchers" class="text-green-600 hover:text-green-700">
+					← Zurück zur Übersicht
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg overflow-hidden"
+			     style={ fmt.Sprintf("border-top: 6px solid %s", voucher.GetColor()) }>
+
+				<div class="p-6">
+					// Header mit Titel und Aktionen
+					<div class="flex justify-between items-start mb-6">
+						<div>
+							<h1 class="text-2xl font-bold text-gray-900">
+								{ formatVoucherValue(voucher) }
+								<span class="text-lg font-normal text-gray-600 ml-2">{ voucher.Description }</span>
+							</h1>
+							if voucher.MerchantName != "" {
+								<p class="text-sm text-gray-500 mt-1">{ voucher.MerchantName }</p>
+							}
+							if voucher.UserID != nil && voucher.User != nil && *voucher.UserID != user.ID {
+								<p class="text-sm text-gray-500 mt-1">Geteilt von { voucher.User.DisplayName() }</p>
+							}
+						</div>
+						<div class="flex gap-2">
+							if voucher.UserID != nil && *voucher.UserID == user.ID {
+								<a href={ templ.URL(fmt.Sprintf("/vouchers/%s/shares", voucher.ID.String())) }
+								   class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm">
+									Teilen
+								</a>
+							}
+							if canEdit {
+								<a href={ templ.URL(fmt.Sprintf("/vouchers/%s/edit", voucher.ID.String())) }
+								   class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md text-sm">
+									Bearbeiten
+								</a>
+							}
+							if canDelete {
+								<button
+									hx-delete={ fmt.Sprintf("/vouchers/%s", voucher.ID.String()) }
+									hx-confirm="Bist du sicher, dass du diesen Gutschein löschen möchtest?"
+									hx-target="body"
+									hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+									class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm">
+									Löschen
+								</button>
+							}
+						</div>
+					</div>
+
+					// Barcode - zentral und prominent
+					<div class="bg-gray-50 rounded-lg p-6 text-center mb-6">
+						<img
+							src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)) }
+							alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
+							class="mx-auto max-h-32"/>
+						<p class="font-mono text-sm text-gray-600 mt-3">{ voucher.Code }</p>
+						<p class="text-xs text-gray-500 mt-1">{ voucher.BarcodeType }</p>
+					</div>
+
+					// Status und Details
+					<div class="mb-6">
+						<span class={ "px-3 py-1 text-xs rounded-full " + voucherStatusClass(voucher) }>
+							{ voucherStatusText(voucher) }
+						</span>
+						<span class="text-sm text-gray-600 ml-3">
+							{ voucherTypeText(voucher.Type) } · Gültig bis { voucher.ValidUntil.Format("02.01.2006") } · { formatUsageLimitShort(voucher) }
+						</span>
+						if voucher.MinPurchaseAmount > 0 {
+							<span class="text-sm text-gray-600 ml-1">
+								· Min. { fmt.Sprintf("%.2f", voucher.MinPurchaseAmount) } CHF
+							</span>
+						}
+					</div>
+
+					// Shares (falls vorhanden)
+					if len(shares) > 0 {
+						<div class="border-t pt-4">
+							<div class="flex items-center justify-between mb-3">
+								<h3 class="text-sm font-medium text-gray-700">Geteilt mit { fmt.Sprintf("%d", len(shares)) } Person(en)</h3>
+								<a href={ templ.URL(fmt.Sprintf("/vouchers/%s/shares", voucher.ID.String())) }
+								   class="text-xs text-green-600 hover:text-green-700 font-medium">
+									Verwalten →
+								</a>
+							</div>
+							<div class="space-y-2">
+								for _, share := range shares {
+									<div class="flex items-center justify-between text-sm bg-gray-50 rounded px-3 py-2">
+										<span class="text-gray-700">{ share.SharedWithUser.DisplayName() }</span>
+										<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Nur ansehen</span>
+									</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// VouchersNew shows the form to create a new voucher
+templ VouchersNew(ctx context.Context, csrfToken string, merchants []models.Merchant, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Neuer Gutschein", user, isImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href="/vouchers" class="text-green-600 hover:text-green-700">
+					← Zurück zur Übersicht
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8" x-data="voucherForm()">
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">Neuer Gutschein</h1>
+
+				<form method="POST" action="/vouchers" class="space-y-6">
+					@CSRFField(csrfToken)
+					<div>
+						<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+							Händler *
+						</label>
+						<select
+							id="merchant-select"
+							name="merchant_id"
+							@change="isNewMerchant = ($event.target.value === 'new')"
+							:required="!isNewMerchant"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="">-- Händler auswählen --</option>
+							for _, merchant := range merchants {
+								<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+							}
+							<option value="new">+ Neuer Händler</option>
+						</select>
+						<input
+							type="text"
+							id="new-merchant-input"
+							name="merchant_name"
+							x-show="isNewMerchant"
+							:required="isNewMerchant"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 mt-2"
+							placeholder="Name des neuen Händlers eingeben"/>
+						<p class="text-sm text-gray-500 mt-1">Wähle einen Händler oder erstelle einen neuen</p>
+					</div>
+
+					<div>
+						<label for="code" class="block text-sm font-medium text-gray-700 mb-1">
+							Code *
+						</label>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="code"
+								name="code"
+								x-model="voucherCode"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 font-mono"
+								placeholder="SUMMER2026"/>
+							<button
+								type="button"
+								@click="startScanning()"
+								class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
+								title="Code mit Kamera scannen">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">Scannen</span>
+							</button>
+						</div>
+					</div>
+
+					// Scanner Modal
+					<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+						<div class="bg-white rounded-lg max-w-md w-full p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold">Gutschein-Code scannen</h3>
+								<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+									<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="relative">
+								<video x-ref="scanner" class="w-full rounded-lg bg-black" autoplay playsinline></video>
+								<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+									<div class="w-3/4 h-16 border-2 border-green-500 rounded"></div>
+								</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+						</div>
+					</div>
+
+					<div>
+						<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+							Beschreibung *
+						</label>
+						<textarea
+							id="description"
+							name="description"
+							rows="2"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder="20% Sommerrabatt auf alle Artikel"></textarea>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="type" class="block text-sm font-medium text-gray-700 mb-1">
+								Typ *
+							</label>
+							<select
+								id="type"
+								name="type"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+								<option value="percentage">Prozent (%)</option>
+								<option value="fixed_amount">Fixer Betrag (CHF)</option>
+								<option value="points_multiplier">Punkte-Multiplikator</option>
+							</select>
+						</div>
+
+						<div>
+							<label for="value" class="block text-sm font-medium text-gray-700 mb-1">
+								Wert *
+							</label>
+							<input
+								type="number"
+								id="value"
+								name="value"
+								step="0.01"
+								min="0"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+								placeholder="20.00"/>
+						</div>
+					</div>
+
+					<div>
+						<label for="min_purchase_amount" class="block text-sm font-medium text-gray-700 mb-1">
+							Mindestbestellwert (CHF)
+						</label>
+						<input
+							type="number"
+							id="min_purchase_amount"
+							name="min_purchase_amount"
+							step="0.01"
+							min="0"
+							value="0"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="valid_from" class="block text-sm font-medium text-gray-700 mb-1">
+								Gültig von *
+							</label>
+							<input
+								type="date"
+								id="valid_from"
+								name="valid_from"
+								required
+								value={ time.Now().Format("2006-01-02") }
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+
+						<div>
+							<label for="valid_until" class="block text-sm font-medium text-gray-700 mb-1">
+								Gültig bis *
+							</label>
+							<input
+								type="date"
+								id="valid_until"
+								name="valid_until"
+								required
+								value={ time.Now().AddDate(0, 3, 0).Format("2006-01-02") }
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+					</div>
+
+					<div>
+						<label for="usage_limit_type" class="block text-sm font-medium text-gray-700 mb-1">
+							Verwendungslimit *
+						</label>
+						<select
+							id="usage_limit_type"
+							name="usage_limit_type"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="single_use">Einmalig verwendbar</option>
+							<option value="one_per_customer">1x pro Kunde (mit Kundenkarte)</option>
+							<option value="multiple_use_with_card">Mehrfach verwendbar mit Kundenkarte</option>
+							<option value="multiple_use_without_card">Mehrfach verwendbar ohne Kundenkarte</option>
+							<option value="unlimited">Unbegrenzt</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+							Barcode-Typ
+						</label>
+						<select
+							id="barcode_type"
+							name="barcode_type"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="QR" selected>QR Code</option>
+							<option value="CODE128">CODE128</option>
+							<option value="EAN13">EAN-13</option>
+						</select>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							Gutschein erstellen
+						</button>
+						<a
+							href="/vouchers"
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							Abbrechen
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// VouchersEdit shows the form to edit a voucher
+templ VouchersEdit(ctx context.Context, csrfToken string, voucher models.Voucher, merchants []models.Merchant, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Gutschein bearbeiten", user, isImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href={ templ.URL(fmt.Sprintf("/vouchers/%s", voucher.ID.String())) } class="text-green-600 hover:text-green-700">
+					← Zurück zum Gutschein
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8" x-data={ fmt.Sprintf("voucherForm('%s')", voucher.Code) }>
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">Gutschein bearbeiten</h1>
+
+				<form method="POST" action={ templ.URL(fmt.Sprintf("/vouchers/%s", voucher.ID.String())) } class="space-y-6">
+					@CSRFField(csrfToken)
+					<input type="hidden" name="_method" value="PUT"/>
+
+					<div>
+						<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+							Händler *
+						</label>
+						<select
+							id="merchant-select"
+							name="merchant_id"
+							@change="isNewMerchant = ($event.target.value === 'new')"
+							:required="!isNewMerchant"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="">-- Händler auswählen --</option>
+							for _, merchant := range merchants {
+								if voucher.MerchantID != nil && merchant.ID == *voucher.MerchantID {
+									<option value={ merchant.ID.String() } selected>{ merchant.Name }</option>
+								} else {
+									<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+								}
+							}
+							<option value="new">+ Neuer Händler</option>
+						</select>
+						<input
+							type="text"
+							id="new-merchant-input"
+							name="merchant_name"
+							x-show="isNewMerchant"
+							:required="isNewMerchant"
+							if voucher.MerchantID == nil && voucher.MerchantName != "" {
+								value={ voucher.MerchantName }
+							}
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 mt-2"
+							placeholder="Name des neuen Händlers eingeben"/>
+						<p class="text-sm text-gray-500 mt-1">Wähle einen Händler oder erstelle einen neuen</p>
+					</div>
+
+					<div>
+						<label for="code" class="block text-sm font-medium text-gray-700 mb-1">
+							Code *
+						</label>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="code"
+								name="code"
+								x-model="voucherCode"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 font-mono"/>
+							<button
+								type="button"
+								@click="startScanning()"
+								class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
+								title="Code mit Kamera scannen">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">Scannen</span>
+							</button>
+						</div>
+					</div>
+
+					// Scanner Modal
+					<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+						<div class="bg-white rounded-lg max-w-md w-full p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold">Gutschein-Code scannen</h3>
+								<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+									<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="relative">
+								<video x-ref="scanner" class="w-full rounded-lg bg-black" autoplay playsinline></video>
+								<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+									<div class="w-3/4 h-16 border-2 border-green-500 rounded"></div>
+								</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+						</div>
+					</div>
+
+					<div>
+						<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+							Beschreibung *
+						</label>
+						<textarea
+							id="description"
+							name="description"
+							rows="2"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">{ voucher.Description }</textarea>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="type" class="block text-sm font-medium text-gray-700 mb-1">
+								Typ *
+							</label>
+							<select
+								id="type"
+								name="type"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+								<option value="percentage" selected?={ voucher.Type == "percentage" }>Prozent (%)</option>
+								<option value="fixed_amount" selected?={ voucher.Type == "fixed_amount" }>Fixer Betrag (CHF)</option>
+								<option value="points_multiplier" selected?={ voucher.Type == "points_multiplier" }>Punkte-Multiplikator</option>
+							</select>
+						</div>
+
+						<div>
+							<label for="value" class="block text-sm font-medium text-gray-700 mb-1">
+								Wert *
+							</label>
+							<input
+								type="number"
+								id="value"
+								name="value"
+								step="0.01"
+								min="0"
+								value={ fmt.Sprintf("%.2f", voucher.Value) }
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+					</div>
+
+					<div>
+						<label for="min_purchase_amount" class="block text-sm font-medium text-gray-700 mb-1">
+							Mindestbestellwert (CHF)
+						</label>
+						<input
+							type="number"
+							id="min_purchase_amount"
+							name="min_purchase_amount"
+							step="0.01"
+							min="0"
+							value={ fmt.Sprintf("%.2f", voucher.MinPurchaseAmount) }
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<label for="valid_from" class="block text-sm font-medium text-gray-700 mb-1">
+								Gültig von *
+							</label>
+							<input
+								type="date"
+								id="valid_from"
+								name="valid_from"
+								required
+								value={ voucher.ValidFrom.Format("2006-01-02") }
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+
+						<div>
+							<label for="valid_until" class="block text-sm font-medium text-gray-700 mb-1">
+								Gültig bis *
+							</label>
+							<input
+								type="date"
+								id="valid_until"
+								name="valid_until"
+								required
+								value={ voucher.ValidUntil.Format("2006-01-02") }
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+						</div>
+					</div>
+
+					<div>
+						<label for="usage_limit_type_edit" class="block text-sm font-medium text-gray-700 mb-1">
+							Verwendungslimit *
+						</label>
+						<select
+							id="usage_limit_type_edit"
+							name="usage_limit_type"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="single_use" selected?={ voucher.UsageLimitType == "single_use" }>Einmalig verwendbar</option>
+							<option value="one_per_customer" selected?={ voucher.UsageLimitType == "one_per_customer" }>1x pro Kunde (mit Kundenkarte)</option>
+							<option value="multiple_use_with_card" selected?={ voucher.UsageLimitType == "multiple_use_with_card" || voucher.UsageLimitType == "multiple_use" }>Mehrfach verwendbar mit Kundenkarte</option>
+							<option value="multiple_use_without_card" selected?={ voucher.UsageLimitType == "multiple_use_without_card" }>Mehrfach verwendbar ohne Kundenkarte</option>
+							<option value="unlimited" selected?={ voucher.UsageLimitType == "unlimited" }>Unbegrenzt</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+							Barcode-Typ
+						</label>
+						<select
+							id="barcode_type"
+							name="barcode_type"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500">
+							<option value="QR" selected?={ voucher.BarcodeType == "QR" }>QR Code</option>
+							<option value="CODE128" selected?={ voucher.BarcodeType == "CODE128" }>CODE128</option>
+							<option value="EAN13" selected?={ voucher.BarcodeType == "EAN13" }>EAN-13</option>
+						</select>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							Änderungen speichern
+						</button>
+						<a
+							href={ templ.URL(fmt.Sprintf("/vouchers/%s", voucher.ID.String())) }
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							Abbrechen
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// Helper functions
+func isVoucherValid(voucher models.Voucher) bool {
+	now := time.Now()
+	return now.After(voucher.ValidFrom) && now.Before(voucher.ValidUntil)
+}
+
+func voucherStatusClass(voucher models.Voucher) string {
+	if isVoucherValid(voucher) {
+		return "bg-green-100 text-green-800"
+	}
+	return "bg-red-100 text-red-800"
+}
+
+func voucherStatusText(voucher models.Voucher) string {
+	if isVoucherValid(voucher) {
+		return "Gültig"
+	}
+	now := time.Now()
+	if now.Before(voucher.ValidFrom) {
+		return "Noch nicht gültig"
+	}
+	return "Abgelaufen"
+}
+
+func getVoucherStatus(voucher models.Voucher) string {
+	// Check if exhausted (alle Verwendungen aufgebraucht)
+	if voucher.UsageLimitType == "single_use" && voucher.UsedCount >= 1 {
+		return "exhausted"
+	}
+
+	// Check validity by date
+	now := time.Now()
+	if now.Before(voucher.ValidFrom) {
+		return "not_yet_valid"
+	}
+	if now.After(voucher.ValidUntil) {
+		return "expired"
+	}
+
+	return "valid"
+}
+
+func getVoucherOwnerID(voucher models.Voucher) string {
+	if voucher.UserID != nil {
+		return voucher.UserID.String()
+	}
+	return ""
+}
+
+func voucherTypeText(voucherType string) string {
+	switch voucherType {
+	case "percentage":
+		return "Prozent (%)"
+	case "fixed_amount":
+		return "Fixer Betrag"
+	case "points_multiplier":
+		return "Punkte-Multiplikator"
+	default:
+		return voucherType
+	}
+}
+
+func formatVoucherValue(voucher models.Voucher) string {
+	if voucher.Type == "percentage" {
+		return fmt.Sprintf("%.0f%%", voucher.Value)
+	} else if voucher.Type == "points_multiplier" {
+		return fmt.Sprintf("%.0fx Punkte", voucher.Value)
+	}
+	// Show fixed_amount without decimals if it's a whole number
+	if voucher.Value == float64(int(voucher.Value)) {
+		return fmt.Sprintf("%.0f CHF", voucher.Value)
+	}
+	return fmt.Sprintf("%.2f CHF", voucher.Value)
+}
+
+
+func formatUsageLimitShort(voucher models.Voucher) string {
+	switch voucher.UsageLimitType {
+	case "single_use":
+		return "Einmalig"
+	case "one_per_customer":
+		return "1x pro Kunde"
+	case "multiple_use_with_card":
+		return "Mehrfach (mit Karte)"
+	case "multiple_use_without_card":
+		return "Mehrfach (ohne Karte)"
+	case "multiple_use":
+		// Legacy support
+		return "Mehrfach (mit Karte)"
+	case "unlimited":
+		return "Unbegrenzt"
+	default:
+		return "Einmalig"
+	}
+}
+
+func formatUsageLimitRule(voucher models.Voucher) string {
+	switch voucher.UsageLimitType {
+	case "single_use":
+		return "Einmalig einlösbar"
+	case "one_per_customer":
+		return "Einmal pro Kunde (Kundenkarte erforderlich)"
+	case "multiple_use_with_card":
+		return "Mehrfach einlösbar mit Kundenkarte"
+	case "multiple_use_without_card":
+		return "Mehrfach einlösbar ohne Kundenkarte"
+	case "multiple_use":
+		// Legacy support
+		return "Mehrfach einlösbar mit Kundenkarte"
+	case "unlimited":
+		return "Unbegrenzt einlösbar"
+	default:
+		return "Einmalig einlösbar"
+	}
+}

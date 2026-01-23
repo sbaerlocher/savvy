@@ -1,0 +1,20 @@
+# Checkov configuration
+# https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+
+# Skip checks
+skip-check:
+  # CKV_SECRET_4: Basic Auth Credentials in docker-compose.yml
+  # This is a development password, not a production secret
+  - CKV_SECRET_4
+
+# Skip paths
+skip-path:
+  # Vendor dependencies have their own Dockerfiles that we don't control
+  - vendor/
+
+# Framework settings
+framework:
+  - dockerfile
+  - docker-compose
+  - github_actions
+  - secrets

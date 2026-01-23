@@ -1,0 +1,1392 @@
+package templates
+
+import "context"
+
+import (
+	"savvy/internal/models"
+	"savvy/internal/views"
+	"fmt"
+)
+
+// CardsIndex lists all cards
+templ CardsIndex(ctx context.Context, view views.CardIndexView) {
+	@Layout(ctx, T(ctx, "cards.title"), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8" x-data={ fmt.Sprintf("cardsFilter('%s')", view.User.ID.String()) }  x-init="init()"  >
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">
+					{ T(ctx, "cards.title") }
+				</h1>
+				if len(view.Cards) > 0 {
+					// Suche, Filter, Sortierung und Neue Karte Button
+					<div class="space-y-3 mb-4">
+						<!-- Mobile: Stack vertically, Desktop: Row -->
+						<div class="flex flex-col sm:flex-row gap-3">
+							<!-- Search Bar -->
+							<div class="flex-1">
+								<input
+									type="text"
+									x-model="search"
+									@input="updateVisibility()"
+									placeholder={ T(ctx, "common.search_placeholder") }
+									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+							</div>
+							<!-- New Card Button (Desktop) -->
+							<div class="relative hidden sm:block">
+								<a
+									href="/cards/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-700'"
+									class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block">
+									{ T(ctx, "cards.add_new") }
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						</div>
+
+						<!-- Filters Row -->
+						<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+							<select
+								x-model="ownerFilter"
+								@change="updateVisibility()"
+								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								<option value="all">{ T(ctx, "cards.filter.all_cards") }</option>
+								<option value="mine">{ T(ctx, "common.mine") }</option>
+							</select>
+							<select
+								x-model="statusFilter"
+								@change="updateVisibility()"
+								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								<option value="active">{ T(ctx, "cards.filter.active_only") }</option>
+								<option value="all-status">{ T(ctx, "cards.filter.all_status") }</option>
+								<option value="inactive">{ T(ctx, "cards.filter.inactive_only") }</option>
+							</select>
+							<select
+								x-model="sortBy"
+								@change="updateSort()"
+								class="col-span-2 sm:col-span-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								<option value="name-asc">{ T(ctx, "cards.sort.name_asc") }</option>
+								<option value="name-desc">{ T(ctx, "cards.sort.name_desc") }</option>
+								<option value="newest">{ T(ctx, "cards.sort.newest") }</option>
+								<option value="oldest">{ T(ctx, "cards.sort.oldest") }</option>
+							</select>
+							<!-- New Card Button (Mobile only, takes remaining space) -->
+							<div class="relative sm:hidden col-span-2">
+								<a
+									href="/cards/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-700'"
+									class="bg-blue-600 text-white px-3 py-2 rounded-md font-medium text-center text-sm block">
+									+ Neu
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						</div>
+					</div>
+				} else {
+					<div class="relative inline-block">
+						<a
+							href="/cards/new"
+							@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+							:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-700'"
+							class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium inline-block">
+							{ T(ctx, "cards.add_new") }
+						</a>
+						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+							🔒 { T(ctx, "offline.badge") }
+						</div>
+					</div>
+				}
+			</div>
+
+			if len(view.Cards) == 0 {
+				<div class="bg-gray-50 rounded-lg p-12 text-center">
+					<p class="text-gray-600 text-lg mb-4">{ T(ctx, "cards.no_cards") }</p>
+					<div class="relative inline-block">
+						<a
+							href="/cards/new"
+							@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+							:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:text-blue-700'"
+							class="text-blue-600 font-medium">
+							{ T(ctx, "cards.create_first") }
+						</a>
+						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+							🔒 { T(ctx, "offline.badge") }
+						</div>
+					</div>
+				</div>
+			} else {
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					for _, card := range view.Cards {
+						<a href={ templ.URL(fmt.Sprintf("/cards/%s", card.ID.String())) }
+						   x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s', '%s', '%s')", card.MerchantName, card.Program, card.CreatedAt.Format("2006-01-02"), func() string { if card.UserID != nil { return card.UserID.String() } else { return "" } }(), card.Status) }
+						   class="block bg-white rounded-lg shadow-md hover:shadow-xl transition p-6"
+						   style={ fmt.Sprintf("border-left: 4px solid %s", card.GetColor()) }>
+							<div class="mb-4">
+								<h3 class="text-xl font-semibold text-gray-900">
+									{ card.MerchantName }
+									<span class="text-base font-normal text-gray-600 ml-2">{ card.Program }</span>
+									if card.Status != "active" {
+										<span class={ "ml-2 px-2 py-0.5 text-xs rounded-full " + statusClass(card.Status) }>
+											{ statusText(ctx, card.Status) }
+										</span>
+									}
+								</h3>
+								if card.UserID != nil && card.User != nil {
+									<div class="mt-1">
+										if *card.UserID == view.User.ID {
+											<span class="text-xs text-gray-500">{ T(ctx, "cards.my_card") }</span>
+										} else {
+											<span class="text-xs text-gray-500">{ T(ctx, "cards.card_from", map[string]any{"Name": card.User.DisplayName()}) }</span>
+										}
+									</div>
+								}
+							</div>
+
+							<div class="bg-white rounded border border-gray-200 p-3 mb-3">
+								<div class="flex justify-center mb-2">
+									<img
+										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)) }
+										alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
+										class="h-16 w-auto object-contain"/>
+								</div>
+								<p class="text-center text-xs text-gray-600 font-mono">{ card.CardNumber }</p>
+							</div>
+
+							if card.Notes != "" {
+								<p class="text-sm text-gray-600 truncate">{ card.Notes }</p>
+							}
+						</a>
+					}
+				</div>
+
+				// Keine Ergebnisse Nachricht
+				<div x-show="visibleCount === 0" class="bg-gray-50 rounded-lg p-12 text-center">
+					<p class="text-gray-600 text-lg">{ T(ctx, "cards.no_results") }</p>
+				</div>
+			}
+
+			// Alpine.js Component
+			<script>
+				function cardsFilter(currentUserId) {
+					return {
+						search: '',
+						sortBy: 'name-asc',
+						ownerFilter: 'all',
+						statusFilter: 'active',
+						currentUserId: currentUserId,
+						cards: [],
+						visibleCount: 0,
+
+						init() {
+							// Initialize cards array from DOM
+							const cardElements = document.querySelectorAll('[x-show]');
+							this.cards = Array.from(cardElements).map(el => {
+								const match = el.getAttribute('x-show').match(/isVisible\('([^']+)', '([^']+)', '([^']+)', '([^']*)', '([^']+)'\)/);
+								return match ? {
+									element: el,
+									merchant: match[1],
+									program: match[2],
+									created: match[3],
+									ownerId: match[4],
+									status: match[5]
+								} : null;
+							}).filter(Boolean);
+
+							this.updateVisibility();
+						},
+
+						isVisible(merchant, program, created, ownerId, status) {
+							const searchLower = this.search.toLowerCase();
+							const searchMatches = merchant.toLowerCase().includes(searchLower) ||
+							                     program.toLowerCase().includes(searchLower);
+
+							const ownerMatches = this.ownerFilter === 'all' ||
+							                    (this.ownerFilter === 'mine' && ownerId === this.currentUserId);
+
+							const statusMatches = this.statusFilter === 'all-status' ||
+							                     (this.statusFilter === 'active' && status === 'active') ||
+							                     (this.statusFilter === 'inactive' && status !== 'active');
+
+							const matches = searchMatches && ownerMatches && statusMatches;
+
+							if (matches) {
+								this.$nextTick(() => this.updateSort());
+							}
+
+							return matches;
+						},
+
+						updateVisibility() {
+							this.$nextTick(() => {
+								const visible = this.cards.filter(card =>
+									card.merchant.toLowerCase().includes(this.search.toLowerCase()) ||
+									card.program.toLowerCase().includes(this.search.toLowerCase())
+								);
+								this.visibleCount = visible.length;
+							});
+						},
+
+						updateSort() {
+							const container = this.cards[0]?.element.parentElement;
+							if (!container) return;
+
+							const sortedCards = [...this.cards].sort((a, b) => {
+								switch(this.sortBy) {
+									case 'name-asc': return a.merchant.localeCompare(b.merchant);
+									case 'name-desc': return b.merchant.localeCompare(a.merchant);
+									case 'newest': return b.created.localeCompare(a.created);
+									case 'oldest': return a.created.localeCompare(b.created);
+									default: return 0;
+								}
+							});
+
+							sortedCards.forEach(card => {
+								if (card.element.style.display !== 'none') {
+									container.appendChild(card.element);
+								}
+							});
+						}
+					}
+				}
+			</script>
+		</div>
+	}
+}
+
+// CardsShow displays a single card
+templ CardsShow(ctx context.Context, csrfToken string, view views.CardShowView) {
+	@Layout(ctx, fmt.Sprintf("%s - %s", view.Card.MerchantName, view.Card.Program), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-6xl mx-auto" x-data>
+			<div class="mb-6">
+				<a href="/cards" class="text-blue-600 hover:text-blue-700">
+					{ T(ctx, "cards.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Card Details -->
+				<div class="lg:col-span-2" id="card-detail">
+					@CardDetailView(ctx, csrfToken, view.Card, view.User, view.Permissions.CanEdit, view.Permissions.IsFavorite)
+				</div>
+
+				<!-- Right column: Sharing Info (only for owners) -->
+				<div class="lg:col-span-1">
+					if view.Card.UserID != nil && *view.Card.UserID == view.User.ID {
+						<div class="bg-white rounded-lg shadow-lg p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold text-gray-900">{ T(ctx, "share.title") }</h3>
+								<button
+									hx-get={ fmt.Sprintf("/cards/%s/shares/new-inline", view.Card.ID.String()) }
+									hx-target="#share-form"
+									hx-swap="innerHTML"
+									:disabled="$store.offline && !$store.offline.isOnline"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-700'"
+									class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
+									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "share.add") }</span>
+									<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "share.add") }</span>
+								</button>
+							</div>
+
+							<div id="share-form" class="mb-4"></div>
+
+							if len(view.Shares) > 0 {
+							<div class="space-y-3">
+								for _, share := range view.Shares {
+									<div class="border border-gray-200 rounded-lg p-3" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+										<div class="flex justify-between items-start mb-2">
+											<div class="flex-1">
+												<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+												<p class="text-xs text-gray-500">{ share.SharedWithUser.Email }</p>
+											</div>
+											if view.Card.UserID != nil && *view.Card.UserID == view.User.ID {
+												<button
+													hx-get={ fmt.Sprintf("/cards/%s/shares/%s/edit-inline", view.Card.ID.String(), share.ID.String()) }
+													hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+													hx-swap="outerHTML"
+													:disabled="$store.offline && !$store.offline.isOnline"
+													:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:text-blue-800'"
+													class="text-blue-600 text-xs">
+													<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
+													<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+												</button>
+											}
+										</div>
+										<div class="flex flex-wrap gap-1">
+											if share.CanEdit {
+												<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit") }</span>
+											}
+											if share.CanDelete {
+												<span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_delete") }</span>
+											}
+											if !share.CanEdit && !share.CanDelete {
+												<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{ T(ctx, "common.view") }</span>
+											}
+										</div>
+									</div>
+								}
+							</div>
+							} else {
+								<p class="text-sm text-gray-500 text-center py-4">{ T(ctx, "share.not_shared_card") }</p>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// CardsNew shows the form to create a new card
+templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
+	@Layout(ctx, T(ctx, "cards.new.title"), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-7xl mx-auto" x-data="Object.assign(cardForm(), emailAutocomplete(), { shareEmail: '', canEdit: false, canDelete: false })">
+			<div class="mb-6">
+				<a href="/cards" class="text-blue-600 hover:text-blue-700">
+					{ T(ctx, "cards.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Form (2/3 width) -->
+				<div class="lg:col-span-2">
+					<div class="bg-white rounded-lg shadow-lg p-8">
+						<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "cards.new.title") }</h1>
+
+						<form method="POST" action="/cards" class="space-y-6">
+					@CSRFField(csrfToken)
+							<div>
+								<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "cards.form.merchant_required") }
+								</label>
+								<select
+									id="merchant-select"
+									name="merchant_id"
+									required
+									style="font-size: 16px; line-height: 2.5;"
+									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+									<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+									for _, merchant := range view.Merchants {
+										<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+									}
+								</select>
+								<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+							</div>
+
+					<div>
+						<label for="program" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.program_required") }
+						</label>
+						<input
+							type="text"
+							id="program"
+							name="program"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+							placeholder={ T(ctx, "cards.form.program_placeholder") }/>
+					</div>
+
+					<div>
+						<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.card_number_required") }
+						</label>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="card_number"
+								name="card_number"
+								x-model="cardNumber"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"
+								placeholder={ T(ctx, "cards.form.card_number_placeholder") }/>
+							<button
+								type="button"
+								@click="startScanning()"
+								class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+								title={ T(ctx, "cards.form.scan_camera") }>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+							</button>
+						</div>
+					</div>
+
+					// Scanner Modal
+					<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+						<div class="bg-white rounded-lg max-w-md w-full p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+								<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+									<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="relative">
+								<div id="qr-reader" class="w-full rounded-lg"></div>
+								<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+									<div class="w-3/4 h-16 border-2 border-blue-500 rounded"></div>
+								</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+						</div>
+					</div>
+
+					<div>
+						<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.barcode_type") }
+						</label>
+						<select
+							id="barcode_type"
+							name="barcode_type"
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							<option value="CODE128">CODE128</option>
+							<option value="CODE39">CODE39</option>
+							<option value="CODE93">CODE93</option>
+							<option value="CODABAR">CODABAR</option>
+							<option value="QR">QR Code</option>
+							<option value="EAN13">EAN-13</option>
+							<option value="EAN8">EAN-8</option>
+							<option value="UPCA">UPC-A</option>
+							<option value="UPCE">UPC-E</option>
+							<option value="ITF">ITF</option>
+							<option value="ITF14">ITF-14</option>
+							<option value="ISBN13">ISBN-13</option>
+							<option value="PDF417">PDF417</option>
+							<option value="DATAMATRIX">Data Matrix</option>
+							<option value="AZTEC">Aztec</option>
+							<option value="MAXICODE">MaxiCode</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.notes") }
+						</label>
+						<textarea
+							id="notes"
+							name="notes"
+							rows="3"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+							placeholder={ T(ctx, "cards.form.notes_placeholder") }></textarea>
+					</div>
+
+							<div class="flex gap-3 pt-4">
+								<button
+									type="submit"
+									class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
+									{ T(ctx, "cards.form.create_button") }
+								</button>
+								<a
+									href="/cards"
+									class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+									{ T(ctx, "common.cancel") }
+								</a>
+							</div>
+
+							<!-- Hidden fields for sharing -->
+							<input type="hidden" name="share_with_email" x-model="email"/>
+							<input type="hidden" name="share_can_edit" :value="canEdit ? 'true' : 'false'"/>
+							<input type="hidden" name="share_can_delete" :value="canDelete ? 'true' : 'false'"/>
+						</form>
+					</div>
+				</div>
+
+				<!-- Right column: Sharing (1/3 width) -->
+				<div class="lg:col-span-1">
+					<div class="bg-white rounded-lg shadow-lg p-6">
+						<h2 class="text-xl font-bold text-gray-900 mb-4">
+							{ T(ctx, "share.share_card") }
+						</h2>
+						<p class="text-sm text-gray-600 mb-4">
+							{ T(ctx, "share.share_on_create_help") }
+						</p>
+
+						<div class="space-y-4">
+							<!-- Email Input with Autocomplete -->
+							<div class="relative">
+								<label for="share_email" class="block text-sm font-medium text-gray-700 mb-1">
+									{ T(ctx, "share.email_optional") }
+								</label>
+								<input
+									type="email"
+									id="share_email"
+									x-model="email"
+									@input.debounce.300ms="fetchSuggestions()"
+									@keydown="handleKeydown($event)"
+									@blur="hideSuggestions()"
+									class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+									placeholder={ T(ctx, "share.email_placeholder") }
+									autocomplete="off"/>
+
+								<!-- Autocomplete Dropdown -->
+								<div
+									x-show="showSuggestions"
+									x-cloak
+									class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+									<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+										<button
+											type="button"
+											@click="selectSuggestion(suggestion)"
+											:class="{ 'bg-blue-50': index === selectedIndex }"
+											class="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0">
+											<div class="flex flex-col">
+												<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+												<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+											</div>
+										</button>
+									</template>
+								</div>
+							</div>
+
+							<!-- Permissions -->
+							<div class="space-y-3" x-show="email.length > 0">
+								<div class="flex items-start">
+									<input
+										type="checkbox"
+										id="share_can_edit_new"
+										x-model="canEdit"
+										class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+									<label for="share_can_edit_new" class="ml-2 block text-sm text-gray-900">
+										<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+										<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Karte"}) }</p>
+									</label>
+								</div>
+								<div class="flex items-start">
+									<input
+										type="checkbox"
+										id="share_can_delete_new"
+										x-model="canDelete"
+										class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+									<label for="share_can_delete_new" class="ml-2 block text-sm text-gray-900">
+										<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+										<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Karte"}) }</p>
+									</label>
+								</div>
+							</div>
+
+							<!-- Info Box -->
+							<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+								<h4 class="font-medium text-blue-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+								<ul class="text-xs text-blue-800 space-y-1">
+									<li>✓ { T(ctx, "share.shared_items.card.number") }</li>
+									<li>✓ { T(ctx, "share.shared_items.card.details") }</li>
+									<li>✓ { T(ctx, "share.shared_items.card.notes") }</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+// CardsEdit shows the form to edit a card
+templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) {
+	@Layout(ctx, T(ctx, "cards.edit.title"), view.User, view.IsImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href={ templ.URL(fmt.Sprintf("/cards/%s", view.Card.ID.String())) } class="text-blue-600 hover:text-blue-700">
+					{ T(ctx, "cards.back_to_card") }
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8" x-data={ fmt.Sprintf("cardForm('%s')", view.Card.CardNumber) }>
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "cards.edit.title") }</h1>
+
+				<form method="POST" action={ templ.URL(fmt.Sprintf("/cards/%s", view.Card.ID.String())) } class="space-y-6">
+					@CSRFField(csrfToken)
+					<input type="hidden" name="_method" value="PUT"/>
+
+					<div>
+						<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.merchant_required") }
+						</label>
+						<select
+							id="merchant-select"
+							name="merchant_id"
+							required
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+							for _, merchant := range view.Merchants {
+								if view.Card.MerchantID != nil && merchant.ID == *view.Card.MerchantID {
+									<option value={ merchant.ID.String() } selected>{ merchant.Name }</option>
+								} else {
+									<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+								}
+							}
+						</select>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+					</div>
+
+					<div>
+						<label for="program" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.program_required") }
+						</label>
+						<input
+							type="text"
+							id="program"
+							name="program"
+							value={ view.Card.Program }
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+					</div>
+
+					<div>
+						<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.form.card_number_required") }
+						</label>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="card_number"
+								name="card_number"
+								x-model="cardNumber"
+								required
+								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"/>
+							<button
+								type="button"
+								@click="startScanning()"
+								class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+								title={ T(ctx, "cards.form.scan_camera") }>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								</svg>
+								<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+							</button>
+						</div>
+					</div>
+
+					// Scanner Modal
+					<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+						<div class="bg-white rounded-lg max-w-md w-full p-6">
+							<div class="flex justify-between items-center mb-4">
+								<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+								<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+									<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="relative">
+								<div id="qr-reader" class="w-full rounded-lg"></div>
+								<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+									<div class="w-3/4 h-16 border-2 border-blue-500 rounded"></div>
+								</div>
+							</div>
+							<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+						</div>
+					</div>
+
+					<div>
+						<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.barcode_type") }
+						</label>
+						<select
+							id="barcode_type"
+							name="barcode_type"
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							<option value="CODE128" selected?={ view.Card.BarcodeType == "CODE128" }>CODE128</option>
+							<option value="CODE39" selected?={ view.Card.BarcodeType == "CODE39" }>CODE39</option>
+							<option value="CODE93" selected?={ view.Card.BarcodeType == "CODE93" }>CODE93</option>
+							<option value="CODABAR" selected?={ view.Card.BarcodeType == "CODABAR" }>CODABAR</option>
+							<option value="QR" selected?={ view.Card.BarcodeType == "QR" }>QR Code</option>
+							<option value="EAN13" selected?={ view.Card.BarcodeType == "EAN13" }>EAN-13</option>
+							<option value="EAN8" selected?={ view.Card.BarcodeType == "EAN8" }>EAN-8</option>
+							<option value="UPCA" selected?={ view.Card.BarcodeType == "UPCA" }>UPC-A</option>
+							<option value="UPCE" selected?={ view.Card.BarcodeType == "UPCE" }>UPC-E</option>
+							<option value="ITF" selected?={ view.Card.BarcodeType == "ITF" }>ITF</option>
+							<option value="ITF14" selected?={ view.Card.BarcodeType == "ITF14" }>ITF-14</option>
+							<option value="ISBN13" selected?={ view.Card.BarcodeType == "ISBN13" }>ISBN-13</option>
+							<option value="PDF417" selected?={ view.Card.BarcodeType == "PDF417" }>PDF417</option>
+							<option value="DATAMATRIX" selected?={ view.Card.BarcodeType == "DATAMATRIX" }>Data Matrix</option>
+							<option value="AZTEC" selected?={ view.Card.BarcodeType == "AZTEC" }>Aztec</option>
+							<option value="MAXICODE" selected?={ view.Card.BarcodeType == "MAXICODE" }>MaxiCode</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.status") }
+						</label>
+						<select
+							id="status"
+							name="status"
+							style="font-size: 16px; line-height: 2.5;"
+							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							<option value="active" selected?={ view.Card.Status == "active" }>{ T(ctx, "cards.form.status.active") }</option>
+							<option value="suspended" selected?={ view.Card.Status == "suspended" }>{ T(ctx, "cards.form.status.suspended") }</option>
+							<option value="expired" selected?={ view.Card.Status == "expired" }>{ T(ctx, "cards.form.status.expired") }</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "cards.notes") }
+						</label>
+						<textarea
+							id="notes"
+							name="notes"
+							rows="3"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ view.Card.Notes }</textarea>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
+							{ T(ctx, "cards.form.save_button") }
+						</button>
+						<a
+							href={ templ.URL(fmt.Sprintf("/cards/%s", view.Card.ID.String())) }
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							{ T(ctx, "common.cancel") }
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// Helper functions
+func statusClass(status string) string {
+	switch status {
+	case "active":
+		return "bg-green-100 text-green-800"
+	case "suspended":
+		return "bg-yellow-100 text-yellow-800"
+	case "expired":
+		return "bg-red-100 text-red-800"
+	default:
+		return "bg-gray-100 text-gray-800"
+	}
+}
+
+func statusText(ctx context.Context, status string) string {
+	switch status {
+	case "active":
+		return T(ctx, "cards.form.status.active")
+	case "suspended":
+		return T(ctx, "cards.form.status.suspended")
+	case "expired":
+		return T(ctx, "cards.form.status.expired")
+	default:
+		return status
+	}
+}
+
+func favoriteButtonClass(isFavorite bool) string {
+	if isFavorite {
+		return "bg-yellow-500 hover:bg-yellow-600 text-white"
+	}
+	return "bg-gray-200 hover:bg-gray-300 text-gray-700"
+}
+
+func favoriteButtonTitle(ctx context.Context, isFavorite bool) string {
+	if isFavorite {
+		return T(ctx, "favorites.remove_from_favorites")
+	}
+	return T(ctx, "favorites.add_to_favorites")
+}
+
+// FavoriteButton renders the favorite toggle button for cards
+templ FavoriteButton(ctx context.Context, cardID string, isFavorite bool, csrfToken string) {
+	<button
+		hx-post={ fmt.Sprintf("/cards/%s/favorite", cardID) }
+		hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+		hx-swap="outerHTML"
+		class={ "px-3 py-1 rounded text-sm transition " + favoriteButtonClass(isFavorite) }
+		title={ favoriteButtonTitle(ctx, isFavorite) }>
+		if isFavorite {
+			⭐
+		} else {
+			☆
+		}
+	</button>
+}
+
+// CardShareInlineForm - Inline form to add a new share
+templ CardShareInlineForm(ctx context.Context, csrfToken string, cardID string) {
+	<div class="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-3">
+		<form
+			hx-post={ fmt.Sprintf("/cards/%s/shares", cardID) }
+			hx-target="#share-form"
+			hx-swap="innerHTML"
+			class="space-y-4"
+			x-data="emailAutocomplete()">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div class="relative">
+				<label for="shared_with_email" class="block text-sm font-medium text-gray-700 mb-1">
+					{ T(ctx, "share.email_required") }
+				</label>
+				<input
+					type="email"
+					id="shared_with_email"
+					name="shared_with_email"
+					required
+					x-model="email"
+					@input.debounce.300ms="fetchSuggestions()"
+					@keydown="handleKeydown($event)"
+					@blur="hideSuggestions()"
+					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+					placeholder={ T(ctx, "share.email_placeholder") }
+					autocomplete="off"/>
+
+				<!-- Autocomplete Dropdown -->
+				<div
+					x-show="showSuggestions"
+					x-cloak
+					class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<button
+							type="button"
+							@click="selectSuggestion(suggestion)"
+							:class="{ 'bg-blue-50': index === selectedIndex }"
+							class="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0">
+							<div class="flex flex-col">
+								<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+								<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+							</div>
+						</button>
+					</template>
+				</div>
+
+				<p class="text-xs text-gray-500 mt-1">
+					{ T(ctx, "share.email_help") }
+				</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_inline"
+						name="can_edit"
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for="can_edit_inline" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_delete_inline"
+						name="can_delete"
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for="can_delete_inline" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="bg-white border border-blue-200 rounded-lg p-3">
+				<h4 class="font-medium text-blue-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+				<ul class="text-xs text-blue-800 space-y-1">
+					<li>✓ { T(ctx, "share.shared_items.card.number") }</li>
+					<li>✓ { T(ctx, "share.shared_items.card.details") }</li>
+					<li>✓ { T(ctx, "share.shared_items.card.notes") }</li>
+				</ul>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
+					{ T(ctx, "share.share_now") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/cards/%s/shares/cancel", cardID) }
+					hx-target="#share-form"
+					hx-swap="innerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// CardShareInlineFormError - Inline form with error message
+templ CardShareInlineFormError(ctx context.Context, csrfToken string, cardID string, errorMsg string) {
+	<div class="border border-blue-200 bg-blue-50 rounded-lg p-4 mb-3">
+		<div class="mb-3 bg-red-50 border border-red-200 rounded-lg p-3">
+			<div class="flex items-center gap-2">
+				<svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				<p class="text-sm font-medium text-red-800">{ errorMsg }</p>
+			</div>
+		</div>
+
+		<form
+			hx-post={ fmt.Sprintf("/cards/%s/shares", cardID) }
+			hx-target="#share-form"
+			hx-swap="innerHTML"
+			class="space-y-4"
+			x-data="emailAutocomplete()">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div class="relative">
+				<label for="shared_with_email" class="block text-sm font-medium text-gray-700 mb-1">
+					{ T(ctx, "share.email_required") }
+				</label>
+				<input
+					type="email"
+					id="shared_with_email"
+					name="shared_with_email"
+					required
+					x-model="email"
+					@input.debounce.300ms="fetchSuggestions()"
+					@keydown="handleKeydown($event)"
+					@blur="hideSuggestions()"
+					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+					placeholder={ T(ctx, "share.email_placeholder") }
+					autocomplete="off"/>
+
+				<!-- Autocomplete Dropdown -->
+				<div
+					x-show="showSuggestions"
+					x-cloak
+					class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+					<template x-for="(suggestion, index) in suggestions" :key="suggestion.id">
+						<button
+							type="button"
+							@click="selectSuggestion(suggestion)"
+							:class="{ 'bg-blue-50': index === selectedIndex }"
+							class="w-full text-left px-4 py-2 hover:bg-blue-50 border-b border-gray-100 last:border-b-0">
+							<div class="flex flex-col">
+								<span class="text-sm font-medium text-gray-900" x-text="suggestion.name"></span>
+								<span class="text-xs text-gray-500" x-text="suggestion.email"></span>
+							</div>
+						</button>
+					</template>
+				</div>
+
+				<p class="text-xs text-gray-500 mt-1">
+					{ T(ctx, "share.email_help") }
+				</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_edit_inline_err"
+						name="can_edit"
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for="can_edit_inline_err" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id="can_delete_inline_err"
+						name="can_delete"
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for="can_delete_inline_err" class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="bg-white border border-blue-200 rounded-lg p-3">
+				<h4 class="font-medium text-blue-900 text-sm mb-2">{ T(ctx, "share.what_is_shared") }</h4>
+				<ul class="text-xs text-blue-800 space-y-1">
+					<li>✓ { T(ctx, "share.shared_items.card.number") }</li>
+					<li>✓ { T(ctx, "share.shared_items.card.details") }</li>
+					<li>✓ { T(ctx, "share.shared_items.card.notes") }</li>
+				</ul>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
+					{ T(ctx, "share.share_now") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/cards/%s/shares/cancel", cardID) }
+					hx-target="#share-form"
+					hx-swap="innerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// CardShareInlineEdit - Inline form to edit share permissions
+templ CardShareInlineEdit(ctx context.Context, csrfToken string, cardID string, share models.CardShare) {
+	<div class="border border-blue-200 bg-blue-50 rounded-lg p-4" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+		<form
+			hx-post={ fmt.Sprintf("/cards/%s/shares/%s", cardID, share.ID.String()) }
+			hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+			hx-swap="outerHTML"
+			class="space-y-3">
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+			<div>
+				<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+				<p class="text-xs text-gray-500 mb-3">{ share.SharedWithUser.Email }</p>
+			</div>
+
+			<div class="space-y-3">
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id={ fmt.Sprintf("can_edit_%s", share.ID.String()) }
+						name="can_edit"
+						checked?={ share.CanEdit }
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for={ fmt.Sprintf("can_edit_%s", share.ID.String()) } class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_edit") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_edit_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+				<div class="flex items-start">
+					<input
+						type="checkbox"
+						id={ fmt.Sprintf("can_delete_%s", share.ID.String()) }
+						name="can_delete"
+						checked?={ share.CanDelete }
+						class="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"/>
+					<label for={ fmt.Sprintf("can_delete_%s", share.ID.String()) } class="ml-2 block text-sm text-gray-900">
+						<span class="font-medium">{ T(ctx, "share.allow_delete") }</span>
+						<p class="text-gray-500 text-xs">{ T(ctx, "share.allow_delete_desc", map[string]any{"Type": "Karte"}) }</p>
+					</label>
+				</div>
+			</div>
+
+			<div class="flex gap-2 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
+					{ T(ctx, "common.save") }
+				</button>
+				<button
+					type="button"
+					hx-get={ fmt.Sprintf("/cards/%s/shares/%s/cancel-edit", cardID, share.ID.String()) }
+					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+					hx-swap="outerHTML"
+					class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 text-sm font-medium">
+					{ T(ctx, "common.cancel") }
+				</button>
+			</div>
+			<div class="pt-3 border-t border-blue-200 mt-3">
+				<div class="relative">
+					<button
+						type="button"
+						hx-delete={ fmt.Sprintf("/cards/%s/shares/%s", cardID, share.ID.String()) }
+						hx-confirm={ T(ctx, "share.revoke_confirm") }
+						hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+						hx-swap="outerHTML"
+						hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+						:disabled="$store.offline && !$store.offline.isOnline"
+						:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:text-red-800'"
+						class="w-full text-red-600 text-sm font-medium">
+						{ T(ctx, "share.remove") }
+					</button>
+					<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+						🔒 { T(ctx, "offline.badge") }
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+}
+
+// CardShareDisplay - Display a share (for returning after edit)
+templ CardShareDisplay(ctx context.Context, csrfToken string, cardID string, share models.CardShare, isOwner bool) {
+	<div class="border border-gray-200 rounded-lg p-3" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
+		<div class="flex justify-between items-start mb-2">
+			<div class="flex-1">
+				<p class="font-medium text-gray-900 text-sm">{ share.SharedWithUser.DisplayName() }</p>
+				<p class="text-xs text-gray-500">{ share.SharedWithUser.Email }</p>
+			</div>
+			if isOwner {
+				<button
+					hx-get={ fmt.Sprintf("/cards/%s/shares/%s/edit-inline", cardID, share.ID.String()) }
+					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
+					hx-swap="outerHTML"
+					class="text-blue-600 hover:text-blue-800 text-xs">
+					{ T(ctx, "common.edit") }
+				</button>
+			}
+		</div>
+		<div class="flex flex-wrap gap-1">
+			if share.CanEdit {
+				<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_edit") }</span>
+			}
+			if share.CanDelete {
+				<span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{ T(ctx, "share.can_delete") }</span>
+			}
+			if !share.CanEdit && !share.CanDelete {
+				<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{ T(ctx, "common.view") }</span>
+			}
+		</div>
+	</div>
+}
+
+// CardDetailView - Card detail view mode
+templ CardDetailView(ctx context.Context, csrfToken string, card models.Card, currentUser *models.User, canEdit bool, isFavorite bool) {
+	<div class="bg-white rounded-lg shadow-lg overflow-hidden"
+	     style={ fmt.Sprintf("border-top: 6px solid %s", card.GetColor()) }>
+		<div class="p-6">
+			// Single row: Händler | Programm | Von... | Favorit | Bearbeiten (rechtsbündig)
+			<div class="mb-6">
+				<div class="flex items-center justify-between gap-4 mb-3">
+					<div class="flex items-baseline gap-3 flex-wrap">
+						<h1 class="text-2xl font-bold text-gray-900">{ card.MerchantName }</h1>
+						<span class="text-lg text-gray-700">{ card.Program }</span>
+						if card.UserID != nil && card.User != nil {
+							if *card.UserID == currentUser.ID {
+								<span class="text-sm text-gray-500 italic">{ T(ctx, "cards.my_card") }</span>
+							} else {
+								<span class="text-sm text-gray-500 italic">{ T(ctx, "cards.card_from", map[string]any{"Name": card.User.DisplayName()}) }</span>
+							}
+						}
+					</div>
+					<div class="flex gap-2 flex-shrink-0">
+						<!-- Favorite Button -->
+						@FavoriteButton(ctx, card.ID.String(), isFavorite, csrfToken)
+						if canEdit {
+							<button
+								hx-get={ fmt.Sprintf("/cards/%s/edit-inline", card.ID.String()) }
+								hx-target="#card-detail"
+								hx-swap="innerHTML"
+								:disabled="$store.offline && !$store.offline.isOnline"
+								:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-gray-700'"
+								class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
+								<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
+								<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "common.edit") }</span>
+							</button>
+						}
+					</div>
+				</div>
+				// Zeile 2: Notizen (falls vorhanden)
+				if card.Notes != "" {
+					<div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+						<p class="text-sm text-gray-700">{ card.Notes }</p>
+					</div>
+				}
+			</div>
+
+			// Barcode - Full Width unten mit Status
+			<div id="barcode-section" class="bg-gray-50 rounded-lg p-6 text-center border-t border-gray-200">
+				<div class="mb-3">
+					<span class={ "inline-block px-3 py-1 text-xs rounded-full " + statusClass(card.Status) }>
+						{ statusText(ctx, card.Status) }
+					</span>
+				</div>
+				<img
+					src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)) }
+					alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
+					class="mx-auto max-h-32"/>
+				<p class="font-mono text-lg font-semibold text-gray-900 mt-4">{ card.CardNumber }</p>
+			</div>
+		</div>
+	</div>
+}
+
+// CardDetailEdit - Inline edit form for card
+templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, merchants []models.Merchant) {
+	<div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-6 border-blue-600" x-data={ fmt.Sprintf("cardForm('%s')", card.CardNumber) }>
+		<div class="p-6">
+			<form
+				hx-post={ fmt.Sprintf("/cards/%s/update-inline", card.ID.String()) }
+				hx-target="#card-detail"
+				hx-swap="innerHTML"
+				class="space-y-6">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
+
+				<div>
+					<label for="merchant-select" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.form.merchant_required") }
+					</label>
+					<select
+						id="merchant-select"
+						name="merchant_id"
+						required
+						style="font-size: 16px; line-height: 2.5;"
+						class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
+						for _, merchant := range merchants {
+							if card.MerchantID != nil && merchant.ID == *card.MerchantID {
+								<option value={ merchant.ID.String() } selected>{ merchant.Name }</option>
+							} else {
+								<option value={ merchant.ID.String() }>{ merchant.Name }</option>
+							}
+						}
+					</select>
+					<p class="text-sm text-gray-500 mt-1">{ T(ctx, "cards.form.merchant_help") }</p>
+				</div>
+
+				<div>
+					<label for="program" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.form.program_required") }
+					</label>
+					<input
+						type="text"
+						id="program"
+						name="program"
+						value={ card.Program }
+						required
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+				</div>
+
+				<div>
+					<label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.form.card_number_required") }
+					</label>
+					<div class="flex gap-2">
+						<input
+							type="text"
+							id="card_number"
+							name="card_number"
+							x-model="cardNumber"
+							required
+							class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"/>
+						<button
+							type="button"
+							@click="startScanning()"
+							class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+							title={ T(ctx, "cards.form.scan_camera") }>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+							</svg>
+							<span class="hidden sm:inline">{ T(ctx, "cards.form.scan_button") }</span>
+						</button>
+					</div>
+				</div>
+
+				// Scanner Modal
+				<div x-show="scanning" x-cloak class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+					<div class="bg-white rounded-lg max-w-md w-full p-6">
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="text-lg font-semibold">{ T(ctx, "cards.form.scan_title") }</h3>
+							<button @click="stopScanning()" class="text-gray-500 hover:text-gray-700">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+								</svg>
+							</button>
+						</div>
+						<div class="relative">
+							<div id="qr-reader" class="w-full rounded-lg"></div>
+							<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+								<div class="w-3/4 h-16 border-2 border-blue-500 rounded"></div>
+							</div>
+						</div>
+						<p class="text-sm text-gray-600 mt-4 text-center" x-text="scanMessage"></p>
+					</div>
+				</div>
+
+				<div>
+					<label for="barcode_type" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.barcode_type") }
+					</label>
+					<select
+						id="barcode_type"
+						name="barcode_type"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						<option value="CODE128" selected?={ card.BarcodeType == "CODE128" }>CODE128</option>
+						<option value="CODE39" selected?={ card.BarcodeType == "CODE39" }>CODE39</option>
+						<option value="CODE93" selected?={ card.BarcodeType == "CODE93" }>CODE93</option>
+						<option value="CODABAR" selected?={ card.BarcodeType == "CODABAR" }>CODABAR</option>
+						<option value="QR" selected?={ card.BarcodeType == "QR" }>QR Code</option>
+						<option value="EAN13" selected?={ card.BarcodeType == "EAN13" }>EAN-13</option>
+						<option value="EAN8" selected?={ card.BarcodeType == "EAN8" }>EAN-8</option>
+						<option value="UPCA" selected?={ card.BarcodeType == "UPCA" }>UPC-A</option>
+						<option value="UPCE" selected?={ card.BarcodeType == "UPCE" }>UPC-E</option>
+						<option value="ITF" selected?={ card.BarcodeType == "ITF" }>ITF</option>
+						<option value="ITF14" selected?={ card.BarcodeType == "ITF14" }>ITF-14</option>
+						<option value="ISBN13" selected?={ card.BarcodeType == "ISBN13" }>ISBN-13</option>
+						<option value="PDF417" selected?={ card.BarcodeType == "PDF417" }>PDF417</option>
+						<option value="DATAMATRIX" selected?={ card.BarcodeType == "DATAMATRIX" }>Data Matrix</option>
+						<option value="AZTEC" selected?={ card.BarcodeType == "AZTEC" }>Aztec</option>
+						<option value="MAXICODE" selected?={ card.BarcodeType == "MAXICODE" }>MaxiCode</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.status") }
+					</label>
+					<select
+						id="status"
+						name="status"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						<option value="active" selected?={ card.Status == "active" }>{ T(ctx, "cards.form.status.active") }</option>
+						<option value="suspended" selected?={ card.Status == "suspended" }>{ T(ctx, "cards.form.status.suspended") }</option>
+						<option value="expired" selected?={ card.Status == "expired" }>{ T(ctx, "cards.form.status.expired") }</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+						{ T(ctx, "cards.notes") }
+					</label>
+					<textarea
+						id="notes"
+						name="notes"
+						rows="3"
+						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ card.Notes }</textarea>
+				</div>
+
+				<div class="flex gap-3 pt-4">
+					<button
+						type="submit"
+						class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
+						{ T(ctx, "common.save") }
+					</button>
+					<button
+						type="button"
+						hx-get={ fmt.Sprintf("/cards/%s/cancel-edit", card.ID.String()) }
+						hx-target="#card-detail"
+						hx-swap="innerHTML"
+						class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+						{ T(ctx, "common.cancel") }
+					</button>
+				</div>
+
+				<div class="pt-4 border-t border-gray-200">
+					<div class="relative">
+						<button
+							type="button"
+							hx-delete={ fmt.Sprintf("/cards/%s", card.ID.String()) }
+							hx-confirm={ T(ctx, "cards.delete_confirm") }
+							hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+							:disabled="$store.offline && !$store.offline.isOnline"
+							:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:text-red-800'"
+							class="w-full text-red-600 font-medium">
+							{ T(ctx, "common.delete") }
+						</button>
+						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+							🔒 { T(ctx, "offline.badge") }
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+}

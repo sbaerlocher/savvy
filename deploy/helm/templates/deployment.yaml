@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "savvy.fullname" . }}
+  labels:
+    {{- include "savvy.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "savvy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "savvy.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "savvy.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.serverPort }}
+              protocol: TCP
+          env:
+            # Server Configuration
+            - name: SERVER_PORT
+              value: {{ .Values.config.serverPort | quote }}
+            - name: GO_ENV
+              value: {{ .Values.config.goEnv }}
+
+            # Database Configuration
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.external.existingSecret }}
+                  key: {{ .Values.database.external.existingSecretKey }}
+            - name: DATABASE_URL
+              value: {{ include "savvy.databaseUrl" . | quote }}
+
+            # Session Secret
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-session
+                  key: SESSION_SECRET
+
+            # Feature Toggles
+            - name: ENABLE_CARDS
+              value: {{ .Values.config.enableCards | quote }}
+            - name: ENABLE_VOUCHERS
+              value: {{ .Values.config.enableVouchers | quote }}
+            - name: ENABLE_GIFT_CARDS
+              value: {{ .Values.config.enableGiftCards | quote }}
+            - name: ENABLE_LOCAL_LOGIN
+              value: {{ .Values.config.enableLocalLogin | quote }}
+            - name: ENABLE_REGISTRATION
+              value: {{ .Values.config.enableRegistration | quote }}
+
+            # Observability
+            - name: OTEL_ENABLED
+              value: {{ .Values.config.otelEnabled | quote }}
+            {{- if .Values.config.otelEnabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.config.otelExporterOtlpEndpoint }}
+            {{- end }}
+
+            # OAuth (optional)
+            {{- if .Values.oauth.enabled }}
+            - name: OAUTH_CLIENT_ID
+              value: {{ .Values.oauth.clientId }}
+            - name: OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.oauth.existingSecret }}
+                  key: {{ .Values.oauth.existingSecretKey }}
+            - name: OAUTH_ISSUER
+              value: {{ .Values.oauth.issuer }}
+            - name: OAUTH_REDIRECT_URL
+              value: {{ .Values.oauth.redirectUrl }}
+            {{- end }}
+
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

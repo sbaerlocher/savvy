@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: savvy
+  template:
+    metadata:
+      annotations:
+        k8s.grafana.com/scrape: "true"
+        k8s.grafana.com/metrics.portNumber: "8080"
+        k8s.grafana.com/metrics.path: "/metrics"
+        k8s.grafana.com/job: "savvy"
+      labels:
+        app.kubernetes.io/name: savvy
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: savvy
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: savvy
+          image: ghcr.io/sbaerlocher/savvy:1.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: GO_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: GO_ENV
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-db
+                  key: password
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: DATABASE_URL
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-session
+                  key: SESSION_SECRET
+            - name: ENABLE_CARDS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_CARDS
+            - name: ENABLE_VOUCHERS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_VOUCHERS
+            - name: ENABLE_GIFT_CARDS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_GIFT_CARDS
+            - name: ENABLE_LOCAL_LOGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_LOCAL_LOGIN
+            - name: ENABLE_REGISTRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_REGISTRATION
+            - name: OTEL_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: OTEL_ENABLED
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

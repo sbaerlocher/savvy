@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker Debug - Savvy</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 30px; }
+        .log {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .log-error { border-left-color: #ef4444; background: #fef2f2; }
+        .log-success { border-left-color: #10b981; background: #f0fdf4; }
+        .log-warning { border-left-color: #f59e0b; background: #fffbeb; }
+        .log-info { border-left-color: #3b82f6; background: #eff6ff; }
+        .timestamp { color: #999; font-size: 11px; margin-right: 10px; }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover { background: #2563eb; }
+        button:active { transform: scale(0.98); }
+        button.danger { background: #ef4444; }
+        button.danger:hover { background: #dc2626; }
+        button.warning { background: #f59e0b; }
+        button.warning:hover { background: #d97706; }
+        #output { margin-top: 20px; max-height: 600px; overflow-y: auto; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Service Worker Debug Tool</h1>
+    <p>Debug-Seite für Service Worker Cache-Management</p>
+
+    <div class="stats" id="stats"></div>
+
+    <h2>Quick Actions</h2>
+    <div class="actions">
+        <button onclick="checkServiceWorker()">📊 Status prüfen</button>
+        <button onclick="listCaches()">📦 Caches auflisten</button>
+        <button onclick="cleanupOldCaches()">🧹 Alte Caches löschen</button>
+        <button onclick="checkForUpdates()">🔄 Updates prüfen</button>
+        <button class="warning" onclick="unregisterAll()">⚠️ SW deregistrieren</button>
+        <button class="danger" onclick="clearAllCaches()">🗑️ ALLE Caches löschen</button>
+    </div>
+
+    <h2>Console Output</h2>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const stats = document.getElementById('stats');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log log-' + type;
+            const timestamp = new Date().toLocaleTimeString('de-DE');
+            div.innerHTML = `<span class="timestamp">${timestamp}</span>${message}`;
+            output.insertBefore(div, output.firstChild);
+            console.log(`[SW-Debug] ${message}`);
+        }
+
+        function updateStats(data) {
+            stats.innerHTML = Object.entries(data).map(([key, value]) => `
+                <div class="stat-card">
+                    <div class="stat-value">${value}</div>
+                    <div class="stat-label">${key}</div>
+                </div>
+            `).join('');
+        }
+
+        async function checkServiceWorker() {
+            log('Prüfe Service Worker Status...', 'info');
+
+            if (!('serviceWorker' in navigator)) {
+                log('❌ Service Worker nicht unterstützt!', 'error');
+                return;
+            }
+
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            log(`✅ ${registrations.length} Service Worker Registration(s) gefunden`, 'success');
+
+            registrations.forEach((reg, i) => {
+                log(`SW #${i+1}: Scope=${reg.scope}`, 'info');
+                if (reg.active) log(`  ✅ Active: ${reg.active.scriptURL}`, 'success');
+                if (reg.installing) log(`  ⏳ Installing: ${reg.installing.scriptURL}`, 'warning');
+                if (reg.waiting) log(`  ⏸️ Waiting: ${reg.waiting.scriptURL}`, 'warning');
+            });
+
+            if (navigator.serviceWorker.controller) {
+                log(`✅ Controller aktiv: ${navigator.serviceWorker.controller.scriptURL}`, 'success');
+            } else {
+                log('⚠️ Kein aktiver Controller', 'warning');
+            }
+
+            await updateCacheStats();
+        }
+
+        async function listCaches() {
+            log('Liste alle Caches auf...', 'info');
+            const cacheNames = await caches.keys();
+            log(`📦 ${cacheNames.length} Cache(s) gefunden`, 'success');
+
+            const cacheGroups = {};
+            for (const name of cacheNames) {
+                const cache = await caches.open(name);
+                const keys = await cache.keys();
+                const baseName = name.replace(/-http:\/\/.*$/, '');
+                cacheGroups[baseName] = (cacheGroups[baseName] || 0) + 1;
+                log(`  ${name}: ${keys.length} Einträge`, 'info');
+            }
+
+            // Zeige Duplikate
+            for (const [name, count] of Object.entries(cacheGroups)) {
+                if (count > 1) {
+                    log(`⚠️ DUPLIKAT: "${name}" erscheint ${count}x`, 'warning');
+                }
+            }
+
+            await updateCacheStats();
+        }
+
+        async function cleanupOldCaches() {
+            log('🧹 Lösche alte Caches...', 'info');
+
+            if (!navigator.serviceWorker.controller) {
+                log('❌ Kein Service Worker Controller aktiv!', 'error');
+                return;
+            }
+
+            navigator.serviceWorker.controller.postMessage({
+                type: 'CLEANUP_OLD_CACHES'
+            });
+
+            log('📨 Cleanup-Message gesendet, warte 2 Sekunden...', 'info');
+            setTimeout(async () => {
+                await listCaches();
+            }, 2000);
+        }
+
+        async function checkForUpdates() {
+            log('🔄 Prüfe auf Updates...', 'info');
+            const registrations = await navigator.serviceWorker.getRegistrations();
+
+            if (registrations.length === 0) {
+                log('❌ Kein Service Worker registriert', 'error');
+                return;
+            }
+
+            for (const reg of registrations) {
+                await reg.update();
+                log('✅ Update-Check durchgeführt', 'success');
+            }
+        }
+
+        async function unregisterAll() {
+            if (!confirm('Service Worker wirklich deregistrieren? Seite muss danach neu geladen werden.')) {
+                return;
+            }
+
+            log('⚠️ Deregistriere alle Service Workers...', 'warning');
+            const registrations = await navigator.serviceWorker.getRegistrations();
+
+            for (const reg of registrations) {
+                await reg.unregister();
+                log(`✅ Deregistriert: ${reg.scope}`, 'success');
+            }
+
+            log('✅ Alle Service Workers deregistriert', 'success');
+            await updateCacheStats();
+        }
+
+        async function clearAllCaches() {
+            if (!confirm('ALLE Caches wirklich löschen? Dies kann nicht rückgängig gemacht werden!')) {
+                return;
+            }
+
+            log('🗑️ Lösche ALLE Caches...', 'warning');
+            const cacheNames = await caches.keys();
+
+            for (const name of cacheNames) {
+                await caches.delete(name);
+                log(`✅ Gelöscht: ${name}`, 'success');
+            }
+
+            log(`✅ ${cacheNames.length} Cache(s) gelöscht`, 'success');
+            await updateCacheStats();
+        }
+
+        async function updateCacheStats() {
+            const cacheNames = await caches.keys();
+            const registrations = await navigator.serviceWorker.getRegistrations();
+
+            let totalEntries = 0;
+            for (const name of cacheNames) {
+                const cache = await caches.open(name);
+                const keys = await cache.keys();
+                totalEntries += keys.length;
+            }
+
+            updateStats({
+                'Service Workers': registrations.length,
+                'Cache Names': cacheNames.length,
+                'Cache Einträge': totalEntries,
+                'Status': navigator.serviceWorker.controller ? '✅ Aktiv' : '❌ Inaktiv'
+            });
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', async () => {
+            log('🚀 Debug-Tool gestartet', 'success');
+            await checkServiceWorker();
+            await listCaches();
+        });
+
+        // Listen for SW messages
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            log(`📨 Message vom SW: ${JSON.stringify(event.data)}`, 'info');
+        });
+    </script>
+</body>
+</html>

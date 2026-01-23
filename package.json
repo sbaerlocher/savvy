@@ -1,0 +1,30 @@
+{
+  "name": "loyalty-system",
+  "version": "1.1.0",
+  "description": "Loyalty card management system",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "NODE_ENV=production node_modules/.bin/postcss static/css/src/input.css -o static/css/bundle.css",
+    "build:js": "node_modules/.bin/rollup -c",
+    "watch": "npm run watch:css & npm run watch:js",
+    "watch:css": "node_modules/.bin/postcss static/css/src/input.css -o static/css/bundle.css --watch",
+    "watch:js": "node_modules/.bin/rollup -c -w"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.7",
+    "html5-qrcode": "^2.3.8"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "autoprefixer": "^10.4.23",
+    "htmx.org": "^2.0.8",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "rollup": "^4.26.0",
+    "tailwindcss": "^3.4.19"
+  }
+}

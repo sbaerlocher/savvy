@@ -1,0 +1,242 @@
+package templates
+
+import "context"
+
+import (
+	"savvy/internal/models"
+	"fmt"
+)
+
+// MerchantsIndex lists all merchants
+templ MerchantsIndex(ctx context.Context, csrfToken string, merchants []models.Merchant, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Händler", user, isImpersonating) {
+		<div class="px-4 py-8 max-w-6xl mx-auto">
+			<div class="flex justify-between items-center mb-8">
+				<h1 class="text-3xl font-bold text-gray-900">{ T(ctx, "merchants.title") }</h1>
+				if user.IsAdmin() {
+					<a href="/merchants/new" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+						+ { T(ctx, "merchants.add_new") }
+					</a>
+				}
+			</div>
+
+			if len(merchants) == 0 {
+				<div class="bg-white rounded-lg shadow-lg p-12 text-center">
+					<p class="text-gray-500 mb-4">{ T(ctx, "merchants.empty") }</p>
+					if user.IsAdmin() {
+						<a href="/merchants/new" class="text-green-600 hover:text-green-700 font-medium">
+							{ T(ctx, "merchants.add_first") }
+						</a>
+					}
+				</div>
+			} else {
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					for _, merchant := range merchants {
+						<div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+							<div class="p-6">
+								if merchant.LogoURL != "" {
+									<div class="mb-4">
+										<img src={ merchant.LogoURL } alt={ merchant.Name } class="h-16 w-auto object-contain"/>
+									</div>
+								}
+								<h3 class="text-xl font-bold text-gray-900 mb-2">{ merchant.Name }</h3>
+								if merchant.Website != "" {
+									<a href={ templ.URL(merchant.Website) } target="_blank" class="text-sm text-blue-600 hover:text-blue-800 mb-4 block">
+										{ merchant.Website }
+									</a>
+								}
+								if user.IsAdmin() {
+									<div class="flex gap-2 mt-4">
+										<a href={ templ.URL(fmt.Sprintf("/merchants/%s/edit", merchant.ID.String())) }
+										   class="flex-1 text-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm">
+											{ T(ctx, "common.edit") }
+										</a>
+										<button
+											hx-delete={ fmt.Sprintf("/merchants/%s", merchant.ID.String()) }
+											hx-confirm={ T(ctx, "merchants.delete_confirm") }
+											hx-target="closest div"
+											hx-swap="outerHTML"
+											hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+											class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm">
+											{ T(ctx, "common.delete") }
+										</button>
+									</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+			}
+		</div>
+	}
+}
+
+// MerchantsNew shows form to create a new merchant
+templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Neuer Händler", user, isImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href="/merchants" class="text-green-600 hover:text-green-700">
+					← { T(ctx, "merchants.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "merchants.add_new") }</h1>
+
+				<form method="POST" action="/merchants" class="space-y-6">
+					@CSRFField(csrfToken)
+					<div>
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.name") } *
+						</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder={ T(ctx, "merchants.form.name_placeholder") }/>
+					</div>
+
+					<div>
+						<label for="logo_url" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.logo_url") }
+						</label>
+						<input
+							type="url"
+							id="logo_url"
+							name="logo_url"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.logo_url_help") }</p>
+					</div>
+
+					<div>
+						<label for="website" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.website") }
+						</label>
+						<input
+							type="url"
+							id="website"
+							name="website"
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder="https://www.example.com"/>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.website_help") }</p>
+					</div>
+
+					<div>
+						<label for="color" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.color") }
+						</label>
+						<input
+							type="color"
+							id="color"
+							name="color"
+							value="#0066CC"
+							class="w-full h-12 border border-gray-300 rounded-md cursor-pointer"/>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.color_help") }</p>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							{ T(ctx, "merchants.form.create_button") }
+						</button>
+						<a
+							href="/merchants"
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							{ T(ctx, "common.cancel") }
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// MerchantsEdit shows form to edit a merchant
+templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merchant, user *models.User, isImpersonating bool) {
+	@Layout(ctx, "Händler bearbeiten", user, isImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<a href="/merchants" class="text-green-600 hover:text-green-700">
+					← { T(ctx, "merchants.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-lg p-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "merchants.edit_title") }</h1>
+
+				<form method="POST" action={ templ.URL(fmt.Sprintf("/merchants/%s", merchant.ID.String())) } class="space-y-6">
+					@CSRFField(csrfToken)
+					<div>
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.name") } *
+						</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							value={ merchant.Name }
+							required
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+					</div>
+
+					<div>
+						<label for="logo_url" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.logo_url") }
+						</label>
+						<input
+							type="url"
+							id="logo_url"
+							name="logo_url"
+							value={ merchant.LogoURL }
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
+					</div>
+
+					<div>
+						<label for="website" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.website") }
+						</label>
+						<input
+							type="url"
+							id="website"
+							name="website"
+							value={ merchant.Website }
+							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							placeholder="https://www.example.com"/>
+					</div>
+
+					<div>
+						<label for="color" class="block text-sm font-medium text-gray-700 mb-1">
+							{ T(ctx, "merchants.form.color") }
+						</label>
+						<input
+							type="color"
+							id="color"
+							name="color"
+							value={ merchant.Color }
+							class="w-full h-12 border border-gray-300 rounded-md cursor-pointer"/>
+						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.color_help") }</p>
+					</div>
+
+					<div class="flex gap-3 pt-4">
+						<button
+							type="submit"
+							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							{ T(ctx, "common.save") }
+						</button>
+						<a
+							href="/merchants"
+							class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">
+							{ T(ctx, "common.cancel") }
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

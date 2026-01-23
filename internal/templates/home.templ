@@ -1,0 +1,289 @@
+package templates
+
+import (
+	"context"
+	"savvy/internal/models"
+	"fmt"
+)
+
+templ Home(ctx context.Context, user *models.User, isImpersonating bool, cardsCount int64, vouchersCount int64, giftCardsCount int64, totalBalance float64, recentCards []models.Card, recentVouchers []models.Voucher, recentGiftCards []models.GiftCard, hasFavorites bool, hasCardFavorites bool, hasVoucherFavorites bool, hasGiftCardFavorites bool) {
+	@Layout(ctx, T(ctx, "nav.home"), user, isImpersonating) {
+		<div class="px-4 py-8 max-w-7xl mx-auto" x-data>
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900">
+					{ T(ctx, "home.welcome", map[string]any{"Name": user.FirstName}) }
+				</h1>
+				<p class="mt-2 text-gray-600">
+					{ T(ctx, "home.overview") }
+				</p>
+			</div>
+
+			<!-- Favoriten / Quick Actions Grid - Mobile zuerst -->
+			<div class="flex flex-col lg:grid lg:grid-cols-2 gap-6 mb-8 order-1">
+				<!-- Recent Activity / Favorites - Desktop: Right, Mobile: First -->
+				<div class="bg-white rounded-lg shadow-md p-6 order-1 lg:order-2">
+					<h2 class="text-xl font-semibold text-gray-900 mb-4">
+						if hasFavorites {
+							⭐ { T(ctx, "home.favorites") }
+						} else {
+							{ T(ctx, "home.recent_added") }
+						}
+					</h2>
+					<div class="space-y-3">
+						if len(recentCards) == 0 && len(recentVouchers) == 0 && len(recentGiftCards) == 0 {
+							<div class="text-center py-8">
+								<p class="text-gray-500 text-sm">{ T(ctx, "home.no_activity") }</p>
+								<p class="text-gray-400 text-xs mt-1">{ T(ctx, "home.add_first") }</p>
+							</div>
+						} else {
+							<!-- Wenn Favoriten existieren: nur Typen mit Favoriten anzeigen -->
+							<!-- Wenn keine Favoriten: alle Typen anzeigen (kürzlich hinzugefügt) -->
+							if getConfig(ctx).EnableCards && len(recentCards) > 0 && (!hasFavorites || hasCardFavorites) {
+								for i, card := range recentCards {
+									if i < 3 {
+										<a href={ templ.URL(fmt.Sprintf("/cards/%s", card.ID.String())) } class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition">
+											<div class="h-8 w-8 rounded flex items-center justify-center text-white text-xs font-bold" style={ fmt.Sprintf("background-color: %s", card.GetColor()) }>
+												💳
+											</div>
+											<div class="flex-1 min-w-0">
+												<p class="font-medium text-gray-900 text-sm truncate">{ card.MerchantName }</p>
+												<p class="text-xs text-gray-500">
+													{ T(ctx, "home.recent_items.card") }
+													if card.UserID != nil && card.User != nil && *card.UserID != user.ID {
+														<span class="text-gray-400"> • von { card.User.DisplayName() }</span>
+													}
+												</p>
+											</div>
+										</a>
+									}
+								}
+							}
+							if getConfig(ctx).EnableVouchers && len(recentVouchers) > 0 && (!hasFavorites || hasVoucherFavorites) {
+								for i, voucher := range recentVouchers {
+									if i < 3 {
+										<a href={ templ.URL(fmt.Sprintf("/vouchers/%s", voucher.ID.String())) } class="flex items-center gap-3 p-2 rounded-lg hover:bg-green-50 transition">
+											<div class="h-8 w-8 rounded flex items-center justify-center text-white text-xs font-bold" style={ fmt.Sprintf("background-color: %s", voucher.GetColor()) }>
+												🎟️
+											</div>
+											<div class="flex-1 min-w-0">
+												<p class="font-medium text-gray-900 text-sm truncate">
+													{ voucher.MerchantName }
+													<span class="text-gray-600">
+														if voucher.Type == "percentage" {
+															• { fmt.Sprintf("%.0f%%", voucher.Value) }
+														} else if voucher.Type == "fixed_amount" {
+															• CHF { fmt.Sprintf("%.0f", voucher.Value) }
+														} else if voucher.Type == "points_multiplier" {
+															• { fmt.Sprintf("%.0fx", voucher.Value) } Punkte
+														}
+													</span>
+												</p>
+												if voucher.Description != "" {
+													<p class="text-xs text-gray-500 truncate">{ voucher.Description }</p>
+												}
+												<p class="text-xs text-gray-400">
+													{ T(ctx, "home.recent_items.voucher") }
+													if !voucher.ValidUntil.IsZero() {
+														<span class="text-orange-600"> • { T(ctx, "common.valid_until") } { voucher.ValidUntil.Format("02.01.2006") }</span>
+													}
+													if voucher.UserID != nil && voucher.User != nil && *voucher.UserID != user.ID {
+														<span> • von { voucher.User.DisplayName() }</span>
+													}
+												</p>
+											</div>
+										</a>
+									}
+								}
+							}
+							if getConfig(ctx).EnableGiftCards && len(recentGiftCards) > 0 && (!hasFavorites || hasGiftCardFavorites) {
+								for i, giftCard := range recentGiftCards {
+									if i < 3 {
+										<a href={ templ.URL(fmt.Sprintf("/gift-cards/%s", giftCard.ID.String())) } class="flex items-center gap-3 p-2 rounded-lg hover:bg-red-50 transition">
+											<div class="h-8 w-8 rounded flex items-center justify-center text-white text-xs font-bold" style={ fmt.Sprintf("background-color: %s", giftCard.GetColor()) }>
+												🎁
+											</div>
+											<div class="flex-1 min-w-0">
+												<p class="font-medium text-gray-900 text-sm truncate">
+													{ giftCard.MerchantName }
+													<span class="text-green-600 font-semibold ml-1">
+														• { giftCard.Currency } { fmt.Sprintf("%.2f", giftCard.CurrentBalance) }
+													</span>
+												</p>
+												<p class="text-xs text-gray-500">
+													{ T(ctx, "home.recent_items.giftcard") }
+													if giftCard.ExpiresAt != nil {
+														<span class="text-orange-600"> • { T(ctx, "common.valid_until") } { giftCard.ExpiresAt.Format("02.01.2006") }</span>
+													}
+													if giftCard.UserID != nil && giftCard.User != nil && *giftCard.UserID != user.ID {
+														<span class="text-gray-400"> • von { giftCard.User.DisplayName() }</span>
+													}
+												</p>
+											</div>
+										</a>
+									}
+								}
+							}
+						}
+					</div>
+				</div>
+
+				<!-- Quick Actions - Desktop: Left, Mobile: Second -->
+				<div class="bg-white rounded-lg shadow-md p-6 order-2 lg:order-1">
+					<h2 class="text-xl font-semibold text-gray-900 mb-4">{ T(ctx, "home.quick_access") }</h2>
+					<div class="space-y-3">
+						if getConfig(ctx).EnableCards {
+							<div class="relative">
+								<a
+									href="/cards/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-50'"
+									class="flex items-center gap-3 p-3 rounded-lg transition">
+									<div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+										<span class="text-xl">➕</span>
+									</div>
+									<div>
+										<p class="font-medium text-gray-900">{ T(ctx, "home.quick_actions.add_card") }</p>
+										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_card_desc") }</p>
+									</div>
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						}
+						if getConfig(ctx).EnableVouchers {
+							<div class="relative">
+								<a
+									href="/vouchers/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-green-50'"
+									class="flex items-center gap-3 p-3 rounded-lg transition">
+									<div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+										<span class="text-xl">➕</span>
+									</div>
+									<div>
+										<p class="font-medium text-gray-900">{ T(ctx, "home.quick_actions.add_voucher") }</p>
+										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_voucher_desc") }</p>
+									</div>
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						}
+						if getConfig(ctx).EnableGiftCards {
+							<div class="relative">
+								<a
+									href="/gift-cards/new"
+									@click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }"
+									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-red-50'"
+									class="flex items-center gap-3 p-3 rounded-lg transition">
+									<div class="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+										<span class="text-xl">➕</span>
+									</div>
+									<div>
+										<p class="font-medium text-gray-900">{ T(ctx, "home.quick_actions.add_giftcard") }</p>
+										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_giftcard_desc") }</p>
+									</div>
+								</a>
+								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+									🔒 { T(ctx, "offline.badge") }
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+
+			<!-- Stats Grid - Mobile: Nach Favoriten -->
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 order-2">
+				if getConfig(ctx).EnableCards {
+					<a href="/cards" class="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-l-4 border-blue-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-sm text-gray-600 mb-1">{ T(ctx, "home.stats.cards") }</p>
+								<p class="text-3xl font-bold text-gray-900">{ fmt.Sprintf("%d", cardsCount) }</p>
+							</div>
+							<div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">
+								💳
+							</div>
+						</div>
+					</a>
+				}
+
+				if getConfig(ctx).EnableVouchers {
+					<a href="/vouchers" class="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-l-4 border-green-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-sm text-gray-600 mb-1">{ T(ctx, "home.stats.vouchers") }</p>
+								<p class="text-3xl font-bold text-gray-900">{ fmt.Sprintf("%d", vouchersCount) }</p>
+							</div>
+							<div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl">
+								🎟️
+							</div>
+						</div>
+					</a>
+				}
+
+				if getConfig(ctx).EnableGiftCards {
+					<a href="/gift-cards" class="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border-l-4 border-red-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-sm text-gray-600 mb-1">{ T(ctx, "home.stats.giftcards") }</p>
+								<p class="text-3xl font-bold text-gray-900">{ fmt.Sprintf("%d", giftCardsCount) }</p>
+							</div>
+							<div class="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center text-2xl">
+								🎁
+							</div>
+						</div>
+					</a>
+				}
+
+				if getConfig(ctx).EnableGiftCards {
+					<div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<p class="text-sm text-gray-600 mb-1">{ T(ctx, "home.stats.balance") }</p>
+								<p class="text-3xl font-bold text-gray-900">{ fmt.Sprintf("%.0f", totalBalance) }</p>
+								<p class="text-xs text-gray-500 mt-1">CHF</p>
+							</div>
+							<div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
+								💰
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<!-- Getting Started (nur anzeigen wenn noch keine Items) -->
+			if len(recentCards) == 0 && len(recentVouchers) == 0 && len(recentGiftCards) == 0 {
+				<div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-100">
+					<h2 class="text-xl font-semibold text-gray-900 mb-4">{ T(ctx, "home.getting_started") }</h2>
+					<div class="grid md:grid-cols-3 gap-4">
+						if getConfig(ctx).EnableCards {
+							<div class="bg-white bg-opacity-60 rounded-lg p-4">
+								<div class="text-2xl mb-2">💳</div>
+								<p class="font-medium text-gray-900 mb-1">{ T(ctx, "home.stats.cards") }</p>
+								<p class="text-sm text-gray-600">{ T(ctx, "home.getting_started.cards") }</p>
+							</div>
+						}
+						if getConfig(ctx).EnableVouchers {
+							<div class="bg-white bg-opacity-60 rounded-lg p-4">
+								<div class="text-2xl mb-2">🎟️</div>
+								<p class="font-medium text-gray-900 mb-1">{ T(ctx, "home.stats.vouchers") }</p>
+								<p class="text-sm text-gray-600">{ T(ctx, "home.getting_started.vouchers") }</p>
+							</div>
+						}
+						if getConfig(ctx).EnableGiftCards {
+							<div class="bg-white bg-opacity-60 rounded-lg p-4">
+								<div class="text-2xl mb-2">🎁</div>
+								<p class="font-medium text-gray-900 mb-1">{ T(ctx, "home.stats.giftcards") }</p>
+								<p class="text-sm text-gray-600">{ T(ctx, "home.getting_started.giftcards") }</p>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+}

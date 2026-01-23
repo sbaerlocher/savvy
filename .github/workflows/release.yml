@@ -1,0 +1,35 @@
+---
+name: Release
+
+"on":
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  release:
+    name: Go Release (Binaries + Docker)
+    uses: sbaerlocher/.github/.github/workflows/release-go.yml@main
+    with:
+      enable-docker: true
+      docker-registry: 'ghcr.io'
+      pre-build-commands: |
+        go install github.com/a-h/templ/cmd/templ@latest
+        templ generate
+
+  helm-release:
+    name: Helm Chart Release
+    needs: release
+    uses: sbaerlocher/.github/.github/workflows/release-helm.yml@main
+    with:
+      chart-path: 'deploy/helm'
+      chart-name: 'savvy'
+      registry: 'ghcr.io'
+      registry-path: '${{ github.repository_owner }}'
+      version: '${{ github.ref_name }}'
+    secrets:
+      registry-token: '${{ secrets.GITHUB_TOKEN }}'

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: savvy
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: savvy
+          image: ghcr.io/sbaerlocher/savvy:staging
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi

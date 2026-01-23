@@ -1,0 +1,31 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-development
+
+namespace: savvy-dev
+
+namePrefix: dev-
+
+resources:
+  - ../../base
+  - ingress.yaml
+  - postgres.yaml
+
+patches:
+  - path: deployment-patch.yaml
+  - path: configmap-patch.yaml
+
+images:
+  - name: ghcr.io/sbaerlocher/savvy
+    newTag: dev
+
+replicas:
+  - name: savvy
+    count: 1
+
+labels:
+  - pairs:
+      environment: development

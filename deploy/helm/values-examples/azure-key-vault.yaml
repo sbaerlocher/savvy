@@ -1,0 +1,29 @@
+# Azure Key Vault Example
+# Usage: helm install savvy ./helm/savvy -f values-examples/azure-key-vault.yaml
+
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-key-vault
+    kind: SecretStore
+
+  secrets:
+    # Session Secret
+    - target:
+        key: SESSION_SECRET
+      remoteRef:
+        key: "savvy-session-secret"  # Key Vault Secret Name
+        # Azure Key Vault doesn't use 'property' - returns full secret value
+
+    # Database Password
+    - target:
+        key: password
+      remoteRef:
+        key: "savvy-db-password"
+
+    # OAuth Client Secret (optional)
+    - target:
+        key: CLIENT_SECRET
+      remoteRef:
+        key: "savvy-oauth-secret"

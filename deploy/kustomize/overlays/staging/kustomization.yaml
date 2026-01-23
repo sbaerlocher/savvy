@@ -1,0 +1,31 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-staging
+
+namespace: savvy-staging
+
+namePrefix: staging-
+
+resources:
+  - ../../base
+  - ingress.yaml
+  - hpa.yaml
+
+patches:
+  - path: deployment-patch.yaml
+  - path: configmap-patch.yaml
+
+images:
+  - name: ghcr.io/sbaerlocher/savvy
+    newTag: staging
+
+replicas:
+  - name: savvy
+    count: 2
+
+labels:
+  - pairs:
+      environment: staging

@@ -1,0 +1,37 @@
+# MegaLinter Configuration
+# Documentation: https://megalinter.io/latest/configuration/
+
+# Disable SQL linter (tsqllint is for T-SQL, not PostgreSQL)
+DISABLE_LINTERS:
+  - SQL_TSQLLINT
+  - JSON_PRETTIER # Missing prettier-plugin-astro
+  - YAML_PRETTIER # Missing prettier-plugin-astro
+  - MARKDOWN_MARKDOWNLINT # Too many false positives for documentation
+  - MARKDOWN_MARKDOWN_TABLE_FORMATTER # Optional formatting
+
+# Disable copy-paste detection (too strict for templates)
+DISABLE:
+  - COPYPASTE
+
+  # Disable secretlint (using gitleaks instead)
+  - REPOSITORY_SECRETLINT
+
+  # Disable DevSkim (too many false positives)
+  - REPOSITORY_DEVSKIM
+
+  # Disable Kingfisher (not relevant for this project)
+  - REPOSITORY_KINGFISHER
+
+# Exclude vendor directory from scanning
+FILTER_REGEX_EXCLUDE: "(vendor/)"
+
+# Apply fixes automatically where possible
+APPLY_FIXES: all
+
+# File naming conventions
+FILE_NAMES_LINTER_RULES:
+  - "lowercase-with-hyphens"
+
+# Report configuration
+PRINT_ALL_FILES: false
+SHOW_ELAPSED_TIME: true

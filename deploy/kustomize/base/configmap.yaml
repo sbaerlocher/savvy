@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+data:
+  GO_ENV: "production"
+  DATABASE_URL: "postgres://savvy:$(DATABASE_PASSWORD)@postgres.database.svc.cluster.local:5432/savvy?sslmode=require"
+  ENABLE_CARDS: "true"
+  ENABLE_VOUCHERS: "true"
+  ENABLE_GIFT_CARDS: "true"
+  ENABLE_LOCAL_LOGIN: "true"
+  ENABLE_REGISTRATION: "false"
+  OTEL_ENABLED: "false"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "localhost:4318"

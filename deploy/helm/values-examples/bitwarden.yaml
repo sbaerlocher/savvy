@@ -1,0 +1,31 @@
+# Bitwarden Secret Manager Example
+# Usage: helm install savvy ./helm/savvy -f values-examples/bitwarden.yaml
+
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secret-store
+    kind: ClusterSecretStore
+
+  secrets:
+    # Session Secret
+    - target:
+        key: SESSION_SECRET
+      remoteRef:
+        key: "savvy-session-secret"  # Bitwarden Item Name
+        property: password                   # Field: password
+
+    # Database Password
+    - target:
+        key: password
+      remoteRef:
+        key: "savvy-db-password"
+        property: password
+
+    # OAuth Client Secret (optional)
+    - target:
+        key: CLIENT_SECRET
+      remoteRef:
+        key: "savvy-oauth-secret"
+        property: password

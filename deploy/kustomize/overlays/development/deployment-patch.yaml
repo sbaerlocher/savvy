@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: savvy
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: savvy
+          image: ghcr.io/sbaerlocher/savvy:dev
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

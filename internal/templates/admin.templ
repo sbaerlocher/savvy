@@ -1,0 +1,583 @@
+package templates
+
+import "context"
+
+import (
+	"savvy/internal/models"
+	"fmt"
+)
+
+// AdminUsersIndex lists all users with admin actions
+templ AdminUsersIndex(ctx context.Context, csrfToken string, users []models.User, currentUser *models.User, isImpersonating bool) {
+	@Layout(ctx, T(ctx, "admin.title"), currentUser, isImpersonating) {
+		<div class="px-4 py-8">
+			<div class="mb-6">
+				<div class="flex justify-between items-center">
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900 mb-2">{ T(ctx, "admin.heading") }</h1>
+						<p class="text-gray-600">{ T(ctx, "admin.subtitle") }</p>
+					</div>
+					<div class="flex items-center gap-3">
+						if getConfig(ctx).EnableLocalLogin {
+							<a
+								href="/admin/users/create"
+								class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"
+							>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+								</svg>
+								Benutzer erstellen
+							</a>
+						}
+						if isImpersonating {
+							<div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+								<div class="flex items-center gap-2">
+									<span class="text-yellow-800 font-medium">⚠️ { T(ctx, "admin.impersonating_warning") }</span>
+									<a href="/admin/stop-impersonate"
+									   class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm">
+										{ T(ctx, "admin.stop_impersonating") }
+									</a>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+
+			<!-- Navigation Tabs -->
+			<div class="mb-6 border-b border-gray-200">
+				<nav class="-mb-px flex space-x-8">
+					<a href="/admin/users" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+						{ T(ctx, "admin.tabs.users") }
+					</a>
+					<a href="/admin/audit-log" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+						{ T(ctx, "admin.tabs.audit_log") }
+					</a>
+				</nav>
+			</div>
+
+			<!-- 2-Column Layout: Content + Sidebar -->
+			<div class="flex flex-col md:flex-row gap-6" x-data="usersFilter()" x-init="init()">
+				<!-- Left Column: Main Content -->
+				<div class="flex-1 min-w-0">
+
+					<!-- Info Box -->
+					<div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+						<h3 class="text-lg font-semibold text-blue-900 mb-3">{ T(ctx, "admin.impersonate_info.title") }</h3>
+						<div class="text-sm text-blue-800 space-y-2">
+							<p>{ T(ctx, "admin.impersonate_info.description") }</p>
+							<ul class="list-disc list-inside ml-4 space-y-1">
+								<li>{ T(ctx, "admin.impersonate_info.keep_rights") }</li>
+								<li>{ T(ctx, "admin.impersonate_info.actions_as_user") }</li>
+								<li>{ T(ctx, "admin.impersonate_info.warning_shown") }</li>
+								<li>{ T(ctx, "admin.impersonate_info.can_return") }</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- Users List -->
+					<!-- No Results Message -->
+					<div x-show="visibleCount === 0" class="bg-gray-50 rounded-lg p-12 text-center mb-4">
+						<p class="text-gray-600 text-lg">{ T(ctx, "admin.users.no_users_found") }</p>
+					</div>
+
+					<!-- Mobile: Card Layout -->
+					<div class="block md:hidden space-y-4">
+						for _, user := range users {
+							<div
+								class={ "bg-white rounded-lg shadow-md p-4", templ.KV("ring-2 ring-blue-500", user.ID == currentUser.ID) }
+								x-data="{ open: false }"
+								x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s')", user.DisplayName(), user.Email, user.Role) }
+							>
+								<div class="flex items-start gap-3 mb-3">
+									<div class="flex-shrink-0 h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+										<span class="text-white font-bold text-lg">
+											{ string(user.FirstName[0]) }{ string(user.LastName[0]) }
+										</span>
+									</div>
+									<div class="flex-1 min-w-0">
+										<div class="flex items-center gap-2 mb-1">
+											<h3 class="text-sm font-semibold text-gray-900 truncate">
+												{ user.DisplayName() }
+											</h3>
+											if user.ID == currentUser.ID {
+												<span class="text-xs text-blue-600 font-semibold whitespace-nowrap">({ T(ctx, "admin.you") })</span>
+											}
+										</div>
+										<p class="text-xs text-gray-600 truncate">{ user.Email }</p>
+										<div class="flex items-center gap-2 mt-2">
+											if user.Role == "admin" {
+												<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+													{ T(ctx, "admin.users.role.admin") }
+												</span>
+											} else {
+												<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+													{ T(ctx, "admin.users.role.user") }
+												</span>
+											}
+										</div>
+									</div>
+								</div>
+
+								<!-- Details Toggle Button -->
+								<button @click="open = !open" class="w-full text-left text-xs text-blue-600 hover:text-blue-800 font-medium py-2 border-t border-gray-200 flex items-center justify-between">
+									<span>{ T(ctx, "admin.users.show_details") }</span>
+									<svg x-show="!open" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+									</svg>
+									<svg x-show="open" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+									</svg>
+								</button>
+
+								<!-- Expandable Details -->
+								<div x-show="open" x-cloak class="pt-3 border-t border-gray-200 space-y-2 text-xs">
+									<div>
+										<span class="font-medium text-gray-600">{ T(ctx, "admin.users.user_id") }:</span>
+										<p class="text-gray-900 font-mono mt-0.5 break-all">{ user.ID.String() }</p>
+									</div>
+									<div>
+										<span class="font-medium text-gray-600">{ T(ctx, "admin.users.registered") }:</span>
+										<p class="text-gray-900 mt-0.5">{ user.CreatedAt.Format("02.01.2006 15:04:05") }</p>
+									</div>
+									<div>
+										<span class="font-medium text-gray-600">{ T(ctx, "admin.users.first_name") }:</span>
+										<p class="text-gray-900 mt-0.5">{ user.FirstName }</p>
+									</div>
+									<div>
+										<span class="font-medium text-gray-600">{ T(ctx, "admin.users.last_name") }:</span>
+										<p class="text-gray-900 mt-0.5">{ user.LastName }</p>
+									</div>
+									<div>
+										<span class="font-medium text-gray-600">{ T(ctx, "admin.users.auth_provider") }:</span>
+										<p class="text-gray-900 mt-0.5">{ user.AuthProvider }</p>
+									</div>
+								</div>
+
+								if user.ID != currentUser.ID {
+									<div class="pt-3 border-t border-gray-200 mt-3">
+										<!-- Role Edit Form (only for local auth users) -->
+										if !user.IsOAuthUser() {
+											<div class="flex gap-2">
+												<form method="POST" action={ templ.URL(fmt.Sprintf("/admin/users/%s/role", user.ID.String())) } class="flex gap-2 flex-1">
+													<input type="hidden" name="csrf_token" value={ csrfToken }/>
+													<select name="role" class="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5">
+														<option value="user" selected?={ user.Role == "user" }>{ T(ctx, "admin.users.role.user") }</option>
+														<option value="admin" selected?={ user.Role == "admin" }>{ T(ctx, "admin.users.role.admin") }</option>
+													</select>
+													<button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-medium whitespace-nowrap">
+														{ T(ctx, "admin.users.change_role") }
+													</button>
+												</form>
+												<a href={ templ.URL(fmt.Sprintf("/admin/impersonate/%s", user.ID.String())) }
+												   class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-xs font-medium flex items-center whitespace-nowrap">
+													{ T(ctx, "admin.impersonate_user") }
+												</a>
+											</div>
+										} else {
+											<div class="flex gap-2 items-center">
+												<div class="text-xs text-gray-500 italic flex-1">
+													{ T(ctx, "admin.users.oauth_role_managed") }
+												</div>
+												<a href={ templ.URL(fmt.Sprintf("/admin/impersonate/%s", user.ID.String())) }
+												   class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-xs font-medium whitespace-nowrap">
+													{ T(ctx, "admin.impersonate_user") }
+												</a>
+											</div>
+										}
+									</div>
+								}
+							</div>
+						}
+					</div>
+
+				<!-- Desktop: Table Layout -->
+				<div class="hidden md:block bg-white rounded-lg shadow overflow-hidden">
+					<table class="min-w-full divide-y divide-gray-200">
+						<thead class="bg-gray-50">
+							<tr>
+								<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+								</th>
+								<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									{ T(ctx, "admin.table.user") }
+								</th>
+								<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									{ T(ctx, "admin.table.email") }
+								</th>
+								<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									{ T(ctx, "admin.table.role") }
+								</th>
+							</tr>
+						</thead>
+						for _, user := range users {
+							<tbody
+								class="bg-white divide-y divide-gray-200"
+								x-data="{ open: false }"
+								x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s')", user.DisplayName(), user.Email, user.Role) }
+							>
+								<tr class={ templ.KV("bg-blue-50", user.ID == currentUser.ID), "hover:bg-gray-50" }>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<button @click="open = !open" class="text-gray-400 hover:text-gray-600">
+											<svg x-show="!open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+											</svg>
+											<svg x-show="open" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+											</svg>
+										</button>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="flex items-center">
+											<div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+												<span class="text-white font-bold text-lg">
+													{ string(user.FirstName[0]) }{ string(user.LastName[0]) }
+												</span>
+											</div>
+											<div class="ml-4">
+												<div class="text-sm font-medium text-gray-900">
+													{ user.DisplayName() }
+													if user.ID == currentUser.ID {
+														<span class="ml-2 text-xs text-blue-600 font-semibold">({ T(ctx, "admin.you") })</span>
+													}
+												</div>
+											</div>
+										</div>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="text-sm text-gray-900">{ user.Email }</div>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										if user.Role == "admin" {
+											<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+												{ T(ctx, "admin.users.role.admin") }
+											</span>
+										} else {
+											<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+												{ T(ctx, "admin.users.role.user") }
+											</span>
+										}
+									</td>
+								</tr>
+								<!-- Details Row -->
+								<tr x-show="open" x-cloak>
+									<td colspan="4" class="px-6 py-4 bg-gray-50">
+										<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.users.user_id") }:</span>
+												<p class="text-gray-900 font-mono mt-1">{ user.ID.String() }</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.users.registered") }:</span>
+												<p class="text-gray-900 mt-1">
+													{ user.CreatedAt.Format("02.01.2006 15:04:05") }
+												</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.users.first_name") }:</span>
+												<p class="text-gray-900 mt-1">{ user.FirstName }</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.users.last_name") }:</span>
+												<p class="text-gray-900 mt-1">{ user.LastName }</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.table.email") }:</span>
+												<p class="text-gray-900 mt-1">{ user.Email }</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.table.role") }:</span>
+												<p class="text-gray-900 mt-1">
+													if user.Role == "admin" {
+											<span>{ T(ctx, "admin.users.role.admin") }</span>
+													} else {
+											<span>{ T(ctx, "admin.users.role.user") }</span>
+													}
+												</p>
+											</div>
+											<div>
+												<span class="font-medium text-gray-700">{ T(ctx, "admin.users.auth_provider") }:</span>
+												<p class="text-gray-900 mt-1">{ user.AuthProvider }</p>
+											</div>
+										</div>
+										if user.ID != currentUser.ID {
+											<div class="pt-4 border-t border-gray-200">
+												<!-- Role Edit Form (only for local auth users) -->
+												if !user.IsOAuthUser() {
+													<div class="flex gap-3 items-end">
+														<div class="flex-1">
+															<span class="text-sm font-medium text-gray-700 mb-2 block">{ T(ctx, "admin.users.change_role_title") }:</span>
+															<form method="POST" action={ templ.URL(fmt.Sprintf("/admin/users/%s/role", user.ID.String())) } class="flex gap-2">
+																<input type="hidden" name="csrf_token" value={ csrfToken }/>
+																<select name="role" class="border border-gray-300 rounded px-3 py-2 text-sm">
+																	<option value="user" selected?={ user.Role == "user" }>{ T(ctx, "admin.users.role.user") }</option>
+																	<option value="admin" selected?={ user.Role == "admin" }>{ T(ctx, "admin.users.role.admin") }</option>
+																</select>
+																<button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition">
+																	{ T(ctx, "admin.users.change_role") }
+																</button>
+															</form>
+														</div>
+														<a href={ templ.URL(fmt.Sprintf("/admin/impersonate/%s", user.ID.String())) }
+														   class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition whitespace-nowrap">
+															<span>👤</span>
+															<span>{ T(ctx, "admin.impersonate_user") }</span>
+														</a>
+													</div>
+												} else {
+													<div class="flex gap-3 items-center">
+														<div class="text-sm text-gray-500 italic flex-1">
+															{ T(ctx, "admin.users.oauth_role_managed") }
+														</div>
+														<a href={ templ.URL(fmt.Sprintf("/admin/impersonate/%s", user.ID.String())) }
+														   class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition whitespace-nowrap">
+															<span>👤</span>
+															<span>{ T(ctx, "admin.impersonate_user") }</span>
+														</a>
+													</div>
+												}
+											</div>
+										}
+									</td>
+								</tr>
+							</tbody>
+						}
+					</table>
+				</div>
+			</div>
+
+			<!-- Right Column: Info Sidebar -->
+			<aside class="w-full md:w-80 flex-shrink-0">
+				<div class="md:sticky md:top-6 space-y-4">
+					<!-- Search & User Info Card -->
+					<div class="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6" style="border-left: 4px solid #3B82F6">
+						<h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+							<span>🔍</span>
+							<span>{ T(ctx, "admin.users.search_info_title") }</span>
+						</h2>
+
+						<!-- Search Bar -->
+						if len(users) > 0 {
+							<div class="mb-4">
+								<input
+									type="text"
+									x-model="search"
+									@input="updateVisibility()"
+									placeholder={ T(ctx, "admin.users.search_placeholder") }
+									class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+								/>
+							</div>
+						}
+
+						<div class="space-y-3 text-sm">
+							<div class="flex items-center justify-between py-2 border-b border-gray-100">
+								<span class="text-gray-600">{ T(ctx, "admin.users.stats.total") }:</span>
+								<span class="font-bold text-xl text-gray-900">{ fmt.Sprintf("%d", len(users)) }</span>
+							</div>
+							<div class="flex items-center justify-between py-2 border-b border-gray-100">
+								<span class="text-gray-600">👑 { T(ctx, "admin.users.stats.admins") }:</span>
+								<span class="font-semibold text-purple-600">{ fmt.Sprintf("%d", countAdmins(users)) }</span>
+							</div>
+							<div class="flex items-center justify-between py-2">
+								<span class="text-gray-600">👤 { T(ctx, "admin.users.stats.users") }:</span>
+								<span class="font-semibold text-green-600">{ fmt.Sprintf("%d", countUsers(users)) }</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Quick Actions Card -->
+					<div class="bg-white rounded-lg shadow-md hover:shadow-lg transition p-6" style="border-left: 4px solid #8B5CF6">
+						<h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+							<span>⚡</span>
+							<span>{ T(ctx, "admin.users.quick_actions") }</span>
+						</h2>
+						<div class="space-y-2">
+							<a href="/admin/audit-log" class="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-md font-medium transition">
+								<span>📋</span>
+								<span>{ T(ctx, "admin.tabs.audit_log") }</span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+		</div>
+
+		<!-- Alpine.js Filter Component -->
+		<script>
+			function usersFilter() {
+				return {
+					search: '',
+					visibleCount: 0,
+
+					init() {
+						this.updateVisibility();
+					},
+
+					isVisible(name, email, role) {
+						const searchLower = this.search.toLowerCase();
+						const nameMatch = name.toLowerCase().includes(searchLower);
+						const emailMatch = email.toLowerCase().includes(searchLower);
+
+						const matches = nameMatch || emailMatch;
+
+						// Update visible count
+						this.$nextTick(() => {
+							this.visibleCount = document.querySelectorAll('[x-show]:not([style*="display: none"])').length;
+						});
+
+						return matches;
+					},
+
+					updateVisibility() {
+						this.$nextTick(() => {
+							const elements = document.querySelectorAll('[x-show]');
+							let count = 0;
+							elements.forEach(el => {
+								if (el.style.display !== 'none') {
+									count++;
+								}
+							});
+							this.visibleCount = count;
+						});
+					}
+				}
+			}
+		</script>
+	}
+}
+
+// Helper functions
+func countAdmins(users []models.User) int {
+	count := 0
+	for _, user := range users {
+		if user.Role == "admin" {
+			count++
+		}
+	}
+	return count
+}
+
+func countUsers(users []models.User) int {
+	count := 0
+	for _, user := range users {
+		if user.Role == "user" {
+			count++
+		}
+	}
+	return count
+}
+
+// AdminCreateUser shows the user creation form (only when local login is enabled)
+templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models.User, isImpersonating bool, errors map[string]string) {
+	@Layout(ctx, "Benutzer erstellen", currentUser, isImpersonating) {
+		<div class="px-4 py-8 max-w-2xl mx-auto">
+			<div class="mb-6">
+				<h1 class="text-3xl font-bold text-gray-900 mb-2">Benutzer erstellen</h1>
+				<p class="text-gray-600">Erstelle einen neuen Benutzer mit lokalem Login</p>
+			</div>
+			<!-- Back Button -->
+			<div class="mb-6">
+				<a href="/admin/users" class="text-blue-600 hover:text-blue-800 flex items-center gap-2">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+					</svg>
+					Zurück zur Benutzerverwaltung
+				</a>
+			</div>
+			<!-- Error Message -->
+			if errors != nil && errors["error"] != "" {
+				<div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+					<p class="text-red-800 text-sm">{ errors["error"] }</p>
+				</div>
+			}
+			<!-- Create User Form -->
+			<div class="bg-white rounded-lg shadow-md p-6">
+				<form method="POST" action="/admin/users/create" class="space-y-6">
+					@CSRFField(csrfToken)
+					<!-- Email -->
+					<div>
+						<label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+							E-Mail-Adresse *
+						</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="benutzer@example.com"
+						/>
+					</div>
+					<!-- Password -->
+					<div>
+						<label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+							Passwort *
+						</label>
+						<input
+							type="password"
+							id="password"
+							name="password"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="Mindestens 8 Zeichen"
+						/>
+						<p class="mt-1 text-xs text-gray-500">Passwort muss mindestens 8 Zeichen lang sein</p>
+					</div>
+					<!-- First Name -->
+					<div>
+						<label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
+							Vorname *
+						</label>
+						<input
+							type="text"
+							id="first_name"
+							name="first_name"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						/>
+					</div>
+					<!-- Last Name -->
+					<div>
+						<label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
+							Nachname *
+						</label>
+						<input
+							type="text"
+							id="last_name"
+							name="last_name"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						/>
+					</div>
+					<!-- Admin Checkbox -->
+					<div class="flex items-center">
+						<input
+							type="checkbox"
+							id="is_admin"
+							name="is_admin"
+							class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+						/>
+						<label for="is_admin" class="ml-2 block text-sm text-gray-900">
+							Als Administrator erstellen
+						</label>
+					</div>
+					<!-- Submit Button -->
+					<div class="flex gap-3">
+						<button
+							type="submit"
+							class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						>
+							Benutzer erstellen
+						</button>
+						<a
+							href="/admin/users"
+							class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md font-medium text-center focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+						>
+							Abbrechen
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

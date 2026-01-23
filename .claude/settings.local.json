@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(ls:*)",
+      "Bash(templ generate:*)",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__emulate"
+    ]
+  }
+}
