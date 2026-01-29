@@ -104,8 +104,8 @@ COPY --from=builder /app/static ./static
 COPY --from=builder /app/locales ./locales
 
 # Create non-root user
-RUN addgroup -g 65534 appuser && \
-    adduser -D -u 65534 -G appuser appuser && \
+RUN addgroup -g 1000 appuser && \
+    adduser -D -u 1000 -G appuser appuser && \
     chown -R appuser:appuser /app
 
 USER appuser
