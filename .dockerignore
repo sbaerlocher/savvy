@@ -21,7 +21,7 @@ static/css/bundle.css
 static/css/bundle.css.map
 
 # Git
-.git/
+# .git/ - Needed for -buildvcs=true in Dockerfile
 .gitignore
 
 # IDE
