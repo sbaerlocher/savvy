@@ -68,8 +68,8 @@ changelog:
 
 release:
   github:
-    owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
-    name: "{{ .ProjectName }}"
+    owner: sbaerlocher
+    name: savvy
   draft: false
   prerelease: auto
   mode: replace
