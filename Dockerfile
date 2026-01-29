@@ -99,9 +99,8 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /savvy ./server
 
-# Copy static files and migrations
+# Copy static files and locales
 COPY --from=builder /app/static ./static
-COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/locales ./locales
 
 # Create non-root user
