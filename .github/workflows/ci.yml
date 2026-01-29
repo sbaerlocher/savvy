@@ -5,8 +5,6 @@ name: Continuous Integration
   pull_request:
     branches: [main]
   workflow_call:
-  schedule:
-    - cron: "0 6 * * 1" # Weekly security scans (Mondays 6 AM UTC)
 
 permissions:
   contents: read

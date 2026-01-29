@@ -1,5 +1,5 @@
 ---
-name: Release
+name: Software Release
 
 "on":
   push:
@@ -11,19 +11,23 @@ permissions:
   id-token: write
 
 jobs:
-  release:
-    name: Go Release (Binaries + Docker)
+  go-release:
+    name: Go Binaries (Linux only)
     uses: sbaerlocher/.github/.github/workflows/release-go.yml@main
+
+  docker-release:
+    name: Docker Multi-Platform
+    needs: go-release
+    uses: sbaerlocher/.github/.github/workflows/release-docker.yml@main
     with:
-      enable-docker: true
-      docker-registry: 'ghcr.io'
-      pre-build-commands: |
-        go install github.com/a-h/templ/cmd/templ@latest
-        templ generate
+      image-name: 'savvy'
+      dockerfile: 'Dockerfile'
+      platforms: 'linux/amd64,linux/arm64'
+      registry: 'ghcr.io'
 
   helm-release:
-    name: Helm Chart Release
-    needs: release
+    name: Helm Chart
+    needs: docker-release
     uses: sbaerlocher/.github/.github/workflows/release-helm.yml@main
     with:
       chart-path: 'deploy/helm'
