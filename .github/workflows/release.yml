@@ -20,10 +20,11 @@ jobs:
     needs: go-release
     uses: sbaerlocher/.github/.github/workflows/release-docker.yml@main
     with:
-      image-name: 'savvy'
+      image-name: 'sbaerlocher/savvy'
       dockerfile: 'Dockerfile'
       platforms: 'linux/amd64,linux/arm64'
       registry: 'ghcr.io'
+      push: true
 
   helm-release:
     name: Helm Chart
