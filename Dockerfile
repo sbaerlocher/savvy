@@ -4,7 +4,7 @@
 FROM golang:1.25-alpine AS development
 
 # Install development dependencies including Node.js
-RUN apk add --no-cache git~2.52 build-base nodejs~22 npm~10
+RUN apk add --no-cache git build-base nodejs npm
 
 # Install Air for hot reload and Templ in single layer
 RUN go install github.com/air-verse/air@v1.61.1 && \
@@ -47,7 +47,7 @@ ARG BUILD_TIME=unknown
 
 # Install build dependencies including Node.js and git
 RUN apk update && \
-    apk add --no-cache git~2.52 build-base nodejs~22 npm~10
+    apk add --no-cache git build-base nodejs npm
 
 WORKDIR /app
 
