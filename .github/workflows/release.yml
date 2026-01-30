@@ -14,6 +14,8 @@ jobs:
   go-release:
     name: Go Binaries (Linux only)
     uses: sbaerlocher/.github/.github/workflows/release-go.yml@main
+    with:
+      pre-build-commands: 'go install github.com/a-h/templ/cmd/templ@v0.3.977'
 
   docker-release:
     name: Docker Multi-Platform
