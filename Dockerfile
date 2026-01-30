@@ -49,6 +49,9 @@ ARG BUILD_TIME=unknown
 RUN apk update && \
     apk add --no-cache git build-base nodejs npm
 
+# Install Templ (cached layer - only rebuilds if version changes)
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
+
 WORKDIR /app
 
 # Copy git directory for build vcs info
@@ -68,9 +71,8 @@ COPY . .
 # Build frontend bundles
 RUN npm run build
 
-# Install Templ and generate templates
-RUN go install github.com/a-h/templ/cmd/templ@v0.3.977 && \
-    /go/bin/templ generate
+# Generate templates (only rebuilds if .templ files change)
+RUN /go/bin/templ generate
 
 # Build Go binary with version info and build flags
 RUN CGO_ENABLED=0 GOOS=linux go build \
