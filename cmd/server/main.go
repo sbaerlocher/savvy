@@ -222,7 +222,33 @@ func run() int {
 	}
 
 	// Middleware
-	e.Use(echomiddleware.Logger())
+	e.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{
+		LogStatus:   true,
+		LogURI:      true,
+		LogError:    true,
+		LogMethod:   true,
+		LogLatency:  true,
+		HandleError: true,
+		LogValuesFunc: func(c echo.Context, v echomiddleware.RequestLoggerValues) error {
+			if v.Error != nil {
+				slog.Error("request error",
+					"uri", v.URI,
+					"method", v.Method,
+					"status", v.Status,
+					"latency", v.Latency,
+					"error", v.Error,
+				)
+			} else {
+				slog.Info("request",
+					"uri", v.URI,
+					"method", v.Method,
+					"status", v.Status,
+					"latency", v.Latency,
+				)
+			}
+			return nil
+		},
+	}))
 	e.Use(echomiddleware.Recover())
 	e.Use(metrics.Middleware()) // Prometheus metrics
 
