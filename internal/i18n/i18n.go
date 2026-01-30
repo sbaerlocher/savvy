@@ -3,14 +3,15 @@ package i18n
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
 
-// Note: Translation files are loaded from ../../locales/ directory
-// We don't use embed here to allow runtime changes during development
+// Note: Translation files are loaded from embedded filesystem
+// Embedded assets are rebuilt on every Air hot reload in development
 
 // Bundle is the global i18n bundle
 var Bundle *i18n.Bundle
@@ -27,15 +28,15 @@ var SupportedLanguages = []language.Tag{
 	language.French,  // fr
 }
 
-// Init initializes the i18n bundle and loads translation files
-func Init() error {
+// Init initializes the i18n bundle and loads translation files from embedded FS
+func Init(localesFS embed.FS) error {
 	Bundle = i18n.NewBundle(language.German) // Default language
 	Bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
 
-	// Load translation files from disk
+	// Load translation files from embedded filesystem
 	for _, lang := range SupportedLanguages {
 		filename := "locales/" + lang.String() + ".json"
-		if _, err := Bundle.LoadMessageFile(filename); err != nil {
+		if _, err := Bundle.LoadMessageFileFS(localesFS, filename); err != nil {
 			return err
 		}
 	}

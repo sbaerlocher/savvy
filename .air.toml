@@ -5,15 +5,15 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "/go/bin/templ generate && npm run build && go build -mod=readonly -o ./tmp/main ./cmd/server/main.go"
+  cmd = "/go/bin/templ generate && npm run build && go build -mod=readonly -o ./tmp/main ./cmd/server"
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "bin"]
+  exclude_dir = ["tmp", "vendor", "testdata", "node_modules", "bin"]
   exclude_file = []
   exclude_regex = ["_test.go", "_templ.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
-  include_dir = ["static/js/src", "static/css/src"]
+  include_dir = ["internal/assets/static/js/src", "internal/assets/static/css/src"]
   include_ext = ["go", "tpl", "tmpl", "html", "templ", "js", "css"]
   include_file = []
   kill_delay = "0s"

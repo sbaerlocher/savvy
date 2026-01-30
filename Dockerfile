@@ -81,9 +81,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /savvy ./cmd/server
 
 # ==============================================================================
-# PRODUCTION STAGE
+# PRODUCTION STAGE (FROM scratch - minimal image)
 # ==============================================================================
-FROM alpine:3.21 AS production
+FROM scratch AS production
 
 # Add OCI metadata labels
 LABEL org.opencontainers.image.title="savvy"
@@ -91,29 +91,19 @@ LABEL org.opencontainers.image.description="Digital customer card, voucher and g
 LABEL org.opencontainers.image.source="https://github.com/sbaerlocher/savvy"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Install runtime dependencies
-RUN apk add --no-cache ca-certificates wget~1.25
+# Copy CA certificates from builder (required for HTTPS/OAuth)
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-WORKDIR /app
+# Copy binary from builder (contains embedded static files and locales)
+COPY --from=builder /savvy /server
 
-# Copy binary from builder
-COPY --from=builder /savvy ./server
-
-# Copy static files and locales
-COPY --from=builder /app/static ./static
-COPY --from=builder /app/locales ./locales
-
-# Create non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser && \
-    chown -R appuser:appuser /app
-
-USER appuser
+# FROM scratch has no users - use UID:GID 65534 (standard nobody convention)
+USER 65534:65534
 
 EXPOSE 3000
 
-# Health check using wget
+# Health check using binary's built-in -health flag
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD ["/server", "-health"]
 
-CMD ["./server"]
+ENTRYPOINT ["/server"]

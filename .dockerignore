@@ -15,10 +15,10 @@ tmp/
 dist/
 
 # Generated bundles (will be rebuilt in container)
-static/js/bundle.js
-static/js/bundle.js.map
-static/css/bundle.css
-static/css/bundle.css.map
+internal/assets/static/js/bundle.js
+internal/assets/static/js/bundle.js.map
+internal/assets/static/css/bundle.css
+internal/assets/static/css/bundle.css.map
 
 # Git
 # .git/ - Needed for -buildvcs=true in Dockerfile

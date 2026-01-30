@@ -3,11 +3,14 @@ package main
 
 import (
 	"context"
+	"flag"
+	"io/fs"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"savvy/internal/assets"
 	"savvy/internal/config"
 	"savvy/internal/database"
 	"savvy/internal/handlers"
@@ -30,8 +33,42 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 )
 
+var (
+	healthCheck = flag.Bool("health", false, "perform health check and exit")
+	healthPort  = flag.String("port", "3000", "server port for health check")
+)
+
 func main() {
+	flag.Parse()
+
+	// If health check flag is set, perform check and exit
+	if *healthCheck {
+		os.Exit(performHealthCheck(*healthPort))
+	}
+
 	os.Exit(run())
+}
+
+// performHealthCheck makes HTTP request to /health endpoint
+func performHealthCheck(port string) int {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	url := "http://127.0.0.1:" + port + "/health"
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Printf("Health check failed: %v", err)
+		return 1
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Health check returned status %d", resp.StatusCode)
+		return 1
+	}
+
+	return 0
 }
 
 // updateMetrics updates Prometheus gauges for resource counts and DB stats
@@ -103,8 +140,8 @@ func run() int {
 	// Init session store with secure flag based on environment
 	middleware.InitSessionStore(cfg.SessionSecret, cfg.IsProduction())
 
-	// Initialize i18n
-	if err := i18n.Init(); err != nil {
+	// Initialize i18n with embedded locale files
+	if err := i18n.Init(assets.Locales); err != nil {
 		log.Printf("Failed to initialize i18n: %v", err)
 		return 1
 	}
@@ -214,16 +251,21 @@ func run() int {
 		}
 	})
 
-	// Static files
-	e.Static("/static", "static")
+	// Static files (embedded)
+	staticFS, err := fs.Sub(assets.Static, "static")
+	if err != nil {
+		log.Printf("Failed to create static filesystem: %v", err)
+		return 1
+	}
+	e.StaticFS("/static", staticFS)
 
 	// Language switcher endpoint (public)
 	e.GET("/set-language", middleware.SetLanguage)
 
 	// PWA endpoints (public)
-	e.GET("/offline", handlers.OfflinePage)       // Offline fallback page
-	e.File("/service-worker.js", "static/service-worker.js") // Service Worker
-	e.File("/manifest.json", "static/manifest.json")         // PWA Manifest
+	e.GET("/offline", handlers.OfflinePage)                                   // Offline fallback page
+	e.FileFS("/service-worker.js", "static/service-worker.js", assets.Static) // Service Worker
+	e.FileFS("/manifest.json", "static/manifest.json", assets.Static)         // PWA Manifest
 
 	// Initialize service container and handlers
 	serviceContainer := services.NewContainer(database.DB)
