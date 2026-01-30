@@ -42,7 +42,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 		<link rel="stylesheet" href="/static/css/bundle.css"/>
 
 	<!-- Bundled JS (HTMX + Alpine + Scanner + Offline Detection) -->
-	<script defer src="/static/js/bundle.js"></script>
+	<script type="module" src={ config.GetAssetPath("bundle") }></script>
 		<style>
 			[x-cloak] { display: none !important; }
 			/* Add padding bottom on mobile for fixed bottom nav */

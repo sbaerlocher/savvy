@@ -17,6 +17,13 @@ dist/
 # Generated bundles (will be rebuilt in container)
 internal/assets/static/js/bundle.js
 internal/assets/static/js/bundle.js.map
+internal/assets/static/js/bundle.*.js
+internal/assets/static/js/bundle.*.js.map
+internal/assets/static/js/index.*.js
+internal/assets/static/js/index.*.js.map
+internal/assets/static/js/*.gz
+internal/assets/static/js/*.br
+internal/assets/static/js/manifest.json
 internal/assets/static/css/bundle.css
 internal/assets/static/css/bundle.css.map
 

@@ -90,6 +90,13 @@ generated/
 # Generated bundles
 static/js/bundle.js
 static/js/bundle.js.map
+static/js/bundle.*.js
+static/js/bundle.*.js.map
+static/js/index.*.js
+static/js/index.*.js.map
+static/js/*.gz
+static/js/*.br
+static/js/manifest.json
 static/js/vendor/
 static/css/bundle.css
 static/css/bundle.css.map
