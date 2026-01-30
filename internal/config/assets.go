@@ -18,10 +18,21 @@ var (
 func GetAssetPath(name string) string {
 	loadAssetManifest()
 
-	// If manifest exists and has the asset, use it
+	// If manifest exists and has the asset, verify the file exists before using it
 	if assetManifest != nil {
 		if hashed, ok := assetManifest[name]; ok {
-			return "/static/js/" + hashed
+			// Extract just the filename (remove .js extension if present in manifest)
+			filename := hashed
+			if filepath.Ext(filename) != ".js" {
+				filename += ".js"
+			}
+
+			// Check if the hashed file actually exists
+			hashedPath := filepath.Join("internal", "assets", "static", "js", filename)
+			if _, err := os.Stat(hashedPath); err == nil {
+				return "/static/js/" + hashed
+			}
+			// File doesn't exist, fall through to development fallback
 		}
 	}
 

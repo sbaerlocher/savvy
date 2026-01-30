@@ -8,9 +8,12 @@
     "build": "npm run build:css && npm run build:js",
     "build:css": "NODE_ENV=production node_modules/.bin/postcss internal/assets/static/css/src/input.css -o internal/assets/static/css/bundle.css",
     "build:js": "node_modules/.bin/rollup -c",
+    "dev": "npm run dev:clean && npm run watch",
+    "dev:clean": "rm -f internal/assets/static/js/manifest.json*",
     "watch": "npm run watch:css & npm run watch:js",
     "watch:css": "node_modules/.bin/postcss internal/assets/static/css/src/input.css -o internal/assets/static/css/bundle.css --watch",
-    "watch:js": "node_modules/.bin/rollup -c -w"
+    "watch:js": "npm run watch:js:clean && node_modules/.bin/rollup -c -w",
+    "watch:js:clean": "rm -f internal/assets/static/js/manifest.json*"
   },
   "dependencies": {
     "alpinejs": "^3.14.7",
