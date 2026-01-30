@@ -27,6 +27,8 @@ jobs:
       platforms: 'linux/amd64,linux/arm64'
       registry: 'ghcr.io'
       push: true
+      build-args: |
+        VERSION=${{ github.ref_name }}
 
   helm-release:
     name: Helm Chart

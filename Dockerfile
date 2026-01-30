@@ -37,75 +37,30 @@ EXPOSE 3000
 CMD ["/go/bin/air", "-c", ".air.toml"]
 
 # ==============================================================================
-# BUILDER STAGE (Production)
+# PRODUCTION STAGE (downloads pre-built binary from GitHub Release)
 # ==============================================================================
-FROM golang:1.25-alpine AS builder
+# Downloads the appropriate binary based on TARGETARCH from GitHub Releases.
+# Usage: docker build --target production --build-arg VERSION=v1.2.3 --platform linux/amd64
+FROM alpine:3.21 AS builder
+ARG TARGETARCH
+ARG VERSION
+RUN apk add --no-cache curl tar ca-certificates && \
+    ARCH=$(case ${TARGETARCH} in amd64) echo "x86_64" ;; arm64) echo "arm64" ;; *) echo ${TARGETARCH} ;; esac) && \
+    curl -fsSL "https://github.com/sbaerlocher/savvy/releases/download/${VERSION}/savvy_Linux_${ARCH}.tar.gz" -o /tmp/savvy.tar.gz && \
+    tar -xzf /tmp/savvy.tar.gz -C /tmp savvy && \
+    chmod +x /tmp/savvy
 
-# Add build arguments for version info
-ARG VERSION=dev
-ARG BUILD_TIME=unknown
-
-# Install build dependencies including Node.js and git
-RUN apk update && \
-    apk add --no-cache git build-base nodejs npm
-
-# Install Templ (cached layer - only rebuilds if version changes)
-RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
-
-WORKDIR /app
-
-# Copy git directory for build vcs info
-COPY .git .git/
-
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download && go mod verify
-
-# Copy package files and install npm dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --quiet
-
-# Copy source (excluding node_modules via .dockerignore)
-COPY . .
-
-# Build frontend bundles
-RUN npm run build
-
-# Generate templates (only rebuilds if .templ files change)
-RUN /go/bin/templ generate
-
-# Build Go binary with version info and build flags
-RUN CGO_ENABLED=0 GOOS=linux go build \
-    -ldflags="-s -w -X main.version=${VERSION} -X main.buildTime=${BUILD_TIME}" \
-    -buildvcs=true \
-    -buildmode=default \
-    -trimpath \
-    -o /savvy ./cmd/server
-
-# ==============================================================================
-# PRODUCTION STAGE (FROM scratch - minimal image)
-# ==============================================================================
 FROM scratch AS production
 
-# Add OCI metadata labels
 LABEL org.opencontainers.image.title="savvy"
 LABEL org.opencontainers.image.description="Digital customer card, voucher and gift card management system with sharing functionality"
 LABEL org.opencontainers.image.source="https://github.com/sbaerlocher/savvy"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Copy CA certificates from builder (required for HTTPS/OAuth)
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-# Copy binary from builder (contains embedded static files and locales)
-COPY --from=builder /savvy /server
-
-# FROM scratch has no users - use UID:GID 65534 (standard nobody convention)
+COPY --from=builder /tmp/savvy /savvy
 USER 65534:65534
-
 EXPOSE 3000
-
-# Health check using binary's built-in -health flag
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD ["/server", "-health"]
-
-ENTRYPOINT ["/server"]
+    CMD ["/savvy", "-health"]
+ENTRYPOINT ["/savvy"]
