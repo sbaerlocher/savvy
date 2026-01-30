@@ -420,7 +420,7 @@ func run() int {
 	admin := protected.Group("/admin")
 	admin.Use(middleware.RequireAdmin)
 	admin.GET("/users", handlers.AdminUsersIndex)
-	admin.GET("/users/create", handlers.AdminCreateUserGet) // Only available if local login enabled
+	admin.GET("/users/create", handlers.AdminCreateUserGet)   // Only available if local login enabled
 	admin.POST("/users/create", handlers.AdminCreateUserPost) // Only available if local login enabled
 	admin.POST("/users/:id/role", handlers.AdminUpdateUserRole)
 	admin.GET("/audit-log", handlers.AdminAuditLogIndex)

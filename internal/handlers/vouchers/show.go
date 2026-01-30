@@ -52,10 +52,10 @@ func (h *Handler) Show(c echo.Context) error {
 	csrfToken := c.Get("csrf").(string)
 
 	view := views.VoucherShowView{
-		Voucher:     voucher,
-		Merchants:   merchants,
-		Shares:      shares,
-		User:        user,
+		Voucher:   voucher,
+		Merchants: merchants,
+		Shares:    shares,
+		User:      user,
 		Permissions: views.VoucherPermissions{
 			CanEdit:    perms.CanEdit,
 			CanDelete:  perms.CanDelete,

@@ -50,7 +50,7 @@ func RegenerateSession(c echo.Context) (*sessions.Session, error) {
 		MaxAge:   86400 * 7, // 7 days
 		HttpOnly: true,
 		Secure:   Store.Options.Secure, // Inherit from store config
-		SameSite: 2,                     // Lax
+		SameSite: 2,                    // Lax
 	}
 	newSession.IsNew = true
 

@@ -23,10 +23,10 @@ var (
 
 // BarcodeTokenClaims represents the data embedded in a barcode token
 type BarcodeTokenClaims struct {
-	ResourceID   uuid.UUID `json:"rid"`  // Resource ID (card, voucher, or gift card)
+	ResourceID   uuid.UUID `json:"rid"`   // Resource ID (card, voucher, or gift card)
 	ResourceType string    `json:"rtype"` // "card", "voucher", or "gift_card"
-	UserID       uuid.UUID `json:"uid"`  // User ID (for access control)
-	ExpiresAt    int64     `json:"exp"`  // Unix timestamp
+	UserID       uuid.UUID `json:"uid"`   // User ID (for access control)
+	ExpiresAt    int64     `json:"exp"`   // Unix timestamp
 }
 
 // tokenSecret holds the HMAC secret key (set via Init)

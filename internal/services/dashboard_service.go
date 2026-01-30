@@ -22,13 +22,13 @@ type DashboardStats struct {
 
 // DashboardData contains all data needed for dashboard rendering
 type DashboardData struct {
-	Stats               *DashboardStats
-	RecentCards         []models.Card
-	RecentVouchers      []models.Voucher
-	RecentGiftCards     []models.GiftCard
-	HasFavorites        bool
-	HasCardFavorites    bool
-	HasVoucherFavorites bool
+	Stats                *DashboardStats
+	RecentCards          []models.Card
+	RecentVouchers       []models.Voucher
+	RecentGiftCards      []models.GiftCard
+	HasFavorites         bool
+	HasCardFavorites     bool
+	HasVoucherFavorites  bool
 	HasGiftCardFavorites bool
 }
 
