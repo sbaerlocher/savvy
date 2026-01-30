@@ -34,7 +34,7 @@ jobs:
       chart-path: 'deploy/helm'
       chart-name: 'savvy'
       registry: 'ghcr.io'
-      registry-path: '${{ github.repository_owner }}'
+      registry-path: '${{ github.repository_owner }}/charts'
       version: '${{ github.ref_name }}'
     secrets:
       registry-token: '${{ secrets.GITHUB_TOKEN }}'

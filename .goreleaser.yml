@@ -85,7 +85,7 @@ release:
 
     **Helm Chart:**
     ```bash
-    helm install savvy oci://ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/savvy --version {{ .Tag }}
+    helm install savvy oci://ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/charts/savvy --version {{ .Tag }}
     ```
 
     **Binary (Linux amd64):**
