@@ -68,8 +68,8 @@ snapshot:
 dockers:
   # AMD64 image
   - image_templates:
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
-      - "ghcr.io/sbaerlocher/savvy:latest-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:latest-amd64"
     use: buildx
     dockerfile: Dockerfile
     build_flag_templates:
@@ -88,8 +88,8 @@ dockers:
 
   # ARM64 image
   - image_templates:
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
-      - "ghcr.io/sbaerlocher/savvy:latest-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:latest-arm64"
     use: buildx
     dockerfile: Dockerfile
     build_flag_templates:
@@ -110,29 +110,29 @@ dockers:
 # Docker manifests for multi-arch
 docker_manifests:
   # Multi-arch manifest for versioned tag
-  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Version }}"
+  - name_template: "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}"
     image_templates:
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-arm64"
 
   # Multi-arch manifest for latest tag
-  - name_template: "ghcr.io/sbaerlocher/savvy:latest"
+  - name_template: "ghcr.io/sbaerlocher/container/savvy:latest"
     image_templates:
-      - "ghcr.io/sbaerlocher/savvy:latest-amd64"
-      - "ghcr.io/sbaerlocher/savvy:latest-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:latest-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:latest-arm64"
     skip_push: auto
 
   # Semantic version tags
-  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Major }}"
+  - name_template: "ghcr.io/sbaerlocher/container/savvy:{{ .Major }}"
     image_templates:
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-arm64"
     skip_push: auto
 
-  - name_template: "ghcr.io/sbaerlocher/savvy:{{ .Major }}.{{ .Minor }}"
+  - name_template: "ghcr.io/sbaerlocher/container/savvy:{{ .Major }}.{{ .Minor }}"
     image_templates:
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-amd64"
-      - "ghcr.io/sbaerlocher/savvy:{{ .Version }}-arm64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-amd64"
+      - "ghcr.io/sbaerlocher/container/savvy:{{ .Version }}-arm64"
     skip_push: auto
 
 changelog:
@@ -180,7 +180,7 @@ release:
     **Docker (Multi-Platform):**
     ```bash
     # Latest release (supports linux/amd64, linux/arm64)
-    docker pull ghcr.io/sbaerlocher/savvy:{{.Tag}}
+    docker pull ghcr.io/sbaerlocher/container/savvy:{{.Tag}}
     ```
 
     **Docker Compose:**
@@ -192,7 +192,7 @@ release:
     ```
 
     ### 🐳 Container Images
-    - **Registry**: ghcr.io/sbaerlocher/savvy:{{.Tag}}
+    - **Registry**: ghcr.io/sbaerlocher/container/savvy:{{.Tag}}
     - **Platforms**: linux/amd64, linux/arm64
     - **Tags**: `{{.Tag}}`, `{{.Major}}`, `{{.Major}}.{{.Minor}}`, `latest`
 

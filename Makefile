@@ -14,7 +14,7 @@ VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 VERSION_CLEAN := $(shell echo $(VERSION) | sed 's/^v//')
 VERSION_SHORT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-DOCKER_IMAGE := ghcr.io/sbaerlocher/$(APP_NAME)
+DOCKER_IMAGE := ghcr.io/sbaerlocher/container/$(APP_NAME)
 
 # Container names
 APP_CONTAINER := savvy-app

@@ -20,7 +20,7 @@ jobs:
     needs: go-release
     uses: sbaerlocher/.github/.github/workflows/release-docker.yml@main
     with:
-      image-name: 'sbaerlocher/savvy'
+      image-name: 'sbaerlocher/container/savvy'
       dockerfile: 'Dockerfile'
       platforms: 'linux/amd64,linux/arm64'
       registry: 'ghcr.io'
@@ -34,7 +34,7 @@ jobs:
       chart-path: 'deploy/helm'
       chart-name: 'savvy'
       registry: 'ghcr.io'
-      registry-path: '${{ github.repository_owner }}/charts'
+      registry-path: '${{ github.repository_owner }}/chart'
       version: '${{ github.ref_name }}'
     secrets:
       registry-token: '${{ secrets.GITHUB_TOKEN }}'
