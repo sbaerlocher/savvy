@@ -60,6 +60,9 @@ tmp/
 savvy
 server
 
+# Generated code
+*_templ.go
+
 # Database
 **/*.sqlite
 

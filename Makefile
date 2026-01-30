@@ -29,7 +29,8 @@ help:
 	@echo "Savvy System Build Commands:"
 	@echo ""
 	@echo "Core:"
-	@echo "  build          Build binary and JS bundle"
+	@echo "  generate       Generate templ templates"
+	@echo "  build          Build binary and JS bundle (includes generate)"
 	@echo "  test           Run tests"
 	@echo "  clean          Remove build artifacts"
 	@echo ""
@@ -79,8 +80,14 @@ help:
 # CORE TARGETS
 # ==============================================================================
 
+.PHONY: generate
+generate:
+	@echo "⚡ Generating templ templates..."
+	templ generate
+	@echo "✓ Generation complete"
+
 .PHONY: build
-build:
+build: generate
 	@echo "🔨 Building $(APP_NAME)..."
 	@echo "📦 Installing npm dependencies..."
 	npm install
@@ -101,6 +108,7 @@ clean:
 	rm -rf bin/
 	rm -rf static/js/bundle.js
 	rm -rf static/js/bundle.js.map
+	rm -f internal/templates/*_templ.go
 	@echo "✓ Cleanup complete"
 
 .PHONY: clean-port
