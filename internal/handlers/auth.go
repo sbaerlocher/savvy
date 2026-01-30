@@ -64,6 +64,7 @@ func AuthLoginPost(c echo.Context) error {
 	if err != nil {
 		// User not found - use a dummy hash to maintain constant time
 		// This is a bcrypt hash of "dummy-password-for-timing-safety"
+		// #nosec G101 - This is not a real credential, it's a timing-attack mitigation dummy hash
 		passwordHash = "$2a$10$rKjJZ3L.3C8qX9F5H5kqj.4nZ7Y5L5J5J5J5J5J5J5J5J5J5J5J5J"
 	} else {
 		passwordHash = user.PasswordHash
@@ -186,7 +187,9 @@ func AuthRegisterPost(c echo.Context) error {
 func AuthLogout(c echo.Context) error {
 	session, _ := middleware.GetSession(c)
 	session.Options.MaxAge = -1
-	session.Save(c.Request(), c.Response())
+	if err := session.Save(c.Request(), c.Response()); err != nil {
+		c.Logger().Errorf("Failed to save session during logout: %v", err)
+	}
 	return c.Redirect(http.StatusSeeOther, "/auth/login")
 }
 
@@ -220,7 +223,10 @@ func AdminImpersonate(c echo.Context) error {
 	session.Values["user_id"] = targetUser.ID.String()
 	// Note: oauth_login flag is automatically preserved (no session regeneration)
 
-	session.Save(c.Request(), c.Response())
+	if err := session.Save(c.Request(), c.Response()); err != nil {
+		c.Logger().Errorf("Failed to save session during impersonation: %v", err)
+		return c.Redirect(http.StatusSeeOther, "/admin/users")
+	}
 
 	return c.Redirect(http.StatusSeeOther, "/")
 }
@@ -244,7 +250,9 @@ func AdminStopImpersonate(c echo.Context) error {
 	c.Logger().Printf("Session after stop impersonate - user_id: %s, oauth_login: %v",
 		session.Values["user_id"], session.Values["oauth_login"])
 
-	session.Save(c.Request(), c.Response())
+	if err := session.Save(c.Request(), c.Response()); err != nil {
+		c.Logger().Errorf("Failed to save session when stopping impersonation: %v", err)
+	}
 
 	return c.Redirect(http.StatusSeeOther, "/admin/users")
 }

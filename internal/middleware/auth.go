@@ -11,6 +11,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// ContextKey is a custom type for context keys to avoid collisions
+type ContextKey string
+
+const (
+	// UserContextKey is the key for storing user in context
+	UserContextKey ContextKey = "user"
+)
+
 // SetCurrentUser middleware loads the current user into context
 func SetCurrentUser(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -37,7 +45,7 @@ func SetCurrentUser(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set("current_user", &user)
 
 		// Also set user in request context for template helpers (barcode token generation)
-		ctx := context.WithValue(c.Request().Context(), "user", &user)
+		ctx := context.WithValue(c.Request().Context(), UserContextKey, &user)
 		c.SetRequest(c.Request().WithContext(ctx))
 
 		// Check if impersonating
@@ -56,7 +64,9 @@ func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		if currentUser == nil {
 			session, _ := GetSession(c)
 			session.AddFlash("Bitte melden Sie sich zuerst an", "danger")
-			session.Save(c.Request(), c.Response())
+			if err := session.Save(c.Request(), c.Response()); err != nil {
+				return c.String(http.StatusInternalServerError, "Failed to save session")
+			}
 			return c.Redirect(http.StatusSeeOther, "/auth/login")
 		}
 		return next(c)
@@ -70,7 +80,9 @@ func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		if currentUser == nil {
 			session, _ := GetSession(c)
 			session.AddFlash("Bitte melden Sie sich zuerst an", "danger")
-			session.Save(c.Request(), c.Response())
+			if err := session.Save(c.Request(), c.Response()); err != nil {
+				return c.String(http.StatusInternalServerError, "Failed to save session")
+			}
 			return c.Redirect(http.StatusSeeOther, "/auth/login")
 		}
 
@@ -78,7 +90,9 @@ func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok || !user.IsAdmin() {
 			session, _ := GetSession(c)
 			session.AddFlash("Sie benötigen Admin-Rechte für diese Seite", "danger")
-			session.Save(c.Request(), c.Response())
+			if err := session.Save(c.Request(), c.Response()); err != nil {
+				return c.String(http.StatusInternalServerError, "Failed to save session")
+			}
 			return c.Redirect(http.StatusSeeOther, "/")
 		}
 

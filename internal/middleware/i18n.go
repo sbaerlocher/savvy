@@ -41,8 +41,9 @@ func LanguageDetection(next echo.HandlerFunc) echo.HandlerFunc {
 		// 4. Create localizer for the detected language
 		localizer := i18n.NewLocalizer(lang)
 
-		// 5. Store localizer in context
+		// 5. Store localizer and language in context
 		ctx := i18n.SetLocalizer(c.Request().Context(), localizer)
+		ctx = i18n.SetLanguage(ctx, lang)
 		c.SetRequest(c.Request().WithContext(ctx))
 
 		// 6. Set language cookie if not already set

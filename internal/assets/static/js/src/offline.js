@@ -1,30 +1,33 @@
 // Toast notification helper
-function showToast(message, type = 'info') {
-	const toast = document.createElement('div');
-	toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 transition-all duration-300 ${
-		type === 'success' ? 'bg-green-600' :
-		type === 'warning' ? 'bg-yellow-600' :
-		type === 'error' ? 'bg-red-600' :
-		'bg-blue-600'
-	}`;
-	toast.textContent = message;
-	toast.style.opacity = '0';
-	toast.style.transform = 'translateY(20px)';
+function showToast (message, type = 'info') {
+  const toast = document.createElement('div')
+  toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 transition-all duration-300 ${
+    type === 'success'
+? 'bg-green-600'
+    : type === 'warning'
+? 'bg-yellow-600'
+    : type === 'error'
+? 'bg-red-600'
+    : 'bg-blue-600'
+  }`
+  toast.textContent = message
+  toast.style.opacity = '0'
+  toast.style.transform = 'translateY(20px)'
 
-	document.body.appendChild(toast);
+  document.body.appendChild(toast)
 
-	// Animate in
-	setTimeout(() => {
-		toast.style.opacity = '1';
-		toast.style.transform = 'translateY(0)';
-	}, 10);
+  // Animate in
+  setTimeout(() => {
+    toast.style.opacity = '1'
+    toast.style.transform = 'translateY(0)'
+  }, 10)
 
-	// Animate out and remove
-	setTimeout(() => {
-		toast.style.opacity = '0';
-		toast.style.transform = 'translateY(20px)';
-		setTimeout(() => toast.remove(), 300);
-	}, 3000);
+  // Animate out and remove
+  setTimeout(() => {
+    toast.style.opacity = '0'
+    toast.style.transform = 'translateY(20px)'
+    setTimeout(() => toast.remove(), 300)
+  }, 3000)
 }
 
 /**
@@ -35,91 +38,91 @@ function showToast(message, type = 'info') {
  * - false = always reliable (you are offline)
  * - true = unreliable (only means "connected to network", not "has internet")
  */
-async function checkOnlineStatus() {
-	// If navigator says offline, trust it (false is always reliable)
-	if (!navigator.onLine) {
-		return false;
-	}
+async function checkOnlineStatus () {
+  // If navigator says offline, trust it (false is always reliable)
+  if (!navigator.onLine) {
+    return false
+  }
 
-	// If navigator says online, verify with real fetch
-	try {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 2000);
+  // If navigator says online, verify with real fetch
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 2000)
 
-		// Use health endpoint with GET (HEAD might redirect)
-		// Add timestamp to prevent cache
-		const response = await fetch(`/health?t=${Date.now()}`, {
-			method: 'GET',
-			cache: 'no-store',
-			signal: controller.signal
-		});
+    // Use health endpoint with GET (HEAD might redirect)
+    // Add timestamp to prevent cache
+    const response = await fetch(`/health?t=${Date.now()}`, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal
+    })
 
-		clearTimeout(timeoutId);
-		return response.ok;
-	} catch {
-		// Network error or timeout = offline
-		return false;
-	}
+    clearTimeout(timeoutId)
+    return response.ok
+  } catch {
+    // Network error or timeout = offline
+    return false
+  }
 }
 
 // Offline Detection - Alpine.js Store
-export function initOfflineStore(Alpine) {
-	console.log('[Alpine] Init - creating offline store');
+export function initOfflineStore (Alpine) {
+  console.log('[Alpine] Init - creating offline store')
 
-	// Create store with initial state
-	Alpine.store('offline', {
-		isOnline: navigator.onLine,
-		checking: false,
-	});
+  // Create store with initial state
+  Alpine.store('offline', {
+    isOnline: navigator.onLine,
+    checking: false
+  })
 
-	// Immediately verify actual connection on page load
-	checkOnlineStatus().then(isOnline => {
-		console.log('[Offline] Initial check - isOnline:', isOnline);
-		Alpine.store('offline').isOnline = isOnline;
-	});
+  // Immediately verify actual connection on page load
+  checkOnlineStatus().then(isOnline => {
+    console.log('[Offline] Initial check - isOnline:', isOnline)
+    Alpine.store('offline').isOnline = isOnline
+  })
 
-	// Listen to browser online/offline events
-	window.addEventListener('online', async () => {
-		console.log('[Offline] Browser online event');
-		// Verify with real check
-		const isOnline = await checkOnlineStatus();
-		Alpine.store('offline').isOnline = isOnline;
-		if (isOnline) {
-			showToast('✅ Verbindung wiederhergestellt', 'success');
-		}
-	});
+  // Listen to browser online/offline events
+  window.addEventListener('online', async () => {
+    console.log('[Offline] Browser online event')
+    // Verify with real check
+    const isOnline = await checkOnlineStatus()
+    Alpine.store('offline').isOnline = isOnline
+    if (isOnline) {
+      showToast('✅ Verbindung wiederhergestellt', 'success')
+    }
+  })
 
-	window.addEventListener('offline', () => {
-		console.log('[Offline] Browser offline event');
-		Alpine.store('offline').isOnline = false;
-	});
+  window.addEventListener('offline', () => {
+    console.log('[Offline] Browser offline event')
+    Alpine.store('offline').isOnline = false
+  })
 
-	// Periodic check every 5 seconds (backup for missed events)
-	setInterval(async () => {
-		const isOnline = await checkOnlineStatus();
-		const storeOnline = Alpine.store('offline').isOnline;
+  // Periodic check every 5 seconds (backup for missed events)
+  setInterval(async () => {
+    const isOnline = await checkOnlineStatus()
+    const storeOnline = Alpine.store('offline').isOnline
 
-		if (isOnline !== storeOnline) {
-			console.log('[Offline] Periodic check detected change:', isOnline);
-			Alpine.store('offline').isOnline = isOnline;
-		}
-	}, 5000);
+    if (isOnline !== storeOnline) {
+      console.log('[Offline] Periodic check detected change:', isOnline)
+      Alpine.store('offline').isOnline = isOnline
+    }
+  }, 5000)
 
-	// Add manual check method to store
-	const store = Alpine.store('offline');
-	store.checkConnection = async function() {
-		this.checking = true;
-		console.log('[Offline] Manual check...');
+  // Add manual check method to store
+  const store = Alpine.store('offline')
+  store.checkConnection = async function () {
+    this.checking = true
+    console.log('[Offline] Manual check...')
 
-		const isOnline = await checkOnlineStatus();
-		this.isOnline = isOnline;
-		this.checking = false;
+    const isOnline = await checkOnlineStatus()
+    this.isOnline = isOnline
+    this.checking = false
 
-		if (isOnline) {
-			console.log('[Offline] Server reachable - reloading...');
-			setTimeout(() => window.location.reload(), 300);
-		} else {
-			console.log('[Offline] Still offline');
-		}
-	};
+    if (isOnline) {
+      console.log('[Offline] Server reachable - reloading...')
+      setTimeout(() => window.location.reload(), 300)
+    } else {
+      console.log('[Offline] Still offline')
+    }
+  }
 }

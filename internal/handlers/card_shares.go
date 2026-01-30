@@ -49,7 +49,7 @@ func (h *CardSharesHandler) Create(c echo.Context) error {
 	canDelete := c.FormValue("can_delete") == "on"
 
 	// Check if HTMX request
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
+	isHTMX := c.Request().Header.Get("HX-Request") == trueStringValue
 
 	// Validate email exists (case-insensitive)
 	var sharedUser models.User
@@ -129,7 +129,7 @@ func (h *CardSharesHandler) Update(c echo.Context) error {
 	}
 
 	// Check if HTMX request
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
+	isHTMX := c.Request().Header.Get("HX-Request") == trueStringValue
 
 	if isHTMX {
 		// Reload share with user for display
@@ -144,56 +144,13 @@ func (h *CardSharesHandler) Update(c echo.Context) error {
 
 // Delete removes a share
 func (h *CardSharesHandler) Delete(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	cardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	cardUUID, err := uuid.Parse(cardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid card ID")
-	}
-
-	// Check authorization (only owners can delete shares)
-	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share first (for audit logging)
 	var share models.CardShare
-	if err := database.DB.Where("id = ?", shareID).First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
-	}
-
-	// Delete share with user context for audit logging
-	return deleteShareWithAudit(c, user.ID, &share)
+	return handleDeleteShare(c, h.authzService.CheckCardAccess, &share, "id", "card")
 }
 
 // NewInline returns the inline share form
 func (h *CardSharesHandler) NewInline(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	cardID := c.Param("id")
-
-	cardUUID, err := uuid.Parse(cardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid card ID")
-	}
-
-	// Check authorization (only owners can create shares)
-	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.CardShareInlineForm(c.Request().Context(), csrfToken, cardID)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	return handleNewInlineShare(c, h.authzService.CheckCardAccess, templates.CardShareInlineForm, "id", "card")
 }
 
 // Cancel closes the inline form
@@ -203,59 +160,22 @@ func (h *CardSharesHandler) Cancel(c echo.Context) error {
 
 // EditInline returns the inline edit form
 func (h *CardSharesHandler) EditInline(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	cardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	cardUUID, err := uuid.Parse(cardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid card ID")
-	}
-
-	// Check authorization (only owners can edit shares)
-	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share with user
 	var share models.CardShare
-	if err := database.DB.Where("id = ? AND card_id = ?", shareID, cardID).Preload("SharedWithUser").First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
+	data, err := loadShareWithAuthz(c, h.authzService.CheckCardAccess, &share, "card_id", "card", true)
+	if err != nil {
+		return err
 	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.CardShareInlineEdit(c.Request().Context(), csrfToken, cardID, share)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	component := templates.CardShareInlineEdit(data.Context, data.CSRF, data.ResID, share)
+	return component.Render(data.Context, c.Response().Writer)
 }
 
 // CancelEdit cancels inline editing and returns to display
 func (h *CardSharesHandler) CancelEdit(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	cardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	cardUUID, err := uuid.Parse(cardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid card ID")
-	}
-
-	// Check authorization
-	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
-	}
-
-	// Get share with user
 	var share models.CardShare
-	if err := database.DB.Where("id = ? AND card_id = ?", shareID, cardID).Preload("SharedWithUser").First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
+	data, err := loadShareWithAuthz(c, h.authzService.CheckCardAccess, &share, "card_id", "card", false)
+	if err != nil {
+		return err
 	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.CardShareDisplay(c.Request().Context(), csrfToken, cardID, share, perms.IsOwner)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	component := templates.CardShareDisplay(data.Context, data.CSRF, data.ResID, share, data.Perms.IsOwner)
+	return component.Render(data.Context, c.Response().Writer)
 }

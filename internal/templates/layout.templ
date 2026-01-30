@@ -3,12 +3,13 @@ package templates
 import (
 	"context"
 	"savvy/internal/config"
+	"savvy/internal/i18n"
 	"savvy/internal/models"
 )
 
 // getConfig extracts config from context
 func getConfig(ctx context.Context) *config.Config {
-	if cfg, ok := ctx.Value("config").(*config.Config); ok {
+	if cfg, ok := ctx.Value(config.ConfigContextKey).(*config.Config); ok {
 		return cfg
 	}
 	// Fallback: all features enabled
@@ -21,6 +22,32 @@ func getConfig(ctx context.Context) *config.Config {
 	}
 }
 
+// getMetaDescription returns the meta description in the current language
+func getMetaDescription(ctx context.Context) string {
+	lang := i18n.GetLanguage(ctx)
+	switch lang {
+	case "en":
+		return "Savvy - Digital management of loyalty cards, vouchers and gift cards. Organize your rewards cards, discount codes and credits in one place."
+	case "fr":
+		return "Savvy - Gestion numérique des cartes de fidélité, bons d'achat et cartes cadeaux. Organisez vos cartes de récompenses, codes de réduction et crédits en un seul endroit."
+	default: // de
+		return "Savvy - Digitale Verwaltung von Kundenkarten, Gutscheinen und Geschenkkarten. Organisiere deine Treuekarten, Rabattcodes und Guthaben an einem Ort."
+	}
+}
+
+// getMetaKeywords returns the meta keywords in the current language
+func getMetaKeywords(ctx context.Context) string {
+	lang := i18n.GetLanguage(ctx)
+	switch lang {
+	case "en":
+		return "loyalty cards, vouchers, gift cards, discount codes, card management, rewards cards, coupons"
+	case "fr":
+		return "cartes de fidélité, bons d'achat, cartes cadeaux, codes de réduction, gestion des cartes, cartes de récompenses, coupons"
+	default: // de
+		return "kundenkarten, gutscheine, geschenkkarten, treuekarten, rabattcodes, card management, loyalty cards, vouchers, gift cards"
+	}
+}
+
 // CSRFField renders a hidden CSRF token input field
 templ CSRFField(token string) {
 	<input type="hidden" name="csrf_token" value={ token }/>
@@ -28,11 +55,13 @@ templ CSRFField(token string) {
 
 templ Layout(ctx context.Context, title string, user *models.User, isImpersonating bool) {
 	<!DOCTYPE html>
-	<html lang="de">
+	<html lang={ i18n.GetLanguage(ctx) }>
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<meta name="theme-color" content="#4F46E5"/>
+		<meta name="description" content={ getMetaDescription(ctx) }/>
+		<meta name="keywords" content={ getMetaKeywords(ctx) }/>
 		<title>{ title } - { T(ctx, "app.name") }</title>
 
 		<!-- PWA Manifest -->

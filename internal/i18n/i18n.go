@@ -19,7 +19,10 @@ var Bundle *i18n.Bundle
 // contextKey is a custom type for context keys to avoid collisions
 type contextKey string
 
-const localizerKey contextKey = "localizer"
+const (
+	localizerKey contextKey = "localizer"
+	languageKey  contextKey = "language"
+)
 
 // SupportedLanguages lists all supported language tags
 var SupportedLanguages = []language.Tag{
@@ -54,6 +57,11 @@ func SetLocalizer(ctx context.Context, localizer *i18n.Localizer) context.Contex
 	return context.WithValue(ctx, localizerKey, localizer)
 }
 
+// SetLanguage stores the current language code in the context
+func SetLanguage(ctx context.Context, lang string) context.Context {
+	return context.WithValue(ctx, languageKey, lang)
+}
+
 // GetLocalizer retrieves the localizer from the context
 func GetLocalizer(ctx context.Context) *i18n.Localizer {
 	if localizer, ok := ctx.Value(localizerKey).(*i18n.Localizer); ok {
@@ -61,6 +69,15 @@ func GetLocalizer(ctx context.Context) *i18n.Localizer {
 	}
 	// Fallback to default language
 	return NewLocalizer(language.German.String())
+}
+
+// GetLanguage returns the current language code from the context (e.g., "de", "en", "fr")
+func GetLanguage(ctx context.Context) string {
+	if lang, ok := ctx.Value(languageKey).(string); ok {
+		return lang
+	}
+	// Fallback to default language
+	return "de"
 }
 
 // T translates a message ID with optional template data

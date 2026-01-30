@@ -82,7 +82,10 @@ func migrateReset(m *gormigrate.Gormigrate) {
 	fmt.Print("Type 'yes' to continue: ")
 
 	var confirm string
-	fmt.Scanln(&confirm)
+	if _, err := fmt.Scanln(&confirm); err != nil {
+		fmt.Printf("❌ Error reading input: %v\n", err)
+		os.Exit(1)
+	}
 
 	if confirm != "yes" {
 		fmt.Println("❌ Aborted")

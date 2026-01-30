@@ -147,56 +147,13 @@ func (h *GiftCardSharesHandler) Update(c echo.Context) error {
 
 // Delete removes a share
 func (h *GiftCardSharesHandler) Delete(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization (only owners can delete shares)
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share first (for audit logging)
 	var share models.GiftCardShare
-	if err := database.DB.Where("id = ?", shareID).First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
-	}
-
-	// Delete share with user context for audit logging
-	return deleteShareWithAudit(c, user.ID, &share)
+	return handleDeleteShare(c, h.authzService.CheckGiftCardAccess, &share, "id", "gift card")
 }
 
 // NewInline returns the inline share form
 func (h *GiftCardSharesHandler) NewInline(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization (only owners can create shares)
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.GiftCardShareInlineForm(c.Request().Context(), csrfToken, giftCardID)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	return handleNewInlineShare(c, h.authzService.CheckGiftCardAccess, templates.GiftCardShareInlineForm, "id", "gift card")
 }
 
 // Cancel closes the inline form
@@ -206,59 +163,22 @@ func (h *GiftCardSharesHandler) Cancel(c echo.Context) error {
 
 // EditInline returns the inline edit form
 func (h *GiftCardSharesHandler) EditInline(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization (only owners can edit shares)
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share with user
 	var share models.GiftCardShare
-	if err := database.DB.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).Preload("SharedWithUser").First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
+	data, err := loadShareWithAuthz(c, h.authzService.CheckGiftCardAccess, &share, "gift_card_id", "gift card", true)
+	if err != nil {
+		return err
 	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.GiftCardShareInlineEdit(c.Request().Context(), csrfToken, giftCardID, share)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	component := templates.GiftCardShareInlineEdit(data.Context, data.CSRF, data.ResID, share)
+	return component.Render(data.Context, c.Response().Writer)
 }
 
 // CancelEdit cancels inline editing and returns to display
 func (h *GiftCardSharesHandler) CancelEdit(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-
-	// Get share with user
 	var share models.GiftCardShare
-	if err := database.DB.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).Preload("SharedWithUser").First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
+	data, err := loadShareWithAuthz(c, h.authzService.CheckGiftCardAccess, &share, "gift_card_id", "gift card", false)
+	if err != nil {
+		return err
 	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.GiftCardShareDisplay(c.Request().Context(), csrfToken, giftCardID, share, perms.IsOwner)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	component := templates.GiftCardShareDisplay(data.Context, data.CSRF, data.ResID, share, data.Perms.IsOwner)
+	return component.Render(data.Context, c.Response().Writer)
 }

@@ -1,3 +1,4 @@
+// Package metrics provides Prometheus metrics collection for HTTP requests, database connections, and application resources.
 package metrics
 
 import (
@@ -88,8 +89,8 @@ var (
 	)
 )
 
-// MetricsMiddleware records HTTP request metrics
-func MetricsMiddleware() echo.MiddlewareFunc {
+// Middleware records HTTP request metrics
+func Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			start := time.Now()

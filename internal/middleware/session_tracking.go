@@ -1,3 +1,4 @@
+// Package middleware provides Echo middleware for session tracking and metrics.
 package middleware
 
 import (
@@ -54,8 +55,6 @@ func CleanupInactiveSessions() {
 	// Reset the gauge to 0
 	metrics.SetActiveSessions(0)
 
-	// Log cleanup
-	if count > 0 {
-		// Sessions will be re-counted as users make requests
-	}
+	// Sessions will be re-counted as users make requests
+	_ = count
 }

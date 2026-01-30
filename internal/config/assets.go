@@ -1,3 +1,4 @@
+// Package config provides configuration management for asset manifest handling.
 package config
 
 import (
@@ -10,7 +11,6 @@ import (
 var (
 	assetManifest     map[string]string
 	assetManifestOnce sync.Once
-	assetManifestErr  error
 )
 
 // GetAssetPath returns the versioned asset path for production or fallback for dev
@@ -45,18 +45,15 @@ func loadAssetManifest() {
 	assetManifestOnce.Do(func() {
 		manifestPath := filepath.Join("internal", "assets", "static", "js", "manifest.json")
 
+		// #nosec G304 - manifestPath is constructed from hardcoded strings, not user input
 		data, err := os.ReadFile(manifestPath)
 		if err != nil {
 			// File doesn't exist in dev mode - that's OK
-			if !os.IsNotExist(err) {
-				assetManifestErr = err
-			}
 			return
 		}
 
 		var manifest map[string]string
 		if err := json.Unmarshal(data, &manifest); err != nil {
-			assetManifestErr = err
 			return
 		}
 
@@ -68,5 +65,4 @@ func loadAssetManifest() {
 func ReloadAssetManifest() {
 	assetManifestOnce = sync.Once{}
 	assetManifest = nil
-	assetManifestErr = nil
 }

@@ -13,6 +13,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	trueStringValue = "true"
+)
+
 // VoucherSharesHandler handles voucher sharing operations
 type VoucherSharesHandler struct {
 	authzService services.AuthzServiceInterface
@@ -47,7 +51,7 @@ func (h *VoucherSharesHandler) Create(c echo.Context) error {
 	email := strings.ToLower(strings.TrimSpace(c.FormValue("shared_with_email")))
 
 	// Check if HTMX request
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
+	isHTMX := c.Request().Header.Get("HX-Request") == trueStringValue
 
 	// Validate email exists (case-insensitive)
 	var sharedUser models.User
@@ -92,56 +96,13 @@ func (h *VoucherSharesHandler) Create(c echo.Context) error {
 
 // Delete removes a share
 func (h *VoucherSharesHandler) Delete(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	voucherID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	voucherUUID, err := uuid.Parse(voucherID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid voucher ID")
-	}
-
-	// Check authorization (only owners can delete shares)
-	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share first (for audit logging)
 	var share models.VoucherShare
-	if err := database.DB.Where("id = ?", shareID).First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
-	}
-
-	// Delete share with user context for audit logging
-	return deleteShareWithAudit(c, user.ID, &share)
+	return handleDeleteShare(c, h.authzService.CheckVoucherAccess, &share, "id", "voucher")
 }
 
 // NewInline returns the inline share form
 func (h *VoucherSharesHandler) NewInline(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	voucherID := c.Param("id")
-
-	voucherUUID, err := uuid.Parse(voucherID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid voucher ID")
-	}
-
-	// Check authorization (only owners can create shares)
-	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	csrfToken := c.Get("csrf").(string)
-	component := templates.VoucherShareInlineForm(c.Request().Context(), csrfToken, voucherID)
-	return component.Render(c.Request().Context(), c.Response().Writer)
+	return handleNewInlineShare(c, h.authzService.CheckVoucherAccess, templates.VoucherShareInlineForm, "id", "voucher")
 }
 
 // Cancel closes the inline form

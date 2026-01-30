@@ -1,3 +1,4 @@
+// Package middleware provides Echo middleware for feature toggling.
 package middleware
 
 import (

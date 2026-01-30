@@ -40,7 +40,7 @@ func (h *Handler) Update(c echo.Context) error {
 
 	// Handle merchant selection
 	merchantIDStr := c.FormValue("merchant_id")
-	if merchantIDStr != "" && merchantIDStr != "new" {
+	if merchantIDStr != "" && merchantIDStr != newMerchantValue {
 		// Existing merchant selected from dropdown
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {

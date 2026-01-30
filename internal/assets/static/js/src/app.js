@@ -1,34 +1,34 @@
 // static/js/src/app.js - Main entry point for bundled JS
 
-import Alpine from 'alpinejs';
-import htmx from 'htmx.org';
-
-// Make Alpine global
-window.Alpine = Alpine;
-
-// Make HTMX global
-window.htmx = htmx;
+import Alpine from 'alpinejs'
+import htmx from 'htmx.org'
 
 // Import scanner loader (lazy loads html5-qrcode on demand)
-import './scanner-loader.js';
+import './scanner-loader.js'
 
 // Import offline detection
-import { initOfflineStore } from './offline.js';
+import { initOfflineStore } from './offline.js'
 
 // Import orientation-based barcode fullscreen
-import { initOrientationStore } from './orientation.js';
+import { initOrientationStore } from './orientation.js'
 
 // Import precaching for offline detail pages
-import { setupPrecaching } from './precache.js';
+import { setupPrecaching } from './precache.js'
+
+// Make Alpine global
+window.Alpine = Alpine
+
+// Make HTMX global
+window.htmx = htmx
 
 // Initialize offline store before starting Alpine
-initOfflineStore(Alpine);
+initOfflineStore(Alpine)
 
 // Initialize orientation store for landscape barcode fullscreen
-initOrientationStore(Alpine);
+initOrientationStore(Alpine)
 
 // Setup precaching for detail pages
-setupPrecaching();
+setupPrecaching()
 
 // Start Alpine
-Alpine.start();
+Alpine.start()

@@ -2,11 +2,13 @@
 package cards
 
 import (
-	"savvy/internal/database"
-	"savvy/internal/models"
 	"savvy/internal/services"
 
 	"gorm.io/gorm"
+)
+
+const (
+	newMerchantValue = "new"
 )
 
 // Handler contains card service and shared dependencies.
@@ -23,13 +25,4 @@ func NewHandler(cardService services.CardServiceInterface, authzService services
 		authzService: authzService,
 		db:           db,
 	}
-}
-
-// Helper methods
-
-// getMerchants retrieves all merchants for dropdown.
-func (h *Handler) getMerchants() ([]models.Merchant, error) {
-	var merchants []models.Merchant
-	err := database.DB.Order("name ASC").Find(&merchants).Error
-	return merchants, err
 }

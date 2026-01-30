@@ -17,6 +17,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	roleUser  = "user"
+	roleAdmin = "admin"
+)
+
 var oauthProvider *oauth.Provider
 var oauthConfig *config.Config
 var oauthEnabled bool
@@ -107,7 +112,9 @@ func OAuthLogin(c echo.Context) error {
 	// Store state in session
 	sess, _ := middleware.GetSession(c)
 	sess.Values["oauth_state"] = state
-	sess.Save(c.Request(), c.Response())
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to save session")
+	}
 
 	// Redirect to Authentik
 	url := oauthProvider.Config.AuthCodeURL(state)
@@ -216,9 +223,9 @@ func OAuthCallback(c echo.Context) error {
 
 		// Check if user should be admin
 		isAdmin := shouldBeAdmin(email, userInfo.Groups)
-		role := "user"
+		role := roleUser
 		if isAdmin {
-			role = "admin"
+			role = roleAdmin
 		}
 
 		user = models.User{
@@ -244,9 +251,9 @@ func OAuthCallback(c echo.Context) error {
 
 		// Check if user should be admin (permissions may have changed)
 		isAdmin := shouldBeAdmin(email, userInfo.Groups)
-		expectedRole := "user"
+		expectedRole := roleUser
 		if isAdmin {
-			expectedRole = "admin"
+			expectedRole = roleAdmin
 		}
 
 		// Update name if changed

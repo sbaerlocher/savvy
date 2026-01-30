@@ -1,3 +1,4 @@
+// Package vouchers provides HTTP handlers for voucher management operations.
 package vouchers
 
 import (

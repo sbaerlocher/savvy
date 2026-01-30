@@ -15,7 +15,7 @@ import (
 	"savvy/internal/database"
 	"savvy/internal/handlers"
 	"savvy/internal/handlers/cards"
-	"savvy/internal/handlers/gift_cards"
+	"savvy/internal/handlers/giftcards"
 	"savvy/internal/handlers/vouchers"
 	"savvy/internal/i18n"
 	"savvy/internal/metrics"
@@ -57,12 +57,21 @@ func performHealthCheck(port string) int {
 	}
 
 	url := "http://127.0.0.1:" + port + "/health"
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		log.Printf("Failed to create request: %v", err)
+		return 1
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Health check failed: %v", err)
 		return 1
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Health check returned status %d", resp.StatusCode)
@@ -215,7 +224,7 @@ func run() int {
 	// Middleware
 	e.Use(echomiddleware.Logger())
 	e.Use(echomiddleware.Recover())
-	e.Use(metrics.MetricsMiddleware()) // Prometheus metrics
+	e.Use(metrics.Middleware()) // Prometheus metrics
 
 	// CSRF Protection (only for non-GET requests)
 	e.Use(echomiddleware.CSRFWithConfig(echomiddleware.CSRFConfig{
@@ -248,7 +257,7 @@ func run() int {
 			c.Set("config", cfg) // Make config available in Echo context
 
 			// Inject config into Request Context for templates
-			ctx := context.WithValue(c.Request().Context(), "config", cfg)
+			ctx := context.WithValue(c.Request().Context(), config.ConfigContextKey, cfg)
 			c.SetRequest(c.Request().WithContext(ctx))
 
 			return next(c)
@@ -276,7 +285,7 @@ func run() int {
 	handlers.InitDashboardService(serviceContainer.DashboardService)
 	cardHandler := cards.NewHandler(serviceContainer.CardService, serviceContainer.AuthzService, database.DB)
 	voucherHandler := vouchers.NewHandler(serviceContainer.VoucherService, serviceContainer.AuthzService, database.DB)
-	giftCardHandler := gift_cards.NewHandler(serviceContainer.GiftCardService, serviceContainer.AuthzService, database.DB)
+	giftCardHandler := giftcards.NewHandler(serviceContainer.GiftCardService, serviceContainer.AuthzService, database.DB)
 	cardSharesHandler := handlers.NewCardSharesHandler(serviceContainer.AuthzService)
 	voucherSharesHandler := handlers.NewVoucherSharesHandler(serviceContainer.AuthzService)
 	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(serviceContainer.AuthzService)

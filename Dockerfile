@@ -69,8 +69,8 @@ COPY . .
 RUN npm run build
 
 # Install Templ and generate templates
-RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
-RUN /go/bin/templ generate
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.977 && \
+    /go/bin/templ generate
 
 # Build Go binary with version info and build flags
 RUN CGO_ENABLED=0 GOOS=linux go build \

@@ -22,6 +22,102 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// resourceData holds barcode data extracted from a resource
+type resourceData struct {
+	barcodeType string
+	data        string
+}
+
+// fetchResourceData fetches resource and extracts barcode data based on resource type
+func fetchResourceData(claims *security.BarcodeTokenClaims, userID uuid.UUID) (*resourceData, error) {
+	switch claims.ResourceType {
+	case "card":
+		var card models.Card
+		if err := database.DB.Where("id = ?", claims.ResourceID).First(&card).Error; err != nil {
+			return nil, err
+		}
+		if !hasCardAccess(userID, &card) {
+			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		}
+		return &resourceData{barcodeType: card.BarcodeType, data: card.CardNumber}, nil
+
+	case "voucher":
+		var voucher models.Voucher
+		if err := database.DB.Where("id = ?", claims.ResourceID).First(&voucher).Error; err != nil {
+			return nil, err
+		}
+		if !hasVoucherAccess(userID, &voucher) {
+			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		}
+		return &resourceData{barcodeType: voucher.BarcodeType, data: voucher.Code}, nil
+
+	case "gift_card":
+		var giftCard models.GiftCard
+		if err := database.DB.Where("id = ?", claims.ResourceID).First(&giftCard).Error; err != nil {
+			return nil, err
+		}
+		if !hasGiftCardAccess(userID, &giftCard) {
+			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
+		}
+		return &resourceData{barcodeType: giftCard.BarcodeType, data: giftCard.CardNumber}, nil
+
+	default:
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Invalid resource type")
+	}
+}
+
+// encodeBarcode creates a barcode image from data and type
+func encodeBarcode(barcodeType, data string) (barcode.Barcode, error) {
+	switch barcodeType {
+	case "CODE128":
+		return code128.Encode(data)
+
+	case "CODE39":
+		return code39.Encode(data, true, true)
+
+	case "CODE93":
+		return code93.Encode(data, true, true)
+
+	case "CODABAR":
+		return codabar.Encode(data)
+
+	case "QR":
+		return qr.Encode(data, qr.M, qr.Auto)
+
+	case "EAN13", "ISBN13":
+		barcodeImage, err := ean.Encode(data)
+		if err != nil {
+			// Fallback to CODE128 for invalid EAN numbers
+			return code128.Encode(data)
+		}
+		return barcodeImage, nil
+
+	case "EAN8":
+		barcodeImage, err := ean.Encode(data)
+		if err != nil {
+			// Fallback to CODE128 for invalid EAN numbers
+			return code128.Encode(data)
+		}
+		return barcodeImage, nil
+
+	case "PDF417":
+		return pdf417.Encode(data, 2)
+
+	case "DATAMATRIX":
+		return datamatrix.Encode(data)
+
+	case "AZTEC":
+		return aztec.Encode([]byte(data), 50, 0)
+
+	case "UPCA", "UPCE", "ITF", "ITF14", "MAXICODE":
+		// These formats are not supported - fallback to CODE128
+		return code128.Encode(data)
+
+	default:
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Nicht unterstützter Barcode-Typ")
+	}
+}
+
 // BarcodeGenerate generates a barcode image using a secure token
 // The token contains encrypted resource information and expires after 60 seconds
 func BarcodeGenerate(c echo.Context) error {
@@ -54,153 +150,31 @@ func BarcodeGenerate(c echo.Context) error {
 	}
 
 	// Fetch resource and extract barcode data
-	var barcodeType, data string
-	var dbErr error
-	switch claims.ResourceType {
-	case "card":
-		var card models.Card
-		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&card).Error; dbErr != nil {
-			return c.String(http.StatusNotFound, "Card not found")
+	resData, err := fetchResourceData(claims, user.ID)
+	if err != nil {
+		if httpErr, ok := err.(*echo.HTTPError); ok {
+			return httpErr
 		}
-		// Verify user has access to card (owner or shared with)
-		if !hasCardAccess(user.ID, &card) {
-			return c.String(http.StatusForbidden, "Access denied")
-		}
-		barcodeType = card.BarcodeType
-		data = card.CardNumber
-
-	case "voucher":
-		var voucher models.Voucher
-		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&voucher).Error; dbErr != nil {
-			return c.String(http.StatusNotFound, "Voucher not found")
-		}
-		// Verify user has access to voucher (owner or shared with)
-		if !hasVoucherAccess(user.ID, &voucher) {
-			return c.String(http.StatusForbidden, "Access denied")
-		}
-		barcodeType = voucher.BarcodeType
-		data = voucher.Code
-
-	case "gift_card":
-		var giftCard models.GiftCard
-		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&giftCard).Error; dbErr != nil {
-			return c.String(http.StatusNotFound, "Gift card not found")
-		}
-		// Verify user has access to gift card (owner or shared with)
-		if !hasGiftCardAccess(user.ID, &giftCard) {
-			return c.String(http.StatusForbidden, "Access denied")
-		}
-		barcodeType = giftCard.BarcodeType
-		data = giftCard.CardNumber
-
-	default:
-		return c.String(http.StatusBadRequest, "Invalid resource type")
+		return c.String(http.StatusNotFound, "Resource not found")
 	}
 
-	if data == "" {
+	if resData.data == "" {
 		return c.String(http.StatusBadRequest, "No barcode data available")
 	}
 
-	var barcodeImage barcode.Barcode
-
-	switch barcodeType {
-	case "CODE128":
-		barcodeImage, err = code128.Encode(data)
-		if err != nil {
-			c.Logger().Errorf("CODE128 encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige Barcode-Daten")
+	// Encode barcode
+	barcodeImage, err := encodeBarcode(resData.barcodeType, resData.data)
+	if err != nil {
+		if httpErr, ok := err.(*echo.HTTPError); ok {
+			return httpErr
 		}
-
-	case "CODE39":
-		barcodeImage, err = code39.Encode(data, true, true) // includeChecksum, fullASCII
-		if err != nil {
-			c.Logger().Errorf("CODE39 encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige CODE39-Daten")
-		}
-
-	case "CODE93":
-		barcodeImage, err = code93.Encode(data, true, true) // includeChecksum, fullASCII
-		if err != nil {
-			c.Logger().Errorf("CODE93 encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige CODE93-Daten")
-		}
-
-	case "CODABAR":
-		barcodeImage, err = codabar.Encode(data)
-		if err != nil {
-			c.Logger().Errorf("CODABAR encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige CODABAR-Daten")
-		}
-
-	case "QR":
-		barcodeImage, err = qr.Encode(data, qr.M, qr.Auto)
-		if err != nil {
-			c.Logger().Errorf("QR encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige QR-Code-Daten")
-		}
-
-	case "EAN13", "ISBN13":
-		// Try EAN13, fallback to CODE128 if it fails (invalid checksum)
-		barcodeImage, err = ean.Encode(data)
-		if err != nil {
-			// Fallback to CODE128 for invalid EAN numbers
-			barcodeImage, err = code128.Encode(data)
-			if err != nil {
-				c.Logger().Errorf("EAN13/CODE128 encoding failed: %v", err)
-				return c.String(http.StatusBadRequest, "Ungültige Barcode-Daten")
-			}
-		}
-
-	case "EAN8":
-		// Try EAN8, fallback to CODE128 if it fails (invalid checksum)
-		barcodeImage, err = ean.Encode(data)
-		if err != nil {
-			// Fallback to CODE128 for invalid EAN numbers
-			barcodeImage, err = code128.Encode(data)
-			if err != nil {
-				c.Logger().Errorf("EAN8/CODE128 encoding failed: %v", err)
-				return c.String(http.StatusBadRequest, "Ungültige Barcode-Daten")
-			}
-		}
-
-	case "PDF417":
-		barcodeImage, err = pdf417.Encode(data, 2) // security level 2
-		if err != nil {
-			c.Logger().Errorf("PDF417 encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige PDF417-Daten")
-		}
-
-	case "DATAMATRIX":
-		barcodeImage, err = datamatrix.Encode(data)
-		if err != nil {
-			c.Logger().Errorf("DataMatrix encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige DataMatrix-Daten")
-		}
-
-	case "AZTEC":
-		barcodeImage, err = aztec.Encode([]byte(data), 50, 0) // 50% error correction, auto layers
-		if err != nil {
-			c.Logger().Errorf("Aztec encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige Aztec-Daten")
-		}
-
-	case "UPCA", "UPCE", "ITF", "ITF14", "MAXICODE":
-		// These formats are not supported by boombuler/barcode
-		// Fallback to CODE128
-		c.Logger().Warnf("Barcode type %s not supported, falling back to CODE128", barcodeType)
-		barcodeImage, err = code128.Encode(data)
-		if err != nil {
-			c.Logger().Errorf("CODE128 fallback encoding failed: %v", err)
-			return c.String(http.StatusBadRequest, "Ungültige Barcode-Daten")
-		}
-
-	default:
-		return c.String(http.StatusBadRequest, "Nicht unterstützter Barcode-Typ")
+		c.Logger().Errorf("Barcode encoding failed (%s): %v", resData.barcodeType, err)
+		return c.String(http.StatusBadRequest, "Ungültige Barcode-Daten")
 	}
 
 	// Scale barcode to appropriate size
 	var width, height int
-	if barcodeType == "QR" {
+	if resData.barcodeType == "QR" {
 		width = 300
 		height = 300
 	} else {

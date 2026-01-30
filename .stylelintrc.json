@@ -1,0 +1,37 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "ignoreFiles": [
+    "internal/assets/static/css/bundle.css",
+    "internal/assets/static/css/bundle.css.map",
+    "**/*.min.css"
+  ],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "layer"
+        ]
+      }
+    ],
+    "selector-class-pattern": null,
+    "function-no-unknown": [
+      true,
+      {
+        "ignoreFunctions": [
+          "theme"
+        ]
+      }
+    ],
+    "declaration-block-single-line-max-declarations": null,
+    "no-duplicate-selectors": null,
+    "property-no-deprecated": true
+  }
+}

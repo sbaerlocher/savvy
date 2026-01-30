@@ -1,7 +1,9 @@
+// Package templates provides helper functions for barcode template rendering.
 package templates
 
 import (
 	"context"
+	"savvy/internal/middleware"
 	"savvy/internal/models"
 	"savvy/internal/security"
 	"time"
@@ -13,7 +15,7 @@ import (
 // The token expires after 60 seconds and is user-specific
 func GenerateBarcodeToken(ctx context.Context, resourceID uuid.UUID, resourceType string) string {
 	// Get user from context
-	user, ok := ctx.Value("user").(*models.User)
+	user, ok := ctx.Value(middleware.UserContextKey).(*models.User)
 	if !ok || user == nil {
 		// If no user in context, return empty string (barcode won't render)
 		return ""

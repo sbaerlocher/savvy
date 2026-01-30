@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"savvy/internal/database"
 	"savvy/internal/models"
@@ -24,76 +25,43 @@ func NewFavoritesHandler(authzService services.AuthzServiceInterface) *Favorites
 	}
 }
 
-// ToggleCardFavorite toggles the favorite status of a card for the current user
-func (h *FavoritesHandler) ToggleCardFavorite(c echo.Context) error {
+// toggleFavoriteHandler is a generic handler for toggling favorites with authorization check
+func (h *FavoritesHandler) toggleFavoriteHandler(c echo.Context, resourceType string, checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error)) error {
 	user := c.Get("current_user").(*models.User)
-	cardID := c.Param("id")
+	resourceID := c.Param("id")
 
-	cardUUID, err := uuid.Parse(cardID)
+	resourceUUID, err := uuid.Parse(resourceID)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid card ID"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 
 	// Check authorization (owner or shared access can favorite)
-	_, err = h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
+	_, err = checkAccess(c.Request().Context(), user.ID, resourceUUID)
 	if err != nil {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 	}
 
 	// Toggle favorite
-	isFavorite := h.toggleFavorite(user.ID, "card", cardUUID)
+	isFavorite := h.toggleFavorite(user.ID, resourceType, resourceUUID)
 
 	// Return updated button HTML for HTMX swap
 	csrfToken := c.Get("csrf").(string)
-	return templates.FavoriteButton(c.Request().Context(), cardID, isFavorite, csrfToken).Render(c.Request().Context(), c.Response().Writer)
+	return templates.FavoriteButton(c.Request().Context(), resourceID, isFavorite, csrfToken).Render(c.Request().Context(), c.Response().Writer)
+}
+
+// ToggleCardFavorite toggles the favorite status of a card for the current user
+func (h *FavoritesHandler) ToggleCardFavorite(c echo.Context) error {
+	return h.toggleFavoriteHandler(c, "card", h.authzService.CheckCardAccess)
 }
 
 // ToggleVoucherFavorite toggles the favorite status of a voucher for the current user
 func (h *FavoritesHandler) ToggleVoucherFavorite(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	voucherID := c.Param("id")
-
-	voucherUUID, err := uuid.Parse(voucherID)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid voucher ID"})
-	}
-
-	// Check authorization (owner or shared access can favorite)
-	_, err = h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherUUID)
-	if err != nil {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
-	}
-
-	// Toggle favorite
-	isFavorite := h.toggleFavorite(user.ID, "voucher", voucherUUID)
-
-	// Return updated button HTML for HTMX swap
-	csrfToken := c.Get("csrf").(string)
-	return templates.FavoriteButton(c.Request().Context(), voucherID, isFavorite, csrfToken).Render(c.Request().Context(), c.Response().Writer)
+	return h.toggleFavoriteHandler(c, "voucher", h.authzService.CheckVoucherAccess)
 }
 
 // ToggleGiftCardFavorite toggles the favorite status of a gift card for the current user
 func (h *FavoritesHandler) ToggleGiftCardFavorite(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid gift card ID"})
-	}
-
-	// Check authorization (owner or shared access can favorite)
-	_, err = h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
-	}
-
-	// Toggle favorite
-	isFavorite := h.toggleFavorite(user.ID, "gift_card", giftCardUUID)
-
-	// Return updated button HTML for HTMX swap
-	csrfToken := c.Get("csrf").(string)
-	return templates.FavoriteButton(c.Request().Context(), giftCardID, isFavorite, csrfToken).Render(c.Request().Context(), c.Response().Writer)
+	return h.toggleFavoriteHandler(c, "gift_card", h.authzService.CheckGiftCardAccess)
 }
 
 // toggleFavorite is a helper function that handles the favorite toggle logic

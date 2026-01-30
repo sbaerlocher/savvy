@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// ContextKey is a custom type for context keys to avoid collisions
+type ContextKey string
+
+const (
+	// ConfigContextKey is the key for storing config in context
+	ConfigContextKey ContextKey = "config"
+)
+
 // Config holds all application configuration loaded from environment variables
 type Config struct {
 	DatabaseURL       string

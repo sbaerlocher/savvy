@@ -3,12 +3,56 @@
 package migrations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+// Helper functions to reduce code duplication
+
+// createTrigger creates a database trigger
+func createTrigger(tx *gorm.DB, triggerName, tableName, timing, event, functionName string) error {
+	return tx.Exec(fmt.Sprintf(`
+		DROP TRIGGER IF EXISTS %s ON %s;
+		CREATE TRIGGER %s
+			%s %s ON %s
+			FOR EACH ROW
+			EXECUTE FUNCTION %s();
+	`, triggerName, tableName, triggerName, timing, event, tableName, functionName)).Error
+}
+
+// dropTrigger drops a database trigger
+func dropTrigger(tx *gorm.DB, triggerName, tableName string) error {
+	return tx.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS %s ON %s", triggerName, tableName)).Error
+}
+
+// createFunction creates a database function
+func createFunction(tx *gorm.DB, functionSQL string) error {
+	return tx.Exec(functionSQL).Error
+}
+
+// dropFunction drops a database function
+func dropFunction(tx *gorm.DB, functionName string) error {
+	return tx.Exec(fmt.Sprintf("DROP FUNCTION IF EXISTS %s()", functionName)).Error
+}
+
+// createIndex creates a database index
+func createIndex(tx *gorm.DB, indexSQL string) error {
+	return tx.Exec(indexSQL).Error
+}
+
+// dropIndex drops a database index
+func dropIndex(tx *gorm.DB, indexName string) error {
+	return tx.Exec(fmt.Sprintf("DROP INDEX IF EXISTS %s", indexName)).Error
+}
+
+// addComment adds a comment to a database object
+func addComment(tx *gorm.DB, commentSQL string) error {
+	return tx.Exec(commentSQL).Error
+}
 
 // GetMigrations returns all migrations in chronological order
 func GetMigrations() []*gormigrate.Migration {
@@ -23,6 +67,7 @@ func GetMigrations() []*gormigrate.Migration {
 		replaceGlobalUniqueWithComposite(),
 		addAuditLog(),
 		addAuthProvider(),
+		autoSetGiftCardCurrentBalance(),
 	}
 }
 
@@ -313,7 +358,7 @@ func addGiftCardBalanceConstraint() *gormigrate.Migration {
 		ID: "202601230003_gift_card_balance_constraint",
 		Migrate: func(tx *gorm.DB) error {
 			// Create trigger function to validate balance before insert/update
-			if err := tx.Exec(`
+			if err := createFunction(tx, `
 				CREATE OR REPLACE FUNCTION check_gift_card_balance()
 				RETURNS TRIGGER AS $$
 				DECLARE
@@ -341,48 +386,30 @@ func addGiftCardBalanceConstraint() *gormigrate.Migration {
 					RETURN NEW;
 				END;
 				$$ LANGUAGE plpgsql;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
 			// Create trigger to enforce balance check BEFORE insert/update
-			if err := tx.Exec(`
-				DROP TRIGGER IF EXISTS trigger_check_gift_card_balance ON gift_card_transactions;
-				CREATE TRIGGER trigger_check_gift_card_balance
-					BEFORE INSERT OR UPDATE ON gift_card_transactions
-					FOR EACH ROW
-					EXECUTE FUNCTION check_gift_card_balance();
-			`).Error; err != nil {
+			if err := createTrigger(tx, "trigger_check_gift_card_balance", "gift_card_transactions",
+				"BEFORE", "INSERT OR UPDATE", "check_gift_card_balance"); err != nil {
 				return err
 			}
 
 			// Create index for performance (speeds up balance calculation)
-			if err := tx.Exec(`
+			return createIndex(tx, `
 				CREATE INDEX IF NOT EXISTS idx_gift_card_transactions_gift_card_deleted
 				ON gift_card_transactions(gift_card_id, deleted_at);
-			`).Error; err != nil {
-				return err
-			}
-
-			return nil
+			`)
 		},
 		Rollback: func(tx *gorm.DB) error {
-			// Drop trigger
-			if err := tx.Exec("DROP TRIGGER IF EXISTS trigger_check_gift_card_balance ON gift_card_transactions").Error; err != nil {
+			if err := dropTrigger(tx, "trigger_check_gift_card_balance", "gift_card_transactions"); err != nil {
 				return err
 			}
-
-			// Drop function
-			if err := tx.Exec("DROP FUNCTION IF EXISTS check_gift_card_balance()").Error; err != nil {
+			if err := dropFunction(tx, "check_gift_card_balance"); err != nil {
 				return err
 			}
-
-			// Drop index
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_gift_card_transactions_gift_card_deleted").Error; err != nil {
-				return err
-			}
-
-			return nil
+			return dropIndex(tx, "idx_gift_card_transactions_gift_card_deleted")
 		},
 	}
 }
@@ -399,7 +426,7 @@ func normalizeEmails() *gormigrate.Migration {
 			}
 
 			// Create trigger function to automatically lowercase emails on insert/update
-			if err := tx.Exec(`
+			if err := createFunction(tx, `
 				CREATE OR REPLACE FUNCTION enforce_lowercase_email()
 				RETURNS TRIGGER AS $$
 				BEGIN
@@ -407,42 +434,26 @@ func normalizeEmails() *gormigrate.Migration {
 					RETURN NEW;
 				END;
 				$$ LANGUAGE plpgsql;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
 			// Create trigger on users table
-			if err := tx.Exec(`
-				DROP TRIGGER IF EXISTS trigger_lowercase_email ON users;
-				CREATE TRIGGER trigger_lowercase_email
-					BEFORE INSERT OR UPDATE ON users
-					FOR EACH ROW
-					EXECUTE FUNCTION enforce_lowercase_email();
-			`).Error; err != nil {
+			if err := createTrigger(tx, "trigger_lowercase_email", "users",
+				"BEFORE", "INSERT OR UPDATE", "enforce_lowercase_email"); err != nil {
 				return err
 			}
 
 			// Add comment for documentation
-			if err := tx.Exec(`
+			return addComment(tx, `
 				COMMENT ON FUNCTION enforce_lowercase_email() IS 'Automatically converts email addresses to lowercase to ensure case-insensitive uniqueness';
-			`).Error; err != nil {
-				return err
-			}
-
-			return nil
+			`)
 		},
 		Rollback: func(tx *gorm.DB) error {
-			// Drop trigger
-			if err := tx.Exec("DROP TRIGGER IF EXISTS trigger_lowercase_email ON users").Error; err != nil {
+			if err := dropTrigger(tx, "trigger_lowercase_email", "users"); err != nil {
 				return err
 			}
-
-			// Drop function
-			if err := tx.Exec("DROP FUNCTION IF EXISTS enforce_lowercase_email()").Error; err != nil {
-				return err
-			}
-
-			return nil
+			return dropFunction(tx, "enforce_lowercase_email")
 		},
 	}
 }
@@ -598,7 +609,7 @@ func addGiftCardBalanceCache() *gormigrate.Migration {
 			}
 
 			// Create trigger function to recalculate balance
-			if err := tx.Exec(`
+			if err := createFunction(tx, `
 				CREATE OR REPLACE FUNCTION recalculate_gift_card_balance()
 				RETURNS TRIGGER AS $$
 				DECLARE
@@ -623,47 +634,29 @@ func addGiftCardBalanceCache() *gormigrate.Migration {
 					RETURN NEW;
 				END;
 				$$ LANGUAGE plpgsql;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
 			// Create trigger on gift_card_transactions
-			if err := tx.Exec(`
-				DROP TRIGGER IF EXISTS trigger_recalculate_gift_card_balance ON gift_card_transactions;
-				CREATE TRIGGER trigger_recalculate_gift_card_balance
-					AFTER INSERT OR UPDATE OR DELETE ON gift_card_transactions
-					FOR EACH ROW
-					EXECUTE FUNCTION recalculate_gift_card_balance();
-			`).Error; err != nil {
+			if err := createTrigger(tx, "trigger_recalculate_gift_card_balance", "gift_card_transactions",
+				"AFTER", "INSERT OR UPDATE OR DELETE", "recalculate_gift_card_balance"); err != nil {
 				return err
 			}
 
 			// Add comment to column
-			if err := tx.Exec(`
+			return addComment(tx, `
 				COMMENT ON COLUMN gift_cards.current_balance IS 'Cached balance calculated as initial_balance - SUM(transactions.amount). Auto-updated by trigger on gift_card_transactions.';
-			`).Error; err != nil {
-				return err
-			}
-
-			return nil
+			`)
 		},
 		Rollback: func(tx *gorm.DB) error {
-			// Drop trigger
-			if err := tx.Exec("DROP TRIGGER IF EXISTS trigger_recalculate_gift_card_balance ON gift_card_transactions").Error; err != nil {
+			if err := dropTrigger(tx, "trigger_recalculate_gift_card_balance", "gift_card_transactions"); err != nil {
 				return err
 			}
-
-			// Drop trigger function
-			if err := tx.Exec("DROP FUNCTION IF EXISTS recalculate_gift_card_balance()").Error; err != nil {
+			if err := dropFunction(tx, "recalculate_gift_card_balance"); err != nil {
 				return err
 			}
-
-			// Drop column
-			if err := tx.Exec("ALTER TABLE gift_cards DROP COLUMN IF EXISTS current_balance").Error; err != nil {
-				return err
-			}
-
-			return nil
+			return tx.Exec("ALTER TABLE gift_cards DROP COLUMN IF EXISTS current_balance").Error
 		},
 	}
 }
@@ -678,65 +671,58 @@ func addUniqueConstraintsForRaceConditions() *gormigrate.Migration {
 		Migrate: func(tx *gorm.DB) error {
 			// Cards: UNIQUE (user_id, card_number)
 			// Multiple users can have same card number, but one user can't have duplicate card numbers
-			if err := tx.Exec(`
+			if err := createIndex(tx, `
 				CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_user_card_number
 				ON cards (user_id, card_number)
 				WHERE user_id IS NOT NULL;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
-			if err := tx.Exec(`
+			if err := addComment(tx, `
 				COMMENT ON INDEX idx_cards_user_card_number IS 'Prevents duplicate card numbers per user. Allows different users to have same card number (e.g., family cards).';
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
 			// Vouchers: UNIQUE (user_id, code)
 			// Same logic - different users can have same voucher code
-			if err := tx.Exec(`
+			if err := createIndex(tx, `
 				CREATE UNIQUE INDEX IF NOT EXISTS idx_vouchers_user_code
 				ON vouchers (user_id, code)
 				WHERE user_id IS NOT NULL;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
-			if err := tx.Exec(`
+			if err := addComment(tx, `
 				COMMENT ON INDEX idx_vouchers_user_code IS 'Prevents duplicate voucher codes per user. Allows different users to have same voucher code.';
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
 			// Gift Cards: UNIQUE (user_id, card_number)
 			// Same logic - different users can have same gift card number
-			if err := tx.Exec(`
+			if err := createIndex(tx, `
 				CREATE UNIQUE INDEX IF NOT EXISTS idx_gift_cards_user_card_number
 				ON gift_cards (user_id, card_number)
 				WHERE user_id IS NOT NULL;
-			`).Error; err != nil {
+			`); err != nil {
 				return err
 			}
 
-			if err := tx.Exec(`
+			return addComment(tx, `
 				COMMENT ON INDEX idx_gift_cards_user_card_number IS 'Prevents duplicate gift card numbers per user. Allows different users to have same card number.';
-			`).Error; err != nil {
-				return err
-			}
-
-			return nil
+			`)
 		},
 		Rollback: func(tx *gorm.DB) error {
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_cards_user_card_number").Error; err != nil {
+			if err := dropIndex(tx, "idx_cards_user_card_number"); err != nil {
 				return err
 			}
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_vouchers_user_code").Error; err != nil {
+			if err := dropIndex(tx, "idx_vouchers_user_code"); err != nil {
 				return err
 			}
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_gift_cards_user_card_number").Error; err != nil {
-				return err
-			}
-			return nil
+			return dropIndex(tx, "idx_gift_cards_user_card_number")
 		},
 	}
 }
@@ -750,35 +736,23 @@ func replaceGlobalUniqueWithComposite() *gormigrate.Migration {
 		ID: "202601250009_replace_global_unique_with_composite",
 		Migrate: func(tx *gorm.DB) error {
 			// Drop old global UNIQUE indexes (created by GORM AutoMigrate)
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_cards_card_number").Error; err != nil {
+			if err := dropIndex(tx, "idx_cards_card_number"); err != nil {
 				return err
 			}
-
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_vouchers_code").Error; err != nil {
+			if err := dropIndex(tx, "idx_vouchers_code"); err != nil {
 				return err
 			}
-
-			if err := tx.Exec("DROP INDEX IF EXISTS idx_gift_cards_card_number").Error; err != nil {
-				return err
-			}
-
-			return nil
+			return dropIndex(tx, "idx_gift_cards_card_number")
 		},
 		Rollback: func(tx *gorm.DB) error {
 			// Recreate global UNIQUE indexes
-			if err := tx.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_card_number ON cards (card_number)").Error; err != nil {
+			if err := createIndex(tx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_card_number ON cards (card_number)"); err != nil {
 				return err
 			}
-
-			if err := tx.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers (code)").Error; err != nil {
+			if err := createIndex(tx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers (code)"); err != nil {
 				return err
 			}
-
-			if err := tx.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_gift_cards_card_number ON gift_cards (card_number)").Error; err != nil {
-				return err
-			}
-
-			return nil
+			return createIndex(tx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_gift_cards_card_number ON gift_cards (card_number)")
 		},
 	}
 }
@@ -901,6 +875,71 @@ func addAuthProvider() *gormigrate.Migration {
 			}
 
 			return nil
+		},
+	}
+}
+
+// autoSetGiftCardCurrentBalance adds triggers to automatically set current_balance
+// on INSERT and UPDATE of gift_cards table
+// Migration 000012 - 2026-01-30
+func autoSetGiftCardCurrentBalance() *gormigrate.Migration {
+	return &gormigrate.Migration{
+		ID: "202601300012_auto_set_gift_card_current_balance",
+		Migrate: func(tx *gorm.DB) error {
+			// Create trigger function to auto-set current_balance on INSERT/UPDATE
+			if err := createFunction(tx, `
+				CREATE OR REPLACE FUNCTION auto_set_gift_card_current_balance()
+				RETURNS TRIGGER AS $$
+				DECLARE
+					transaction_sum DECIMAL(10,2);
+				BEGIN
+					-- Calculate sum of all transactions for this gift card
+					SELECT COALESCE(SUM(amount), 0) INTO transaction_sum
+					FROM gift_card_transactions
+					WHERE gift_card_id = NEW.id
+					  AND deleted_at IS NULL;
+
+					-- Set current_balance based on initial_balance and transactions
+					NEW.current_balance := NEW.initial_balance - transaction_sum;
+
+					RETURN NEW;
+				END;
+				$$ LANGUAGE plpgsql;
+			`); err != nil {
+				return err
+			}
+
+			// Create BEFORE INSERT trigger
+			if err := createTrigger(tx, "trigger_auto_set_gift_card_current_balance_insert", "gift_cards",
+				"BEFORE", "INSERT", "auto_set_gift_card_current_balance"); err != nil {
+				return err
+			}
+
+			// Create BEFORE UPDATE trigger with conditional execution
+			if err := tx.Exec(`
+				DROP TRIGGER IF EXISTS trigger_auto_set_gift_card_current_balance_update ON gift_cards;
+				CREATE TRIGGER trigger_auto_set_gift_card_current_balance_update
+					BEFORE UPDATE ON gift_cards
+					FOR EACH ROW
+					WHEN (OLD.initial_balance IS DISTINCT FROM NEW.initial_balance)
+					EXECUTE FUNCTION auto_set_gift_card_current_balance();
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add comment to function
+			return addComment(tx, `
+				COMMENT ON FUNCTION auto_set_gift_card_current_balance() IS 'Automatically sets current_balance = initial_balance - SUM(transactions) on INSERT/UPDATE of gift_cards';
+			`)
+		},
+		Rollback: func(tx *gorm.DB) error {
+			if err := dropTrigger(tx, "trigger_auto_set_gift_card_current_balance_insert", "gift_cards"); err != nil {
+				return err
+			}
+			if err := dropTrigger(tx, "trigger_auto_set_gift_card_current_balance_update", "gift_cards"); err != nil {
+				return err
+			}
+			return dropFunction(tx, "auto_set_gift_card_current_balance")
 		},
 	}
 }

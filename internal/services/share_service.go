@@ -76,7 +76,7 @@ func NewShareService(
 }
 
 // ShareCard shares a card with another user.
-func (s *ShareService) ShareCard(ctx context.Context, cardID, sharedWithID uuid.UUID, canEdit, canDelete bool) error {
+func (s *ShareService) ShareCard(ctx context.Context, cardID, sharedWithID uuid.UUID, _ /* canEdit */, _ /* canDelete */ bool) error {
 	// Verify card exists
 	card, err := s.cardRepo.GetByID(ctx, cardID)
 	if err != nil {
@@ -108,7 +108,7 @@ func (s *ShareService) ShareVoucher(ctx context.Context, voucherID, sharedWithID
 }
 
 // ShareGiftCard shares a gift card with another user.
-func (s *ShareService) ShareGiftCard(ctx context.Context, giftCardID, sharedWithID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
+func (s *ShareService) ShareGiftCard(ctx context.Context, giftCardID, sharedWithID uuid.UUID, _ /* canEdit */, _ /* canDelete */, _ /* canEditTransactions */ bool) error {
 	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
 	if err != nil {
 		return errors.New("gift card not found")
@@ -122,42 +122,50 @@ func (s *ShareService) ShareGiftCard(ctx context.Context, giftCardID, sharedWith
 }
 
 // UpdateCardShare updates card share permissions.
-func (s *ShareService) UpdateCardShare(ctx context.Context, shareID uuid.UUID, canEdit, canDelete bool) error {
+func (s *ShareService) UpdateCardShare(_ context.Context, shareID uuid.UUID, canEdit, canDelete bool) error {
+	_ = shareID
+	_ = canEdit
+	_ = canDelete
 	return errors.New("share update not implemented - use handlers directly")
 }
 
 // UpdateGiftCardShare updates gift card share permissions.
-func (s *ShareService) UpdateGiftCardShare(ctx context.Context, shareID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
+func (s *ShareService) UpdateGiftCardShare(_ context.Context, shareID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
+	_ = shareID
+	_ = canEdit
+	_ = canDelete
+	_ = canEditTransactions
 	return errors.New("share update not implemented - use handlers directly")
 }
 
 // RevokeCardShare revokes a card share.
-func (s *ShareService) RevokeCardShare(ctx context.Context, shareID uuid.UUID) error {
+func (s *ShareService) RevokeCardShare(_ context.Context, shareID uuid.UUID) error {
+	_ = shareID
 	return errors.New("share revocation not implemented - use handlers directly")
 }
 
 // RevokeVoucherShare revokes a voucher share.
-func (s *ShareService) RevokeVoucherShare(ctx context.Context, shareID uuid.UUID) error {
+func (s *ShareService) RevokeVoucherShare(_ context.Context, _ uuid.UUID) error {
 	return errors.New("share revocation not implemented - use handlers directly")
 }
 
 // RevokeGiftCardShare revokes a gift card share.
-func (s *ShareService) RevokeGiftCardShare(ctx context.Context, shareID uuid.UUID) error {
+func (s *ShareService) RevokeGiftCardShare(_ context.Context, _ uuid.UUID) error {
 	return errors.New("share revocation not implemented - use handlers directly")
 }
 
 // GetCardShares retrieves all shares for a card.
-func (s *ShareService) GetCardShares(ctx context.Context, cardID uuid.UUID) ([]models.CardShare, error) {
+func (s *ShareService) GetCardShares(_ context.Context, _ uuid.UUID) ([]models.CardShare, error) {
 	return nil, errors.New("get shares not implemented - use handlers directly")
 }
 
 // GetVoucherShares retrieves all shares for a voucher.
-func (s *ShareService) GetVoucherShares(ctx context.Context, voucherID uuid.UUID) ([]models.VoucherShare, error) {
+func (s *ShareService) GetVoucherShares(_ context.Context, _ uuid.UUID) ([]models.VoucherShare, error) {
 	return nil, errors.New("get shares not implemented - use handlers directly")
 }
 
 // GetGiftCardShares retrieves all shares for a gift card.
-func (s *ShareService) GetGiftCardShares(ctx context.Context, giftCardID uuid.UUID) ([]models.GiftCardShare, error) {
+func (s *ShareService) GetGiftCardShares(_ context.Context, _ uuid.UUID) ([]models.GiftCardShare, error) {
 	return nil, errors.New("get shares not implemented - use handlers directly")
 }
 

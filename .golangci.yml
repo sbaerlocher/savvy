@@ -3,7 +3,7 @@ version: "2"
 
 run:
   timeout: 5m
-  go: "1.23"
+  go: "1.25"
 
 linters:
   enable:
@@ -23,6 +23,19 @@ linters:
     - bodyclose
     - noctx
 
+linters-settings:
+  dupl:
+    # Increase threshold to reduce false positives
+    # Migrations and repositories intentionally follow patterns with Go generics
+    threshold: 300
+
 issues:
   max-issues-per-linter: 50
   max-same-issues: 3
+  # Exclude dupl for repository implementations
+  # These files use Go generics with wrapper methods that appear similar
+  # but are necessary for interface compliance
+  exclude-rules:
+    - path: _repository_impl\.go
+      linters:
+        - dupl

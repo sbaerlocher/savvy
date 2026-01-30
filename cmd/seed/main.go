@@ -11,49 +11,46 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func main() {
-	log.Println("🌱 Seeding database with comprehensive test data...")
-
-	// Load config
-	cfg := config.Load()
-
-	// Connect to database
-	if err := database.Connect(cfg.DatabaseURL); err != nil {
-		log.Fatal(err)
+// createGiftCardTransactions creates transactions for a gift card and handles duplicates
+func createGiftCardTransactions(transactions []models.GiftCardTransaction) {
+	for _, t := range transactions {
+		var existing models.GiftCardTransaction
+		if err := database.DB.Where("gift_card_id = ? AND description = ?", t.GiftCardID, t.Description).First(&existing).Error; err == nil {
+			log.Printf("  • Transaction already exists: %s", t.Description)
+		} else {
+			database.DB.Create(&t)
+			log.Printf("  ✓ Created transaction: %s (%.2f CHF)", t.Description, t.Amount)
+		}
 	}
+}
 
-	// Hash password "test123" for all test users
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create test users
+// createUsers creates test users and returns them
+func createUsers(hashedPassword string) []models.User {
 	users := []models.User{
 		{
 			Email:        "admin@example.com",
-			PasswordHash: string(hashedPassword),
+			PasswordHash: hashedPassword,
 			FirstName:    "Admin",
 			LastName:     "User",
 			Role:         "admin",
 		},
 		{
 			Email:        "anna.mueller@example.com",
-			PasswordHash: string(hashedPassword),
+			PasswordHash: hashedPassword,
 			FirstName:    "Anna",
 			LastName:     "Müller",
 			Role:         "user",
 		},
 		{
 			Email:        "thomas.schmidt@example.com",
-			PasswordHash: string(hashedPassword),
+			PasswordHash: hashedPassword,
 			FirstName:    "Thomas",
 			LastName:     "Schmidt",
 			Role:         "user",
 		},
 		{
 			Email:        "maria.garcia@example.com",
-			PasswordHash: string(hashedPassword),
+			PasswordHash: hashedPassword,
 			FirstName:    "Maria",
 			LastName:     "Garcia",
 			Role:         "user",
@@ -73,9 +70,11 @@ func main() {
 			log.Printf("  ✓ Created user: %s (%s %s)", users[i].Email, users[i].FirstName, users[i].LastName)
 		}
 	}
+	return users
+}
 
-	// Create test merchants
-	log.Println("Creating merchants...")
+// createMerchants creates test merchants and returns them
+func createMerchants() []models.Merchant {
 	merchants := []models.Merchant{
 		{Name: "Migros", LogoURL: "", Website: "https://www.migros.ch", Color: "#FF6B35"},
 		{Name: "Coop", LogoURL: "", Website: "https://www.coop.ch", Color: "#F7931E"},
@@ -87,6 +86,7 @@ func main() {
 		{Name: "Denner", LogoURL: "", Website: "https://www.denner.ch", Color: "#DC2626"},
 	}
 
+	log.Println("Creating merchants...")
 	for i := range merchants {
 		var existing models.Merchant
 		if err := database.DB.Where("name = ?", merchants[i].Name).First(&existing).Error; err == nil {
@@ -99,9 +99,11 @@ func main() {
 			log.Printf("  ✓ Created merchant: %s", merchants[i].Name)
 		}
 	}
+	return merchants
+}
 
-	// Create comprehensive test cards covering all barcode types and statuses
-	log.Println("Creating cards (all barcode types & statuses)...")
+// createCards creates test cards for all users
+func createCards(users []models.User, merchants []models.Merchant) {
 	cards := []models.Card{
 		// Admin's cards - CODE128
 		{
@@ -203,6 +205,7 @@ func main() {
 		},
 	}
 
+	log.Println("Creating cards (all barcode types & statuses)...")
 	for _, card := range cards {
 		var existing models.Card
 		if err := database.DB.Where("card_number = ?", card.CardNumber).First(&existing).Error; err == nil {
@@ -214,9 +217,10 @@ func main() {
 			log.Printf("  ✓ Created card: %s - %s (%s, %s)", card.MerchantName, card.Program, card.BarcodeType, card.Status)
 		}
 	}
+}
 
-	// Create comprehensive test vouchers covering all types and usage limits
-	log.Println("Creating vouchers (all types & usage limits)...")
+// createVouchers creates test vouchers for all users
+func createVouchers(users []models.User, merchants []models.Merchant) {
 	vouchers := []models.Voucher{
 		// Admin's vouchers - percentage type
 		{
@@ -363,6 +367,7 @@ func main() {
 		},
 	}
 
+	log.Println("Creating vouchers (all types & usage limits)...")
 	for _, voucher := range vouchers {
 		var existing models.Voucher
 		if err := database.DB.Where("code = ?", voucher.Code).First(&existing).Error; err == nil {
@@ -374,9 +379,10 @@ func main() {
 			log.Printf("  ✓ Created voucher: %s (%s, %s, %s)", voucher.Code, voucher.Type, voucher.UsageLimitType, voucher.BarcodeType)
 		}
 	}
+}
 
-	// Create comprehensive test gift cards
-	log.Println("Creating gift cards (with & without transactions, different statuses)...")
+// createGiftCards creates test gift cards and adds transactions
+func createGiftCards(users []models.User, merchants []models.Merchant) {
 	giftCards := []models.GiftCard{
 		// Admin's gift cards - with transactions
 		{
@@ -492,6 +498,7 @@ func main() {
 		},
 	}
 
+	log.Println("Creating gift cards (with & without transactions, different statuses)...")
 	for _, giftCard := range giftCards {
 		var existing models.GiftCard
 		if err := database.DB.Where("card_number = ?", giftCard.CardNumber).First(&existing).Error; err == nil {
@@ -531,15 +538,7 @@ func main() {
 				TransactionDate: time.Now().AddDate(0, 0, -1),
 			},
 		}
-		for _, t := range transactions1 {
-			var existing models.GiftCardTransaction
-			if err := database.DB.Where("gift_card_id = ? AND description = ?", t.GiftCardID, t.Description).First(&existing).Error; err == nil {
-				log.Printf("  • Transaction already exists: %s", t.Description)
-			} else {
-				database.DB.Create(&t)
-				log.Printf("  ✓ Created transaction: %s (%.2f CHF)", t.Description, t.Amount)
-			}
-		}
+		createGiftCardTransactions(transactions1)
 	}
 
 	// Coop fully used card - transactions that sum to initial balance
@@ -566,18 +565,12 @@ func main() {
 				TransactionDate: time.Now().AddDate(0, 0, -3),
 			},
 		}
-		for _, t := range transactions2 {
-			var existing models.GiftCardTransaction
-			if err := database.DB.Where("gift_card_id = ? AND description = ?", t.GiftCardID, t.Description).First(&existing).Error; err == nil {
-				log.Printf("  • Transaction already exists: %s", t.Description)
-			} else {
-				database.DB.Create(&t)
-				log.Printf("  ✓ Created transaction: %s (%.2f CHF)", t.Description, t.Amount)
-			}
-		}
+		createGiftCardTransactions(transactions2)
 	}
+}
 
-	// Create comprehensive shares covering all permission combinations
+// createShares creates test shares for all resource types
+func createShares(users []models.User) {
 	log.Println("Creating shares (all permission combinations)...")
 
 	// Get created items for sharing
@@ -739,7 +732,10 @@ func main() {
 			}
 		}
 	}
+}
 
+// printSummary prints the final summary of created data
+func printSummary() {
 	log.Println()
 	log.Println("✓ Comprehensive database seeding completed!")
 	log.Println()
@@ -770,6 +766,33 @@ func main() {
 	log.Println("    • Card Shares: 5 (covering all permission combos)")
 	log.Println("    • Voucher Shares: 5 (all read-only)")
 	log.Println("    • Gift Card Shares: 4 (covering all permission combos)")
+}
+
+func main() {
+	log.Println("🌱 Seeding database with comprehensive test data...")
+
+	// Load config
+	cfg := config.Load()
+
+	// Connect to database
+	if err := database.Connect(cfg.DatabaseURL); err != nil {
+		log.Fatal(err)
+	}
+
+	// Hash password "test123" for all test users
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create all test data using helper functions
+	users := createUsers(string(hashedPassword))
+	merchants := createMerchants()
+	createCards(users, merchants)
+	createVouchers(users, merchants)
+	createGiftCards(users, merchants)
+	createShares(users)
+	printSummary()
 }
 
 func ptrTime(t time.Time) *time.Time {
