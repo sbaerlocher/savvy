@@ -128,29 +128,8 @@ config:
 
 # Database Configuration
 database:
-  # External PostgreSQL (recommended for production)
-  external:
-    enabled: true
-    host: "postgres.default.svc.cluster.local"
-    port: 5432
-    name: "savvy"
-    user: "savvy"
-    sslMode: "require"
-    # Password wird via External Secrets geladen
-    existingSecret: "savvy-db"
-    existingSecretKey: "password"
-
-  # Internal PostgreSQL (for development/testing only)
-  postgresql:
-    enabled: false
-    auth:
-      username: savvy
-      password: changeme
-      database: savvy
-    primary:
-      persistence:
-        enabled: true
-        size: 8Gi
+  existingSecret: "savvy-db"
+  databaseUrlKey: "uri"
 
 # External Secrets Operator Integration
 externalSecrets:

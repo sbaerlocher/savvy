@@ -1,5 +1,13 @@
-# Bitwarden Secret Manager Example
+# Bitwarden Secrets Manager Example
 # Usage: helm install savvy ./helm/savvy -f values-examples/bitwarden.yaml
+#
+# Prerequisites:
+# 1. Create secrets in Bitwarden Secrets Manager:
+#    - savvy-database-url    → postgres://user:pass@host:5432/db?sslmode=require
+#    - savvy-session-secret  → random-secret-string
+#    - savvy-oauth-secret    → oauth-client-secret (optional)
+#
+# 2. Configure ClusterSecretStore with Bitwarden provider
 
 externalSecrets:
   enabled: true
@@ -11,21 +19,35 @@ externalSecrets:
   secrets:
     # Session Secret
     - target:
+        name: savvy-session
         key: SESSION_SECRET
       remoteRef:
-        key: "savvy-session-secret"  # Bitwarden Item Name
-        property: password                   # Field: password
+        key: "savvy-session-secret"
 
-    # Database Password
+    # Database URL (complete connection string)
     - target:
-        key: password
+        name: savvy-db
+        key: uri
       remoteRef:
-        key: "savvy-db-password"
-        property: password
+        key: "savvy-database-url"
 
     # OAuth Client Secret (optional)
     - target:
-        key: CLIENT_SECRET
+        name: savvy-oauth
+        key: client-secret
       remoteRef:
         key: "savvy-oauth-secret"
-        property: password
+
+# Database Configuration
+database:
+  existingSecret: "savvy-db"
+  databaseUrlKey: "uri"
+
+# OAuth Configuration (optional)
+oauth:
+  enabled: false
+  clientId: "your-client-id"
+  issuer: "https://auth.example.com"
+  redirectUrl: "https://savvy.example.com/auth/oauth/callback"
+  existingSecret: "savvy-oauth"
+  existingSecretKey: "client-secret"
