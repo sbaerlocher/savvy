@@ -149,7 +149,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							<div class="bg-white rounded border border-gray-200 p-3 mb-3">
 								<div class="flex justify-center mb-2">
 									<img
-										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)) }
+										src={ templ.URL("/barcode/" + GenerateCardBarcodeToken(ctx, card.ID)) }
 										alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
 										class="h-16 w-auto object-contain"/>
 								</div>
@@ -1199,7 +1199,7 @@ templ CardDetailView(ctx context.Context, csrfToken string, card models.Card, cu
 					</span>
 				</div>
 				<img
-					src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)) }
+					src={ templ.URL("/barcode/" + GenerateCardBarcodeToken(ctx, card.ID)) }
 					alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
 					class="mx-auto max-h-32"/>
 				<p class="font-mono text-lg font-semibold text-gray-900 mt-4">{ card.CardNumber }</p>

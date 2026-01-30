@@ -228,7 +228,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 							<div class="bg-white border border-gray-200 rounded p-3 mb-3">
 								<div class="flex justify-center mb-2">
 									<img
-										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)) }
+										src={ templ.URL("/barcode/" + GenerateGiftCardBarcodeToken(ctx, giftCard.ID)) }
 										alt={ fmt.Sprintf("%s Barcode", giftCard.BarcodeType) }
 										class="h-12 w-auto object-contain"/>
 								</div>
@@ -1519,7 +1519,7 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 				// Barcode image
 				<div class="mb-3">
 					<img
-						src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)) }
+						src={ templ.URL("/barcode/" + GenerateGiftCardBarcodeToken(ctx, giftCard.ID)) }
 						alt={ fmt.Sprintf("%s Barcode", giftCard.BarcodeType) }
 						class="mx-auto max-h-32"/>
 				</div>

@@ -22,6 +22,7 @@ import (
 	"savvy/internal/middleware"
 	"savvy/internal/migrations"
 	"savvy/internal/oauth"
+	"savvy/internal/security"
 	"savvy/internal/services"
 	"savvy/internal/telemetry"
 	"time"
@@ -145,6 +146,9 @@ func run() int {
 		log.Printf("Failed to initialize i18n: %v", err)
 		return 1
 	}
+
+	// Initialize security package for token-based barcode access
+	security.Init(cfg.SessionSecret)
 
 	// Connect to database
 	if err := database.Connect(cfg.DatabaseURL); err != nil {
@@ -301,8 +305,8 @@ func run() int {
 	// Home page (requires auth)
 	protected.GET("/", handlers.HomeIndex)
 
-	// Barcode generation (requires auth)
-	protected.GET("/barcode", handlers.BarcodeGenerate)
+	// Barcode generation (requires auth, uses secure token)
+	protected.GET("/barcode/:token", handlers.BarcodeGenerate)
 
 	// API routes
 	api := protected.Group("/api")

@@ -508,9 +508,9 @@ func CardsIndex(ctx context.Context, view views.CardIndexView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var33 string
-					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)))
+					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateCardBarcodeToken(ctx, card.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/cards.templ`, Line: 152, Col: 101}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/cards.templ`, Line: 152, Col: 79}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
@@ -3409,9 +3409,9 @@ func CardDetailView(ctx context.Context, csrfToken string, card models.Card, cur
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var207 string
-		templ_7745c5c3_Var207, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", card.BarcodeType, card.CardNumber)))
+		templ_7745c5c3_Var207, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateCardBarcodeToken(ctx, card.ID)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/cards.templ`, Line: 1202, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/cards.templ`, Line: 1202, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var207))
 		if templ_7745c5c3_Err != nil {

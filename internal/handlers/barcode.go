@@ -4,6 +4,9 @@ package handlers
 import (
 	"image/png"
 	"net/http"
+	"savvy/internal/database"
+	"savvy/internal/models"
+	"savvy/internal/security"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/aztec"
@@ -15,20 +18,90 @@ import (
 	"github.com/boombuler/barcode/ean"
 	"github.com/boombuler/barcode/pdf417"
 	"github.com/boombuler/barcode/qr"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-// BarcodeGenerate generates a barcode image based on type and data
+// BarcodeGenerate generates a barcode image using a secure token
+// The token contains encrypted resource information and expires after 60 seconds
 func BarcodeGenerate(c echo.Context) error {
-	barcodeType := c.QueryParam("type")
-	data := c.QueryParam("data")
+	// Get token from URL path parameter
+	token := c.Param("token")
+	if token == "" {
+		return c.String(http.StatusBadRequest, "Missing token")
+	}
+
+	// Validate and decode token
+	claims, err := security.ValidateBarcodeToken(token)
+	if err != nil {
+		if err == security.ErrTokenExpired {
+			return c.String(http.StatusUnauthorized, "Token expired - please refresh the page")
+		}
+		c.Logger().Warnf("Invalid barcode token attempt: %v", err)
+		return c.String(http.StatusForbidden, "Invalid or tampered token")
+	}
+
+	// Get current user from context
+	user, ok := c.Get("current_user").(*models.User)
+	if !ok || user == nil {
+		return c.String(http.StatusUnauthorized, "Authentication required")
+	}
+
+	// Verify the token belongs to this user
+	if claims.UserID != user.ID {
+		c.Logger().Warnf("User %s attempted to access barcode for user %s", user.ID, claims.UserID)
+		return c.String(http.StatusForbidden, "Access denied")
+	}
+
+	// Fetch resource and extract barcode data
+	var barcodeType, data string
+	var dbErr error
+	switch claims.ResourceType {
+	case "card":
+		var card models.Card
+		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&card).Error; dbErr != nil {
+			return c.String(http.StatusNotFound, "Card not found")
+		}
+		// Verify user has access to card (owner or shared with)
+		if !hasCardAccess(user.ID, &card) {
+			return c.String(http.StatusForbidden, "Access denied")
+		}
+		barcodeType = card.BarcodeType
+		data = card.CardNumber
+
+	case "voucher":
+		var voucher models.Voucher
+		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&voucher).Error; dbErr != nil {
+			return c.String(http.StatusNotFound, "Voucher not found")
+		}
+		// Verify user has access to voucher (owner or shared with)
+		if !hasVoucherAccess(user.ID, &voucher) {
+			return c.String(http.StatusForbidden, "Access denied")
+		}
+		barcodeType = voucher.BarcodeType
+		data = voucher.Code
+
+	case "gift_card":
+		var giftCard models.GiftCard
+		if dbErr = database.DB.Where("id = ?", claims.ResourceID).First(&giftCard).Error; dbErr != nil {
+			return c.String(http.StatusNotFound, "Gift card not found")
+		}
+		// Verify user has access to gift card (owner or shared with)
+		if !hasGiftCardAccess(user.ID, &giftCard) {
+			return c.String(http.StatusForbidden, "Access denied")
+		}
+		barcodeType = giftCard.BarcodeType
+		data = giftCard.CardNumber
+
+	default:
+		return c.String(http.StatusBadRequest, "Invalid resource type")
+	}
 
 	if data == "" {
-		return c.String(http.StatusBadRequest, "Missing data parameter")
+		return c.String(http.StatusBadRequest, "No barcode data available")
 	}
 
 	var barcodeImage barcode.Barcode
-	var err error
 
 	switch barcodeType {
 	case "CODE128":
@@ -151,4 +224,49 @@ func BarcodeGenerate(c echo.Context) error {
 
 	// Encode and write PNG
 	return png.Encode(c.Response().Writer, barcodeImage)
+}
+
+// hasCardAccess checks if user has access to a card (owner or shared with)
+func hasCardAccess(userID uuid.UUID, card *models.Card) bool {
+	// User is owner
+	if card.UserID != nil && *card.UserID == userID {
+		return true
+	}
+
+	// Check if shared with user
+	var shareCount int64
+	database.DB.Model(&models.CardShare{}).
+		Where("card_id = ? AND shared_with_id = ?", card.ID, userID).
+		Count(&shareCount)
+	return shareCount > 0
+}
+
+// hasVoucherAccess checks if user has access to a voucher (owner or shared with)
+func hasVoucherAccess(userID uuid.UUID, voucher *models.Voucher) bool {
+	// User is owner
+	if voucher.UserID != nil && *voucher.UserID == userID {
+		return true
+	}
+
+	// Check if shared with user
+	var shareCount int64
+	database.DB.Model(&models.VoucherShare{}).
+		Where("voucher_id = ? AND shared_with_id = ?", voucher.ID, userID).
+		Count(&shareCount)
+	return shareCount > 0
+}
+
+// hasGiftCardAccess checks if user has access to a gift card (owner or shared with)
+func hasGiftCardAccess(userID uuid.UUID, giftCard *models.GiftCard) bool {
+	// User is owner
+	if giftCard.UserID != nil && *giftCard.UserID == userID {
+		return true
+	}
+
+	// Check if shared with user
+	var shareCount int64
+	database.DB.Model(&models.GiftCardShare{}).
+		Where("gift_card_id = ? AND shared_with_id = ?", giftCard.ID, userID).
+		Count(&shareCount)
+	return shareCount > 0
 }

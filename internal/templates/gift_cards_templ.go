@@ -517,9 +517,9 @@ func GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) templ.Com
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var35 string
-					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)))
+					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateGiftCardBarcodeToken(ctx, giftCard.ID)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/gift_cards.templ`, Line: 231, Col: 109}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/gift_cards.templ`, Line: 231, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 					if templ_7745c5c3_Err != nil {
@@ -4350,9 +4350,9 @@ func GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.G
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var267 string
-		templ_7745c5c3_Var267, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", giftCard.BarcodeType, giftCard.CardNumber)))
+		templ_7745c5c3_Var267, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateGiftCardBarcodeToken(ctx, giftCard.ID)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/gift_cards.templ`, Line: 1522, Col: 105}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/gift_cards.templ`, Line: 1522, Col: 83}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var267))
 		if templ_7745c5c3_Err != nil {

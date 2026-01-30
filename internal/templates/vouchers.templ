@@ -190,7 +190,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 							if voucher.BarcodeType != "" {
 								<div class="bg-white rounded border border-gray-200 p-3 mb-3 text-center">
 									<img
-										src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)) }
+										src={ templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)) }
 										alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
 										class="mx-auto max-h-16"/>
 									<p class="text-xs text-gray-500 mt-1">{ voucher.BarcodeType }</p>
@@ -1201,7 +1201,7 @@ templ VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vo
 
 				// Barcode Bild
 				<img
-					src={ templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)) }
+					src={ templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)) }
 					alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
 					class="mx-auto max-h-32 mb-3"/>
 

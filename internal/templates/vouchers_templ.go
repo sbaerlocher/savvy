@@ -453,9 +453,9 @@ func VouchersIndex(ctx context.Context, view views.VoucherIndexView) templ.Compo
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var30 string
-						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)))
+						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/vouchers.templ`, Line: 193, Col: 101}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/vouchers.templ`, Line: 193, Col: 85}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 						if templ_7745c5c3_Err != nil {
@@ -3087,9 +3087,9 @@ func VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vou
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var183 string
-		templ_7745c5c3_Var183, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL(fmt.Sprintf("/barcode?type=%s&data=%s", voucher.BarcodeType, voucher.Code)))
+		templ_7745c5c3_Var183, templ_7745c5c3_Err = templ.JoinStringErrs(templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/vouchers.templ`, Line: 1204, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/vouchers.templ`, Line: 1204, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var183))
 		if templ_7745c5c3_Err != nil {

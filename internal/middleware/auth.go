@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"savvy/internal/database"
 	"savvy/internal/models"
@@ -34,6 +35,10 @@ func SetCurrentUser(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		c.Set("current_user", &user)
+
+		// Also set user in request context for template helpers (barcode token generation)
+		ctx := context.WithValue(c.Request().Context(), "user", &user)
+		c.SetRequest(c.Request().WithContext(ctx))
 
 		// Check if impersonating
 		if impersonatedBy, ok := session.Values["impersonated_by"].(string); ok && impersonatedBy != "" {
