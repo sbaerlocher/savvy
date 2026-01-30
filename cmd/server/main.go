@@ -229,7 +229,7 @@ func run() int {
 		LogMethod:   true,
 		LogLatency:  true,
 		HandleError: true,
-		LogValuesFunc: func(c echo.Context, v echomiddleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ echo.Context, v echomiddleware.RequestLoggerValues) error {
 			if v.Error != nil {
 				slog.Error("request error",
 					"uri", v.URI,
