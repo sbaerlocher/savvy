@@ -121,10 +121,16 @@ func loadShareWithAuthz(c echo.Context, authzCheck authzCheckFunc, shareModel an
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Share not found")
 	}
 
+	// Get CSRF token safely
+	csrfToken := ""
+	if csrf := c.Get("csrf"); csrf != nil {
+		csrfToken = csrf.(string)
+	}
+
 	return &shareWithPerms{
 		Share:   shareModel,
 		Perms:   perms,
-		CSRF:    c.Get("csrf").(string),
+		CSRF:    csrfToken,
 		ResID:   resourceID,
 		Context: c.Request().Context(),
 	}, nil
