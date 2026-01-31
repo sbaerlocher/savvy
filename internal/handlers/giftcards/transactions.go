@@ -64,9 +64,9 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 	if amount <= 0 {
 		c.Logger().Errorf("Amount must be positive, got: %f", amount)
 		csrfToken, ok := c.Get("csrf").(string)
-	if !ok {
-		csrfToken = ""
-	}
+		if !ok {
+			csrfToken = ""
+		}
 		return templates.TransactionNewFormWithError(c.Request().Context(), csrfToken, giftCardID.String(), "Der Betrag muss positiv sein").Render(c.Request().Context(), c.Response().Writer)
 	}
 
@@ -78,9 +78,9 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 	if amount > currentBalance {
 		c.Logger().Warnf("Insufficient funds: amount=%f, balance=%f", amount, currentBalance)
 		csrfToken, ok := c.Get("csrf").(string)
-	if !ok {
-		csrfToken = ""
-	}
+		if !ok {
+			csrfToken = ""
+		}
 		errorMsg := fmt.Sprintf("Nicht genügend Guthaben. Verfügbar: %.2f CHF", currentBalance)
 		return templates.TransactionNewFormWithError(c.Request().Context(), csrfToken, giftCardID.String(), errorMsg).Render(c.Request().Context(), c.Response().Writer)
 	}

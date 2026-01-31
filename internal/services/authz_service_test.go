@@ -124,7 +124,7 @@ func TestAuthzService_CheckCardAccess_SharedUser(t *testing.T) {
 	assert.NotNil(t, perms)
 	assert.False(t, perms.IsOwner)
 	assert.True(t, perms.CanView)
-	assert.True(t, perms.CanEdit)   // Granted by share
+	assert.True(t, perms.CanEdit)    // Granted by share
 	assert.False(t, perms.CanDelete) // Not granted
 }
 
