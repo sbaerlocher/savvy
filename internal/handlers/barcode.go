@@ -119,7 +119,7 @@ func encodeBarcode(barcodeType, data string) (barcode.Barcode, error) {
 }
 
 // BarcodeGenerate generates a barcode image using a secure token
-// The token contains encrypted resource information and expires after 60 seconds
+// The token contains encrypted resource information and expires after 7 days (matches PWA cache)
 func BarcodeGenerate(c echo.Context) error {
 	// Get token from URL path parameter
 	token := c.Param("token")

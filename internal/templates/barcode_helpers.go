@@ -12,7 +12,7 @@ import (
 )
 
 // GenerateBarcodeToken creates a secure token for barcode access
-// The token expires after 60 seconds and is user-specific
+// The token expires after 7 days (matches Service Worker cache duration for offline support)
 func GenerateBarcodeToken(ctx context.Context, resourceID uuid.UUID, resourceType string) string {
 	// Get user from context
 	user, ok := ctx.Value(middleware.UserContextKey).(*models.User)
@@ -21,8 +21,8 @@ func GenerateBarcodeToken(ctx context.Context, resourceID uuid.UUID, resourceTyp
 		return ""
 	}
 
-	// Generate token valid for 60 seconds
-	token, err := security.GenerateBarcodeToken(resourceID, resourceType, user.ID, 60*time.Second)
+	// Generate token valid for 7 days (matches PWA cache duration)
+	token, err := security.GenerateBarcodeToken(resourceID, resourceType, user.ID, 7*24*time.Hour)
 	if err != nil {
 		// Log error but don't expose to template
 		return ""
