@@ -3,8 +3,7 @@ version: 2
 
 before:
   hooks:
-    # Go dependencies
-    - go mod tidy
+    # Go dependencies (download only, no tidy to preserve templ dependency)
     - go mod download
 
     # Frontend build (JS bundle)
@@ -14,8 +13,11 @@ before:
     # Service Worker generation (inject version)
     - sed 's/__VERSION__/{{.Version}}/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js
 
-    # Template generation (must be after npm build, as assets need to exist)
+    # Template generation (generates *_templ.go files which import github.com/a-h/templ)
     - templ generate
+
+    # Verify dependencies after code generation (optional)
+    - go mod tidy
 
 builds:
   - main: ./cmd/server
