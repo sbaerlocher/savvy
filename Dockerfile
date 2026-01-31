@@ -1,7 +1,7 @@
 # ==============================================================================
 # DEVELOPMENT STAGE (Hot Reload)
 # ==============================================================================
-FROM golang:1.25-alpine AS development
+FROM golang:1.25-alpine@sha256:98e6cffc31ccc44c7c15d83df1d69891efee8115a5bb7ede2bf30a38af3e3c92 AS development
 
 # Install development dependencies including Node.js
 RUN apk add --no-cache git build-base nodejs npm
@@ -41,7 +41,7 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 # Downloads the appropriate binary based on TARGETARCH from GitHub Releases.
 # Usage: docker build --target production --build-arg VERSION=v1.2.3 --platform linux/amd64
-FROM alpine:3.21 AS builder
+FROM alpine:3.21@sha256:c3f8e73fdb79deaebaa2037150150191b9dcbfba68b4a46d70103204c53f4709 AS builder
 ARG TARGETARCH
 ARG VERSION
 RUN apk add --no-cache curl tar ca-certificates && \
