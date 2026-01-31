@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"savvy/internal/handlers/shares"
 	"savvy/internal/models"
+	"savvy/internal/services"
 	"savvy/internal/templates"
 )
 
@@ -15,16 +16,18 @@ import (
 // Vouchers support read-only sharing only (no permission editing).
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type VoucherSharesHandler struct {
-	baseHandler *shares.BaseShareHandler
-	db          *gorm.DB
+	baseHandler  *shares.BaseShareHandler
+	db           *gorm.DB
+	authzService services.AuthzServiceInterface
 }
 
 // NewVoucherSharesHandler creates a new voucher shares handler.
-func NewVoucherSharesHandler(db *gorm.DB) *VoucherSharesHandler {
-	adapter := shares.NewVoucherShareAdapter(db)
+func NewVoucherSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *VoucherSharesHandler {
+	adapter := shares.NewVoucherShareAdapter(db, authzService)
 	return &VoucherSharesHandler{
-		baseHandler: shares.NewBaseShareHandler(adapter),
-		db:          db,
+		baseHandler:  shares.NewBaseShareHandler(adapter),
+		db:           db,
+		authzService: authzService,
 	}
 }
 
@@ -50,9 +53,9 @@ func (h *VoucherSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid voucher ID")
 	}
 
-	// Check if user owns the voucher
-	var voucher models.Voucher
-	if err := h.db.Where("id = ? AND user_id = ?", voucherUUID, user.ID).First(&voucher).Error; err != nil {
+	// Check if user owns the voucher using AuthzService
+	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"savvy/internal/handlers/shares"
 	"savvy/internal/models"
+	"savvy/internal/services"
 	"savvy/internal/templates"
 )
 
@@ -15,16 +16,18 @@ import (
 // Gift cards support granular permissions including CanEditTransactions.
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type GiftCardSharesHandler struct {
-	baseHandler *shares.BaseShareHandler
-	db          *gorm.DB
+	baseHandler  *shares.BaseShareHandler
+	db           *gorm.DB
+	authzService services.AuthzServiceInterface
 }
 
 // NewGiftCardSharesHandler creates a new gift card shares handler.
-func NewGiftCardSharesHandler(db *gorm.DB) *GiftCardSharesHandler {
-	adapter := shares.NewGiftCardShareAdapter(db)
+func NewGiftCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *GiftCardSharesHandler {
+	adapter := shares.NewGiftCardShareAdapter(db, authzService)
 	return &GiftCardSharesHandler{
-		baseHandler: shares.NewBaseShareHandler(adapter),
-		db:          db,
+		baseHandler:  shares.NewBaseShareHandler(adapter),
+		db:           db,
+		authzService: authzService,
 	}
 }
 
@@ -56,9 +59,9 @@ func (h *GiftCardSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card
-	var giftCard models.GiftCard
-	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+	// Check if user owns the gift card using AuthzService
+	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
@@ -88,9 +91,9 @@ func (h *GiftCardSharesHandler) EditInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card
-	var giftCard models.GiftCard
-	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+	// Check if user owns the gift card using AuthzService
+	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
@@ -121,9 +124,9 @@ func (h *GiftCardSharesHandler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card
-	var giftCard models.GiftCard
-	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+	// Check if user owns the gift card using AuthzService
+	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 

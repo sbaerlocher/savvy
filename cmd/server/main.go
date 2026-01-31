@@ -314,9 +314,9 @@ func run() int {
 	cardHandler := cards.NewHandler(serviceContainer.CardService, serviceContainer.AuthzService, database.DB)
 	voucherHandler := vouchers.NewHandler(serviceContainer.VoucherService, serviceContainer.AuthzService, database.DB)
 	giftCardHandler := giftcards.NewHandler(serviceContainer.GiftCardService, serviceContainer.AuthzService, database.DB)
-	cardSharesHandler := handlers.NewCardSharesHandler(database.DB)
-	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB)
-	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB)
+	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService)
+	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService)
+	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService)
 	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService)
 
 	// ========================================

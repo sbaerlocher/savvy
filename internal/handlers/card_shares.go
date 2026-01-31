@@ -8,22 +8,25 @@ import (
 	"net/http"
 	"savvy/internal/handlers/shares"
 	"savvy/internal/models"
+	"savvy/internal/services"
 	"savvy/internal/templates"
 )
 
 // CardSharesHandler handles card sharing operations using the unified share handler.
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type CardSharesHandler struct {
-	baseHandler *shares.BaseShareHandler
-	db          *gorm.DB
+	baseHandler  *shares.BaseShareHandler
+	db           *gorm.DB
+	authzService services.AuthzServiceInterface
 }
 
 // NewCardSharesHandler creates a new card shares handler.
-func NewCardSharesHandler(db *gorm.DB) *CardSharesHandler {
-	adapter := shares.NewCardShareAdapter(db)
+func NewCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *CardSharesHandler {
+	adapter := shares.NewCardShareAdapter(db, authzService)
 	return &CardSharesHandler{
-		baseHandler: shares.NewBaseShareHandler(adapter),
-		db:          db,
+		baseHandler:  shares.NewBaseShareHandler(adapter),
+		db:           db,
+		authzService: authzService,
 	}
 }
 
@@ -55,9 +58,9 @@ func (h *CardSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card
-	var card models.Card
-	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+	// Check if user owns the card using AuthzService
+	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 
@@ -87,9 +90,9 @@ func (h *CardSharesHandler) EditInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card
-	var card models.Card
-	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+	// Check if user owns the card using AuthzService
+	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 
@@ -120,9 +123,9 @@ func (h *CardSharesHandler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card
-	var card models.Card
-	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+	// Check if user owns the card using AuthzService
+	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
+	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 

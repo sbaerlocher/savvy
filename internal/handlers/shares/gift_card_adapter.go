@@ -8,17 +8,22 @@ import (
 	"gorm.io/gorm"
 	"savvy/internal/database"
 	"savvy/internal/models"
+	"savvy/internal/services"
 )
 
 // GiftCardShareAdapter implements ShareAdapter for GiftCard resources.
 // Gift cards support granular permissions including CanEditTransactions.
 type GiftCardShareAdapter struct {
-	db *gorm.DB
+	db           *gorm.DB
+	authzService services.AuthzServiceInterface
 }
 
 // NewGiftCardShareAdapter creates a new gift card share adapter.
-func NewGiftCardShareAdapter(db *gorm.DB) *GiftCardShareAdapter {
-	return &GiftCardShareAdapter{db: db}
+func NewGiftCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface) *GiftCardShareAdapter {
+	return &GiftCardShareAdapter{
+		db:           db,
+		authzService: authzService,
+	}
 }
 
 // ResourceType returns the resource type identifier.
@@ -33,14 +38,15 @@ func (a *GiftCardShareAdapter) ResourceName() string {
 
 // CheckOwnership verifies if the user owns the gift card.
 func (a *GiftCardShareAdapter) CheckOwnership(ctx context.Context, userID, resourceID uuid.UUID) (bool, error) {
-	var giftCard models.GiftCard
-	if err := a.db.WithContext(ctx).Where("id = ? AND user_id = ?", resourceID, userID).First(&giftCard).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	perms, err := a.authzService.CheckGiftCardAccess(ctx, userID, resourceID)
+	if err != nil {
+		// If forbidden, user doesn't own it
+		if errors.Is(err, services.ErrForbidden) {
 			return false, nil
 		}
 		return false, err
 	}
-	return true, nil
+	return perms.IsOwner, nil
 }
 
 // ListShares returns all shares for a gift card.

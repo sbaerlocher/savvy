@@ -8,16 +8,21 @@ import (
 	"gorm.io/gorm"
 	"savvy/internal/database"
 	"savvy/internal/models"
+	"savvy/internal/services"
 )
 
 // CardShareAdapter implements ShareAdapter for Card resources.
 type CardShareAdapter struct {
-	db *gorm.DB
+	db           *gorm.DB
+	authzService services.AuthzServiceInterface
 }
 
 // NewCardShareAdapter creates a new card share adapter.
-func NewCardShareAdapter(db *gorm.DB) *CardShareAdapter {
-	return &CardShareAdapter{db: db}
+func NewCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface) *CardShareAdapter {
+	return &CardShareAdapter{
+		db:           db,
+		authzService: authzService,
+	}
 }
 
 // ResourceType returns the resource type identifier.
@@ -32,14 +37,15 @@ func (a *CardShareAdapter) ResourceName() string {
 
 // CheckOwnership verifies if the user owns the card.
 func (a *CardShareAdapter) CheckOwnership(ctx context.Context, userID, resourceID uuid.UUID) (bool, error) {
-	var card models.Card
-	if err := a.db.WithContext(ctx).Where("id = ? AND user_id = ?", resourceID, userID).First(&card).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	perms, err := a.authzService.CheckCardAccess(ctx, userID, resourceID)
+	if err != nil {
+		// If forbidden, user doesn't own it
+		if errors.Is(err, services.ErrForbidden) {
 			return false, nil
 		}
 		return false, err
 	}
-	return true, nil
+	return perms.IsOwner, nil
 }
 
 // ListShares returns all shares for a card.
