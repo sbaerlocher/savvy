@@ -20,7 +20,10 @@ import (
 // TransactionNew shows the inline form for adding a new transaction (HTMX)
 func (h *Handler) TransactionNew(c echo.Context) error {
 	giftCardID := c.Param("id")
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.TransactionNewForm(c.Request().Context(), csrfToken, giftCardID).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -60,7 +63,10 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 	// Validate amount is positive (expenses are positive values)
 	if amount <= 0 {
 		c.Logger().Errorf("Amount must be positive, got: %f", amount)
-		csrfToken := c.Get("csrf").(string)
+		csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 		return templates.TransactionNewFormWithError(c.Request().Context(), csrfToken, giftCardID.String(), "Der Betrag muss positiv sein").Render(c.Request().Context(), c.Response().Writer)
 	}
 
@@ -71,7 +77,10 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 
 	if amount > currentBalance {
 		c.Logger().Warnf("Insufficient funds: amount=%f, balance=%f", amount, currentBalance)
-		csrfToken := c.Get("csrf").(string)
+		csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 		errorMsg := fmt.Sprintf("Nicht genügend Guthaben. Verfügbar: %.2f CHF", currentBalance)
 		return templates.TransactionNewFormWithError(c.Request().Context(), csrfToken, giftCardID.String(), errorMsg).Render(c.Request().Context(), c.Response().Writer)
 	}

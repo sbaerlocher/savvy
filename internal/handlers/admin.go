@@ -18,7 +18,10 @@ import (
 func AdminUsersIndex(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	var users []models.User
 	if err := database.DB.Order("created_at DESC").Find(&users).Error; err != nil {
@@ -32,7 +35,10 @@ func AdminUsersIndex(c echo.Context) error {
 func AdminAuditLogIndex(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	// Pagination
 	page := 1
@@ -310,7 +316,10 @@ func AdminCreateUserGet(c echo.Context) error {
 
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, nil).Render(c.Request().Context(), c.Response().Writer)
 }
@@ -324,7 +333,10 @@ func AdminCreateUserPost(c echo.Context) error {
 
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	// Validate input
 	req := validation.RegisterRequest{

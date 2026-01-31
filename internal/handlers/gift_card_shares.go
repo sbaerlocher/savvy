@@ -56,7 +56,10 @@ func (h *GiftCardSharesHandler) Create(c echo.Context) error {
 	var sharedUser models.User
 	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.GiftCardShareInlineFormError(c.Request().Context(), csrfToken, giftCardID, "Benutzer nicht gefunden")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
@@ -67,7 +70,10 @@ func (h *GiftCardSharesHandler) Create(c echo.Context) error {
 	var existingShare models.GiftCardShare
 	if err := database.DB.Where("gift_card_id = ? AND shared_with_id = ?", giftCardID, sharedUser.ID).First(&existingShare).Error; err == nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.GiftCardShareInlineFormError(c.Request().Context(), csrfToken, giftCardID, "Bereits mit diesem Benutzer geteilt")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
@@ -137,7 +143,10 @@ func (h *GiftCardSharesHandler) Update(c echo.Context) error {
 	if isHTMX {
 		// Reload share with user for display
 		database.DB.Preload("SharedWithUser").First(&share, "id = ?", shareID)
-		csrfToken := c.Get("csrf").(string)
+		csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 		component := templates.GiftCardShareDisplay(c.Request().Context(), csrfToken, giftCardID, share, perms.IsOwner)
 		return component.Render(c.Request().Context(), c.Response().Writer)
 	}

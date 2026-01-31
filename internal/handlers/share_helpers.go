@@ -78,7 +78,10 @@ func handleNewInlineShare(c echo.Context, authzCheck authzCheckFunc, templateFun
 		return c.String(http.StatusForbidden, "Not authorized")
 	}
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	component := templateFunc(c.Request().Context(), csrfToken, resourceID)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }

@@ -45,7 +45,10 @@ func (h *FavoritesHandler) toggleFavoriteHandler(c echo.Context, resourceType st
 	isFavorite := h.toggleFavorite(user.ID, resourceType, resourceUUID)
 
 	// Return updated button HTML for HTMX swap
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.FavoriteButton(c.Request().Context(), resourceID, isFavorite, csrfToken).Render(c.Request().Context(), c.Response().Writer)
 }
 

@@ -36,7 +36,10 @@ func (h *Handler) EditInline(c echo.Context) error {
 	var merchants []models.Merchant
 	database.DB.Order("name ASC").Find(&merchants)
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.VoucherDetailEdit(c.Request().Context(), csrfToken, voucher, merchants).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -66,7 +69,10 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
 		user.ID, "voucher", voucherID).First(&favorite).Error == nil
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.VoucherDetailView(c.Request().Context(), csrfToken, voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -151,6 +157,9 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		user.ID, "voucher", voucherID).First(&favorite).Error == nil
 
 	canEdit := perms.CanEdit
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.VoucherDetailView(c.Request().Context(), csrfToken, voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
 }

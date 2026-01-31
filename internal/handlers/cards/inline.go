@@ -35,7 +35,10 @@ func (h *Handler) EditInline(c echo.Context) error {
 	var merchants []models.Merchant
 	database.DB.Order("name ASC").Find(&merchants)
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	component := templates.CardDetailEdit(c.Request().Context(), csrfToken, card, merchants)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }
@@ -67,7 +70,10 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
 		user.ID, "card", cardID).First(&favorite).Error == nil
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	component := templates.CardDetailView(c.Request().Context(), csrfToken, card, user, canEdit, isFavorite)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }
@@ -131,7 +137,10 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		user.ID, "card", cardID).First(&favorite).Error == nil
 
 	canEdit := perms.CanEdit
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	component := templates.CardDetailView(c.Request().Context(), csrfToken, card, user, canEdit, isFavorite)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }

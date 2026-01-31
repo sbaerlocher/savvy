@@ -24,7 +24,10 @@ func MerchantsIndex(c echo.Context) error {
 		return err
 	}
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.MerchantsIndex(c.Request().Context(), csrfToken, merchants, user, isImpersonating).Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -32,7 +35,10 @@ func MerchantsIndex(c echo.Context) error {
 func MerchantsNew(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	return templates.MerchantsNew(c.Request().Context(), csrfToken, user, isImpersonating).Render(c.Request().Context(), c.Response().Writer)
 }
@@ -84,7 +90,10 @@ func MerchantsEdit(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/merchants")
 	}
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.MerchantsEdit(c.Request().Context(), csrfToken, merchant, user, isImpersonating).Render(c.Request().Context(), c.Response().Writer)
 }
 

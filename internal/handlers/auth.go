@@ -18,7 +18,10 @@ import (
 
 // AuthLoginGet shows the login page
 func AuthLoginGet(c echo.Context) error {
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	ctx := c.Request().Context()
 
 	// If local login is disabled and OAuth is enabled, redirect to OAuth
@@ -104,7 +107,10 @@ func AuthRegisterGet(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/auth/login")
 	}
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 	return templates.Register(c.Request().Context(), csrfToken).Render(c.Request().Context(), c.Response().Writer)
 }
 

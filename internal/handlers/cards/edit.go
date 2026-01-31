@@ -37,7 +37,10 @@ func (h *Handler) Edit(c echo.Context) error {
 	var merchants []models.Merchant
 	database.DB.Order("name ASC").Find(&merchants)
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	view := views.CardEditView{
 		Card:            card,

@@ -49,7 +49,10 @@ func (h *Handler) Show(c echo.Context) error {
 	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
 		user.ID, "card", cardID).First(&favorite).Error == nil
 
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	view := views.CardShowView{
 		Card:      card,

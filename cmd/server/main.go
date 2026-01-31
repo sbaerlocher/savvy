@@ -259,6 +259,7 @@ func run() int {
 		CookieHTTPOnly: true,
 		CookieSecure:   cfg.IsProduction(), // true in production, false in dev
 		CookieSameSite: 2,                  // SameSiteLaxMode
+		ContextKey:     "csrf",             // Store token in context under "csrf" key
 	}))
 
 	// Observability endpoints (public, BEFORE auth middleware)

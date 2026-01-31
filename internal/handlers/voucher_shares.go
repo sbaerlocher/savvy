@@ -57,7 +57,10 @@ func (h *VoucherSharesHandler) Create(c echo.Context) error {
 	var sharedUser models.User
 	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.VoucherShareInlineFormError(c.Request().Context(), csrfToken, voucherID, "Benutzer nicht gefunden")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
@@ -68,7 +71,10 @@ func (h *VoucherSharesHandler) Create(c echo.Context) error {
 	var existingShare models.VoucherShare
 	if err := database.DB.Where("voucher_id = ? AND shared_with_id = ?", voucherID, sharedUser.ID).First(&existingShare).Error; err == nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.VoucherShareInlineFormError(c.Request().Context(), csrfToken, voucherID, "Bereits mit diesem Benutzer geteilt")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}

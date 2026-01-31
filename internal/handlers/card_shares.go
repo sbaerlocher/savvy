@@ -55,7 +55,10 @@ func (h *CardSharesHandler) Create(c echo.Context) error {
 	var sharedUser models.User
 	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.CardShareInlineFormError(c.Request().Context(), csrfToken, cardID, "Benutzer nicht gefunden")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
@@ -66,7 +69,10 @@ func (h *CardSharesHandler) Create(c echo.Context) error {
 	var existingShare models.CardShare
 	if err := database.DB.Where("card_id = ? AND shared_with_id = ?", cardID, sharedUser.ID).First(&existingShare).Error; err == nil {
 		if isHTMX {
-			csrfToken := c.Get("csrf").(string)
+			csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 			component := templates.CardShareInlineFormError(c.Request().Context(), csrfToken, cardID, "Bereits mit diesem Benutzer geteilt")
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
@@ -134,7 +140,10 @@ func (h *CardSharesHandler) Update(c echo.Context) error {
 	if isHTMX {
 		// Reload share with user for display
 		database.DB.Preload("SharedWithUser").First(&share, "id = ?", shareID)
-		csrfToken := c.Get("csrf").(string)
+		csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 		component := templates.CardShareDisplay(c.Request().Context(), csrfToken, cardID, share, perms.IsOwner)
 		return component.Render(c.Request().Context(), c.Response().Writer)
 	}

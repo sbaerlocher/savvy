@@ -14,7 +14,10 @@ import (
 func (h *Handler) New(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
-	csrfToken := c.Get("csrf").(string)
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
 
 	// Load all merchants for dropdown
 	var merchants []models.Merchant
