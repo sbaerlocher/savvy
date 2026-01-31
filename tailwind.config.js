@@ -3,7 +3,7 @@
 export default {
   content: [
     './internal/templates/**/*.templ',
-    './static/js/src/**/*.js'
+    './internal/assets/static/js/src/**/*.js'
   ],
   theme: {
     extend: {}

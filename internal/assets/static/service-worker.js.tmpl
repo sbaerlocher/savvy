@@ -128,9 +128,15 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       try {
         // 1. Network First - Versuche zuerst vom Server zu laden
-        const networkResponse = await fetch(request);
+        // IMPORTANT: redirect: 'manual' verhindert automatisches Folgen von Redirects
+        const networkResponse = await fetch(request, { redirect: 'manual' });
 
-        // 2. Bei erfolgreicher Antwort, speichere in Dynamic Cache
+        // 2. Opaque Redirects (von redirect:'manual') direkt zurückgeben
+        if (networkResponse && networkResponse.type === 'opaqueredirect') {
+          return networkResponse;
+        }
+
+        // 3. Bei erfolgreicher Antwort, speichere in Dynamic Cache
         if (networkResponse && networkResponse.ok) {
           const cache = await caches.open(DYNAMIC_CACHE);
 
@@ -143,7 +149,7 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         }
 
-        // 3. Bei Fehler, versuche Cache Fallback
+        // 4. Bei Fehler (4xx, 5xx), versuche Cache Fallback
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
           console.log(
@@ -153,7 +159,7 @@ self.addEventListener("fetch", (event) => {
           return cachedResponse;
         }
 
-        // 4. Kein Cache vorhanden, return error response
+        // 5. Kein Cache vorhanden, return error response
         return new Response("Offline - Seite nicht im Cache", {
           status: 503,
           statusText: "Service Unavailable",
