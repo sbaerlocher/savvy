@@ -106,7 +106,27 @@ service-worker:
 .PHONY: test
 test:
 	@echo "🧪 Running tests..."
-	go test -v ./...
+	go test -mod=mod -v ./internal/services ./internal/models
+
+.PHONY: test-all
+test-all:
+	@echo "🧪 Running all tests..."
+	go test -mod=mod -v ./...
+
+.PHONY: test-coverage
+test-coverage:
+	@echo "📊 Running tests with coverage..."
+	go test -mod=mod -coverprofile=coverage.out -covermode=atomic ./internal/services ./internal/models
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "✓ Coverage report generated: coverage.html"
+	@echo ""
+	@go tool cover -func=coverage.out | grep total
+
+.PHONY: test-coverage-ci
+test-coverage-ci:
+	@echo "📊 Running tests with coverage (CI mode)..."
+	go test -mod=mod -coverprofile=coverage.out -covermode=atomic ./internal/services ./internal/models
+	@go tool cover -func=coverage.out | grep total
 
 .PHONY: clean
 clean:

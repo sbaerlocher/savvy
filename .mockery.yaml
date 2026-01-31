@@ -1,0 +1,30 @@
+---
+# Mockery v2 Configuration
+# Generates mocks for all repository interfaces
+
+with-expecter: true
+disable-version-string: true
+mockname: "Mock{{.InterfaceName}}"
+filename: "mock_{{.InterfaceNameSnake}}.go"
+outpkg: mocks
+dir: internal/mocks
+
+packages:
+  savvy/internal/repository:
+    interfaces:
+      CardRepository:
+      VoucherRepository:
+      GiftCardRepository:
+      MerchantRepository:
+      FavoriteRepository:
+
+  savvy/internal/services:
+    interfaces:
+      CardServiceInterface:
+      VoucherServiceInterface:
+      GiftCardServiceInterface:
+      ShareServiceInterface:
+      FavoriteServiceInterface:
+      DashboardServiceInterface:
+      MerchantServiceInterface:
+      AuthzServiceInterface:
