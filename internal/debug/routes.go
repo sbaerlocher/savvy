@@ -29,7 +29,8 @@ func PrintRoutes(e *echo.Echo) {
 		return routes[i].Path < routes[j].Path
 	})
 
-	fmt.Println("\n========================================")
+	fmt.Println()
+	fmt.Println("========================================")
 	fmt.Println("Registered Routes")
 	fmt.Println("========================================")
 	fmt.Printf("%-8s %-50s %s\n", "METHOD", "PATH", "NAME")
@@ -40,5 +41,5 @@ func PrintRoutes(e *echo.Echo) {
 	}
 
 	fmt.Printf("\nTotal Routes: %d\n", len(routes))
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 }
