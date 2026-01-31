@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // PrintRoutes prints all registered routes in a formatted table.

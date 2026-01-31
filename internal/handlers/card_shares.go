@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 	"net/http"
 	"savvy/internal/handlers/shares"

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"savvy/internal/database"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Health returns basic health status
