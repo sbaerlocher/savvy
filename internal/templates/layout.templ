@@ -146,7 +146,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 			<p class="barcode-close-hint">Tippe um zu schließen</p>
 		</div>
 
-		<!-- Offline Banner (below navigation, fixed) -->
+		<!-- Offline Banner (sticky at top when scrolling) -->
 		<div
 			x-data
 			x-show="!$store.offline.isOnline"
@@ -157,7 +157,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 			x-transition:leave="transition ease-in duration-200"
 			x-transition:leave-start="opacity-100 translate-y-0"
 			x-transition:leave-end="opacity-0 -translate-y-full"
-			class="fixed top-16 left-0 right-0 z-40 bg-yellow-50 border-b border-yellow-200 px-4 py-3 shadow-md"
+			class="sticky top-0 left-0 right-0 z-40 bg-yellow-50 border-b border-yellow-200 px-4 py-3 shadow-md"
 		>
 			<div class="max-w-7xl mx-auto flex items-center justify-between">
 				<div class="flex items-center">

@@ -555,7 +555,7 @@ templ VouchersNew(ctx context.Context, csrfToken string, view views.VoucherEditV
 									@input.debounce.300ms="fetchSuggestions()"
 									@keydown="handleKeydown($event)"
 									@blur="hideSuggestions()"
-									class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-green-500 focus:border-green-500"
+									class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-green-500 focus:border-green-500"
 									placeholder={ T(ctx, "share.email_placeholder") }
 									autocomplete="off"/>
 
