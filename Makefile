@@ -87,7 +87,7 @@ generate:
 	@echo "✓ Generation complete"
 
 .PHONY: build
-build: generate
+build: generate service-worker
 	@echo "🔨 Building $(APP_NAME)..."
 	@echo "📦 Installing npm dependencies..."
 	npm install
@@ -96,6 +96,12 @@ build: generate
 	@echo "🔧 Building Go binary..."
 	go build -ldflags="-s -w -X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME)" -o bin/server cmd/server/main.go
 	@echo "✓ Build complete (version: $(VERSION))"
+
+.PHONY: service-worker
+service-worker:
+	@echo "⚙️  Generating service-worker.js with version $(VERSION)..."
+	@sed 's/__VERSION__/$(VERSION)/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js
+	@echo "✓ Service Worker generated (version: $(VERSION))"
 
 .PHONY: test
 test:
@@ -109,6 +115,7 @@ clean:
 	rm -rf static/js/bundle.js
 	rm -rf static/js/bundle.js.map
 	rm -f internal/templates/*_templ.go
+	rm -f internal/assets/static/service-worker.js
 	@echo "✓ Cleanup complete"
 
 .PHONY: clean-port

@@ -1,0 +1,252 @@
+const CACHE_VERSION = "savvy-__VERSION__";
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+
+// Cache Limits
+const MAX_DYNAMIC_CACHE_SIZE = 100; // Max 100 Einträge im Dynamic Cache
+const MAX_CACHE_AGE_DAYS = 7; // Cache-Einträge älter als 7 Tage werden gelöscht
+
+// Debug Logging
+console.log("[ServiceWorker] Script loaded, version:", CACHE_VERSION);
+
+// Assets die sofort gecached werden (nur statische, immer verfügbare Files)
+const STATIC_ASSETS = [
+  "/static/js/bundle.js",
+  "/static/css/bundle.css",
+  "/static/manifest.json",
+];
+
+// Install Event - Cache static assets
+self.addEventListener("install", (event) => {
+  console.log("[ServiceWorker] Installing version:", CACHE_VERSION);
+  event.waitUntil(
+    Promise.all([
+      // 1. Cache static assets
+      caches.open(STATIC_CACHE).then((cache) => {
+        console.log("[ServiceWorker] Caching static assets");
+        // Cache each file individually to avoid failing the entire install
+        return Promise.allSettled(
+          STATIC_ASSETS.map((url) =>
+            cache
+              .add(new Request(url, { cache: "reload" }))
+              .catch((err) =>
+                console.warn("[ServiceWorker] Failed to cache:", url, err),
+              ),
+          ),
+        );
+      }),
+
+      // 2. Proaktiv alte Caches löschen (nicht warten bis activate)
+      caches.keys().then((cacheNames) => {
+        const oldCaches = cacheNames.filter(
+          (name) =>
+            name.startsWith("savvy-") &&
+            name !== STATIC_CACHE &&
+            name !== DYNAMIC_CACHE,
+        );
+
+        if (oldCaches.length > 0) {
+          console.log(
+            "[ServiceWorker] Install: Pre-cleaning",
+            oldCaches.length,
+            "old caches",
+          );
+          return Promise.all(
+            oldCaches.map((name) => {
+              console.log("[ServiceWorker] Install: Deleting old cache:", name);
+              return caches.delete(name);
+            }),
+          );
+        }
+      }),
+    ]).then(() => {
+      console.log("[ServiceWorker] Installation complete, skipping waiting");
+      return self.skipWaiting();
+    }),
+  );
+});
+
+// Activate Event - Cleanup old caches (falls noch nicht in install gemacht)
+self.addEventListener("activate", (event) => {
+  console.log("[ServiceWorker] Activating version:", CACHE_VERSION);
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        const oldCaches = cacheNames.filter(
+          (name) =>
+            name.startsWith("savvy-") &&
+            name !== STATIC_CACHE &&
+            name !== DYNAMIC_CACHE,
+        );
+
+        if (oldCaches.length > 0) {
+          console.log(
+            "[ServiceWorker] Activate: Cleaning up",
+            oldCaches.length,
+            "old caches",
+          );
+        }
+
+        return Promise.all(
+          oldCaches.map((name) => {
+            console.log("[ServiceWorker] Activate: Deleting old cache:", name);
+            return caches.delete(name);
+          }),
+        );
+      })
+      .then(() => {
+        console.log(
+          "[ServiceWorker] Claiming clients (alle Tabs sofort updaten)",
+        );
+        return self.clients.claim();
+      }),
+  );
+});
+
+// Fetch Event - Network First Strategy with Cache Fallback
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== "GET") {
+    return;
+  }
+
+  // Skip external requests (nur same-origin cachen)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Skip API requests (immer fresh data)
+  if (url.pathname.startsWith("/api/")) {
+    return;
+  }
+
+  event.respondWith(
+    (async () => {
+      try {
+        // 1. Network First - Versuche zuerst vom Server zu laden
+        const networkResponse = await fetch(request);
+
+        // 2. Bei erfolgreicher Antwort, speichere in Dynamic Cache
+        if (networkResponse && networkResponse.ok) {
+          const cache = await caches.open(DYNAMIC_CACHE);
+
+          // Clone response (kann nur einmal gelesen werden)
+          cache.put(request, networkResponse.clone());
+
+          // Cleanup alte Cache-Einträge
+          limitCacheSize(DYNAMIC_CACHE, MAX_DYNAMIC_CACHE_SIZE);
+
+          return networkResponse;
+        }
+
+        // 3. Bei Fehler, versuche Cache Fallback
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          console.log(
+            "[ServiceWorker] Network failed, serving from cache:",
+            request.url,
+          );
+          return cachedResponse;
+        }
+
+        // 4. Kein Cache vorhanden, return error response
+        return new Response("Offline - Seite nicht im Cache", {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: new Headers({ "Content-Type": "text/plain" }),
+        });
+      } catch (error) {
+        // Network komplett offline
+        const cachedResponse = await caches.match(request);
+
+        if (cachedResponse) {
+          console.log("[ServiceWorker] Offline, serving from cache:", url.pathname);
+          return cachedResponse;
+        }
+
+        // Fallback für HTML-Seiten
+        if (request.headers.get("accept").includes("text/html")) {
+          const offlineResponse = await caches.match("/offline");
+          if (offlineResponse) {
+            return offlineResponse;
+          }
+        }
+
+        return new Response("Offline - Keine Verbindung", {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: new Headers({ "Content-Type": "text/plain" }),
+        });
+      }
+    })(),
+  );
+});
+
+// Helper: Limitiere Cache-Größe
+async function limitCacheSize(cacheName, maxSize) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+
+  if (keys.length > maxSize) {
+    console.log(
+      `[ServiceWorker] Cache ${cacheName} exceeds max size (${keys.length}/${maxSize}), cleaning up...`,
+    );
+    // Lösche älteste Einträge
+    await cache.delete(keys[0]);
+    // Rekursiv aufrufen falls immer noch zu groß
+    await limitCacheSize(cacheName, maxSize);
+  }
+}
+
+// Helper: Lösche alte Cache-Einträge (älter als X Tage)
+async function cleanOldCacheEntries(cacheName, maxAgeDays) {
+  const cache = await caches.open(cacheName);
+  const requests = await cache.keys();
+  const now = Date.now();
+  const maxAge = maxAgeDays * 24 * 60 * 60 * 1000;
+
+  for (const request of requests) {
+    const response = await cache.match(request);
+    const dateHeader = response.headers.get("date");
+
+    if (dateHeader) {
+      const responseDate = new Date(dateHeader).getTime();
+      if (now - responseDate > maxAge) {
+        console.log(
+          `[ServiceWorker] Deleting old cache entry (${maxAgeDays}+ days):`,
+          request.url,
+        );
+        await cache.delete(request);
+      }
+    }
+  }
+}
+
+// Periodisches Cleanup (einmal pro Tag)
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "CLEANUP_CACHE") {
+    console.log("[ServiceWorker] Manual cache cleanup requested");
+    event.waitUntil(
+      Promise.all([
+        limitCacheSize(DYNAMIC_CACHE, MAX_DYNAMIC_CACHE_SIZE),
+        cleanOldCacheEntries(DYNAMIC_CACHE, MAX_CACHE_AGE_DAYS),
+      ]),
+    );
+  }
+
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    console.log("[ServiceWorker] Skip waiting requested");
+    self.skipWaiting();
+  }
+});
+
+// Health Check für Service Worker Status
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "GET_VERSION") {
+    event.ports[0].postMessage({ version: CACHE_VERSION });
+  }
+});

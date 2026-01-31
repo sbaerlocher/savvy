@@ -63,6 +63,9 @@ server
 # Generated code
 *_templ.go
 
+# Generated Service Worker (built from template)
+internal/assets/static/service-worker.js
+
 # Database
 **/*.sqlite
 
