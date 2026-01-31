@@ -136,7 +136,7 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 	assert.Equal(t, int64(1), data.Stats.VouchersOwned)
 	assert.Equal(t, int64(1), data.Stats.GiftCardsOwned)
 	assert.GreaterOrEqual(t, data.Stats.TotalBalance, 75.0) // At least our test card
-	assert.False(t, data.HasFavorites) // No favorites yet
+	assert.False(t, data.HasFavorites)                      // No favorites yet
 	assert.GreaterOrEqual(t, len(data.RecentCards), 1)
 	assert.GreaterOrEqual(t, len(data.RecentVouchers), 1)
 	assert.GreaterOrEqual(t, len(data.RecentGiftCards), 1)
@@ -193,7 +193,7 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, data)
 	assert.NotNil(t, data.Stats)
-	assert.Equal(t, int64(0), data.Stats.CardsOwned)    // No owned cards
+	assert.Equal(t, int64(0), data.Stats.CardsOwned)           // No owned cards
 	assert.GreaterOrEqual(t, data.Stats.CardsShared, int64(1)) // At least 1 shared
 }
 

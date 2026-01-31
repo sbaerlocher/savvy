@@ -11,8 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"savvy/internal/models"
 	savvyi18n "savvy/internal/i18n"
+	"savvy/internal/models"
 )
 
 // MockMerchantServiceNew for testing
