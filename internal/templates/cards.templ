@@ -39,7 +39,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 									class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block">
 									{ T(ctx, "cards.add_new") }
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒
 								</div>
 							</div>
@@ -80,7 +80,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 									class="bg-blue-600 text-white px-3 py-2 rounded-md font-medium text-center text-sm block">
 									+ Neu
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒
 								</div>
 							</div>
@@ -95,7 +95,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							class="bg-blue-600 text-white px-4 py-2 rounded-md font-medium inline-block">
 							{ T(ctx, "cards.add_new") }
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 							🔒
 						</div>
 					</div>
@@ -113,7 +113,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							class="text-blue-600 font-medium">
 							{ T(ctx, "cards.create_first") }
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
 							🔒
 						</div>
 					</div>
@@ -287,7 +287,7 @@ templ CardsShow(ctx context.Context, csrfToken string, view views.CardShowView) 
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-blue-700'"
 									class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
 									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "share.add") }</span>
-									<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "share.add") }</span>
+									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "share.add") }</span>
 								</button>
 							</div>
 
@@ -311,7 +311,7 @@ templ CardsShow(ctx context.Context, csrfToken string, view views.CardShowView) 
 													:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:text-blue-800'"
 													class="text-blue-600 text-xs">
 													<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
-													<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+													<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒</span>
 												</button>
 											}
 										</div>
@@ -1106,7 +1106,7 @@ templ CardShareInlineEdit(ctx context.Context, csrfToken string, cardID string, 
 						class="w-full text-red-600 text-sm font-medium">
 						{ T(ctx, "share.remove") }
 					</button>
-					<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+					<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
 						🔒 { T(ctx, "offline.badge") }
 					</div>
 				</div>
@@ -1178,7 +1178,7 @@ templ CardDetailView(ctx context.Context, csrfToken string, card models.Card, cu
 								:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-gray-700'"
 								class="bg-gray-600 text-white px-3 py-1 rounded text-sm">
 								<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
-								<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "common.edit") }</span>
+								<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "common.edit") }</span>
 							</button>
 						}
 					</div>
@@ -1381,7 +1381,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 							class="w-full text-red-600 font-medium">
 							{ T(ctx, "common.delete") }
 						</button>
-						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
 							🔒
 						</div>
 					</div>

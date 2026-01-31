@@ -146,7 +146,7 @@ templ Home(ctx context.Context, user *models.User, isImpersonating bool, cardsCo
 										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_card_desc") }</p>
 									</div>
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒 { T(ctx, "offline.badge") }
 								</div>
 							</div>
@@ -166,7 +166,7 @@ templ Home(ctx context.Context, user *models.User, isImpersonating bool, cardsCo
 										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_voucher_desc") }</p>
 									</div>
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒 { T(ctx, "offline.badge") }
 								</div>
 							</div>
@@ -186,7 +186,7 @@ templ Home(ctx context.Context, user *models.User, isImpersonating bool, cardsCo
 										<p class="text-sm text-gray-600">{ T(ctx, "home.quick_actions.add_giftcard_desc") }</p>
 									</div>
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒 { T(ctx, "offline.badge") }
 								</div>
 							</div>

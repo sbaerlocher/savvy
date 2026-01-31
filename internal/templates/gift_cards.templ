@@ -113,7 +113,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 								<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
 									{ T(ctx, "giftcards.add_new") }
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒
 								</div>
 							</div>
@@ -155,7 +155,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 									class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-medium text-center text-sm block">
 									+ Neu
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 									🔒
 								</div>
 							</div>
@@ -166,7 +166,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 						<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium inline-block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
 							{ T(ctx, "giftcards.add_new") }
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
 							🔒
 						</div>
 					</div>
@@ -180,7 +180,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 						<a href="/gift-cards/new" class="text-red-600 hover:text-red-700 font-medium" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
 							{ T(ctx, "giftcards.create_first") }
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
+						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
 							🔒
 						</div>
 					</div>
@@ -304,7 +304,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 										:disabled="$store.offline && !$store.offline.isOnline"
 										:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 										<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "giftcards.transaction.new") }</span>
-										<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "giftcards.transaction.new") }</span>
+										<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "giftcards.transaction.new") }</span>
 									</button>
 								}
 							</div>
@@ -356,7 +356,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 									:disabled="$store.offline && !$store.offline.isOnline"
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "share.add") }</span>
-									<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "share.add") }</span>
+									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "share.add") }</span>
 								</button>
 							</div>
 
@@ -379,7 +379,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 													:disabled="$store.offline && !$store.offline.isOnline"
 													:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 													<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
-													<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+													<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒</span>
 												</button>
 											</div>
 											<div class="flex flex-wrap gap-1">
@@ -1435,7 +1435,7 @@ templ GiftCardShareDisplay(ctx context.Context, csrfToken string, giftCardID str
 					:disabled="$store.offline && !$store.offline.isOnline"
 					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 					<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
-					<span x-show="$store.offline && !$store.offline.isOnline">🔒</span>
+					<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒</span>
 				</button>
 			}
 		</div>
@@ -1486,7 +1486,7 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 								:disabled="$store.offline && !$store.offline.isOnline"
 								:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 								<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
-								<span x-show="$store.offline && !$store.offline.isOnline">🔒 { T(ctx, "common.edit") }</span>
+								<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "common.edit") }</span>
 							</button>
 						}
 					</div>
