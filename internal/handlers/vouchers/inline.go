@@ -3,7 +3,6 @@ package vouchers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
@@ -27,20 +26,23 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusForbidden, "No edit permission")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).Preload("Merchant").First(&voucher).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 
 	// Load all merchants for dropdown
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		c.Logger().Errorf("Failed to load merchants: %v", err)
+		merchants = []models.Merchant{}
+	}
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	return templates.VoucherDetailEdit(c.Request().Context(), csrfToken, voucher, merchants).Render(c.Request().Context(), c.Response().Writer)
+	return templates.VoucherDetailEdit(c.Request().Context(), csrfToken, *voucher, merchants).Render(c.Request().Context(), c.Response().Writer)
 }
 
 // CancelEdit returns the view mode for a voucher
@@ -57,23 +59,25 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusForbidden, "No access")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).Preload("Merchant").Preload("User").First(&voucher).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 
 	canEdit := perms.CanEdit
 
 	// Check if voucher is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "voucher", voucherID).First(&favorite).Error == nil
+	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
+	if err != nil {
+		c.Logger().Errorf("Failed to check favorite status: %v", err)
+		isFavorite = false
+	}
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	return templates.VoucherDetailView(c.Request().Context(), csrfToken, voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
+	return templates.VoucherDetailView(c.Request().Context(), csrfToken, *voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
 }
 
 // UpdateInline updates a voucher and returns the view mode
@@ -90,8 +94,8 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		return c.String(http.StatusForbidden, "No edit permission")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).First(&voucher).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 
@@ -121,8 +125,8 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		if err == nil {
 			voucher.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				voucher.MerchantName = merchant.Name
 			}
 		}
@@ -143,23 +147,28 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	voucher.UsageLimitType = usageLimitType
 	voucher.BarcodeType = c.FormValue("barcode_type")
 
-	if err := database.DB.Save(&voucher).Error; err != nil {
+	if err := h.voucherService.UpdateVoucher(c.Request().Context(), voucher); err != nil {
 		c.Logger().Errorf("Failed to update voucher: %v", err)
 		return c.String(http.StatusInternalServerError, "Failed to update voucher")
 	}
 
 	// Reload with merchant and user
-	database.DB.Where("id = ?", voucherID).Preload("Merchant").Preload("User").First(&voucher)
+	voucher, err = h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
+		return c.String(http.StatusNotFound, "Voucher not found")
+	}
 
 	// Check if voucher is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "voucher", voucherID).First(&favorite).Error == nil
+	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
+	if err != nil {
+		c.Logger().Errorf("Failed to check favorite status: %v", err)
+		isFavorite = false
+	}
 
 	canEdit := perms.CanEdit
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	return templates.VoucherDetailView(c.Request().Context(), csrfToken, voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
+	return templates.VoucherDetailView(c.Request().Context(), csrfToken, *voucher, canEdit, user, isFavorite).Render(c.Request().Context(), c.Response().Writer)
 }

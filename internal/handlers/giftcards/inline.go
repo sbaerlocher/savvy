@@ -3,7 +3,6 @@ package giftcards
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
@@ -29,20 +28,23 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusForbidden, "Not authorized")
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).Preload("Merchant").First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
 	// Load all merchants for dropdown
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		c.Logger().Errorf("Failed to load merchants: %v", err)
+		merchants = []models.Merchant{}
+	}
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	component := templates.GiftCardDetailEdit(c.Request().Context(), csrfToken, giftCard, merchants)
+	component := templates.GiftCardDetailEdit(c.Request().Context(), csrfToken, *giftCard, merchants)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -61,23 +63,25 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).Preload("Merchant").Preload("User").First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
 	canEdit := perms.CanEdit
 
 	// Check if gift card is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "gift_card", giftCardID).First(&favorite).Error == nil
+	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
+	if err != nil {
+		c.Logger().Errorf("Failed to check favorite status: %v", err)
+		isFavorite = false
+	}
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	component := templates.GiftCardDetailView(c.Request().Context(), csrfToken, giftCard, user, canEdit, isFavorite)
+	component := templates.GiftCardDetailView(c.Request().Context(), csrfToken, *giftCard, user, canEdit, isFavorite)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
@@ -96,8 +100,8 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		return c.String(http.StatusForbidden, "Not authorized")
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
@@ -137,8 +141,8 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		if err == nil {
 			giftCard.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				giftCard.MerchantName = merchant.Name
 			}
 		}
@@ -148,23 +152,28 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		giftCard.MerchantName = merchantNameStr
 	}
 
-	if err := database.DB.Save(&giftCard).Error; err != nil {
+	if err := h.giftCardService.UpdateGiftCard(c.Request().Context(), giftCard); err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to update gift card")
 	}
 
 	// Reload with merchant and user preloaded
-	database.DB.Where("id = ?", giftCardID).Preload("Merchant").Preload("User").First(&giftCard)
+	giftCard, err = h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
+		return c.String(http.StatusNotFound, "Gift card not found")
+	}
 
 	// Check if gift card is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "gift_card", giftCardID).First(&favorite).Error == nil
+	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
+	if err != nil {
+		c.Logger().Errorf("Failed to check favorite status: %v", err)
+		isFavorite = false
+	}
 
 	canEdit := perms.CanEdit
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
 	}
-	component := templates.GiftCardDetailView(c.Request().Context(), csrfToken, giftCard, user, canEdit, isFavorite)
+	component := templates.GiftCardDetailView(c.Request().Context(), csrfToken, *giftCard, user, canEdit, isFavorite)
 	return component.Render(c.Request().Context(), c.Response().Writer)
 }

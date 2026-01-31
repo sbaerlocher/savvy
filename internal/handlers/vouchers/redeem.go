@@ -3,7 +3,6 @@ package vouchers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -24,8 +23,8 @@ func (h *Handler) Redeem(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.First(&voucher, voucherID).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
@@ -36,7 +35,7 @@ func (h *Handler) Redeem(c echo.Context) error {
 	}
 
 	// Save updated voucher
-	if err := database.DB.Save(&voucher).Error; err != nil {
+	if err := h.voucherService.UpdateVoucher(c.Request().Context(), voucher); err != nil {
 		c.Logger().Errorf("Failed to redeem voucher: %v", err)
 		return c.Redirect(http.StatusSeeOther, "/vouchers/"+voucher.ID.String()+"?error=database_error")
 	}

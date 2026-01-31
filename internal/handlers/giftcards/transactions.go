@@ -47,8 +47,8 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -71,9 +71,7 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 	}
 
 	// Check if sufficient balance exists
-	var giftCardWithTransactions models.GiftCard
-	database.DB.First(&giftCardWithTransactions, giftCardID)
-	currentBalance := giftCardWithTransactions.CurrentBalance
+	currentBalance := giftCard.CurrentBalance
 
 	if amount > currentBalance {
 		c.Logger().Warnf("Insufficient funds: amount=%f, balance=%f", amount, currentBalance)
@@ -143,8 +141,8 @@ func (h *Handler) TransactionDelete(c echo.Context) error {
 		return c.NoContent(http.StatusForbidden)
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
