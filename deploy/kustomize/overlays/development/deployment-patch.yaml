@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: savvy
-          image: ghcr.io/sbaerlocher/savvy:dev
+          image: ghcr.io/sbaerlocher/container/savvy:dev
           imagePullPolicy: Always
           resources:
             limits:

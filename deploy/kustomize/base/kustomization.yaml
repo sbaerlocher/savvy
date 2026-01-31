@@ -23,7 +23,7 @@ labels:
       app.kubernetes.io/managed-by: kustomize
 
 images:
-  - name: ghcr.io/sbaerlocher/savvy
+  - name: ghcr.io/sbaerlocher/container/savvy
     newTag: 1.1.0
 
 configMapGenerator:

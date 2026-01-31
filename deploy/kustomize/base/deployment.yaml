@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: savvy
-          image: ghcr.io/sbaerlocher/savvy:1.1.0
+          image: ghcr.io/sbaerlocher/container/savvy:1.1.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
