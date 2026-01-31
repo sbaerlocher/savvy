@@ -193,7 +193,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 										src={ templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)) }
 										alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
 										class="mx-auto max-h-16"/>
-									<p class="text-xs text-gray-500 mt-1">{ voucher.BarcodeType }</p>
+									<p class="text-xs text-gray-600 font-mono mt-1">{ voucher.Code }</p>
 								</div>
 							}
 
@@ -1150,13 +1150,6 @@ templ VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vo
 					<div class="flex items-baseline gap-3 flex-wrap">
 						<h1 class="text-2xl font-bold text-gray-900">{ voucher.MerchantName }</h1>
 						<span class="text-sm text-gray-600">{ formatUsageLimitShort(ctx, voucher) }</span>
-						if voucher.UserID != nil && voucher.User != nil {
-							if *voucher.UserID == currentUser.ID {
-								<span class="text-sm text-gray-500 italic">{ T(ctx, "vouchers.my_voucher") }</span>
-							} else {
-								<span class="text-sm text-gray-500 italic">{ T(ctx, "vouchers.voucher_from", map[string]any{"Name": voucher.User.DisplayName()}) }</span>
-							}
-						}
 					</div>
 					<div class="flex gap-2 flex-shrink-0">
 						<!-- Favorite Button -->
@@ -1193,7 +1186,10 @@ templ VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vo
 				<img
 					src={ templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)) }
 					alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
-					class="mx-auto max-h-32 mb-3"/>
+					class="mx-auto max-h-32 mb-2"/>
+
+				// Barcode Code
+				<p class="text-center text-sm text-gray-600 font-mono mb-3">{ voucher.Code }</p>
 
 				// Gutscheinwert + Beschreibung in gleicher Zeile
 				<div class="flex items-baseline justify-center gap-3 flex-wrap">
