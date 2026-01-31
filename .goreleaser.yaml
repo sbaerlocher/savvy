@@ -3,8 +3,18 @@ version: 2
 
 before:
   hooks:
+    # Go dependencies
     - go mod tidy
     - go mod download
+
+    # Frontend build (JS bundle)
+    - npm ci --quiet
+    - npm run build
+
+    # Service Worker generation (inject version)
+    - sed 's/__VERSION__/{{.Version}}/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js
+
+    # Template generation (must be after npm build, as assets need to exist)
     - templ generate
 
 builds:
