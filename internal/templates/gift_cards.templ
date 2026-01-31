@@ -204,17 +204,6 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 								</span>
 							</div>
 
-							// Geteilt-Info (falls vorhanden)
-							if giftCard.UserID != nil && giftCard.User != nil && *giftCard.UserID != view.User.ID {
-								<div class="flex items-center gap-1 mb-3">
-									<svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-									</svg>
-									<span class="text-xs text-blue-600 font-medium">
-										{ T(ctx, "giftcards.shared_by", map[string]any{"Name": giftCard.User.DisplayName()}) }
-									</span>
-								</div>
-							}
 
 							// Guthaben: Label + Wert auf einer Linie
 							<div class="flex items-baseline justify-between mb-3">
@@ -238,10 +227,10 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 							<div class="flex justify-between text-xs text-gray-600">
 								if giftCard.ExpiresAt != nil {
 									<span>{ T(ctx, "vouchers.valid_until") }: { giftCard.ExpiresAt.Format("02.01.2006") }</span>
-								} else {
-									<span>{ T(ctx, "giftcards.no_expiry") }</span>
 								}
-								<span>{ T(ctx, "giftcards.transaction_count", map[string]any{"Count": len(giftCard.Transactions)}) }</span>
+								<span class={ templ.KV("ml-auto", giftCard.ExpiresAt == nil) }>
+									{ T(ctx, "giftcards.transaction_count", map[string]any{"Count": len(giftCard.Transactions)}) }
+								</span>
 							</div>
 						</a>
 					}
@@ -1466,13 +1455,12 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 				<div class="flex items-center justify-between gap-4 mb-3">
 					<div class="flex items-baseline gap-3 flex-wrap">
 						<h1 class="text-2xl font-bold text-gray-900">{ giftCard.MerchantName }</h1>
-						if giftCard.UserID != nil && giftCard.User != nil {
-							if *giftCard.UserID == currentUser.ID {
-								<span class="text-sm text-gray-500 italic">{ T(ctx, "giftcards.my_gift_card") }</span>
-							} else {
-								<span class="text-sm text-gray-500 italic">{ T(ctx, "giftcards.gift_card_from", map[string]any{"Name": giftCard.User.DisplayName()}) }</span>
-							}
-						}
+						<span class="text-lg font-semibold" style={ fmt.Sprintf("color: %s", giftCard.GetColor()) }>
+							{ fmt.Sprintf("%.2f %s", giftCard.CurrentBalance, giftCard.Currency) }
+							<span class="text-sm text-gray-500 font-normal">
+								({ fmt.Sprintf("%d%% übrig", giftCardBalancePercent(giftCard)) })
+							</span>
+						</span>
 					</div>
 					<div class="flex gap-2 flex-shrink-0">
 						<!-- Favorite Button -->

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "savvy-v1.4.5";
+const CACHE_VERSION = "savvy-v1.4.6";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -383,7 +383,7 @@ async function cleanOldCacheEntries(cacheName, maxAgeDays) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
   const now = Date.now();
-  const maxAge = 1; // Tage in Millisekunden
+  const maxAge = maxAgeDays * 24 * 60 * 60 * 1000; // Convert days to milliseconds
 
   let deletedCount = 0;
 
