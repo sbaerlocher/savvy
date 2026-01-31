@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -13,20 +14,20 @@ import (
 )
 
 // setupTestDB creates a test database connection.
-// Requires PostgreSQL via DATABASE_URL env var (Docker/CI).
-// Skips tests locally if DATABASE_URL is not set.
+// Uses DATABASE_URL env var or falls back to local PostgreSQL from docker-compose.
 func setupTestDB(t *testing.T) *gorm.DB {
 	// Check if DATABASE_URL is set (Docker/CI environment)
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		t.Skip("Skipping test: DATABASE_URL not set. Run tests in Docker with PostgreSQL.")
-		return nil
+		// Fallback to local docker-compose PostgreSQL
+		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
 	}
 
 	// Use PostgreSQL from environment (production-like testing)
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
-		t.Fatalf("Failed to connect to PostgreSQL test database: %v", err)
+		t.Skipf("Skipping test: PostgreSQL not available: %v", err)
+		return nil
 	}
 
 	// Auto-migrate models
@@ -230,4 +231,84 @@ func TestAuthzService_CheckGiftCardAccess_TransactionPermission(t *testing.T) {
 	assert.False(t, perms.CanEdit)
 	assert.False(t, perms.CanDelete)
 	assert.True(t, perms.CanEditTransactions) // Gift card specific permission
+}
+
+func TestAuthzService_CheckVoucherAccess_Owner(t *testing.T) {
+	db := setupTestDB(t)
+	service := NewAuthzService(db)
+
+	// Create owner
+	owner := &models.User{
+		Email:        "voucher-owner@example.com",
+		PasswordHash: "hashed",
+	}
+	db.Create(owner)
+
+	// Create voucher
+	voucher := &models.Voucher{
+		UserID:         &owner.ID,
+		Code:           "TEST-VOUCHER",
+		MerchantName:   "Test",
+		ValidFrom:      time.Now(),
+		ValidUntil:     time.Now().Add(24 * time.Hour),
+		UsageLimitType: "unlimited",
+	}
+	db.Create(voucher)
+
+	// Test: Owner should have full access
+	perms, err := service.CheckVoucherAccess(context.Background(), owner.ID, voucher.ID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, perms)
+	assert.True(t, perms.IsOwner)
+	assert.True(t, perms.CanView)
+	assert.True(t, perms.CanEdit)
+	assert.True(t, perms.CanDelete)
+}
+
+func TestAuthzService_CheckVoucherAccess_SharedUser(t *testing.T) {
+	db := setupTestDB(t)
+	service := NewAuthzService(db)
+
+	// Create owner
+	owner := &models.User{
+		Email:        "voucher-owner2@example.com",
+		PasswordHash: "hashed",
+	}
+	db.Create(owner)
+
+	// Create shared user
+	sharedUser := &models.User{
+		Email:        "voucher-shared@example.com",
+		PasswordHash: "hashed",
+	}
+	db.Create(sharedUser)
+
+	// Create voucher
+	voucher := &models.Voucher{
+		UserID:         &owner.ID,
+		Code:           "TEST-VOUCHER-SHARED",
+		MerchantName:   "Test",
+		ValidFrom:      time.Now(),
+		ValidUntil:     time.Now().Add(24 * time.Hour),
+		UsageLimitType: "unlimited",
+	}
+	db.Create(voucher)
+
+	// Create share (vouchers are always read-only when shared)
+	share := &models.VoucherShare{
+		VoucherID:    voucher.ID,
+		SharedWithID: sharedUser.ID,
+	}
+	db.Create(share)
+
+	// Test: Shared user should have view-only access
+	perms, err := service.CheckVoucherAccess(context.Background(), sharedUser.ID, voucher.ID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, perms)
+	assert.False(t, perms.IsOwner)
+	assert.True(t, perms.CanView)
+	assert.False(t, perms.CanEdit)   // Vouchers are always read-only
+	assert.False(t, perms.CanDelete) // Shared users can't delete
 }

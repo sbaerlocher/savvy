@@ -3,7 +3,6 @@ package vouchers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/views"
@@ -28,26 +27,26 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	var voucher models.Voucher
-	// Preload merchant for color and user for ownership display
-	if err := database.DB.Where("id = ?", voucherID).Preload("Merchant").Preload("User").First(&voucher).Error; err != nil {
+	// Load voucher with relations via service
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
 	// Load shares with users (only if owner)
 	var shares []models.VoucherShare
 	if perms.IsOwner {
-		database.DB.Where("voucher_id = ?", voucherID).Preload("SharedWithUser").Find(&shares)
+		shares, _ = h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 	}
 
 	// Load all merchants for dropdown
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		merchants = []models.Merchant{} // Fallback to empty list
+	}
 
 	// Check if voucher is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "voucher", voucherID).First(&favorite).Error == nil
+	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
@@ -55,7 +54,7 @@ func (h *Handler) Show(c echo.Context) error {
 	}
 
 	view := views.VoucherShowView{
-		Voucher:   voucher,
+		Voucher:   *voucher,
 		Merchants: merchants,
 		Shares:    shares,
 		User:      user,

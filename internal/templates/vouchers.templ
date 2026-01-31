@@ -87,7 +87,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 									x-model="search"
 									@input="updateVisibility()"
 									placeholder={ T(ctx, "common.search_placeholder") }
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
 							</div>
 							<!-- New Voucher Button (Desktop) -->
 							<div class="relative hidden sm:block">
@@ -105,14 +105,14 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 							<select
 								x-model="ownerFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm">
 								<option value="all">{ T(ctx, "vouchers.filter.all_vouchers") }</option>
 								<option value="mine">{ T(ctx, "common.mine") }</option>
 							</select>
 							<select
 								x-model="statusFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm">
 								<option value="valid">{ T(ctx, "vouchers.filter.valid_only") }</option>
 								<option value="all-status">{ T(ctx, "cards.filter.all_status") }</option>
 								<option value="expired">{ T(ctx, "vouchers.filter.expired_only") }</option>
@@ -431,7 +431,7 @@ templ VouchersNew(ctx context.Context, csrfToken string, view views.VoucherEditV
 									step="0.01"
 									min="0"
 									value="0"
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
 							</div>
 
 							<div class="grid grid-cols-2 gap-4">
@@ -445,7 +445,7 @@ templ VouchersNew(ctx context.Context, csrfToken string, view views.VoucherEditV
 										name="valid_from"
 										required
 										value={ time.Now().Format("2006-01-02") }
-										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
 								</div>
 
 								<div>
@@ -458,7 +458,7 @@ templ VouchersNew(ctx context.Context, csrfToken string, view views.VoucherEditV
 										name="valid_until"
 										required
 										value={ time.Now().AddDate(0, 3, 0).Format("2006-01-02") }
-										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
 								</div>
 							</div>
 

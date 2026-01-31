@@ -2,7 +2,6 @@
 package cards
 
 import (
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/views"
@@ -20,8 +19,10 @@ func (h *Handler) New(c echo.Context) error {
 	}
 
 	// Load all merchants for dropdown
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		merchants = []models.Merchant{} // Fallback to empty if error
+	}
 
 	view := views.CardEditView{
 		Card:            models.Card{}, // Empty card for new

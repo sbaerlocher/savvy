@@ -41,13 +41,13 @@ templ Login(ctx context.Context, csrfToken string, oauthEnabled bool, localLogin
 							<div>
 								<label for="email" class="sr-only">{ T(ctx, "auth.email") }</label>
 								<input id="email" name="email" type="email" required
-									class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+									class="appearance-none rounded-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 									placeholder={ T(ctx, "auth.email") }/>
 							</div>
 							<div>
 								<label for="password" class="sr-only">{ T(ctx, "auth.password") }</label>
 								<input id="password" name="password" type="password" required
-									class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+									class="appearance-none rounded-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 									placeholder={ T(ctx, "auth.password") }/>
 							</div>
 						</div>
@@ -86,25 +86,25 @@ templ Register(ctx context.Context, csrfToken string) {
 						<div>
 							<label for="email" class="sr-only">{ T(ctx, "auth.email") }</label>
 							<input id="email" name="email" type="email" required
-								class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+								class="appearance-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 								placeholder={ T(ctx, "auth.email") }/>
 						</div>
 						<div>
 							<label for="password" class="sr-only">{ T(ctx, "auth.password") }</label>
 							<input id="password" name="password" type="password" required
-								class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+								class="appearance-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 								placeholder={ T(ctx, "auth.password") }/>
 						</div>
 						<div>
 							<label for="first_name" class="sr-only">{ T(ctx, "auth.first_name") }</label>
 							<input id="first_name" name="first_name" type="text" required
-								class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+								class="appearance-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 								placeholder={ T(ctx, "auth.first_name") }/>
 						</div>
 						<div>
 							<label for="last_name" class="sr-only">{ T(ctx, "auth.last_name") }</label>
 							<input id="last_name" name="last_name" type="text" required
-								class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+								class="appearance-none relative block w-full px-3 py-2 bg-white border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
 								placeholder={ T(ctx, "auth.last_name") }/>
 						</div>
 					</div>

@@ -311,9 +311,30 @@ func run() int {
 	// Initialize service container and handlers
 	serviceContainer := services.NewContainer(database.DB)
 	handlers.InitDashboardService(serviceContainer.DashboardService)
-	cardHandler := cards.NewHandler(serviceContainer.CardService, serviceContainer.AuthzService, database.DB)
-	voucherHandler := vouchers.NewHandler(serviceContainer.VoucherService, serviceContainer.AuthzService, database.DB)
-	giftCardHandler := giftcards.NewHandler(serviceContainer.GiftCardService, serviceContainer.AuthzService, database.DB)
+	cardHandler := cards.NewHandler(
+		serviceContainer.CardService,
+		serviceContainer.AuthzService,
+		serviceContainer.MerchantService,
+		serviceContainer.FavoriteService,
+		serviceContainer.ShareService,
+		database.DB,
+	)
+	voucherHandler := vouchers.NewHandler(
+		serviceContainer.VoucherService,
+		serviceContainer.AuthzService,
+		serviceContainer.MerchantService,
+		serviceContainer.FavoriteService,
+		serviceContainer.ShareService,
+		database.DB,
+	)
+	giftCardHandler := giftcards.NewHandler(
+		serviceContainer.GiftCardService,
+		serviceContainer.AuthzService,
+		serviceContainer.MerchantService,
+		serviceContainer.FavoriteService,
+		serviceContainer.ShareService,
+		database.DB,
+	)
 	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService)
 	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService)
 	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService)

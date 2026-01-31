@@ -3,7 +3,6 @@ package giftcards
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/views"
@@ -28,26 +27,26 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
-	var giftCard models.GiftCard
-	// Preload merchant, user, and transactions
-	if err := database.DB.Where("id = ?", giftCardID).Preload("Merchant").Preload("User").Preload("Transactions").First(&giftCard).Error; err != nil {
+	// Load gift card with relations via service
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
 	// Load shares with users (only if owner)
 	var shares []models.GiftCardShare
 	if perms.IsOwner {
-		database.DB.Where("gift_card_id = ?", giftCardID).Preload("SharedWithUser").Find(&shares)
+		shares, _ = h.shareService.GetGiftCardShares(c.Request().Context(), giftCardID)
 	}
 
 	// Load all merchants for dropdown (used in inline edit)
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		merchants = []models.Merchant{} // Fallback to empty list
+	}
 
 	// Check if gift card is favorited by current user
-	var favorite models.UserFavorite
-	isFavorite := database.DB.Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		user.ID, "gift_card", giftCardID).First(&favorite).Error == nil
+	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
@@ -55,7 +54,7 @@ func (h *Handler) Show(c echo.Context) error {
 	}
 
 	view := views.GiftCardShowView{
-		GiftCard:  giftCard,
+		GiftCard:  *giftCard,
 		Merchants: merchants,
 		Shares:    shares,
 		User:      user,

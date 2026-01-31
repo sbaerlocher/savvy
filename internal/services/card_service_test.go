@@ -237,3 +237,69 @@ func TestCardService_CountUserCards_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCount, count)
 }
+
+func TestCardService_CanUserAccessCard_Owner(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+
+	card := &models.Card{
+		ID:           cardID,
+		UserID:       &userID,
+		CardNumber:   "123456",
+		MerchantName: "Test",
+	}
+
+	mockRepo.On("GetByID", ctx, cardID, mock.Anything).Return(card, nil)
+
+	canAccess, err := service.CanUserAccessCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.True(t, canAccess)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_CanUserAccessCard_NotFound(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+
+	mockRepo.On("GetByID", ctx, cardID, mock.Anything).Return(nil, gorm.ErrRecordNotFound)
+
+	canAccess, err := service.CanUserAccessCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.False(t, canAccess)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_CanUserAccessCard_NotOwner(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+	otherUserID := uuid.New()
+
+	card := &models.Card{
+		ID:           cardID,
+		UserID:       &otherUserID, // Different user
+		CardNumber:   "123456",
+		MerchantName: "Test",
+	}
+
+	mockRepo.On("GetByID", ctx, cardID, mock.Anything).Return(card, nil)
+
+	canAccess, err := service.CanUserAccessCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.False(t, canAccess) // Not owner, no share check implemented
+	mockRepo.AssertExpectations(t)
+}

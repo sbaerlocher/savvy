@@ -106,7 +106,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 									x-model="search"
 									@input="updateVisibility()"
 									placeholder={ T(ctx, "common.search_placeholder") }
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
 							</div>
 							<!-- New Gift Card Button (Desktop) -->
 							<div class="relative hidden sm:block">
@@ -124,14 +124,14 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 							<select
 								x-model="ownerFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
 								<option value="all">{ T(ctx, "giftcards.filter.all_cards") }</option>
 								<option value="mine">{ T(ctx, "common.mine") }</option>
 							</select>
 							<select
 								x-model="statusFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
 								<option value="active">{ T(ctx, "giftcards.filter.active_only") }</option>
 								<option value="all-status">{ T(ctx, "cards.filter.all_status") }</option>
 								<option value="redeemed">{ T(ctx, "giftcards.filter.redeemed_only") }</option>
@@ -140,7 +140,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 							<select
 								x-model="sortBy"
 								@change="updateSort()"
-								class="col-span-2 sm:col-span-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
+								class="col-span-2 sm:col-span-1 px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm">
 								<option value="merchant-asc">{ T(ctx, "giftcards.sort.merchant_asc") }</option>
 								<option value="merchant-desc">{ T(ctx, "giftcards.sort.merchant_desc") }</option>
 								<option value="newest">{ T(ctx, "giftcards.sort.newest_first") }</option>
@@ -426,7 +426,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 									name="merchant_id"
 									required
 									style="font-size: 16px; line-height: 2.5;"
-									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+									class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
 									<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
 									for _, merchant := range view.Merchants {
 										<option value={ merchant.ID.String() }>{ merchant.Name }</option>
@@ -446,7 +446,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 										name="card_number"
 										x-model="cardNumber"
 										required
-										class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"
+										class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 font-mono"
 										placeholder={ T(ctx, "giftcards.form.card_number_placeholder") }/>
 									<button
 										type="button"
@@ -495,7 +495,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 										step="0.01"
 										min="0"
 										required
-										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
 										placeholder={ T(ctx, "giftcards.form.initial_balance_placeholder") }/>
 								</div>
 
@@ -506,7 +506,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 									<select
 										id="currency"
 										name="currency"
-										class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
 										<option value="CHF" selected>CHF</option>
 										<option value="EUR">EUR</option>
 										<option value="USD">USD</option>
@@ -534,7 +534,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 									type="date"
 									id="expires_at"
 									name="expires_at"
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
 							</div>
 
 							<div>
@@ -545,7 +545,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 									id="barcode_type"
 									name="barcode_type"
 									style="font-size: 16px; line-height: 2.5;"
-									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+									class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
 									<option value="CODE128" selected>CODE128</option>
 									<option value="CODE39">CODE39</option>
 									<option value="CODE93">CODE93</option>

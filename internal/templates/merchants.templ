@@ -95,7 +95,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							id="name"
 							name="name"
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
 							placeholder={ T(ctx, "merchants.form.name_placeholder") }/>
 					</div>
 
@@ -107,7 +107,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							type="url"
 							id="logo_url"
 							name="logo_url"
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
 							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
 						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.logo_url_help") }</p>
 					</div>
@@ -120,7 +120,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							type="url"
 							id="website"
 							name="website"
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
 							placeholder="https://www.example.com"/>
 						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.website_help") }</p>
 					</div>
@@ -181,7 +181,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							name="name"
 							value={ merchant.Name }
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
 					</div>
 
 					<div>
@@ -193,7 +193,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							id="logo_url"
 							name="logo_url"
 							value={ merchant.LogoURL }
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
 							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
 					</div>
 
@@ -206,7 +206,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							id="website"
 							name="website"
 							value={ merchant.Website }
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
 							placeholder="https://www.example.com"/>
 					</div>
 

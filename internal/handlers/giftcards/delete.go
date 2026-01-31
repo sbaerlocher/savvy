@@ -4,7 +4,6 @@ package giftcards
 import (
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -26,14 +25,9 @@ func (h *Handler) Delete(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).First(&giftCard).Error; err != nil {
-		return c.Redirect(http.StatusSeeOther, "/gift-cards")
-	}
-
 	// Add user context for audit logging
 	ctx := audit.AddUserIDToContext(c.Request().Context(), user.ID)
-	if err := database.DB.WithContext(ctx).Delete(&giftCard).Error; err != nil {
+	if err := h.giftCardService.DeleteGiftCard(ctx, giftCardID); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 

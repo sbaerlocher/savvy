@@ -4,7 +4,6 @@ package vouchers
 import (
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -26,14 +25,9 @@ func (h *Handler) Delete(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).First(&voucher).Error; err != nil {
-		return c.Redirect(http.StatusSeeOther, "/vouchers")
-	}
-
 	// Add user context for audit logging
 	ctx := audit.AddUserIDToContext(c.Request().Context(), user.ID)
-	if err := database.DB.WithContext(ctx).Delete(&voucher).Error; err != nil {
+	if err := h.voucherService.DeleteVoucher(ctx, voucherID); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 

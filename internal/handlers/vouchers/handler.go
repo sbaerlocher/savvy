@@ -13,16 +13,29 @@ const (
 
 // Handler handles HTTP requests for voucher operations.
 type Handler struct {
-	voucherService services.VoucherServiceInterface
-	authzService   services.AuthzServiceInterface
-	db             *gorm.DB
+	voucherService  services.VoucherServiceInterface
+	authzService    services.AuthzServiceInterface
+	merchantService services.MerchantServiceInterface
+	favoriteService services.FavoriteServiceInterface
+	shareService    services.ShareServiceInterface
+	db              *gorm.DB
 }
 
 // NewHandler creates a new voucher handler with the provided services.
-func NewHandler(voucherService services.VoucherServiceInterface, authzService services.AuthzServiceInterface, db *gorm.DB) *Handler {
+func NewHandler(
+	voucherService services.VoucherServiceInterface,
+	authzService services.AuthzServiceInterface,
+	merchantService services.MerchantServiceInterface,
+	favoriteService services.FavoriteServiceInterface,
+	shareService services.ShareServiceInterface,
+	db *gorm.DB,
+) *Handler {
 	return &Handler{
-		voucherService: voucherService,
-		authzService:   authzService,
-		db:             db,
+		voucherService:  voucherService,
+		authzService:    authzService,
+		merchantService: merchantService,
+		favoriteService: favoriteService,
+		shareService:    shareService,
+		db:              db,
 	}
 }

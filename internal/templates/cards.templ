@@ -28,7 +28,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 									x-model="search"
 									@input="updateVisibility()"
 									placeholder={ T(ctx, "common.search_placeholder") }
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
 							</div>
 							<!-- New Card Button (Desktop) -->
 							<div class="relative hidden sm:block">
@@ -50,14 +50,14 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							<select
 								x-model="ownerFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
 								<option value="all">{ T(ctx, "cards.filter.all_cards") }</option>
 								<option value="mine">{ T(ctx, "common.mine") }</option>
 							</select>
 							<select
 								x-model="statusFilter"
 								@change="updateVisibility()"
-								class="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
 								<option value="active">{ T(ctx, "cards.filter.active_only") }</option>
 								<option value="all-status">{ T(ctx, "cards.filter.all_status") }</option>
 								<option value="inactive">{ T(ctx, "cards.filter.inactive_only") }</option>
@@ -65,7 +65,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							<select
 								x-model="sortBy"
 								@change="updateSort()"
-								class="col-span-2 sm:col-span-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								class="col-span-2 sm:col-span-1 px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
 								<option value="name-asc">{ T(ctx, "cards.sort.name_asc") }</option>
 								<option value="name-desc">{ T(ctx, "cards.sort.name_desc") }</option>
 								<option value="newest">{ T(ctx, "cards.sort.newest") }</option>
@@ -367,7 +367,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 									name="merchant_id"
 									required
 									style="font-size: 16px; line-height: 2.5;"
-									class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+									class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 									<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
 									for _, merchant := range view.Merchants {
 										<option value={ merchant.ID.String() }>{ merchant.Name }</option>
@@ -385,7 +385,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 							id="program"
 							name="program"
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder={ T(ctx, "cards.form.program_placeholder") }/>
 					</div>
 
@@ -400,7 +400,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 								name="card_number"
 								x-model="cardNumber"
 								required
-								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"
+								class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"
 								placeholder={ T(ctx, "cards.form.card_number_placeholder") }/>
 							<button
 								type="button"
@@ -445,7 +445,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 							id="barcode_type"
 							name="barcode_type"
 							style="font-size: 16px; line-height: 2.5;"
-							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 							<option value="CODE128">CODE128</option>
 							<option value="CODE39">CODE39</option>
 							<option value="CODE93">CODE93</option>
@@ -473,7 +473,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 							id="notes"
 							name="notes"
 							rows="3"
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder={ T(ctx, "cards.form.notes_placeholder") }></textarea>
 					</div>
 
@@ -521,7 +521,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 									@input.debounce.300ms="fetchSuggestions()"
 									@keydown="handleKeydown($event)"
 									@blur="hideSuggestions()"
-									class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+									class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
 									placeholder={ T(ctx, "share.email_placeholder") }
 									autocomplete="off"/>
 
@@ -614,7 +614,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							name="merchant_id"
 							required
 							style="font-size: 16px; line-height: 2.5;"
-							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 							<option value="">{ T(ctx, "cards.form.merchant_select") }</option>
 							for _, merchant := range view.Merchants {
 								if view.Card.MerchantID != nil && merchant.ID == *view.Card.MerchantID {
@@ -637,7 +637,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							name="program"
 							value={ view.Card.Program }
 							required
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
 					</div>
 
 					<div>
@@ -651,7 +651,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 								name="card_number"
 								x-model="cardNumber"
 								required
-								class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"/>
+								class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono"/>
 							<button
 								type="button"
 								@click="startScanning()"
@@ -695,7 +695,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							id="barcode_type"
 							name="barcode_type"
 							style="font-size: 16px; line-height: 2.5;"
-							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 							<option value="CODE128" selected?={ view.Card.BarcodeType == "CODE128" }>CODE128</option>
 							<option value="CODE39" selected?={ view.Card.BarcodeType == "CODE39" }>CODE39</option>
 							<option value="CODE93" selected?={ view.Card.BarcodeType == "CODE93" }>CODE93</option>
@@ -723,7 +723,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							id="status"
 							name="status"
 							style="font-size: 16px; line-height: 2.5;"
-							class="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+							class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 							<option value="active" selected?={ view.Card.Status == "active" }>{ T(ctx, "cards.form.status.active") }</option>
 							<option value="suspended" selected?={ view.Card.Status == "suspended" }>{ T(ctx, "cards.form.status.suspended") }</option>
 							<option value="expired" selected?={ view.Card.Status == "expired" }>{ T(ctx, "cards.form.status.expired") }</option>
@@ -738,7 +738,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							id="notes"
 							name="notes"
 							rows="3"
-							class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ view.Card.Notes }</textarea>
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ view.Card.Notes }</textarea>
 					</div>
 
 					<div class="flex gap-3 pt-4">
@@ -840,7 +840,7 @@ templ CardShareInlineForm(ctx context.Context, csrfToken string, cardID string) 
 					@input.debounce.300ms="fetchSuggestions()"
 					@keydown="handleKeydown($event)"
 					@blur="hideSuggestions()"
-					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+					class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
 					placeholder={ T(ctx, "share.email_placeholder") }
 					autocomplete="off"/>
 
@@ -954,7 +954,7 @@ templ CardShareInlineFormError(ctx context.Context, csrfToken string, cardID str
 					@input.debounce.300ms="fetchSuggestions()"
 					@keydown="handleKeydown($event)"
 					@blur="hideSuggestions()"
-					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+					class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
 					placeholder={ T(ctx, "share.email_placeholder") }
 					autocomplete="off"/>
 
@@ -1308,7 +1308,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 					<select
 						id="barcode_type"
 						name="barcode_type"
-						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 						<option value="CODE128" selected?={ card.BarcodeType == "CODE128" }>CODE128</option>
 						<option value="CODE39" selected?={ card.BarcodeType == "CODE39" }>CODE39</option>
 						<option value="CODE93" selected?={ card.BarcodeType == "CODE93" }>CODE93</option>
@@ -1335,7 +1335,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 					<select
 						id="status"
 						name="status"
-						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
 						<option value="active" selected?={ card.Status == "active" }>{ T(ctx, "cards.form.status.active") }</option>
 						<option value="suspended" selected?={ card.Status == "suspended" }>{ T(ctx, "cards.form.status.suspended") }</option>
 						<option value="expired" selected?={ card.Status == "expired" }>{ T(ctx, "cards.form.status.expired") }</option>
@@ -1350,7 +1350,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 						id="notes"
 						name="notes"
 						rows="3"
-						class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ card.Notes }</textarea>
+						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{ card.Notes }</textarea>
 				</div>
 
 				<div class="flex gap-3 pt-4">

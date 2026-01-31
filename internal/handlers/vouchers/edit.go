@@ -3,7 +3,6 @@ package vouchers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/views"
@@ -28,14 +27,16 @@ func (h *Handler) Edit(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).First(&voucher).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
 	// Load all merchants for dropdown
-	var merchants []models.Merchant
-	database.DB.Order("name ASC").Find(&merchants)
+	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
+	if err != nil {
+		merchants = []models.Merchant{} // Fallback to empty list
+	}
 
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
@@ -43,7 +44,7 @@ func (h *Handler) Edit(c echo.Context) error {
 	}
 
 	view := views.VoucherEditView{
-		Voucher:         voucher,
+		Voucher:         *voucher,
 		Merchants:       merchants,
 		User:            user,
 		IsImpersonating: isImpersonating,

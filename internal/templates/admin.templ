@@ -161,7 +161,7 @@ templ AdminUsersIndex(ctx context.Context, csrfToken string, users []models.User
 											<div class="flex gap-2">
 												<form method="POST" action={ templ.URL(fmt.Sprintf("/admin/users/%s/role", user.ID.String())) } class="flex gap-2 flex-1">
 													<input type="hidden" name="csrf_token" value={ csrfToken }/>
-													<select name="role" class="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5">
+													<select name="role" class="flex-1 text-xs bg-white border border-gray-300 rounded px-2 py-1.5">
 														<option value="user" selected?={ user.Role == "user" }>{ T(ctx, "admin.users.role.user") }</option>
 														<option value="admin" selected?={ user.Role == "admin" }>{ T(ctx, "admin.users.role.admin") }</option>
 													</select>
@@ -308,7 +308,7 @@ templ AdminUsersIndex(ctx context.Context, csrfToken string, users []models.User
 															<span class="text-sm font-medium text-gray-700 mb-2 block">{ T(ctx, "admin.users.change_role_title") }:</span>
 															<form method="POST" action={ templ.URL(fmt.Sprintf("/admin/users/%s/role", user.ID.String())) } class="flex gap-2">
 																<input type="hidden" name="csrf_token" value={ csrfToken }/>
-																<select name="role" class="border border-gray-300 rounded px-3 py-2 text-sm">
+																<select name="role" class="bg-white border border-gray-300 rounded px-3 py-2 text-sm">
 																	<option value="user" selected?={ user.Role == "user" }>{ T(ctx, "admin.users.role.user") }</option>
 																	<option value="admin" selected?={ user.Role == "admin" }>{ T(ctx, "admin.users.role.admin") }</option>
 																</select>
@@ -363,7 +363,7 @@ templ AdminUsersIndex(ctx context.Context, csrfToken string, users []models.User
 									x-model="search"
 									@input="updateVisibility()"
 									placeholder={ T(ctx, "admin.users.search_placeholder") }
-									class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+									class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 								/>
 							</div>
 						}
@@ -504,7 +504,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 							id="email"
 							name="email"
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							placeholder="benutzer@example.com"
 						/>
 					</div>
@@ -518,7 +518,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 							id="password"
 							name="password"
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							placeholder="Mindestens 8 Zeichen"
 						/>
 						<p class="mt-1 text-xs text-gray-500">Passwort muss mindestens 8 Zeichen lang sein</p>
@@ -533,7 +533,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 							id="first_name"
 							name="first_name"
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
 					<!-- Last Name -->
@@ -546,7 +546,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 							id="last_name"
 							name="last_name"
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
 					<!-- Admin Checkbox -->

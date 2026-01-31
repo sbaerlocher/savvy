@@ -4,7 +4,6 @@ package cards
 import (
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -26,14 +25,9 @@ func (h *Handler) Delete(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
-	var card models.Card
-	if err := database.DB.Where("id = ?", cardID).First(&card).Error; err != nil {
-		return c.Redirect(http.StatusSeeOther, "/cards")
-	}
-
 	// Add user context for audit logging
 	ctx := audit.AddUserIDToContext(c.Request().Context(), user.ID)
-	if err := database.DB.WithContext(ctx).Delete(&card).Error; err != nil {
+	if err := h.cardService.DeleteCard(ctx, cardID); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
