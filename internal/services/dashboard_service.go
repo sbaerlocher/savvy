@@ -199,11 +199,22 @@ func (s *DashboardService) getStats(ctx context.Context, userID uuid.UUID) (*Das
 	}
 
 	// Calculate total balance using cached current_balance column
-	err := s.db.WithContext(ctx).
-		Model(&models.GiftCard{}).
-		Where("user_id = ? AND status = ?", userID, "active").
-		Select("COALESCE(SUM(current_balance), 0)").
-		Scan(&stats.TotalBalance).Error
+	// Include both owned gift cards AND shared gift cards
+	err := s.db.WithContext(ctx).Raw(`
+		SELECT COALESCE(SUM(current_balance), 0)
+		FROM gift_cards
+		WHERE status = 'active'
+		  AND deleted_at IS NULL
+		  AND (
+		    user_id = ?
+		    OR id IN (
+		      SELECT gift_card_id
+		      FROM gift_card_shares
+		      WHERE shared_with_id = ?
+		        AND deleted_at IS NULL
+		    )
+		  )
+	`, userID, userID).Scan(&stats.TotalBalance).Error
 	if err != nil {
 		return nil, err
 	}
