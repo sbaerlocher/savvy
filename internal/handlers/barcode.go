@@ -7,6 +7,7 @@ import (
 	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/security"
+	"savvy/internal/services"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/aztec"
@@ -22,6 +23,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// BarcodeHandler handles barcode generation with authorization checks.
+type BarcodeHandler struct {
+	authzService services.AuthzServiceInterface
+}
+
+// NewBarcodeHandler creates a new barcode handler.
+func NewBarcodeHandler(authzService services.AuthzServiceInterface) *BarcodeHandler {
+	return &BarcodeHandler{
+		authzService: authzService,
+	}
+}
+
 // resourceData holds barcode data extracted from a resource
 type resourceData struct {
 	barcodeType string
@@ -29,14 +42,16 @@ type resourceData struct {
 }
 
 // fetchResourceData fetches resource and extracts barcode data based on resource type
-func fetchResourceData(claims *security.BarcodeTokenClaims, userID uuid.UUID) (*resourceData, error) {
+func (h *BarcodeHandler) fetchResourceData(ctx echo.Context, claims *security.BarcodeTokenClaims, userID uuid.UUID) (*resourceData, error) {
 	switch claims.ResourceType {
 	case "card":
 		var card models.Card
 		if err := database.DB.Where("id = ?", claims.ResourceID).First(&card).Error; err != nil {
 			return nil, err
 		}
-		if !hasCardAccess(userID, &card) {
+		// Check access using AuthzService
+		_, err := h.authzService.CheckCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 		return &resourceData{barcodeType: card.BarcodeType, data: card.CardNumber}, nil
@@ -46,7 +61,9 @@ func fetchResourceData(claims *security.BarcodeTokenClaims, userID uuid.UUID) (*
 		if err := database.DB.Where("id = ?", claims.ResourceID).First(&voucher).Error; err != nil {
 			return nil, err
 		}
-		if !hasVoucherAccess(userID, &voucher) {
+		// Check access using AuthzService
+		_, err := h.authzService.CheckVoucherAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 		return &resourceData{barcodeType: voucher.BarcodeType, data: voucher.Code}, nil
@@ -56,7 +73,9 @@ func fetchResourceData(claims *security.BarcodeTokenClaims, userID uuid.UUID) (*
 		if err := database.DB.Where("id = ?", claims.ResourceID).First(&giftCard).Error; err != nil {
 			return nil, err
 		}
-		if !hasGiftCardAccess(userID, &giftCard) {
+		// Check access using AuthzService
+		_, err := h.authzService.CheckGiftCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 		return &resourceData{barcodeType: giftCard.BarcodeType, data: giftCard.CardNumber}, nil
@@ -118,9 +137,9 @@ func encodeBarcode(barcodeType, data string) (barcode.Barcode, error) {
 	}
 }
 
-// BarcodeGenerate generates a barcode image using a secure token
+// Generate generates a barcode image using a secure token
 // The token contains encrypted resource information and expires after 7 days (matches PWA cache)
-func BarcodeGenerate(c echo.Context) error {
+func (h *BarcodeHandler) Generate(c echo.Context) error {
 	// Get token from URL path parameter
 	token := c.Param("token")
 	if token == "" {
@@ -150,7 +169,7 @@ func BarcodeGenerate(c echo.Context) error {
 	}
 
 	// Fetch resource and extract barcode data
-	resData, err := fetchResourceData(claims, user.ID)
+	resData, err := h.fetchResourceData(c, claims, user.ID)
 	if err != nil {
 		if httpErr, ok := err.(*echo.HTTPError); ok {
 			return httpErr
@@ -198,49 +217,4 @@ func BarcodeGenerate(c echo.Context) error {
 
 	// Encode and write PNG
 	return png.Encode(c.Response().Writer, barcodeImage)
-}
-
-// hasCardAccess checks if user has access to a card (owner or shared with)
-func hasCardAccess(userID uuid.UUID, card *models.Card) bool {
-	// User is owner
-	if card.UserID != nil && *card.UserID == userID {
-		return true
-	}
-
-	// Check if shared with user
-	var shareCount int64
-	database.DB.Model(&models.CardShare{}).
-		Where("card_id = ? AND shared_with_id = ?", card.ID, userID).
-		Count(&shareCount)
-	return shareCount > 0
-}
-
-// hasVoucherAccess checks if user has access to a voucher (owner or shared with)
-func hasVoucherAccess(userID uuid.UUID, voucher *models.Voucher) bool {
-	// User is owner
-	if voucher.UserID != nil && *voucher.UserID == userID {
-		return true
-	}
-
-	// Check if shared with user
-	var shareCount int64
-	database.DB.Model(&models.VoucherShare{}).
-		Where("voucher_id = ? AND shared_with_id = ?", voucher.ID, userID).
-		Count(&shareCount)
-	return shareCount > 0
-}
-
-// hasGiftCardAccess checks if user has access to a gift card (owner or shared with)
-func hasGiftCardAccess(userID uuid.UUID, giftCard *models.GiftCard) bool {
-	// User is owner
-	if giftCard.UserID != nil && *giftCard.UserID == userID {
-		return true
-	}
-
-	// Check if shared with user
-	var shareCount int64
-	database.DB.Model(&models.GiftCardShare{}).
-		Where("gift_card_id = ? AND shared_with_id = ?", giftCard.ID, userID).
-		Count(&shareCount)
-	return shareCount > 0
 }

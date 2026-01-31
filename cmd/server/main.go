@@ -339,6 +339,7 @@ func run() int {
 	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService)
 	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService)
 	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService)
+	barcodeHandler := handlers.NewBarcodeHandler(serviceContainer.AuthzService)
 
 	// ========================================
 	// ROUTE REGISTRATION
@@ -373,7 +374,7 @@ func run() int {
 	protected.GET("/", handlers.HomeIndex)
 
 	// Barcode generation (secure token-based access)
-	protected.GET("/barcode/:token", handlers.BarcodeGenerate)
+	protected.GET("/barcode/:token", barcodeHandler.Generate)
 
 	// HTMX autocomplete endpoint (returns HTML fragment)
 	protected.GET("/api/shared-users", handlers.SharedUsersAutocomplete)

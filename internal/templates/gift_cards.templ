@@ -1082,7 +1082,7 @@ templ GiftCardShareInlineForm(ctx context.Context, csrfToken string, giftCardID 
 					@input.debounce.300ms="fetchSuggestions()"
 					@keydown="handleKeydown($event)"
 					@blur="hideSuggestions()"
-					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+					class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
 					placeholder={ T(ctx, "share.email_placeholder") }
 					autocomplete="off"/>
 
@@ -1214,7 +1214,7 @@ templ GiftCardShareInlineFormError(ctx context.Context, csrfToken string, giftCa
 					@input.debounce.300ms="fetchSuggestions()"
 					@keydown="handleKeydown($event)"
 					@blur="hideSuggestions()"
-					class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
+					class="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded focus:ring-red-500 focus:border-red-500"
 					placeholder={ T(ctx, "share.email_placeholder") }
 					autocomplete="off"/>
 
