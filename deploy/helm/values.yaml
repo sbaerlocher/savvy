@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/sbaerlocher/container/savvy
   pullPolicy: IfNotPresent
-  tag: ""  # Overrides the image tag whose default is the chart appVersion.
+  tag: "@sha256:5d44e43d7a9efd6fb3d27166ab20d6a875dce9d951588f6c5b86f2e866384ac0"  # Overrides the image tag whose default is the chart appVersion.
 
 imagePullSecrets: []
 nameOverride: ""
