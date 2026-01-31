@@ -74,7 +74,7 @@ func (a *VoucherShareAdapter) CreateShare(ctx context.Context, req CreateShareRe
 	var sharedUser models.User
 	if err := database.DB.Where("LOWER(email) = ?", req.SharedWithEmail).First(&sharedUser).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("Benutzer nicht gefunden")
+			return errors.New("user not found")
 		}
 		return err
 	}
@@ -83,7 +83,7 @@ func (a *VoucherShareAdapter) CreateShare(ctx context.Context, req CreateShareRe
 	var existingShare models.VoucherShare
 	if err := a.db.WithContext(ctx).Where("voucher_id = ? AND shared_with_id = ?",
 		req.ResourceID, sharedUser.ID).First(&existingShare).Error; err == nil {
-		return errors.New("Bereits mit diesem Benutzer geteilt")
+		return errors.New("already shared with this user")
 	}
 
 	// Create share (vouchers are always read-only, ignore CanEdit/CanDelete from request)

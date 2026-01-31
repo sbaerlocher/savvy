@@ -760,6 +760,42 @@
     "translation": "Unauthorized"
   },
   {
+    "id": "error.user_not_found",
+    "translation": "User not found"
+  },
+  {
+    "id": "error.already_shared",
+    "translation": "Already shared with this user"
+  },
+  {
+    "id": "error.invalid_id",
+    "translation": "Invalid ID"
+  },
+  {
+    "id": "error.invalid_resource_id",
+    "translation": "Invalid resource ID"
+  },
+  {
+    "id": "error.invalid_share_id",
+    "translation": "Invalid share ID"
+  },
+  {
+    "id": "error.updates_not_supported",
+    "translation": "Updates not supported for this resource type"
+  },
+  {
+    "id": "error.editing_not_supported",
+    "translation": "Editing not supported for this resource type"
+  },
+  {
+    "id": "error.update_share_failed",
+    "translation": "Error updating share"
+  },
+  {
+    "id": "error.delete_share_failed",
+    "translation": "Error deleting share"
+  },
+  {
     "id": "giftcards.add_new",
     "translation": "New Gift Card"
   },

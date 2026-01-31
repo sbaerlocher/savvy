@@ -760,6 +760,42 @@
     "translation": "Non Autorisé"
   },
   {
+    "id": "error.user_not_found",
+    "translation": "Utilisateur introuvable"
+  },
+  {
+    "id": "error.already_shared",
+    "translation": "Déjà partagé avec cet utilisateur"
+  },
+  {
+    "id": "error.invalid_id",
+    "translation": "ID invalide"
+  },
+  {
+    "id": "error.invalid_resource_id",
+    "translation": "ID de ressource invalide"
+  },
+  {
+    "id": "error.invalid_share_id",
+    "translation": "ID de partage invalide"
+  },
+  {
+    "id": "error.updates_not_supported",
+    "translation": "Mises à jour non prises en charge pour ce type de ressource"
+  },
+  {
+    "id": "error.editing_not_supported",
+    "translation": "Modification non prise en charge pour ce type de ressource"
+  },
+  {
+    "id": "error.update_share_failed",
+    "translation": "Erreur lors de la mise à jour du partage"
+  },
+  {
+    "id": "error.delete_share_failed",
+    "translation": "Erreur lors de la suppression du partage"
+  },
+  {
     "id": "giftcards.add_new",
     "translation": "Nouvelle Carte Cadeau"
   },

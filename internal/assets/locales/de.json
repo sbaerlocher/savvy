@@ -785,6 +785,42 @@
     "translation": "Nicht autorisiert"
   },
   {
+    "id": "error.user_not_found",
+    "translation": "Benutzer nicht gefunden"
+  },
+  {
+    "id": "error.already_shared",
+    "translation": "Bereits mit diesem Benutzer geteilt"
+  },
+  {
+    "id": "error.invalid_id",
+    "translation": "Ungültige ID"
+  },
+  {
+    "id": "error.invalid_resource_id",
+    "translation": "Ungültige Ressourcen-ID"
+  },
+  {
+    "id": "error.invalid_share_id",
+    "translation": "Ungültige Freigabe-ID"
+  },
+  {
+    "id": "error.updates_not_supported",
+    "translation": "Updates für diesen Ressourcentyp nicht unterstützt"
+  },
+  {
+    "id": "error.editing_not_supported",
+    "translation": "Bearbeiten für diesen Ressourcentyp nicht unterstützt"
+  },
+  {
+    "id": "error.update_share_failed",
+    "translation": "Fehler beim Aktualisieren der Freigabe"
+  },
+  {
+    "id": "error.delete_share_failed",
+    "translation": "Fehler beim Löschen der Freigabe"
+  },
+  {
     "id": "giftcards.add_new",
     "translation": "Neue Geschenkkarte"
   },

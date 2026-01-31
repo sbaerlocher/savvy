@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"savvy/internal/audit"
 	"savvy/internal/database"
+	"savvy/internal/i18n"
 	"savvy/internal/models"
 )
 
@@ -30,13 +31,15 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 	resourceID := c.Param("id")
 	resourceUUID, err := uuid.Parse(resourceID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid ID")
+		msg := i18n.T(c.Request().Context(), "error.invalid_id")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	// Check ownership using adapter
 	isOwner, err := h.adapter.CheckOwnership(c.Request().Context(), user.ID, resourceUUID)
 	if err != nil || !isOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
+		msg := i18n.T(c.Request().Context(), "error.unauthorized")
+		return c.String(http.StatusForbidden, msg)
 	}
 
 	// Parse form values
@@ -54,10 +57,8 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 	// Validate email exists
 	var sharedUser models.User
 	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
-		if isHTMX {
-			return c.String(http.StatusBadRequest, "Benutzer nicht gefunden")
-		}
-		return c.String(http.StatusBadRequest, "User not found")
+		msg := i18n.T(c.Request().Context(), "error.user_not_found")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	// Create share using adapter
@@ -71,10 +72,18 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 	}
 
 	if err := h.adapter.CreateShare(c.Request().Context(), req); err != nil {
-		if isHTMX {
-			return c.String(http.StatusBadRequest, err.Error())
+		// Translate error message based on error type
+		var msgKey string
+		switch err.Error() {
+		case "user not found":
+			msgKey = "error.user_not_found"
+		case "already shared with this user":
+			msgKey = "error.already_shared"
+		default:
+			msgKey = "error.server_error"
 		}
-		return c.String(http.StatusInternalServerError, "Error creating share")
+		msg := i18n.T(c.Request().Context(), msgKey)
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	// For HTMX, refresh page
@@ -83,14 +92,16 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	return c.String(http.StatusOK, "Share created")
+	msg := i18n.T(c.Request().Context(), "success.created")
+	return c.String(http.StatusOK, msg)
 }
 
 // Update handles share permission updates.
 // Only supported for Cards and Gift Cards (not Vouchers - they're read-only).
 func (h *BaseShareHandler) Update(c echo.Context) error {
 	if !h.adapter.SupportsEdit() {
-		return c.String(http.StatusMethodNotAllowed, "Updates not supported for this resource type")
+		msg := i18n.T(c.Request().Context(), "error.updates_not_supported")
+		return c.String(http.StatusMethodNotAllowed, msg)
 	}
 
 	user := c.Get("current_user").(*models.User)
@@ -99,18 +110,21 @@ func (h *BaseShareHandler) Update(c echo.Context) error {
 
 	resourceUUID, err := uuid.Parse(resourceID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid resource ID")
+		msg := i18n.T(c.Request().Context(), "error.invalid_resource_id")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	shareUUID, err := uuid.Parse(shareID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid share ID")
+		msg := i18n.T(c.Request().Context(), "error.invalid_share_id")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	// Check ownership
 	isOwner, err := h.adapter.CheckOwnership(c.Request().Context(), user.ID, resourceUUID)
 	if err != nil || !isOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
+		msg := i18n.T(c.Request().Context(), "error.unauthorized")
+		return c.String(http.StatusForbidden, msg)
 	}
 
 	// Parse permissions
@@ -132,7 +146,8 @@ func (h *BaseShareHandler) Update(c echo.Context) error {
 	}
 
 	if err := h.adapter.UpdateShare(c.Request().Context(), req); err != nil {
-		return c.String(http.StatusInternalServerError, "Error updating share")
+		msg := i18n.T(c.Request().Context(), "error.update_share_failed")
+		return c.String(http.StatusInternalServerError, msg)
 	}
 
 	// HTMX: refresh page
@@ -141,7 +156,8 @@ func (h *BaseShareHandler) Update(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	return c.String(http.StatusOK, "Share updated")
+	msg := i18n.T(c.Request().Context(), "success.updated")
+	return c.String(http.StatusOK, msg)
 }
 
 // Delete handles share deletion for any resource type.
@@ -152,18 +168,21 @@ func (h *BaseShareHandler) Delete(c echo.Context) error {
 
 	resourceUUID, err := uuid.Parse(resourceID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid resource ID")
+		msg := i18n.T(c.Request().Context(), "error.invalid_resource_id")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	shareUUID, err := uuid.Parse(shareID)
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid share ID")
+		msg := i18n.T(c.Request().Context(), "error.invalid_share_id")
+		return c.String(http.StatusBadRequest, msg)
 	}
 
 	// Check ownership
 	isOwner, err := h.adapter.CheckOwnership(c.Request().Context(), user.ID, resourceUUID)
 	if err != nil || !isOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
+		msg := i18n.T(c.Request().Context(), "error.unauthorized")
+		return c.String(http.StatusForbidden, msg)
 	}
 
 	// Add user ID to context for audit logging
@@ -171,7 +190,8 @@ func (h *BaseShareHandler) Delete(c echo.Context) error {
 
 	// Delete using adapter
 	if err := h.adapter.DeleteShare(ctx, shareUUID); err != nil {
-		return c.String(http.StatusInternalServerError, "Error deleting share")
+		msg := i18n.T(c.Request().Context(), "error.delete_share_failed")
+		return c.String(http.StatusInternalServerError, msg)
 	}
 
 	// HTMX: refresh page
@@ -180,7 +200,8 @@ func (h *BaseShareHandler) Delete(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	}
 
-	return c.String(http.StatusOK, "Share deleted")
+	msg := i18n.T(c.Request().Context(), "success.deleted")
+	return c.String(http.StatusOK, msg)
 }
 
 // NewInline renders the inline share creation form.
@@ -200,7 +221,8 @@ func (h *BaseShareHandler) Cancel(c echo.Context) error {
 // EditInline renders the inline share edit form (Cards & Gift Cards only).
 func (h *BaseShareHandler) EditInline(c echo.Context) error {
 	if !h.adapter.SupportsEdit() {
-		return c.String(http.StatusMethodNotAllowed, "Editing not supported for this resource type")
+		msg := i18n.T(c.Request().Context(), "error.editing_not_supported")
+		return c.String(http.StatusMethodNotAllowed, msg)
 	}
 	// Template handles rendering
 	return c.String(http.StatusOK, "")
@@ -209,7 +231,8 @@ func (h *BaseShareHandler) EditInline(c echo.Context) error {
 // CancelEdit closes the inline edit form without saving (Cards & Gift Cards only).
 func (h *BaseShareHandler) CancelEdit(c echo.Context) error {
 	if !h.adapter.SupportsEdit() {
-		return c.String(http.StatusMethodNotAllowed, "Editing not supported for this resource type")
+		msg := i18n.T(c.Request().Context(), "error.editing_not_supported")
+		return c.String(http.StatusMethodNotAllowed, msg)
 	}
 	// HTMX: return empty string to remove the form
 	return c.String(http.StatusOK, "")
