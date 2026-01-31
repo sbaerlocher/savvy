@@ -85,12 +85,15 @@ spec:
             # OAuth (optional)
             {{- if .Values.oauth.enabled }}
             - name: OAUTH_CLIENT_ID
-              value: {{ .Values.oauth.clientId }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.oauth.existingSecret }}
+                  key: client-id
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.oauth.existingSecret }}
-                  key: {{ .Values.oauth.existingSecretKey }}
+                  key: client-secret
             - name: OAUTH_ISSUER
               value: {{ .Values.oauth.issuer }}
             - name: OAUTH_REDIRECT_URL

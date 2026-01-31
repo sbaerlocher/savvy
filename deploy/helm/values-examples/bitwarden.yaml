@@ -3,9 +3,10 @@
 #
 # Prerequisites:
 # 1. Create secrets in Bitwarden Secrets Manager:
-#    - savvy-database-url    → postgres://user:pass@host:5432/db?sslmode=require
-#    - savvy-session-secret  → random-secret-string
-#    - savvy-oauth-secret    → oauth-client-secret (optional)
+#    - savvy-database-url         → postgres://user:pass@host:5432/db?sslmode=require
+#    - savvy-session-secret       → random-secret-string
+#    - savvy-oauth-client-id      → oauth-client-id (optional)
+#    - savvy-oauth-client-secret  → oauth-client-secret (optional)
 #
 # 2. Configure ClusterSecretStore with Bitwarden provider
 
@@ -31,12 +32,17 @@ externalSecrets:
       remoteRef:
         key: "savvy-database-url"
 
-    # OAuth Client Secret (optional)
+    # OAuth Secrets (optional)
+    - target:
+        name: savvy-oauth
+        key: client-id
+      remoteRef:
+        key: "savvy-oauth-client-id"
     - target:
         name: savvy-oauth
         key: client-secret
       remoteRef:
-        key: "savvy-oauth-secret"
+        key: "savvy-oauth-client-secret"
 
 # Database Configuration
 database:
@@ -46,8 +52,6 @@ database:
 # OAuth Configuration (optional)
 oauth:
   enabled: false
-  clientId: "your-client-id"
   issuer: "https://auth.example.com"
   redirectUrl: "https://savvy.example.com/auth/oauth/callback"
   existingSecret: "savvy-oauth"
-  existingSecretKey: "client-secret"

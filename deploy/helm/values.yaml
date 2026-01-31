@@ -21,7 +21,7 @@ serviceAccount:
 
 podAnnotations:
   k8s.grafana.com/scrape: "true"
-  k8s.grafana.com/metrics.portNumber: "8080"
+  k8s.grafana.com/metrics.portNumber: "3000"
   k8s.grafana.com/metrics.path: "/metrics"
   k8s.grafana.com/job: "savvy"
 
@@ -45,7 +45,7 @@ securityContext:
 service:
   type: ClusterIP
   port: 80
-  targetPort: 8080
+  targetPort: 3000
   annotations: {}
 
 ingress:
@@ -109,7 +109,7 @@ affinity: {}
 
 # Application Configuration
 config:
-  serverPort: 8080
+  serverPort: 3000
   goEnv: production
 
   # Feature Toggles
@@ -178,12 +178,9 @@ externalSecrets:
 # OAuth/OIDC Configuration (optional)
 oauth:
   enabled: false
-  clientId: ""
-  clientSecret: ""  # Via External Secret
   issuer: ""
   redirectUrl: ""
-  existingSecret: ""
-  existingSecretKey: "client-secret"
+  existingSecret: "savvy-oauth"
 
 # Monitoring (Prometheus ServiceMonitor)
 monitoring:
