@@ -1,6 +1,6 @@
 # TODO - Offene Aufgaben
 
-**Letzte Aktualisierung**: 2026-01-27
+**Letzte Aktualisierung**: 2026-01-31
 **Projekt**: Savvy (Savvy System)
 **Production-Ready Score**: 8.9/10 ✅
 
@@ -171,10 +171,14 @@ npm run build
 
 **Priorität**: HIGH (vor Production-Deployment)
 
-**Aktuell**: 0% Coverage (keine Tests vorhanden)
+**Aktuell**: ~5% Coverage (AuthzService getestet)
 **Ziel**: >70% Coverage
 
-**Testbarkeit-Score**: 8/10 (Interfaces vorhanden, Tests fehlen noch)
+**Testbarkeit-Score**: 8/10 (Interfaces vorhanden, Tests teilweise vorhanden)
+
+**Completed** ✅:
+
+- ✅ `services/authz_service_test.go` - 5 Tests, PostgreSQL-based, Docker/CI ready
 
 **Priorität**:
 
@@ -548,7 +552,22 @@ Diese wurden bereits implementiert:
 - ✅ Dashboard Performance: N+1 Query Fix (40% faster)
 - ✅ Gift Card Balance Caching: DB Trigger Auto-Update (78% faster)
 
-### v1.2.0 (2026-01-27) ✅ CURRENT
+### v1.3.0 (2026-01-31) ✅ CURRENT
+
+- ✅ **Routing Improvements**: Structured route documentation, debug route printer
+- ✅ **RESTful Compliance**: 5 update operations changed from POST to PATCH
+- ✅ **Impersonate Middleware**: Admin routes accessible during impersonation (support/testing)
+- ✅ **Share Handler Abstraction**: Adapter pattern eliminates 70% code duplication
+  - Created ShareAdapter interface (90 LOC)
+  - Implemented BaseShareHandler with unified logic (224 LOC)
+  - Support for resource-specific behaviors (vouchers read-only, gift cards transactions)
+- ✅ **Testing Infrastructure**: AuthzService tests with PostgreSQL (Docker/CI ready)
+  - 5 tests: Owner access, shared user, no access, transaction permissions
+  - All tests passing in Docker with PostgreSQL
+  - Tests skip locally, run in CI with DATABASE_URL
+- ✅ **Route Organization**: Renamed merchantsAdmin → merchantsCRUD, removed /api group
+
+### v1.2.0 (2026-01-27)
 
 - ✅ **AuthzService Implementation**: Zentrale Authorization-Logic (154 LOC)
 - ✅ **JavaScript Extraction**: Modular Build System (Rollup + Terser)

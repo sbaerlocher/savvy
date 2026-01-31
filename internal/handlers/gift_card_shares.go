@@ -2,192 +2,64 @@
 package handlers
 
 import (
-	"net/http"
-	"savvy/internal/database"
-	"savvy/internal/models"
-	"savvy/internal/services"
-	"savvy/internal/templates"
-	"strings"
-
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
+	"savvy/internal/handlers/shares"
 )
 
-// GiftCardSharesHandler handles gift card sharing operations
+// GiftCardSharesHandler handles gift card sharing operations using the unified share handler.
+// Gift cards support granular permissions including CanEditTransactions.
+// Eliminates code duplication by delegating to shares.BaseShareHandler.
 type GiftCardSharesHandler struct {
-	authzService services.AuthzServiceInterface
+	baseHandler *shares.BaseShareHandler
 }
 
-// NewGiftCardSharesHandler creates a new gift card shares handler
-func NewGiftCardSharesHandler(authzService services.AuthzServiceInterface) *GiftCardSharesHandler {
+// NewGiftCardSharesHandler creates a new gift card shares handler.
+func NewGiftCardSharesHandler(db *gorm.DB) *GiftCardSharesHandler {
+	adapter := shares.NewGiftCardShareAdapter(db)
 	return &GiftCardSharesHandler{
-		authzService: authzService,
+		baseHandler: shares.NewBaseShareHandler(adapter),
 	}
 }
 
-// Create creates a new share
+// Create creates a new gift card share.
+// Delegates to BaseShareHandler for unified share creation logic.
 func (h *GiftCardSharesHandler) Create(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization (only owners can create shares)
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Parse form
-	email := strings.ToLower(strings.TrimSpace(c.FormValue("shared_with_email")))
-	canEdit := c.FormValue("can_edit") == "on"
-	canDelete := c.FormValue("can_delete") == "on"
-	canEditTransactions := c.FormValue("can_edit_transactions") == "on"
-
-	// Check if HTMX request
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
-
-	// Validate email exists (case-insensitive)
-	var sharedUser models.User
-	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
-		if isHTMX {
-			csrfToken, ok := c.Get("csrf").(string)
-	if !ok {
-		csrfToken = ""
-	}
-			component := templates.GiftCardShareInlineFormError(c.Request().Context(), csrfToken, giftCardID, "Benutzer nicht gefunden")
-			return component.Render(c.Request().Context(), c.Response().Writer)
-		}
-		return c.String(http.StatusBadRequest, "User not found")
-	}
-
-	// Check if already shared
-	var existingShare models.GiftCardShare
-	if err := database.DB.Where("gift_card_id = ? AND shared_with_id = ?", giftCardID, sharedUser.ID).First(&existingShare).Error; err == nil {
-		if isHTMX {
-			csrfToken, ok := c.Get("csrf").(string)
-	if !ok {
-		csrfToken = ""
-	}
-			component := templates.GiftCardShareInlineFormError(c.Request().Context(), csrfToken, giftCardID, "Bereits mit diesem Benutzer geteilt")
-			return component.Render(c.Request().Context(), c.Response().Writer)
-		}
-		return c.String(http.StatusConflict, "Already shared with this user")
-	}
-
-	// Create share
-	share := models.GiftCardShare{
-		GiftCardID:          giftCardUUID,
-		SharedWithID:        sharedUser.ID,
-		CanEdit:             canEdit,
-		CanDelete:           canDelete,
-		CanEditTransactions: canEditTransactions,
-	}
-
-	if err := database.DB.Create(&share).Error; err != nil {
-		return c.String(http.StatusInternalServerError, "Error creating share")
-	}
-
-	// For HTMX, return empty string to close the form and trigger page reload
-	if isHTMX {
-		c.Response().Header().Set("HX-Refresh", "true")
-		return c.String(http.StatusOK, "")
-	}
-
-	return c.String(http.StatusOK, "Share created")
+	return h.baseHandler.Create(c)
 }
 
-// Update updates share permissions
+// Update updates share permissions (CanEdit, CanDelete, CanEditTransactions).
+// Delegates to BaseShareHandler for unified update logic.
 func (h *GiftCardSharesHandler) Update(c echo.Context) error {
-	user := c.Get("current_user").(*models.User)
-	giftCardID := c.Param("id")
-	shareID := c.Param("share_id")
-
-	giftCardUUID, err := uuid.Parse(giftCardID)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid gift card ID")
-	}
-
-	// Check authorization (only owners can update shares)
-	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
-	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
-	}
-	if !perms.IsOwner {
-		return c.String(http.StatusForbidden, "Not authorized")
-	}
-
-	// Get share
-	var share models.GiftCardShare
-	if err := database.DB.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).First(&share).Error; err != nil {
-		return c.String(http.StatusNotFound, "Share not found")
-	}
-
-	// Update permissions
-	share.CanEdit = c.FormValue("can_edit") == "on"
-	share.CanDelete = c.FormValue("can_delete") == "on"
-	share.CanEditTransactions = c.FormValue("can_edit_transactions") == "on"
-
-	if err := database.DB.Save(&share).Error; err != nil {
-		return c.String(http.StatusInternalServerError, "Error updating share")
-	}
-
-	// Check if HTMX request
-	isHTMX := c.Request().Header.Get("HX-Request") == "true"
-
-	if isHTMX {
-		// Reload share with user for display
-		database.DB.Preload("SharedWithUser").First(&share, "id = ?", shareID)
-		csrfToken, ok := c.Get("csrf").(string)
-	if !ok {
-		csrfToken = ""
-	}
-		component := templates.GiftCardShareDisplay(c.Request().Context(), csrfToken, giftCardID, share, perms.IsOwner)
-		return component.Render(c.Request().Context(), c.Response().Writer)
-	}
-
-	return c.String(http.StatusOK, "Share updated")
+	return h.baseHandler.Update(c)
 }
 
-// Delete removes a share
+// Delete removes a gift card share.
+// Delegates to BaseShareHandler for unified deletion logic.
 func (h *GiftCardSharesHandler) Delete(c echo.Context) error {
-	var share models.GiftCardShare
-	return handleDeleteShare(c, h.authzService.CheckGiftCardAccess, &share, "id", "gift card")
+	return h.baseHandler.Delete(c)
 }
 
-// NewInline returns the inline share form
+// NewInline renders the inline share creation form.
+// Delegates to BaseShareHandler for unified form rendering.
 func (h *GiftCardSharesHandler) NewInline(c echo.Context) error {
-	return handleNewInlineShare(c, h.authzService.CheckGiftCardAccess, templates.GiftCardShareInlineForm, "id", "gift card")
+	return h.baseHandler.NewInline(c)
 }
 
-// Cancel closes the inline form
+// Cancel closes the inline share form without saving.
+// Delegates to BaseShareHandler for unified cancel logic.
 func (h *GiftCardSharesHandler) Cancel(c echo.Context) error {
-	return c.String(http.StatusOK, "")
+	return h.baseHandler.Cancel(c)
 }
 
-// EditInline returns the inline edit form
+// EditInline renders the inline share edit form.
+// Delegates to BaseShareHandler for unified edit form rendering.
 func (h *GiftCardSharesHandler) EditInline(c echo.Context) error {
-	var share models.GiftCardShare
-	data, err := loadShareWithAuthz(c, h.authzService.CheckGiftCardAccess, &share, "gift_card_id", "gift card", true)
-	if err != nil {
-		return err
-	}
-	component := templates.GiftCardShareInlineEdit(data.Context, data.CSRF, data.ResID, share)
-	return component.Render(data.Context, c.Response().Writer)
+	return h.baseHandler.EditInline(c)
 }
 
-// CancelEdit cancels inline editing and returns to display
+// CancelEdit closes the inline edit form without saving.
+// Delegates to BaseShareHandler for unified cancel edit logic.
 func (h *GiftCardSharesHandler) CancelEdit(c echo.Context) error {
-	var share models.GiftCardShare
-	data, err := loadShareWithAuthz(c, h.authzService.CheckGiftCardAccess, &share, "gift_card_id", "gift card", false)
-	if err != nil {
-		return err
-	}
-	component := templates.GiftCardShareDisplay(data.Context, data.CSRF, data.ResID, share, data.Perms.IsOwner)
-	return component.Render(data.Context, c.Response().Writer)
+	return h.baseHandler.CancelEdit(c)
 }

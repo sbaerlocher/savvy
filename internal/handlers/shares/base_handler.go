@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"savvy/internal/audit"
 	"savvy/internal/database"
 	"savvy/internal/models"
 )
@@ -165,8 +166,11 @@ func (h *BaseShareHandler) Delete(c echo.Context) error {
 		return c.String(http.StatusForbidden, "Not authorized")
 	}
 
+	// Add user ID to context for audit logging
+	ctx := audit.AddUserIDToContext(c.Request().Context(), user.ID)
+
 	// Delete using adapter
-	if err := h.adapter.DeleteShare(c.Request().Context(), shareUUID); err != nil {
+	if err := h.adapter.DeleteShare(ctx, shareUUID); err != nil {
 		return c.String(http.StatusInternalServerError, "Error deleting share")
 	}
 
