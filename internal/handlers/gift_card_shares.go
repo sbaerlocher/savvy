@@ -2,9 +2,13 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"net/http"
 	"savvy/internal/handlers/shares"
+	"savvy/internal/models"
+	"savvy/internal/templates"
 )
 
 // GiftCardSharesHandler handles gift card sharing operations using the unified share handler.
@@ -12,6 +16,7 @@ import (
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type GiftCardSharesHandler struct {
 	baseHandler *shares.BaseShareHandler
+	db          *gorm.DB
 }
 
 // NewGiftCardSharesHandler creates a new gift card shares handler.
@@ -19,6 +24,7 @@ func NewGiftCardSharesHandler(db *gorm.DB) *GiftCardSharesHandler {
 	adapter := shares.NewGiftCardShareAdapter(db)
 	return &GiftCardSharesHandler{
 		baseHandler: shares.NewBaseShareHandler(adapter),
+		db:          db,
 	}
 }
 
@@ -41,9 +47,28 @@ func (h *GiftCardSharesHandler) Delete(c echo.Context) error {
 }
 
 // NewInline renders the inline share creation form.
-// Delegates to BaseShareHandler for unified form rendering.
 func (h *GiftCardSharesHandler) NewInline(c echo.Context) error {
-	return h.baseHandler.NewInline(c)
+	user := c.Get("current_user").(*models.User)
+	giftCardID := c.Param("id")
+
+	giftCardUUID, err := uuid.Parse(giftCardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid gift card ID")
+	}
+
+	// Check if user owns the gift card
+	var giftCard models.GiftCard
+	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+		return c.String(http.StatusNotFound, "Gift card not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.GiftCardShareInlineForm(c.Request().Context(), csrfToken, giftCardID)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
 // Cancel closes the inline share form without saving.
@@ -53,13 +78,67 @@ func (h *GiftCardSharesHandler) Cancel(c echo.Context) error {
 }
 
 // EditInline renders the inline share edit form.
-// Delegates to BaseShareHandler for unified edit form rendering.
 func (h *GiftCardSharesHandler) EditInline(c echo.Context) error {
-	return h.baseHandler.EditInline(c)
+	user := c.Get("current_user").(*models.User)
+	giftCardID := c.Param("id")
+	shareID := c.Param("share_id")
+
+	giftCardUUID, err := uuid.Parse(giftCardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid gift card ID")
+	}
+
+	// Check if user owns the gift card
+	var giftCard models.GiftCard
+	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+		return c.String(http.StatusNotFound, "Gift card not found")
+	}
+
+	// Get share
+	var share models.GiftCardShare
+	if err := h.db.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).
+		Preload("SharedWithUser").First(&share).Error; err != nil {
+		return c.String(http.StatusNotFound, "Share not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.GiftCardShareInlineEdit(c.Request().Context(), csrfToken, giftCardID, share)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
 // CancelEdit closes the inline edit form without saving.
-// Delegates to BaseShareHandler for unified cancel edit logic.
 func (h *GiftCardSharesHandler) CancelEdit(c echo.Context) error {
-	return h.baseHandler.CancelEdit(c)
+	user := c.Get("current_user").(*models.User)
+	giftCardID := c.Param("id")
+	shareID := c.Param("share_id")
+
+	giftCardUUID, err := uuid.Parse(giftCardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid gift card ID")
+	}
+
+	// Check if user owns the gift card
+	var giftCard models.GiftCard
+	if err := h.db.Where("id = ? AND user_id = ?", giftCardUUID, user.ID).First(&giftCard).Error; err != nil {
+		return c.String(http.StatusNotFound, "Gift card not found")
+	}
+
+	// Get share
+	var share models.GiftCardShare
+	if err := h.db.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).
+		Preload("SharedWithUser").First(&share).Error; err != nil {
+		return c.String(http.StatusNotFound, "Share not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.GiftCardShareDisplay(c.Request().Context(), csrfToken, giftCardID, share, true)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }

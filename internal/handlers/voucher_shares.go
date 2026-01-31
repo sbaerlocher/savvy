@@ -2,9 +2,13 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"net/http"
 	"savvy/internal/handlers/shares"
+	"savvy/internal/models"
+	"savvy/internal/templates"
 )
 
 // VoucherSharesHandler handles voucher sharing operations using the unified share handler.
@@ -12,6 +16,7 @@ import (
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type VoucherSharesHandler struct {
 	baseHandler *shares.BaseShareHandler
+	db          *gorm.DB
 }
 
 // NewVoucherSharesHandler creates a new voucher shares handler.
@@ -19,6 +24,7 @@ func NewVoucherSharesHandler(db *gorm.DB) *VoucherSharesHandler {
 	adapter := shares.NewVoucherShareAdapter(db)
 	return &VoucherSharesHandler{
 		baseHandler: shares.NewBaseShareHandler(adapter),
+		db:          db,
 	}
 }
 
@@ -35,9 +41,28 @@ func (h *VoucherSharesHandler) Delete(c echo.Context) error {
 }
 
 // NewInline renders the inline share creation form.
-// Delegates to BaseShareHandler for unified form rendering.
 func (h *VoucherSharesHandler) NewInline(c echo.Context) error {
-	return h.baseHandler.NewInline(c)
+	user := c.Get("current_user").(*models.User)
+	voucherID := c.Param("id")
+
+	voucherUUID, err := uuid.Parse(voucherID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid voucher ID")
+	}
+
+	// Check if user owns the voucher
+	var voucher models.Voucher
+	if err := h.db.Where("id = ? AND user_id = ?", voucherUUID, user.ID).First(&voucher).Error; err != nil {
+		return c.String(http.StatusNotFound, "Voucher not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.VoucherShareInlineForm(c.Request().Context(), csrfToken, voucherID)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
 // Cancel closes the inline share form without saving.

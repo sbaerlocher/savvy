@@ -2,15 +2,20 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"net/http"
 	"savvy/internal/handlers/shares"
+	"savvy/internal/models"
+	"savvy/internal/templates"
 )
 
 // CardSharesHandler handles card sharing operations using the unified share handler.
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type CardSharesHandler struct {
 	baseHandler *shares.BaseShareHandler
+	db          *gorm.DB
 }
 
 // NewCardSharesHandler creates a new card shares handler.
@@ -18,6 +23,7 @@ func NewCardSharesHandler(db *gorm.DB) *CardSharesHandler {
 	adapter := shares.NewCardShareAdapter(db)
 	return &CardSharesHandler{
 		baseHandler: shares.NewBaseShareHandler(adapter),
+		db:          db,
 	}
 }
 
@@ -40,9 +46,28 @@ func (h *CardSharesHandler) Delete(c echo.Context) error {
 }
 
 // NewInline renders the inline share creation form.
-// Delegates to BaseShareHandler for unified form rendering.
 func (h *CardSharesHandler) NewInline(c echo.Context) error {
-	return h.baseHandler.NewInline(c)
+	user := c.Get("current_user").(*models.User)
+	cardID := c.Param("id")
+
+	cardUUID, err := uuid.Parse(cardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid card ID")
+	}
+
+	// Check if user owns the card
+	var card models.Card
+	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+		return c.String(http.StatusNotFound, "Card not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.CardShareInlineForm(c.Request().Context(), csrfToken, cardID)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
 // Cancel closes the inline share form without saving.
@@ -52,13 +77,67 @@ func (h *CardSharesHandler) Cancel(c echo.Context) error {
 }
 
 // EditInline renders the inline share edit form.
-// Delegates to BaseShareHandler for unified edit form rendering.
 func (h *CardSharesHandler) EditInline(c echo.Context) error {
-	return h.baseHandler.EditInline(c)
+	user := c.Get("current_user").(*models.User)
+	cardID := c.Param("id")
+	shareID := c.Param("share_id")
+
+	cardUUID, err := uuid.Parse(cardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid card ID")
+	}
+
+	// Check if user owns the card
+	var card models.Card
+	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+		return c.String(http.StatusNotFound, "Card not found")
+	}
+
+	// Get share
+	var share models.CardShare
+	if err := h.db.Where("id = ? AND card_id = ?", shareID, cardID).
+		Preload("SharedWithUser").First(&share).Error; err != nil {
+		return c.String(http.StatusNotFound, "Share not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.CardShareInlineEdit(c.Request().Context(), csrfToken, cardID, share)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
 
 // CancelEdit closes the inline edit form without saving.
-// Delegates to BaseShareHandler for unified cancel edit logic.
 func (h *CardSharesHandler) CancelEdit(c echo.Context) error {
-	return h.baseHandler.CancelEdit(c)
+	user := c.Get("current_user").(*models.User)
+	cardID := c.Param("id")
+	shareID := c.Param("share_id")
+
+	cardUUID, err := uuid.Parse(cardID)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid card ID")
+	}
+
+	// Check if user owns the card
+	var card models.Card
+	if err := h.db.Where("id = ? AND user_id = ?", cardUUID, user.ID).First(&card).Error; err != nil {
+		return c.String(http.StatusNotFound, "Card not found")
+	}
+
+	// Get share
+	var share models.CardShare
+	if err := h.db.Where("id = ? AND card_id = ?", shareID, cardID).
+		Preload("SharedWithUser").First(&share).Error; err != nil {
+		return c.String(http.StatusNotFound, "Share not found")
+	}
+
+	csrfToken, ok := c.Get("csrf").(string)
+	if !ok {
+		csrfToken = ""
+	}
+
+	component := templates.CardShareDisplay(c.Request().Context(), csrfToken, cardID, share, true)
+	return component.Render(c.Request().Context(), c.Response().Writer)
 }
