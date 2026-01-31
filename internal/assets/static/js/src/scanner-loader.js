@@ -1,55 +1,13 @@
 /**
- * Scanner Loader - Lazy loads html5-qrcode only when scanning is initiated
- * This reduces initial bundle size by ~90KB gzipped (html5-qrcode library)
+ * Scanner Module - Direct import of html5-qrcode library
+ * Loads the library immediately instead of lazy loading
  */
 
-let Html5QrcodeModule = null
-let scannerModuleLoading = false
-let scannerModuleLoadPromise = null
+import { Html5Qrcode, Html5QrcodeSupportedFormats as Html5QrcodeFormats } from 'html5-qrcode'
 
-/**
- * Lazy load Html5Qrcode library
- * @returns {Promise<Object>} Html5Qrcode module
- */
-async function loadScannerModule () {
-  if (Html5QrcodeModule) {
-    return Html5QrcodeModule
-  }
-
-  if (scannerModuleLoading) {
-    return scannerModuleLoadPromise
-  }
-
-  scannerModuleLoading = true
-  scannerModuleLoadPromise = import('html5-qrcode').then(module => {
-    Html5QrcodeModule = module
-
-    // Make globally available for scanner.js
-    window.Html5Qrcode = module.Html5Qrcode
-    window.Html5QrcodeSupportedFormats = {
-      QR_CODE: 0,
-      AZTEC: 1,
-      CODABAR: 2,
-      CODE_39: 3,
-      CODE_93: 4,
-      CODE_128: 5,
-      DATA_MATRIX: 6,
-      MAXICODE: 7,
-      ITF: 8,
-      EAN_13: 9,
-      EAN_8: 10,
-      PDF_417: 11,
-      UPC_A: 12,
-      UPC_E: 13,
-      UPC_EAN_EXTENSION: 14,
-      ITF_14: 15
-    }
-
-    return module
-  })
-
-  return scannerModuleLoadPromise
-}
+// Make globally available
+window.Html5Qrcode = Html5Qrcode
+window.Html5QrcodeSupportedFormats = Html5QrcodeFormats
 
 // Barcode format mapping
 const BARCODE_TYPE_MAPPING = {
@@ -113,18 +71,14 @@ function createBarcodeScanner (config, formats = null) {
 
     async startScanning () {
       this.scanning = true
-      this.scanMessage = 'Scanner wird geladen...'
+      this.scanMessage = 'Kamera wird gestartet...'
 
       try {
-        // Lazy load scanner module
-        await loadScannerModule()
-
         const { Html5Qrcode } = window
         if (!Html5Qrcode) {
           throw new Error('Html5Qrcode not loaded')
         }
 
-        this.scanMessage = 'Kamera wird gestartet...'
         this.html5QrCode = new Html5Qrcode('qr-reader')
 
         await this.html5QrCode.start(
