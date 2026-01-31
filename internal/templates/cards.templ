@@ -1039,7 +1039,7 @@ templ CardShareInlineFormError(ctx context.Context, csrfToken string, cardID str
 templ CardShareInlineEdit(ctx context.Context, csrfToken string, cardID string, share models.CardShare) {
 	<div class="border border-blue-200 bg-blue-50 rounded-lg p-4" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
 		<form
-			hx-post={ fmt.Sprintf("/cards/%s/shares/%s", cardID, share.ID.String()) }
+			hx-patch={ fmt.Sprintf("/cards/%s/shares/%s", cardID, share.ID.String()) }
 			hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
 			hx-swap="outerHTML"
 			class="space-y-3">
@@ -1213,7 +1213,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 	<div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-6 border-blue-600" x-data={ fmt.Sprintf("cardForm('%s')", card.CardNumber) }>
 		<div class="p-6">
 			<form
-				hx-post={ fmt.Sprintf("/cards/%s/update-inline", card.ID.String()) }
+				hx-patch={ fmt.Sprintf("/cards/%s", card.ID.String()) }
 				hx-target="#card-detail"
 				hx-swap="innerHTML"
 				class="space-y-6">

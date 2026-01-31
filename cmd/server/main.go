@@ -13,6 +13,7 @@ import (
 	"savvy/internal/assets"
 	"savvy/internal/config"
 	"savvy/internal/database"
+	"savvy/internal/debug"
 	"savvy/internal/handlers"
 	"savvy/internal/handlers/cards"
 	"savvy/internal/handlers/giftcards"
@@ -318,12 +319,18 @@ func run() int {
 	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(serviceContainer.AuthzService)
 	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService)
 
-	// Routes
+	// ========================================
+	// ROUTE REGISTRATION
+	// ========================================
 
 	// Rate limiter for auth endpoints (5 requests per second, burst of 10)
 	authLimiter := middleware.NewIPRateLimiter(5, 10)
 
-	// Auth routes (public)
+	// ========================================
+	// Authentication Routes (Public)
+	// Includes: Local login, OAuth, Registration
+	// Middleware: Rate limiting on POST endpoints
+	// ========================================
 	auth := e.Group("/auth")
 	auth.GET("/login", handlers.AuthLoginGet) // Handler manages redirect to OAuth if local login disabled
 	auth.POST("/login", handlers.AuthLoginPost, middleware.RateLimitMiddleware(authLimiter), middleware.RequireLocalLoginEnabled(cfg))
@@ -334,37 +341,51 @@ func run() int {
 	auth.GET("/oauth/login", handlers.OAuthLogin)
 	auth.GET("/oauth/callback", handlers.OAuthCallback)
 
-	// Protected routes (require auth)
+	// ========================================
+	// Protected Routes (Authentication Required)
+	// Middleware: RequireAuth
+	// ========================================
 	protected := e.Group("")
 	protected.Use(middleware.RequireAuth)
 
-	// Home page (requires auth)
+	// Dashboard & Home
 	protected.GET("/", handlers.HomeIndex)
 
-	// Barcode generation (requires auth, uses secure token)
+	// Barcode generation (secure token-based access)
 	protected.GET("/barcode/:token", handlers.BarcodeGenerate)
 
-	// API routes
-	api := protected.Group("/api")
-	api.GET("/shared-users", handlers.SharedUsersAutocomplete)
+	// HTMX autocomplete endpoint (returns HTML fragment)
+	protected.GET("/api/shared-users", handlers.SharedUsersAutocomplete)
 
-	// Merchants routes (read-only for all users)
+	// ========================================
+	// Merchants Routes (Read-Only for All Users)
+	// ========================================
 	merchants := protected.Group("/merchants")
 	merchants.GET("", handlers.MerchantsIndex)
-	merchants.GET("/search", handlers.MerchantsSearch) // Autocomplete search, read-only
+	merchants.GET("/search", handlers.MerchantsSearch) // Autocomplete search
 
-	// Merchants CRUD routes (admin-only)
-	merchantsAdmin := protected.Group("/merchants")
-	merchantsAdmin.Use(middleware.RequireAdmin) // Admin authorization required
-	merchantsAdmin.GET("/new", handlers.MerchantsNew)
-	merchantsAdmin.POST("", handlers.MerchantsCreate)
-	merchantsAdmin.GET("/:id/edit", handlers.MerchantsEdit)
-	merchantsAdmin.POST("/:id", handlers.MerchantsUpdate)
-	merchantsAdmin.DELETE("/:id", handlers.MerchantsDelete)
+	// ========================================
+	// Merchants CRUD Routes (Admin or Impersonation)
+	// Middleware: RequireImpersonationOrAdmin
+	// Operations: Create, Update, Delete merchants
+	// Accessible by: Admins (always) + Regular users (when impersonating)
+	// ========================================
+	merchantsCRUD := protected.Group("/merchants")
+	merchantsCRUD.Use(middleware.RequireImpersonationOrAdmin)
+	merchantsCRUD.GET("/new", handlers.MerchantsNew)
+	merchantsCRUD.POST("", handlers.MerchantsCreate)
+	merchantsCRUD.GET("/:id/edit", handlers.MerchantsEdit)
+	merchantsCRUD.POST("/:id", handlers.MerchantsUpdate)
+	merchantsCRUD.DELETE("/:id", handlers.MerchantsDelete)
 
-	// Cards routes
+	// ========================================
+	// Cards Resource (Customer Loyalty Cards)
+	// Feature Toggle: ENABLE_CARDS
+	// Middleware: RequireCardsEnabled
+	// Features: CRUD, Inline Editing (HTMX), Sharing, Favorites, Barcode Scanning
+	// ========================================
 	cardsGroup := protected.Group("/cards")
-	cardsGroup.Use(middleware.RequireCardsEnabled(cfg)) // Feature toggle
+	cardsGroup.Use(middleware.RequireCardsEnabled(cfg))
 	cardsGroup.GET("", cardHandler.Index)
 	cardsGroup.GET("/new", cardHandler.New)
 	cardsGroup.POST("", cardHandler.Create)
@@ -372,24 +393,29 @@ func run() int {
 	cardsGroup.GET("/:id/edit", cardHandler.Edit)
 	cardsGroup.POST("/:id", cardHandler.Update)
 	cardsGroup.DELETE("/:id", cardHandler.Delete)
-	// Card inline edit (HTMX)
+	// Inline editing (HTMX-powered)
 	cardsGroup.GET("/:id/edit-inline", cardHandler.EditInline)
 	cardsGroup.GET("/:id/cancel-edit", cardHandler.CancelEdit)
-	cardsGroup.POST("/:id/update-inline", cardHandler.UpdateInline)
-	// Card sharing routes (HTMX inline)
+	cardsGroup.PATCH("/:id", cardHandler.UpdateInline)
+	// Sharing (HTMX inline forms, granular permissions: CanEdit, CanDelete)
 	cardsGroup.POST("/:id/shares", cardSharesHandler.Create)
-	cardsGroup.POST("/:id/shares/:share_id", cardSharesHandler.Update)
+	cardsGroup.PATCH("/:id/shares/:share_id", cardSharesHandler.Update)
 	cardsGroup.DELETE("/:id/shares/:share_id", cardSharesHandler.Delete)
 	cardsGroup.GET("/:id/shares/new-inline", cardSharesHandler.NewInline)
 	cardsGroup.GET("/:id/shares/cancel", cardSharesHandler.Cancel)
 	cardsGroup.GET("/:id/shares/:share_id/edit-inline", cardSharesHandler.EditInline)
 	cardsGroup.GET("/:id/shares/:share_id/cancel-edit", cardSharesHandler.CancelEdit)
-	// Card favorites route
+	// Favorites (polymorphic pinning)
 	cardsGroup.POST("/:id/favorite", favoritesHandler.ToggleCardFavorite)
 
-	// Vouchers routes
+	// ========================================
+	// Vouchers Resource (Time-Limited Vouchers)
+	// Feature Toggle: ENABLE_VOUCHERS
+	// Middleware: RequireVouchersEnabled
+	// Features: CRUD, Inline Editing, Redemption Tracking, Read-Only Sharing, Favorites
+	// ========================================
 	vouchersGroup := protected.Group("/vouchers")
-	vouchersGroup.Use(middleware.RequireVouchersEnabled(cfg)) // Feature toggle
+	vouchersGroup.Use(middleware.RequireVouchersEnabled(cfg))
 	vouchersGroup.GET("", voucherHandler.Index)
 	vouchersGroup.GET("/new", voucherHandler.New)
 	vouchersGroup.POST("", voucherHandler.Create)
@@ -397,22 +423,28 @@ func run() int {
 	vouchersGroup.GET("/:id/edit", voucherHandler.Edit)
 	vouchersGroup.POST("/:id", voucherHandler.Update)
 	vouchersGroup.DELETE("/:id", voucherHandler.Delete)
-	vouchersGroup.POST("/:id/redeem", voucherHandler.Redeem) // Redeem voucher
-	// Voucher inline edit (HTMX)
+	vouchersGroup.POST("/:id/redeem", voucherHandler.Redeem)
+	// Inline editing (HTMX-powered)
 	vouchersGroup.GET("/:id/edit-inline", voucherHandler.EditInline)
 	vouchersGroup.GET("/:id/cancel-edit", voucherHandler.CancelEdit)
-	vouchersGroup.POST("/:id/update-inline", voucherHandler.UpdateInline)
-	// Voucher sharing routes (HTMX inline)
+	vouchersGroup.PATCH("/:id", voucherHandler.UpdateInline)
+	// Sharing (HTMX inline forms, read-only only - no permission editing)
 	vouchersGroup.POST("/:id/shares", voucherSharesHandler.Create)
 	vouchersGroup.DELETE("/:id/shares/:share_id", voucherSharesHandler.Delete)
 	vouchersGroup.GET("/:id/shares/new-inline", voucherSharesHandler.NewInline)
 	vouchersGroup.GET("/:id/shares/cancel", voucherSharesHandler.Cancel)
-	// Voucher favorites route
+	// Favorites (polymorphic pinning)
 	vouchersGroup.POST("/:id/favorite", favoritesHandler.ToggleVoucherFavorite)
 
-	// Gift Cards routes
+	// ========================================
+	// Gift Cards Resource (Rechargeable Gift Cards)
+	// Feature Toggle: ENABLE_GIFT_CARDS
+	// Middleware: RequireGiftCardsEnabled
+	// Features: CRUD, Inline Editing, Transaction History, Sharing (CanEdit, CanDelete, CanEditTransactions), Favorites
+	// Balance: Auto-calculated via database trigger (recalculate_gift_card_balance)
+	// ========================================
 	giftCardsGroup := protected.Group("/gift-cards")
-	giftCardsGroup.Use(middleware.RequireGiftCardsEnabled(cfg)) // Feature toggle
+	giftCardsGroup.Use(middleware.RequireGiftCardsEnabled(cfg))
 	giftCardsGroup.GET("", giftCardHandler.Index)
 	giftCardsGroup.GET("/new", giftCardHandler.New)
 	giftCardsGroup.POST("", giftCardHandler.Create)
@@ -420,30 +452,37 @@ func run() int {
 	giftCardsGroup.GET("/:id/edit", giftCardHandler.Edit)
 	giftCardsGroup.POST("/:id", giftCardHandler.Update)
 	giftCardsGroup.DELETE("/:id", giftCardHandler.Delete)
-	// Gift card inline edit (HTMX)
+	// Inline editing (HTMX-powered)
 	giftCardsGroup.GET("/:id/edit-inline", giftCardHandler.EditInline)
 	giftCardsGroup.GET("/:id/cancel-edit", giftCardHandler.CancelEdit)
-	giftCardsGroup.POST("/:id/update-inline", giftCardHandler.UpdateInline)
-	// Transaction routes (HTMX)
+	giftCardsGroup.PATCH("/:id", giftCardHandler.UpdateInline)
+	// Transaction management (HTMX, triggers balance recalculation)
 	giftCardsGroup.GET("/:id/transactions/new", giftCardHandler.TransactionNew)
 	giftCardsGroup.GET("/:id/transactions/cancel", giftCardHandler.TransactionCancel)
 	giftCardsGroup.POST("/:id/transactions", giftCardHandler.TransactionCreate)
 	giftCardsGroup.DELETE("/:id/transactions/:transaction_id", giftCardHandler.TransactionDelete)
-	// Gift card sharing routes (HTMX inline)
+	// Sharing (HTMX inline forms, includes CanEditTransactions permission)
 	giftCardsGroup.POST("/:id/shares", giftCardSharesHandler.Create)
-	giftCardsGroup.POST("/:id/shares/:share_id", giftCardSharesHandler.Update)
+	giftCardsGroup.PATCH("/:id/shares/:share_id", giftCardSharesHandler.Update)
 	giftCardsGroup.DELETE("/:id/shares/:share_id", giftCardSharesHandler.Delete)
 	giftCardsGroup.GET("/:id/shares/new-inline", giftCardSharesHandler.NewInline)
 	giftCardsGroup.GET("/:id/shares/cancel", giftCardSharesHandler.Cancel)
 	giftCardsGroup.GET("/:id/shares/:share_id/edit-inline", giftCardSharesHandler.EditInline)
 	giftCardsGroup.GET("/:id/shares/:share_id/cancel-edit", giftCardSharesHandler.CancelEdit)
-	// Gift card favorites route
+	// Favorites (polymorphic pinning)
 	giftCardsGroup.POST("/:id/favorite", favoritesHandler.ToggleGiftCardFavorite)
 
-	// Stop impersonation (must be outside admin group - impersonated users aren't admins!)
+	// ========================================
+	// Impersonation Management
+	// Stop impersonation route (must be outside admin group - impersonated users aren't admins)
+	// ========================================
 	protected.GET("/admin/stop-impersonate", handlers.AdminStopImpersonate)
 
-	// Admin routes
+	// ========================================
+	// Admin Routes (Admin-Only Panel)
+	// Middleware: RequireAdmin
+	// Features: User Management, Audit Log, Impersonation, Role Management
+	// ========================================
 	admin := protected.Group("/admin")
 	admin.Use(middleware.RequireAdmin)
 	admin.GET("/users", handlers.AdminUsersIndex)
@@ -453,6 +492,14 @@ func run() int {
 	admin.GET("/audit-log", handlers.AdminAuditLogIndex)
 	admin.POST("/audit-log/restore", handlers.AdminRestoreResource)
 	admin.GET("/impersonate/:id", handlers.AdminImpersonate)
+
+	// ========================================
+	// Development Debug Tools
+	// ========================================
+	// Print all registered routes in development mode
+	if !cfg.IsProduction() {
+		debug.PrintRoutes(e)
+	}
 
 	// Start metrics collector goroutine
 	go func() {

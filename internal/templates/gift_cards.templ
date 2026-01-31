@@ -1317,7 +1317,7 @@ templ GiftCardShareInlineFormError(ctx context.Context, csrfToken string, giftCa
 templ GiftCardShareInlineEdit(ctx context.Context, csrfToken string, giftCardID string, share models.GiftCardShare) {
 	<div class="border border-red-200 bg-red-50 rounded-lg p-4" id={ fmt.Sprintf("share-%s", share.ID.String()) }>
 		<form
-			hx-post={ fmt.Sprintf("/gift-cards/%s/shares/%s", giftCardID, share.ID.String()) }
+			hx-patch={ fmt.Sprintf("/gift-cards/%s/shares/%s", giftCardID, share.ID.String()) }
 			hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
 			hx-swap="outerHTML"
 			class="space-y-3">
@@ -1524,7 +1524,7 @@ templ GiftCardDetailEdit(ctx context.Context, csrfToken string, giftCard models.
 	<div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-6 border-red-600" x-data={ fmt.Sprintf("giftCardForm('%s')", giftCard.CardNumber) }>
 		<div class="p-6">
 			<form
-				hx-post={ fmt.Sprintf("/gift-cards/%s/update-inline", giftCard.ID.String()) }
+				hx-patch={ fmt.Sprintf("/gift-cards/%s", giftCard.ID.String()) }
 				hx-target="#gift-card-detail"
 				hx-swap="innerHTML"
 				class="space-y-6">

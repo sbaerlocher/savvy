@@ -1215,7 +1215,7 @@ templ VoucherDetailEdit(ctx context.Context, csrfToken string, voucher models.Vo
 	<div class="bg-white rounded-lg shadow-lg overflow-hidden border-t-6 border-green-600" x-data={ fmt.Sprintf("voucherForm('%s')", voucher.Code) }>
 		<div class="p-6">
 			<form
-				hx-post={ fmt.Sprintf("/vouchers/%s/update-inline", voucher.ID.String()) }
+				hx-patch={ fmt.Sprintf("/vouchers/%s", voucher.ID.String()) }
 				hx-target="#voucher-detail"
 				hx-swap="innerHTML"
 				class="space-y-6">
