@@ -10,7 +10,7 @@ import (
 	"savvy/internal/templates"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // FavoritesHandler handles favorite toggling operations

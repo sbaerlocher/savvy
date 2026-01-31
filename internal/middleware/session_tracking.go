@@ -5,7 +5,7 @@ import (
 	"savvy/internal/metrics"
 	"sync"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 var (

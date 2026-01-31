@@ -6,7 +6,7 @@ import (
 	"savvy/internal/services"
 	"savvy/internal/templates"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // dashboardService is injected via InitDashboardService
