@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'savvy-v1.3.9'
+const CACHE_VERSION = 'savvy-v1.4.0'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`
 

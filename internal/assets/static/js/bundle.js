@@ -34941,7 +34941,7 @@ async function checkOnlineStatus () {
   // If navigator says online, verify with real fetch
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased to 5s for service worker activation
 
     // Use health endpoint with GET (HEAD might redirect)
     // Add timestamp to prevent cache
@@ -34963,16 +34963,48 @@ async function checkOnlineStatus () {
 function initOfflineStore (Alpine) {
   console.log('[Alpine] Init - creating offline store');
 
-  // Create store with initial state
+  // Debounce timer for offline status changes
+  let offlineDebounceTimer = null;
+  let actualOnlineStatus = navigator.onLine;
+
+  // Create store with initial state (assume online, will verify)
   Alpine.store('offline', {
-    isOnline: navigator.onLine,
+    isOnline: true, // Start optimistic to prevent flash
     checking: false
   });
+
+  // Helper to update online status with debounce
+  function updateOnlineStatus (isOnline) {
+    actualOnlineStatus = isOnline;
+
+    // Clear existing timer
+    if (offlineDebounceTimer) {
+      clearTimeout(offlineDebounceTimer);
+      offlineDebounceTimer = null;
+    }
+
+    // If going online, update immediately
+    if (isOnline) {
+      console.log('[Offline] Status changed to ONLINE (immediate)');
+      Alpine.store('offline').isOnline = true;
+      return
+    }
+
+    // If going offline, debounce for 2 seconds to prevent flashing
+    console.log('[Offline] Status may be OFFLINE, verifying...');
+    offlineDebounceTimer = setTimeout(() => {
+      // Verify status hasn't changed during debounce
+      if (!actualOnlineStatus) {
+        console.log('[Offline] Status confirmed OFFLINE after debounce');
+        Alpine.store('offline').isOnline = false;
+      }
+    }, 2000); // 2 second debounce for offline status
+  }
 
   // Immediately verify actual connection on page load
   checkOnlineStatus().then(isOnline => {
     console.log('[Offline] Initial check - isOnline:', isOnline);
-    Alpine.store('offline').isOnline = isOnline;
+    updateOnlineStatus(isOnline);
   });
 
   // Listen to browser online/offline events
@@ -34980,7 +35012,7 @@ function initOfflineStore (Alpine) {
     console.log('[Offline] Browser online event');
     // Verify with real check
     const isOnline = await checkOnlineStatus();
-    Alpine.store('offline').isOnline = isOnline;
+    updateOnlineStatus(isOnline);
     if (isOnline) {
       showToast('✅ Verbindung wiederhergestellt', 'success');
     }
@@ -34988,19 +35020,19 @@ function initOfflineStore (Alpine) {
 
   window.addEventListener('offline', () => {
     console.log('[Offline] Browser offline event');
-    Alpine.store('offline').isOnline = false;
+    updateOnlineStatus(false);
   });
 
-  // Periodic check every 5 seconds (backup for missed events)
+  // Periodic check every 10 seconds (backup for missed events, less frequent to reduce load)
   setInterval(async () => {
     const isOnline = await checkOnlineStatus();
     const storeOnline = Alpine.store('offline').isOnline;
 
     if (isOnline !== storeOnline) {
       console.log('[Offline] Periodic check detected change:', isOnline);
-      Alpine.store('offline').isOnline = isOnline;
+      updateOnlineStatus(isOnline);
     }
-  }, 5000);
+  }, 10000); // Increased from 5s to 10s
 
   // Add manual check method to store
   const store = Alpine.store('offline');
