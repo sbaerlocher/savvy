@@ -4,7 +4,7 @@ go 1.25.6
 
 require (
 	github.com/gorilla/sessions v1.4.0
-	github.com/labstack/echo/v4 v4.13.4
+	github.com/labstack/echo/v4 v4.15.0
 	golang.org/x/crypto v0.47.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
