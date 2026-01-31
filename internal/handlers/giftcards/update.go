@@ -29,8 +29,8 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
-	var giftCard models.GiftCard
-	if err := database.DB.Where("id = ?", giftCardID).First(&giftCard).Error; err != nil {
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
@@ -70,8 +70,8 @@ func (h *Handler) Update(c echo.Context) error {
 		if err == nil {
 			giftCard.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				giftCard.MerchantName = merchant.Name
 			}
 		}
@@ -81,13 +81,15 @@ func (h *Handler) Update(c echo.Context) error {
 		giftCard.MerchantName = merchantNameStr
 	}
 
-	if err := database.DB.Save(&giftCard).Error; err != nil {
+	if err := h.giftCardService.UpdateGiftCard(c.Request().Context(), giftCard); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards/"+giftCard.ID.String()+"/edit")
 	}
 
-	// Log update to audit log
-	if err := audit.LogUpdateFromContext(c, database.DB, "gift_cards", giftCard.ID, giftCard); err != nil {
-		c.Logger().Errorf("Failed to log gift card update: %v", err)
+	// Log update to audit log (only if DB is available)
+	if database.DB != nil {
+		if err := audit.LogUpdateFromContext(c, database.DB, "gift_cards", giftCard.ID, *giftCard); err != nil {
+			c.Logger().Errorf("Failed to log gift card update: %v", err)
+		}
 	}
 
 	return c.Redirect(http.StatusSeeOther, "/gift-cards/"+giftCard.ID.String())

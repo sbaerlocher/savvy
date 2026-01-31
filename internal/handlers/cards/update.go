@@ -26,8 +26,8 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
-	var card models.Card
-	if err := database.DB.Where("id = ?", cardID).First(&card).Error; err != nil {
+	card, err := h.cardService.GetCard(c.Request().Context(), cardID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
@@ -46,8 +46,8 @@ func (h *Handler) Update(c echo.Context) error {
 		if err == nil {
 			card.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				card.MerchantName = merchant.Name
 			}
 		}
@@ -57,13 +57,15 @@ func (h *Handler) Update(c echo.Context) error {
 		card.MerchantName = c.FormValue("merchant_name")
 	}
 
-	if err := database.DB.Save(&card).Error; err != nil {
+	if err := h.cardService.UpdateCard(c.Request().Context(), card); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/cards/"+card.ID.String()+"/edit")
 	}
 
-	// Log update to audit log
-	if err := audit.LogUpdateFromContext(c, database.DB, "cards", card.ID, card); err != nil {
-		c.Logger().Errorf("Failed to log card update: %v", err)
+	// Log update to audit log (only if DB is available)
+	if database.DB != nil {
+		if err := audit.LogUpdateFromContext(c, database.DB, "cards", card.ID, *card); err != nil {
+			c.Logger().Errorf("Failed to log card update: %v", err)
+		}
 	}
 
 	return c.Redirect(http.StatusSeeOther, "/cards/"+card.ID.String())

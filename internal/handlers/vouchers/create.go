@@ -60,8 +60,8 @@ func (h *Handler) Create(c echo.Context) error {
 		if err == nil {
 			voucher.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				voucher.MerchantName = merchant.Name
 			}
 		}
@@ -75,7 +75,7 @@ func (h *Handler) Create(c echo.Context) error {
 		voucher.BarcodeType = "QR"
 	}
 
-	if err := database.DB.Create(&voucher).Error; err != nil {
+	if err := h.voucherService.CreateVoucher(c.Request().Context(), &voucher); err != nil {
 		// Check if it's a duplicate key error (race condition caught by DB)
 		if database.IsDuplicateError(err) {
 			c.Logger().Warnf("Duplicate voucher code detected by database constraint: %s", code)
@@ -86,6 +86,7 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	// Handle sharing if email provided (vouchers are always read-only when shared)
+	// Note: Share creation still uses database.DB directly as ShareService.ShareVoucher is not fully implemented
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
 		// Find user by email (normalize email)

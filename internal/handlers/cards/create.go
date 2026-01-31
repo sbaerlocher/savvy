@@ -38,8 +38,8 @@ func (h *Handler) Create(c echo.Context) error {
 		if err == nil {
 			card.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				card.MerchantName = merchant.Name
 				c.Logger().Printf("Loaded merchant: %s", merchant.Name)
 			} else {
@@ -59,7 +59,7 @@ func (h *Handler) Create(c echo.Context) error {
 
 	c.Logger().Printf("Creating card: MerchantID=%v, MerchantName=%s", card.MerchantID, card.MerchantName)
 
-	if err := database.DB.Create(&card).Error; err != nil {
+	if err := h.cardService.CreateCard(c.Request().Context(), &card); err != nil {
 		// Check if it's a duplicate key error (race condition caught by DB)
 		if database.IsDuplicateError(err) {
 			c.Logger().Warnf("Duplicate card_number detected by database constraint: %s", cardNumber)
@@ -70,6 +70,7 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	// Handle sharing if email provided
+	// Note: Share creation still uses database.DB directly as ShareService.ShareCard is not fully implemented
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
 		// Find user by email (normalize email)

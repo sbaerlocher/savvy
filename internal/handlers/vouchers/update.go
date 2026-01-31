@@ -28,8 +28,8 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	var voucher models.Voucher
-	if err := database.DB.Where("id = ?", voucherID).First(&voucher).Error; err != nil {
+	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
@@ -59,8 +59,8 @@ func (h *Handler) Update(c echo.Context) error {
 		if err == nil {
 			voucher.MerchantID = &merchantID
 			// Load merchant to get name
-			var merchant models.Merchant
-			if err := database.DB.Where("id = ?", merchantID).First(&merchant).Error; err == nil {
+			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
+			if err == nil {
 				voucher.MerchantName = merchant.Name
 			}
 		}
@@ -81,13 +81,15 @@ func (h *Handler) Update(c echo.Context) error {
 	voucher.UsageLimitType = usageLimitType
 	voucher.BarcodeType = c.FormValue("barcode_type")
 
-	if err := database.DB.Save(&voucher).Error; err != nil {
+	if err := h.voucherService.UpdateVoucher(c.Request().Context(), voucher); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers/"+voucher.ID.String()+"/edit")
 	}
 
-	// Log update to audit log
-	if err := audit.LogUpdateFromContext(c, database.DB, "vouchers", voucher.ID, voucher); err != nil {
-		c.Logger().Errorf("Failed to log voucher update: %v", err)
+	// Log update to audit log (only if DB is available)
+	if database.DB != nil {
+		if err := audit.LogUpdateFromContext(c, database.DB, "vouchers", voucher.ID, *voucher); err != nil {
+			c.Logger().Errorf("Failed to log voucher update: %v", err)
+		}
 	}
 
 	return c.Redirect(http.StatusSeeOther, "/vouchers/"+voucher.ID.String())
