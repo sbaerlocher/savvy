@@ -73,9 +73,21 @@ export function initOfflineStore (Alpine) {
   let offlineDebounceTimer = null
   let actualOnlineStatus = navigator.onLine
 
-  // Create store with initial state (assume online, will verify)
+  // Restore last known status from localStorage (default to true for optimistic start)
+  let lastKnownStatus = true
+  try {
+    const stored = localStorage.getItem('savvy:online-status')
+    if (stored !== null) {
+      lastKnownStatus = stored === 'true'
+      console.log('[Offline] Restored status from localStorage:', lastKnownStatus)
+    }
+  } catch (e) {
+    // localStorage might be unavailable
+  }
+
+  // Create store with last known state (or optimistic default)
   Alpine.store('offline', {
-    isOnline: true, // Start optimistic to prevent flash
+    isOnline: lastKnownStatus,
     checking: false
   })
 
@@ -93,6 +105,10 @@ export function initOfflineStore (Alpine) {
     if (isOnline) {
       console.log('[Offline] Status changed to ONLINE (immediate)')
       Alpine.store('offline').isOnline = true
+      // Persist to localStorage
+      try {
+        localStorage.setItem('savvy:online-status', 'true')
+      } catch (e) {}
       return
     }
 
@@ -103,15 +119,31 @@ export function initOfflineStore (Alpine) {
       if (!actualOnlineStatus) {
         console.log('[Offline] Status confirmed OFFLINE after debounce')
         Alpine.store('offline').isOnline = false
+        // Persist to localStorage
+        try {
+          localStorage.setItem('savvy:online-status', 'false')
+        } catch (e) {}
       }
     }, 2000) // 2 second debounce for offline status
   }
 
-  // Immediately verify actual connection on page load
-  checkOnlineStatus().then(isOnline => {
-    console.log('[Offline] Initial check - isOnline:', isOnline)
-    updateOnlineStatus(isOnline)
-  })
+  // Only do initial check if:
+  // 1. No stored status (first use)
+  // 2. Last status was offline (need to verify if back online)
+  // 3. navigator.onLine disagrees with stored status
+  const shouldVerify = !localStorage.getItem('savvy:online-status') ||
+                       !lastKnownStatus ||
+                       navigator.onLine !== lastKnownStatus
+
+  if (shouldVerify) {
+    console.log('[Offline] Verifying connection on page load...')
+    checkOnlineStatus().then(isOnline => {
+      console.log('[Offline] Initial check - isOnline:', isOnline)
+      updateOnlineStatus(isOnline)
+    })
+  } else {
+    console.log('[Offline] Skipping initial check (using cached status:', lastKnownStatus, ')')
+  }
 
   // Listen to browser online/offline events
   window.addEventListener('online', async () => {

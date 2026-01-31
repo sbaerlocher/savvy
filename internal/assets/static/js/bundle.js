@@ -3,8 +3,16 @@ var flushPending = false;
 var flushing = false;
 var queue = [];
 var lastFlushedIndex = -1;
+var transactionActive = false;
 function scheduler(callback) {
   queueJob(callback);
+}
+function startTransaction() {
+  transactionActive = true;
+}
+function commitTransaction() {
+  transactionActive = false;
+  queueFlush();
 }
 function queueJob(job) {
   if (!queue.includes(job))
@@ -18,6 +26,8 @@ function dequeueJob(job) {
 }
 function queueFlush() {
   if (!flushing && !flushPending) {
+    if (transactionActive)
+      return;
     flushPending = true;
     queueMicrotask(flushJobs);
   }
@@ -101,6 +111,15 @@ function watch(getter, callback) {
     firstTime = false;
   });
   return () => release(effectReference);
+}
+async function transaction(callback) {
+  startTransaction();
+  try {
+    await callback();
+    await Promise.resolve();
+  } finally {
+    commitTransaction();
+  }
 }
 
 // packages/alpinejs/src/mutation.js
@@ -1703,7 +1722,10 @@ var Alpine = {
   get raw() {
     return raw;
   },
-  version: "3.15.4",
+  get transaction() {
+    return transaction;
+  },
+  version: "3.15.6",
   flushAndStopDeferringMutations,
   dontAutoEvaluateFunctions,
   disableEffectScheduling,
@@ -2781,7 +2803,7 @@ function isClickEvent(event) {
 }
 function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
   let keyModifiers = modifiers.filter((i) => {
-    return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll"].includes(i);
+    return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll", "blur", "change", "lazy"].includes(i);
   });
   if (keyModifiers.includes("debounce")) {
     let debounceIndex = keyModifiers.indexOf("debounce");
@@ -2880,11 +2902,36 @@ directive("model", (el, { modifiers, expression }, { effect: effect3, cleanup: c
         el.setAttribute("name", expression);
     });
   }
-  let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) || modifiers.includes("lazy") ? "change" : "input";
-  let removeListener = isCloning ? () => {
-  } : on(el, event, modifiers, (e) => {
-    setValue(getInputValue(el, modifiers, e, getValue()));
-  });
+  let hasChangeModifier = modifiers.includes("change") || modifiers.includes("lazy");
+  let hasBlurModifier = modifiers.includes("blur");
+  let hasEnterModifier = modifiers.includes("enter");
+  let hasExplicitEventModifiers = hasChangeModifier || hasBlurModifier || hasEnterModifier;
+  let removeListener;
+  if (isCloning) {
+    removeListener = () => {
+    };
+  } else if (hasExplicitEventModifiers) {
+    let listeners = [];
+    let syncValue = (e) => setValue(getInputValue(el, modifiers, e, getValue()));
+    if (hasChangeModifier) {
+      listeners.push(on(el, "change", modifiers, syncValue));
+    }
+    if (hasBlurModifier) {
+      listeners.push(on(el, "blur", modifiers, syncValue));
+    }
+    if (hasEnterModifier) {
+      listeners.push(on(el, "keydown", modifiers, (e) => {
+        if (e.key === "Enter")
+          syncValue(e);
+      }));
+    }
+    removeListener = () => listeners.forEach((remove) => remove());
+  } else {
+    let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) ? "change" : "input";
+    removeListener = on(el, event, modifiers, (e) => {
+      setValue(getInputValue(el, modifiers, e, getValue()));
+    });
+  }
   if (modifiers.includes("fill")) {
     if ([void 0, null, ""].includes(getValue()) || isCheckbox(el) && Array.isArray(getValue()) || el.tagName.toLowerCase() === "select" && el.multiple) {
       setValue(
@@ -34967,9 +35014,21 @@ function initOfflineStore (Alpine) {
   let offlineDebounceTimer = null;
   let actualOnlineStatus = navigator.onLine;
 
-  // Create store with initial state (assume online, will verify)
+  // Restore last known status from localStorage (default to true for optimistic start)
+  let lastKnownStatus = true;
+  try {
+    const stored = localStorage.getItem('savvy:online-status');
+    if (stored !== null) {
+      lastKnownStatus = stored === 'true';
+      console.log('[Offline] Restored status from localStorage:', lastKnownStatus);
+    }
+  } catch (e) {
+    // localStorage might be unavailable
+  }
+
+  // Create store with last known state (or optimistic default)
   Alpine.store('offline', {
-    isOnline: true, // Start optimistic to prevent flash
+    isOnline: lastKnownStatus,
     checking: false
   });
 
@@ -34987,6 +35046,10 @@ function initOfflineStore (Alpine) {
     if (isOnline) {
       console.log('[Offline] Status changed to ONLINE (immediate)');
       Alpine.store('offline').isOnline = true;
+      // Persist to localStorage
+      try {
+        localStorage.setItem('savvy:online-status', 'true');
+      } catch (e) {}
       return
     }
 
@@ -34997,15 +35060,31 @@ function initOfflineStore (Alpine) {
       if (!actualOnlineStatus) {
         console.log('[Offline] Status confirmed OFFLINE after debounce');
         Alpine.store('offline').isOnline = false;
+        // Persist to localStorage
+        try {
+          localStorage.setItem('savvy:online-status', 'false');
+        } catch (e) {}
       }
     }, 2000); // 2 second debounce for offline status
   }
 
-  // Immediately verify actual connection on page load
-  checkOnlineStatus().then(isOnline => {
-    console.log('[Offline] Initial check - isOnline:', isOnline);
-    updateOnlineStatus(isOnline);
-  });
+  // Only do initial check if:
+  // 1. No stored status (first use)
+  // 2. Last status was offline (need to verify if back online)
+  // 3. navigator.onLine disagrees with stored status
+  const shouldVerify = !localStorage.getItem('savvy:online-status') ||
+                       !lastKnownStatus ||
+                       navigator.onLine !== lastKnownStatus;
+
+  if (shouldVerify) {
+    console.log('[Offline] Verifying connection on page load...');
+    checkOnlineStatus().then(isOnline => {
+      console.log('[Offline] Initial check - isOnline:', isOnline);
+      updateOnlineStatus(isOnline);
+    });
+  } else {
+    console.log('[Offline] Skipping initial check (using cached status:', lastKnownStatus, ')');
+  }
 
   // Listen to browser online/offline events
   window.addEventListener('online', async () => {

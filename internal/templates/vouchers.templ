@@ -95,7 +95,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 									{ T(ctx, "vouchers.add_new") }
 								</a>
 								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-									🔒 { T(ctx, "offline.badge") }
+									🔒
 								</div>
 							</div>
 						</div>
@@ -124,7 +124,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 									+ Neu
 								</a>
 								<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-									🔒 { T(ctx, "offline.badge") }
+									🔒
 								</div>
 							</div>
 						</div>
@@ -135,7 +135,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 							{ T(ctx, "vouchers.add_new") }
 						</a>
 						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-							🔒 { T(ctx, "offline.badge") }
+							🔒
 						</div>
 					</div>
 				}
@@ -149,7 +149,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 							{ T(ctx, "vouchers.create_first") }
 						</a>
 						<div x-show="$store.offline && !$store.offline.isOnline" class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
-							🔒 { T(ctx, "offline.badge") }
+							🔒
 						</div>
 					</div>
 				</div>
