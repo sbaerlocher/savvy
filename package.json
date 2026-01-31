@@ -16,7 +16,7 @@
     "watch:js:clean": "rm -f internal/assets/static/js/manifest.json*"
   },
   "dependencies": {
-    "alpinejs": "^3.14.7",
+    "alpinejs": "^3.15.5",
     "html5-qrcode": "^2.3.8"
   },
   "devDependencies": {
