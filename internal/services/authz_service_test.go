@@ -40,13 +40,16 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		&models.VoucherShare{},
 		&models.GiftCard{},
 		&models.GiftCardShare{},
+		&models.GiftCardTransaction{},
+		&models.UserFavorite{},
+		&models.AuditLog{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
 	// Clean up tables before each test
-	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares CASCADE")
+	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares, gift_card_transactions, user_favorites, audit_logs CASCADE")
 
 	return db
 }

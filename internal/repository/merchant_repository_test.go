@@ -32,9 +32,14 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		&models.User{},
 		&models.Merchant{},
 		&models.Card{},
+		&models.CardShare{},
 		&models.Voucher{},
+		&models.VoucherShare{},
 		&models.GiftCard{},
+		&models.GiftCardShare{},
+		&models.GiftCardTransaction{},
 		&models.UserFavorite{},
+		&models.AuditLog{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate: %v", err)

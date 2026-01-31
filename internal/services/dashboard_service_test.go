@@ -38,7 +38,9 @@ func setupDashboardTestDB(t *testing.T) *gorm.DB {
 		&models.VoucherShare{},
 		&models.GiftCard{},
 		&models.GiftCardShare{},
+		&models.GiftCardTransaction{},
 		&models.UserFavorite{},
+		&models.AuditLog{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate: %v", err)
