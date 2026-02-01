@@ -33,7 +33,6 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		c.Logger().Errorf("Failed to load merchants: %v", err)
@@ -69,7 +68,6 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 	}
 
 	canEdit := perms.CanEdit
-
 
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {
@@ -161,7 +159,6 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
-
 
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {

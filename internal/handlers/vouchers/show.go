@@ -27,24 +27,20 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-
 	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
-
 
 	var shares []models.VoucherShare
 	if perms.IsOwner {
 		shares, _ = h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 	}
 
-
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		merchants = []models.Merchant{} // Fallback to empty list
 	}
-
 
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 

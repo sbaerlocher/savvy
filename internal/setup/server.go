@@ -22,7 +22,7 @@ import (
 
 // ServerConfig holds the configuration for server setup.
 type ServerConfig struct {
-	Config       *config.Config
+	Config        *config.Config
 	HealthHandler *handlers.HealthHandler
 }
 

@@ -42,7 +42,6 @@ func (v *Voucher) GetColor() string {
 	return "#10B981"
 }
 
-
 // VoucherShare represents a shared voucher (read-only)
 type VoucherShare struct {
 	ID             uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`

@@ -27,12 +27,10 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
-
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
-
 
 	var shares []models.GiftCardShare
 	if perms.IsOwner {
@@ -44,7 +42,6 @@ func (h *Handler) Show(c echo.Context) error {
 	if err != nil {
 		merchants = []models.Merchant{} // Fallback to empty list
 	}
-
 
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 

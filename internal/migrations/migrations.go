@@ -943,6 +943,7 @@ func autoSetGiftCardCurrentBalance() *gormigrate.Migration {
 		},
 	}
 }
+
 // removeVoucherUsedCount drops the unused used_count column from vouchers table
 // Migration 000011 - 2026-02-01
 func removeVoucherUsedCount() *gormigrate.Migration {
