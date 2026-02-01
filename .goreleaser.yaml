@@ -14,8 +14,8 @@ before:
     - bash -c "sed 's/__VERSION__/{{.Version}}/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js"
 
     # Verify service worker was created (optional - don't fail build)
-    - ls -lh internal/assets/static/service-worker.js || echo "Warning: service-worker.js not found"
-    - head -n 1 internal/assets/static/service-worker.js || echo "Warning: cannot read service-worker.js"
+    - bash -c "ls -lh internal/assets/static/service-worker.js || echo 'Warning: service-worker.js not found'"
+    - bash -c "head -n 1 internal/assets/static/service-worker.js || echo 'Warning: cannot read service-worker.js'"
 
     # Template generation (generates *_templ.go files which import github.com/a-h/templ)
     - templ generate
