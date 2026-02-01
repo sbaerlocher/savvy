@@ -1678,5 +1678,65 @@
   {
     "id": "offline.badge",
     "translation": "Offline"
+  },
+  {
+    "id": "offline.page_title",
+    "translation": "Offline"
+  },
+  {
+    "id": "offline.title",
+    "translation": "Offline Mode"
+  },
+  {
+    "id": "offline.banner_info",
+    "translation": "You're viewing cached data. Changes are not possible."
+  },
+  {
+    "id": "offline.subtitle",
+    "translation": "No internet connection available"
+  },
+  {
+    "id": "offline.connection_status",
+    "translation": "Connection Status"
+  },
+  {
+    "id": "offline.status_offline",
+    "translation": "Offline"
+  },
+  {
+    "id": "offline.info_text",
+    "translation": "This page is not available offline. However, you can still view previously visited pages."
+  },
+  {
+    "id": "offline.checking",
+    "translation": "Checking connection..."
+  },
+  {
+    "id": "offline.retry",
+    "translation": "Try Again"
+  },
+  {
+    "id": "offline.to_dashboard",
+    "translation": "To Dashboard (Offline)"
+  },
+  {
+    "id": "offline.features_title",
+    "translation": "Offline Features"
+  },
+  {
+    "id": "offline.feature_view_cards",
+    "translation": "View previously visited cards"
+  },
+  {
+    "id": "offline.feature_shared",
+    "translation": "View shared cards"
+  },
+  {
+    "id": "offline.feature_barcodes",
+    "translation": "Scan barcodes"
+  },
+  {
+    "id": "offline.feature_favorites",
+    "translation": "Browse favorites"
   }
 ]

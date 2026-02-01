@@ -1,152 +1,168 @@
 package templates
 
-import "context"
+import (
+	"context"
+	"savvy/internal/i18n"
+	"savvy/internal/models"
+)
 
-templ Offline(ctx context.Context) {
+templ Offline(ctx context.Context, user *models.User, isImpersonating bool) {
 	<!DOCTYPE html>
-	<html lang="de">
+	<html lang={ i18n.GetLanguage(ctx) }>
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>Offline - Savvy</title>
-		<script src="https://cdn.tailwindcss.com"></script>
-		<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+		<meta name="theme-color" content="#4F46E5"/>
+		<title>{ T(ctx, "offline.page_title") } - { T(ctx, "app.name") }</title>
+
+		<!-- PWA Manifest -->
+		<link rel="manifest" href="/manifest.json"/>
+
+		<!-- Bundled CSS (Tailwind) - cached by Service Worker -->
+		<link rel="stylesheet" href="/static/css/bundle.css"/>
+
+		<!-- Bundled JS (Alpine.js + offlineHandler) - cached by Service Worker -->
+		<script type="module" src="/static/js/bundle.js"></script>
+
 		<style>
+			/* Prevent layout shift from scrollbar appearing/disappearing */
+			html {
+				overflow-y: scroll;
+				scrollbar-gutter: stable;
+			}
 			[x-cloak] { display: none !important; }
+			/* Add padding bottom on mobile for fixed bottom nav */
+			@media (max-width: 640px) {
+				body.has-bottom-nav {
+					padding-bottom: 4rem;
+				}
+			}
 		</style>
 	</head>
-	<body class="bg-gray-50">
-		<div class="min-h-screen flex items-center justify-center px-4" x-data="offlineHandler()" x-init="init()">
-			<div class="max-w-md w-full">
-				<!-- Offline Icon -->
-				<div class="text-center mb-8">
-					<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 mb-4">
-						<svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
+	<body class={ templ.Classes("bg-gray-50", templ.KV("has-bottom-nav", user != nil)) }>
+		<!-- Offline Banner (sticky at top, always visible on offline page with reserved space) -->
+		<div class="h-16">
+			<div class="sticky top-0 left-0 right-0 z-40 bg-yellow-50 border-b border-yellow-200 px-4 py-3 shadow-md h-16">
+				<div class="max-w-7xl mx-auto flex items-center justify-between">
+					<div class="flex items-center">
+						<svg class="h-5 w-5 text-yellow-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
 						</svg>
-					</div>
-					<h1 class="text-3xl font-bold text-gray-900 mb-2">
-						Offline Modus
-					</h1>
-					<p class="text-gray-600">
-						Keine Internetverbindung verfügbar
-					</p>
-				</div>
-
-				<!-- Status Card -->
-				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-					<div class="space-y-4">
-						<!-- Connection Status -->
-						<div class="flex items-center justify-between">
-							<span class="text-sm font-medium text-gray-700">Verbindungsstatus</span>
-							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-								<span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
-								Offline
-							</span>
-						</div>
-
-						<!-- Info -->
-						<div class="pt-4 border-t border-gray-200">
-							<p class="text-sm text-gray-600">
-								Diese Seite ist offline nicht verfügbar. Du kannst jedoch bereits besuchte Seiten weiterhin ansehen.
+						<div>
+							<p class="text-sm font-medium text-yellow-800">
+								{ T(ctx, "offline.title") }
 							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Actions -->
-				<div class="space-y-3">
-					<!-- Retry Button -->
-					<button
-						@click="checkConnection()"
-						:disabled="checking"
-						class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						<svg class="w-5 h-5 mr-2" :class="{ 'animate-spin': checking }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-						</svg>
-						<span x-text="checking ? 'Prüfe Verbindung...' : 'Erneut versuchen'"></span>
-					</button>
-
-					<!-- Back to Dashboard -->
-					<a
-						href="/"
-						class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-					>
-						<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-						</svg>
-						Zum Dashboard (Offline)
-					</a>
-				</div>
-
-				<!-- Info Box -->
-				<div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-					<div class="flex">
-						<div class="flex-shrink-0">
-							<svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-								<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-							</svg>
-						</div>
-						<div class="ml-3 flex-1">
-							<h3 class="text-sm font-medium text-blue-800">
-								Offline-Funktionen
-							</h3>
-							<div class="mt-2 text-sm text-blue-700">
-								<ul class="list-disc list-inside space-y-1">
-									<li>Bereits besuchte Karten anzeigen</li>
-									<li>Geteilte Karten ansehen</li>
-									<li>Barcodes scannen</li>
-									<li>Favoriten durchsuchen</li>
-								</ul>
-							</div>
+							<p class="text-xs text-yellow-700">
+								{ T(ctx, "offline.banner_info") }
+							</p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<script>
-			function offlineHandler() {
-				return {
-					checking: false,
+		@Nav(ctx, user, isImpersonating)
 
-					init() {
-						// Auto-redirect wenn plötzlich online
-						window.addEventListener('online', () => {
-							window.location.reload();
-						});
-					},
+		<!-- Main Content -->
+		<main class="max-w-7xl mx-auto pt-14 pb-6 px-4 sm:px-6 lg:px-8">
+			<div class="min-h-[60vh] flex items-center justify-center" x-data="offlineHandler()" x-init="init()">
+				<div class="max-w-md w-full">
+					<!-- Offline Icon -->
+					<div class="text-center mb-8">
+						<div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-100 mb-4">
+							<svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
+							</svg>
+						</div>
+						<h1 class="text-3xl font-bold text-gray-900 mb-2">
+							{ T(ctx, "offline.title") }
+						</h1>
+						<p class="text-gray-600">
+							{ T(ctx, "offline.subtitle") }
+						</p>
+					</div>
 
-					async checkConnection() {
-						this.checking = true;
+					<!-- Status Card -->
+					<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+						<div class="space-y-4">
+							<!-- Connection Status -->
+							<div class="flex items-center justify-between">
+								<span class="text-sm font-medium text-gray-700">{ T(ctx, "offline.connection_status") }</span>
+								<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+									<span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+									{ T(ctx, "offline.status_offline") }
+								</span>
+							</div>
 
-						try {
-							const response = await fetch('/health', {
-								method: 'HEAD',
-								cache: 'no-cache'
-							});
+							<!-- Info -->
+							<div class="pt-4 border-t border-gray-200">
+								<p class="text-sm text-gray-600">
+									{ T(ctx, "offline.info_text") }
+								</p>
+							</div>
+						</div>
+					</div>
 
-							if (response.ok) {
-								// Online! Reload page
-								window.location.reload();
-							} else {
-								this.showError();
-							}
-						} catch (error) {
-							this.showError();
-						} finally {
-							this.checking = false;
-						}
-					},
+					<!-- Actions -->
+					<div class="space-y-3">
+						<!-- Retry Button -->
+						<button
+							@click="checkConnection()"
+							:disabled="checking"
+							class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							<svg class="w-5 h-5 mr-2" :class="{ 'animate-spin': checking }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+							</svg>
+							<span x-show="checking" x-cloak>{ T(ctx, "offline.checking") }</span>
+							<span x-show="!checking">{ T(ctx, "offline.retry") }</span>
+						</button>
 
-					showError() {
-						// Noch offline
-						console.log('Still offline');
-					}
-				}
-			}
-		</script>
+						<!-- Back to Dashboard -->
+						<a
+							href="/"
+							class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						>
+							<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+							</svg>
+							{ T(ctx, "offline.to_dashboard") }
+						</a>
+					</div>
+
+					<!-- Info Box -->
+					<div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+						<div class="flex">
+							<div class="flex-shrink-0">
+								<svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+								</svg>
+							</div>
+							<div class="ml-3 flex-1">
+								<h3 class="text-sm font-medium text-blue-800">
+									{ T(ctx, "offline.features_title") }
+								</h3>
+								<div class="mt-2 text-sm text-blue-700">
+									<ul class="list-disc list-inside space-y-1">
+										<li>{ T(ctx, "offline.feature_view_cards") }</li>
+										<li>{ T(ctx, "offline.feature_shared") }</li>
+										<li>{ T(ctx, "offline.feature_barcodes") }</li>
+										<li>{ T(ctx, "offline.feature_favorites") }</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		@Footer(ctx, user)
+		if user != nil {
+			@MobileBottomNav(ctx, user)
+		}
+
+		<!-- offlineHandler is now loaded from bundle.js (static/js/src/offline.js) -->
 	</body>
 	</html>
 }

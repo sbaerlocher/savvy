@@ -190,3 +190,47 @@ export function initOfflineStore (Alpine) {
     }
   }
 }
+
+/**
+ * Offline Page Handler (for standalone offline.templ)
+ * Simpler handler without Alpine.js store for the dedicated offline page
+ */
+export function offlineHandler () {
+  return {
+    checking: false,
+
+    init () {
+      // Auto-redirect when suddenly online
+      window.addEventListener('online', () => {
+        window.location.reload()
+      })
+    },
+
+    async checkConnection () {
+      this.checking = true
+
+      try {
+        const response = await fetch('/health', {
+          method: 'HEAD',
+          cache: 'no-cache'
+        })
+
+        if (response.ok) {
+          // Online! Reload page
+          window.location.reload()
+        } else {
+          this.showError()
+        }
+      } catch (error) {
+        this.showError()
+      } finally {
+        this.checking = false
+      }
+    },
+
+    showError () {
+      // Still offline
+      console.log('Still offline')
+    }
+  }
+}

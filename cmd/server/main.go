@@ -253,6 +253,8 @@ func run() int {
 	e.Use(echomiddleware.Recover())
 	e.Use(metrics.Middleware()) // Prometheus metrics
 
+	// Content Security Policy (CSP) for XSS Protection
+
 	// CSRF Protection (only for non-GET requests)
 	e.Use(echomiddleware.CSRFWithConfig(echomiddleware.CSRFConfig{
 		TokenLookup:    "form:csrf_token,header:X-CSRF-Token",

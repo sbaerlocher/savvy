@@ -7,7 +7,7 @@ import htmx from 'htmx.org'
 import './scanner-loader.js'
 
 // Import offline detection
-import { initOfflineStore } from './offline.js'
+import { initOfflineStore, offlineHandler } from './offline.js'
 
 // Import orientation-based barcode fullscreen
 import { initOrientationStore } from './orientation.js'
@@ -20,6 +20,9 @@ window.Alpine = Alpine
 
 // Make HTMX global
 window.htmx = htmx
+
+// Make offlineHandler global for standalone offline page
+window.offlineHandler = offlineHandler
 
 // Initialize offline store before starting Alpine
 initOfflineStore(Alpine)

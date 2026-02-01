@@ -1679,5 +1679,65 @@
   {
     "id": "offline.badge",
     "translation": "Offline"
+  },
+  {
+    "id": "offline.page_title",
+    "translation": "Offline"
+  },
+  {
+    "id": "offline.title",
+    "translation": "Offline Modus"
+  },
+  {
+    "id": "offline.banner_info",
+    "translation": "Du siehst gecachte Daten. Änderungen sind nicht möglich."
+  },
+  {
+    "id": "offline.subtitle",
+    "translation": "Keine Internetverbindung verfügbar"
+  },
+  {
+    "id": "offline.connection_status",
+    "translation": "Verbindungsstatus"
+  },
+  {
+    "id": "offline.status_offline",
+    "translation": "Offline"
+  },
+  {
+    "id": "offline.info_text",
+    "translation": "Diese Seite ist offline nicht verfügbar. Du kannst jedoch bereits besuchte Seiten weiterhin ansehen."
+  },
+  {
+    "id": "offline.checking",
+    "translation": "Prüfe Verbindung..."
+  },
+  {
+    "id": "offline.retry",
+    "translation": "Erneut versuchen"
+  },
+  {
+    "id": "offline.to_dashboard",
+    "translation": "Zum Dashboard (Offline)"
+  },
+  {
+    "id": "offline.features_title",
+    "translation": "Offline-Funktionen"
+  },
+  {
+    "id": "offline.feature_view_cards",
+    "translation": "Bereits besuchte Karten anzeigen"
+  },
+  {
+    "id": "offline.feature_shared",
+    "translation": "Geteilte Karten ansehen"
+  },
+  {
+    "id": "offline.feature_barcodes",
+    "translation": "Barcodes scannen"
+  },
+  {
+    "id": "offline.feature_favorites",
+    "translation": "Favoriten durchsuchen"
   }
 ]

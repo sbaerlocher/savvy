@@ -72,7 +72,33 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 
 	<!-- Bundled JS (HTMX + Alpine + Scanner + Offline Detection) -->
 	<script type="module" src={ config.GetAssetPath("bundle") }></script>
+		<!-- Inline script to set offline class BEFORE page renders (prevents layout shift) -->
+		<script>
+			(function() {
+				try {
+					const isOnline = localStorage.getItem('savvy:online-status') === 'true';
+					if (!isOnline) {
+						document.documentElement.classList.add('is-offline');
+					}
+				} catch (e) {
+					// localStorage might not be available
+				}
+			})();
+		</script>
 		<style>
+			/* Prevent layout shift from scrollbar appearing/disappearing */
+			html {
+				overflow-y: scroll;
+				scrollbar-gutter: stable;
+			}
+			/* Offline banner height control via CSS class (no JS transitions) */
+			.offline-banner-wrapper {
+				height: 0;
+				overflow: hidden;
+			}
+			html.is-offline .offline-banner-wrapper {
+				height: 4rem; /* h-16 = 64px = 4rem */
+			}
 			[x-cloak] { display: none !important; }
 			/* Add padding bottom on mobile for fixed bottom nav */
 			@media (max-width: 640px) {
@@ -146,40 +172,55 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 			<p class="barcode-close-hint">Tippe um zu schließen</p>
 		</div>
 
-		<!-- Offline Banner (sticky at top when scrolling) -->
+		<!-- Offline Banner (sticky at top, with reserved space to prevent layout shift) -->
+		<!-- Height controlled by CSS class on html element (set before page load) -->
 		<div
-			x-data
-			x-show="!$store.offline.isOnline"
-			x-cloak
-			x-transition:enter="transition ease-out duration-300"
-			x-transition:enter-start="opacity-0 -translate-y-full"
-			x-transition:enter-end="opacity-100 translate-y-0"
-			x-transition:leave="transition ease-in duration-200"
-			x-transition:leave-start="opacity-100 translate-y-0"
-			x-transition:leave-end="opacity-0 -translate-y-full"
-			class="sticky top-0 left-0 right-0 z-40 bg-yellow-50 border-b border-yellow-200 px-4 py-3 shadow-md"
+			x-data="{
+				init() {
+					// Watch for offline status changes and toggle class on html element
+					this.$watch('$store.offline.isOnline', (isOnline) => {
+						if (isOnline) {
+							document.documentElement.classList.remove('is-offline');
+						} else {
+							document.documentElement.classList.add('is-offline');
+						}
+					});
+				}
+			}"
+			class="offline-banner-wrapper transition-[height] duration-300"
 		>
-			<div class="max-w-7xl mx-auto flex items-center justify-between">
-				<div class="flex items-center">
-					<svg class="h-5 w-5 text-yellow-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
-						<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-					</svg>
-					<div>
-						<p class="text-sm font-medium text-yellow-800">
-							Offline-Modus
-						</p>
-						<p class="text-xs text-yellow-700">
-							Du siehst gecachte Daten. Änderungen sind nicht möglich.
-						</p>
+			<div
+				x-show="!$store.offline.isOnline"
+				x-transition:enter="transition ease-out duration-300"
+				x-transition:enter-start="opacity-0"
+				x-transition:enter-end="opacity-100"
+				x-transition:leave="transition ease-in duration-200"
+				x-transition:leave-start="opacity-100"
+				x-transition:leave-end="opacity-0"
+				class="sticky top-0 left-0 right-0 z-40 bg-yellow-50 border-b border-yellow-200 px-4 py-3 shadow-md h-16"
+			>
+				<div class="max-w-7xl mx-auto flex items-center justify-between">
+					<div class="flex items-center">
+						<svg class="h-5 w-5 text-yellow-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+						</svg>
+						<div>
+							<p class="text-sm font-medium text-yellow-800">
+								Offline-Modus
+							</p>
+							<p class="text-xs text-yellow-700">
+								Du siehst gecachte Daten. Änderungen sind nicht möglich.
+							</p>
+						</div>
 					</div>
-				</div>
-				<div class="flex gap-2">
-					<button
-						@click="$store.offline.checkConnection()"
-						:disabled="$store.offline.checking"
-						class="text-xs text-yellow-800 hover:text-yellow-900 font-medium underline disabled:opacity-50"
-						x-text="$store.offline.checking ? 'Prüfe...' : 'Erneut versuchen'"
-					></button>
+					<div class="flex gap-2">
+						<button
+							@click="$store.offline.checkConnection()"
+							:disabled="$store.offline.checking"
+							class="text-xs text-yellow-800 hover:text-yellow-900 font-medium underline disabled:opacity-50"
+							x-text="$store.offline.checking ? 'Prüfe...' : 'Erneut versuchen'"
+						></button>
+					</div>
 				</div>
 			</div>
 		</div>

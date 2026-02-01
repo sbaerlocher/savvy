@@ -14,6 +14,19 @@ const STATIC_ASSETS = [
   "/static/js/bundle.js",
   "/static/css/bundle.css",
   "/static/manifest.json",
+  "/offline",
+];
+
+// Pfade die NIE gecacht werden sollen (immer fresh vom Server)
+const NEVER_CACHE_PATHS = [
+  "/api/",           // API Endpoints (dynamische Daten)
+  "/auth/",          // Authentication (OAuth Callbacks, Login/Logout)
+  "/admin",          // Admin Panel + alle Unterseiten (sensitive Daten)
+  "/merchants",      // Merchants Management + alle Unterseiten
+  "/health",         // Health Check Endpoint (inkl. Query-Parameter)
+  "/ready",          // Readiness Check
+  "/metrics",        // Prometheus Metrics
+  "/set-language",   // Language Switcher (Server-Side State)
 ];
 
 // Install Event - Cache static assets
@@ -119,8 +132,34 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Skip API requests (immer fresh data)
-  if (url.pathname.startsWith("/api/")) {
+  // Pfade die nie gecacht werden, aber Offline-Fallback haben
+  const shouldNeverCache = NEVER_CACHE_PATHS.some(path => url.pathname.startsWith(path));
+  const isHealthCheck = url.pathname.startsWith("/health") ||
+                        url.pathname.startsWith("/ready") ||
+                        url.pathname.startsWith("/metrics");
+
+  if (shouldNeverCache) {
+    // Diese Pfade werden nie gecacht, aber bei Offline zeigen wir die Offline-Seite
+    event.respondWith(
+      fetch(request).catch(async (error) => {
+        // Health/Ready/Metrics Endpoints bekommen normalen Fehler (kein Offline-Fallback)
+        if (isHealthCheck) {
+          throw error;
+        }
+
+        // Für HTML-Requests: Zeige Offline-Seite
+        if (request.headers.get("accept")?.includes("text/html")) {
+          const offlineResponse = await caches.match("/offline");
+          if (offlineResponse) {
+            console.log("[ServiceWorker] Network failed for", url.pathname, "- serving offline page");
+            return offlineResponse;
+          }
+        }
+
+        // Für non-HTML (API calls, etc.): Normaler Fehler
+        throw error;
+      })
+    );
     return;
   }
 
@@ -159,7 +198,16 @@ self.addEventListener("fetch", (event) => {
           return cachedResponse;
         }
 
-        // 5. Kein Cache vorhanden, return error response
+        // 5. Kein Cache vorhanden, zeige Offline-Seite für HTML-Requests
+        if (request.headers.get("accept")?.includes("text/html")) {
+          const offlineResponse = await caches.match("/offline");
+          if (offlineResponse) {
+            console.log("[ServiceWorker] No cache, serving offline page");
+            return offlineResponse;
+          }
+        }
+
+        // 6. Fallback für non-HTML requests (z.B. API calls, Images)
         return new Response("Offline - Seite nicht im Cache", {
           status: 503,
           statusText: "Service Unavailable",

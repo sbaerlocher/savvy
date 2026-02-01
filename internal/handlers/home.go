@@ -49,5 +49,13 @@ func HomeIndex(c echo.Context) error {
 
 // OfflinePage shows the offline fallback page (PWA)
 func OfflinePage(c echo.Context) error {
-	return templates.Offline(c.Request().Context()).Render(c.Request().Context(), c.Response().Writer)
+	// Try to get user from session (optional - page works without auth)
+	var user *models.User
+	if userVal := c.Get("current_user"); userVal != nil {
+		user = userVal.(*models.User)
+	}
+
+	isImpersonating := c.Get("is_impersonating") != nil
+
+	return templates.Offline(c.Request().Context(), user, isImpersonating).Render(c.Request().Context(), c.Response().Writer)
 }

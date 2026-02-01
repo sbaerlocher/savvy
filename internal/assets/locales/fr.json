@@ -1678,5 +1678,65 @@
   {
     "id": "offline.badge",
     "translation": "Hors ligne"
+  },
+  {
+    "id": "offline.page_title",
+    "translation": "Hors ligne"
+  },
+  {
+    "id": "offline.title",
+    "translation": "Mode hors ligne"
+  },
+  {
+    "id": "offline.banner_info",
+    "translation": "Vous consultez des données en cache. Les modifications ne sont pas possibles."
+  },
+  {
+    "id": "offline.subtitle",
+    "translation": "Aucune connexion Internet disponible"
+  },
+  {
+    "id": "offline.connection_status",
+    "translation": "État de la connexion"
+  },
+  {
+    "id": "offline.status_offline",
+    "translation": "Hors ligne"
+  },
+  {
+    "id": "offline.info_text",
+    "translation": "Cette page n'est pas disponible hors ligne. Cependant, vous pouvez toujours consulter les pages déjà visitées."
+  },
+  {
+    "id": "offline.checking",
+    "translation": "Vérification de la connexion..."
+  },
+  {
+    "id": "offline.retry",
+    "translation": "Réessayer"
+  },
+  {
+    "id": "offline.to_dashboard",
+    "translation": "Vers le tableau de bord (Hors ligne)"
+  },
+  {
+    "id": "offline.features_title",
+    "translation": "Fonctionnalités hors ligne"
+  },
+  {
+    "id": "offline.feature_view_cards",
+    "translation": "Afficher les cartes déjà visitées"
+  },
+  {
+    "id": "offline.feature_shared",
+    "translation": "Voir les cartes partagées"
+  },
+  {
+    "id": "offline.feature_barcodes",
+    "translation": "Scanner les codes-barres"
+  },
+  {
+    "id": "offline.feature_favorites",
+    "translation": "Parcourir les favoris"
   }
 ]
