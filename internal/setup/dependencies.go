@@ -23,10 +23,7 @@ import (
 
 // InitLogger initializes structured logging based on environment.
 func InitLogger(cfg *config.Config) {
-	logLevel := slog.LevelInfo
-	if !cfg.IsProduction() {
-		logLevel = slog.LevelDebug
-	}
+	logLevel := parseLogLevel(cfg.LogLevel)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: logLevel,
 	}))
@@ -35,8 +32,28 @@ func InitLogger(cfg *config.Config) {
 	slog.Info("Starting savvy system",
 		"version", cfg.ServiceVersion,
 		"environment", cfg.Environment,
+		"log_level", cfg.LogLevel,
 		"otel_enabled", cfg.OTelEnabled,
 	)
+}
+
+// parseLogLevel converts string log level to slog.Level.
+// Valid values: DEBUG, INFO, WARN, ERROR (case-insensitive).
+// Defaults to INFO if invalid.
+func parseLogLevel(level string) slog.Level {
+	switch level {
+	case "DEBUG", "debug":
+		return slog.LevelDebug
+	case "INFO", "info":
+		return slog.LevelInfo
+	case "WARN", "warn", "WARNING", "warning":
+		return slog.LevelWarn
+	case "ERROR", "error":
+		return slog.LevelError
+	default:
+		log.Printf("Warning: Invalid LOG_LEVEL '%s', defaulting to INFO. Valid values: DEBUG, INFO, WARN, ERROR", level)
+		return slog.LevelInfo
+	}
 }
 
 // InitTelemetry initializes OpenTelemetry tracing.

@@ -22,7 +22,8 @@ type Config struct {
 	ServerPort         string
 	SessionSecret      string
 	Environment        string
-	AutoMigrate        bool // Enable/disable automatic migrations
+	LogLevel           string // Logging level: DEBUG, INFO, WARN, ERROR
+	AutoMigrate        bool   // Enable/disable automatic migrations
 	OTelEnabled        bool
 	OTelEndpoint       string
 	ServiceName        string
@@ -48,11 +49,18 @@ func Load() *Config {
 	// OTel should be enabled by default in production
 	otelEnabledDefault := isProduction
 
+	// Default log level: INFO for production, DEBUG for development
+	defaultLogLevel := "INFO"
+	if !isProduction {
+		defaultLogLevel = "DEBUG"
+	}
+
 	return &Config{
 		DatabaseURL:        getEnv("DATABASE_URL", "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"),
 		ServerPort:         getEnv("PORT", "3000"),
 		SessionSecret:      getEnv("SESSION_SECRET", "dev-secret-change-in-production"),
 		Environment:        env,
+		LogLevel:           getEnv("LOG_LEVEL", defaultLogLevel),
 		AutoMigrate:        getBoolEnv("AUTO_MIGRATE", true),               // Default true for dev convenience
 		OTelEnabled:        getBoolEnv("OTEL_ENABLED", otelEnabledDefault), // Default true in production
 		OTelEndpoint:       getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4318"),

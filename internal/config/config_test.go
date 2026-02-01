@@ -139,6 +139,106 @@ func TestValidateProduction_Integration(t *testing.T) {
 	})
 }
 
+func TestLoadWithLogLevel(t *testing.T) {
+	tests := []struct {
+		name             string
+		envLogLevel      string
+		envGoEnv         string
+		expectedLogLevel string
+	}{
+		{
+			name:             "LOG_LEVEL=DEBUG explicitly set",
+			envLogLevel:      "DEBUG",
+			envGoEnv:         "production",
+			expectedLogLevel: "DEBUG",
+		},
+		{
+			name:             "LOG_LEVEL=INFO explicitly set",
+			envLogLevel:      "INFO",
+			envGoEnv:         "development",
+			expectedLogLevel: "INFO",
+		},
+		{
+			name:             "LOG_LEVEL=WARN explicitly set",
+			envLogLevel:      "WARN",
+			envGoEnv:         "production",
+			expectedLogLevel: "WARN",
+		},
+		{
+			name:             "LOG_LEVEL=ERROR explicitly set",
+			envLogLevel:      "ERROR",
+			envGoEnv:         "development",
+			expectedLogLevel: "ERROR",
+		},
+		{
+			name:             "Default LOG_LEVEL in production (INFO)",
+			envLogLevel:      "",
+			envGoEnv:         "production",
+			expectedLogLevel: "INFO",
+		},
+		{
+			name:             "Default LOG_LEVEL in development (DEBUG)",
+			envLogLevel:      "",
+			envGoEnv:         "development",
+			expectedLogLevel: "DEBUG",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Clear environment
+			os.Unsetenv("LOG_LEVEL")
+			os.Unsetenv("GO_ENV")
+
+			// Set test environment
+			if tt.envLogLevel != "" {
+				os.Setenv("LOG_LEVEL", tt.envLogLevel)
+			}
+			if tt.envGoEnv != "" {
+				os.Setenv("GO_ENV", tt.envGoEnv)
+			}
+
+			// Load config
+			cfg := Load()
+
+			// Verify LOG_LEVEL
+			if cfg.LogLevel != tt.expectedLogLevel {
+				t.Errorf("Expected LogLevel=%q, got %q", tt.expectedLogLevel, cfg.LogLevel)
+			}
+
+			// Cleanup
+			os.Unsetenv("LOG_LEVEL")
+			os.Unsetenv("GO_ENV")
+		})
+	}
+}
+
+func TestLoadConfigDefaults(t *testing.T) {
+	// Save current environment
+	originalEnv := os.Getenv("GO_ENV")
+	defer func() {
+		if originalEnv != "" {
+			os.Setenv("GO_ENV", originalEnv)
+		} else {
+			os.Unsetenv("GO_ENV")
+		}
+	}()
+
+	// Clear GO_ENV to ensure defaults
+	os.Unsetenv("GO_ENV")
+	os.Unsetenv("LOG_LEVEL")
+
+	cfg := Load()
+
+	// Verify LOG_LEVEL defaults to DEBUG in development
+	if cfg.Environment != "development" {
+		t.Errorf("Expected Environment=development, got %s", cfg.Environment)
+	}
+	if cfg.LogLevel != "DEBUG" {
+		t.Errorf("Expected LogLevel=DEBUG in development, got %s", cfg.LogLevel)
+	}
+}
+
 // contains checks if a string contains a substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
