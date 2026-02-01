@@ -1726,18 +1726,62 @@
   },
   {
     "id": "offline.feature_view_cards",
-    "translation": "Bereits besuchte Karten anzeigen"
+    "translation": "Alle Karten anzeigen"
   },
   {
     "id": "offline.feature_shared",
-    "translation": "Geteilte Karten ansehen"
+    "translation": "Geteilte Karten anzeigen"
   },
   {
     "id": "offline.feature_barcodes",
-    "translation": "Barcodes scannen"
+    "translation": "Barcodes anzeigen"
   },
   {
     "id": "offline.feature_favorites",
-    "translation": "Favoriten durchsuchen"
+    "translation": "Favoriten anzeigen"
+  },
+  {
+    "id": "footer.app_description",
+    "translation": "Digitale Verwaltung von Kundenkarten, Gutscheinen und Geschenkkarten."
+  },
+  {
+    "id": "footer.quick_links",
+    "translation": "Schnellzugriff"
+  },
+  {
+    "id": "footer.dashboard",
+    "translation": "Dashboard"
+  },
+  {
+    "id": "footer.resources",
+    "translation": "Ressourcen"
+  },
+  {
+    "id": "footer.documentation",
+    "translation": "Dokumentation"
+  },
+  {
+    "id": "footer.report_issues",
+    "translation": "Fehler melden"
+  },
+  {
+    "id": "footer.changelog",
+    "translation": "Änderungsprotokoll"
+  },
+  {
+    "id": "footer.built_with",
+    "translation": "Gebaut mit"
+  },
+  {
+    "id": "footer.all_rights_reserved",
+    "translation": "Alle Rechte vorbehalten."
+  },
+  {
+    "id": "footer.made_with_love",
+    "translation": "Entwickelt mit"
+  },
+  {
+    "id": "footer.in_switzerland",
+    "translation": "in der Schweiz"
   }
 ]

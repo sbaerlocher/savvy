@@ -1725,18 +1725,62 @@
   },
   {
     "id": "offline.feature_view_cards",
-    "translation": "Afficher les cartes déjà visitées"
+    "translation": "Afficher toutes les cartes"
   },
   {
     "id": "offline.feature_shared",
-    "translation": "Voir les cartes partagées"
+    "translation": "Afficher les cartes partagées"
   },
   {
     "id": "offline.feature_barcodes",
-    "translation": "Scanner les codes-barres"
+    "translation": "Afficher les codes-barres"
   },
   {
     "id": "offline.feature_favorites",
-    "translation": "Parcourir les favoris"
+    "translation": "Afficher les favoris"
+  },
+  {
+    "id": "footer.app_description",
+    "translation": "Gestion numérique des cartes de fidélité, bons d'achat et cartes cadeaux."
+  },
+  {
+    "id": "footer.quick_links",
+    "translation": "Liens rapides"
+  },
+  {
+    "id": "footer.dashboard",
+    "translation": "Tableau de bord"
+  },
+  {
+    "id": "footer.resources",
+    "translation": "Ressources"
+  },
+  {
+    "id": "footer.documentation",
+    "translation": "Documentation"
+  },
+  {
+    "id": "footer.report_issues",
+    "translation": "Signaler un problème"
+  },
+  {
+    "id": "footer.changelog",
+    "translation": "Journal des modifications"
+  },
+  {
+    "id": "footer.built_with",
+    "translation": "Construit avec"
+  },
+  {
+    "id": "footer.all_rights_reserved",
+    "translation": "Tous droits réservés."
+  },
+  {
+    "id": "footer.made_with_love",
+    "translation": "Fait avec"
+  },
+  {
+    "id": "footer.in_switzerland",
+    "translation": "en Suisse"
   }
 ]

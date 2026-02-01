@@ -433,7 +433,7 @@
   },
   {
     "id": "app.tagline",
-    "translation": "Your digital wallet for savvy cards, vouchers & gift cards"
+    "translation": "Your digital wallet for loyalty cards, vouchers & gift cards"
   },
   {
     "id": "auth.email",
@@ -613,11 +613,11 @@
   },
   {
     "id": "cards.new.title",
-    "translation": "New Savvy Card"
+    "translation": "New Loyalty Card"
   },
   {
     "id": "cards.no_cards",
-    "translation": "You don't have any savvy cards yet."
+    "translation": "You don't have any loyalty cards yet."
   },
   {
     "id": "cards.no_results",
@@ -673,7 +673,7 @@
   },
   {
     "id": "cards.title",
-    "translation": "My Savvy Cards"
+    "translation": "My Loyalty Cards"
   },
   {
     "id": "common.all",
@@ -997,7 +997,7 @@
   },
   {
     "id": "home.getting_started.cards",
-    "translation": "Track your savvy cards and keep an eye on points"
+    "translation": "Track your loyalty cards and keep an eye on points"
   },
   {
     "id": "home.getting_started.giftcards",
@@ -1021,11 +1021,11 @@
   },
   {
     "id": "home.quick_actions.add_card",
-    "translation": "Add Savvy Card"
+    "translation": "Add Loyalty Card"
   },
   {
     "id": "home.quick_actions.add_card_desc",
-    "translation": "Add a new savvy card"
+    "translation": "Add a new loyalty card"
   },
   {
     "id": "home.quick_actions.add_giftcard",
@@ -1057,7 +1057,7 @@
   },
   {
     "id": "home.recent_items.card",
-    "translation": "Savvy Card"
+    "translation": "Loyalty Card"
   },
   {
     "id": "home.recent_items.giftcard",
@@ -1073,7 +1073,7 @@
   },
   {
     "id": "home.stats.cards",
-    "translation": "Savvy Cards"
+    "translation": "Loyalty Cards"
   },
   {
     "id": "home.stats.giftcards",
@@ -1189,7 +1189,7 @@
   },
   {
     "id": "nav.cards",
-    "translation": "Savvy Cards"
+    "translation": "Loyalty Cards"
   },
   {
     "id": "nav.giftcards",
@@ -1549,15 +1549,15 @@
   },
   {
     "id": "vouchers.form.usage.multiple_with_card",
-    "translation": "Multiple use with savvy card"
+    "translation": "Multiple use with Loyalty card"
   },
   {
     "id": "vouchers.form.usage.multiple_without_card",
-    "translation": "Multiple use without savvy card"
+    "translation": "Multiple use without Loyalty card"
   },
   {
     "id": "vouchers.form.usage.one_per_customer",
-    "translation": "Once per customer (with savvy card)"
+    "translation": "Once per customer (with Loyalty card)"
   },
   {
     "id": "vouchers.form.usage.single_use",
@@ -1725,7 +1725,7 @@
   },
   {
     "id": "offline.feature_view_cards",
-    "translation": "View previously visited cards"
+    "translation": "View all cards"
   },
   {
     "id": "offline.feature_shared",
@@ -1733,10 +1733,54 @@
   },
   {
     "id": "offline.feature_barcodes",
-    "translation": "Scan barcodes"
+    "translation": "View barcodes"
   },
   {
     "id": "offline.feature_favorites",
-    "translation": "Browse favorites"
+    "translation": "View favorites"
+  },
+  {
+    "id": "footer.app_description",
+    "translation": "Digital management of loyalty cards, vouchers and gift cards."
+  },
+  {
+    "id": "footer.quick_links",
+    "translation": "Quick Links"
+  },
+  {
+    "id": "footer.dashboard",
+    "translation": "Dashboard"
+  },
+  {
+    "id": "footer.resources",
+    "translation": "Resources"
+  },
+  {
+    "id": "footer.documentation",
+    "translation": "Documentation"
+  },
+  {
+    "id": "footer.report_issues",
+    "translation": "Report Issues"
+  },
+  {
+    "id": "footer.changelog",
+    "translation": "Changelog"
+  },
+  {
+    "id": "footer.built_with",
+    "translation": "Built With"
+  },
+  {
+    "id": "footer.all_rights_reserved",
+    "translation": "All rights reserved."
+  },
+  {
+    "id": "footer.made_with_love",
+    "translation": "Made with"
+  },
+  {
+    "id": "footer.in_switzerland",
+    "translation": "in Switzerland"
   }
 ]
