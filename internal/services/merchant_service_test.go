@@ -28,6 +28,14 @@ func (m *MockMerchantRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 	return args.Get(0).(*models.Merchant), args.Error(1)
 }
 
+func (m *MockMerchantRepository) GetByName(ctx context.Context, name string) (*models.Merchant, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Merchant), args.Error(1)
+}
+
 func (m *MockMerchantRepository) GetAll(ctx context.Context) ([]models.Merchant, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {

@@ -210,6 +210,24 @@ func (m *MockGiftCardRepositoryFav) GetTotalBalance(ctx context.Context, userID 
 	return args.Get(0).(float64), args.Error(1)
 }
 
+func (m *MockGiftCardRepositoryFav) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
+	args := m.Called(ctx, transaction)
+	return args.Error(0)
+}
+
+func (m *MockGiftCardRepositoryFav) GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error) {
+	args := m.Called(ctx, transactionID, giftCardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.GiftCardTransaction), args.Error(1)
+}
+
+func (m *MockGiftCardRepositoryFav) DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error {
+	args := m.Called(ctx, transactionID)
+	return args.Error(0)
+}
+
 // ============================================================================
 // TESTS
 // ============================================================================

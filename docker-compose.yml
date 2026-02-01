@@ -1,3 +1,4 @@
+---
 services:
   postgres:
     image: postgres:18-alpine@sha256:4eb15de8e7b692c02427a2df278d18eb89422a534e428efb6d43c968250334d4

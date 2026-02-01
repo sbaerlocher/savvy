@@ -10,7 +10,7 @@ import (
 func TestNewContainer(t *testing.T) {
 	// Use nil DB since we're just testing that the container initializes
 	// The actual services will be non-nil wrappers around repositories
-	var db *gorm.DB = nil
+	var db *gorm.DB
 	container := NewContainer(db)
 
 	// Verify all services are initialized

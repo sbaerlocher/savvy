@@ -118,6 +118,14 @@ func (m *MockMerchantService) GetMerchantByID(ctx context.Context, id uuid.UUID)
 	return args.Get(0).(*models.Merchant), args.Error(1)
 }
 
+func (m *MockMerchantService) GetMerchantByName(ctx context.Context, name string) (*models.Merchant, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Merchant), args.Error(1)
+}
+
 func (m *MockMerchantService) GetAllMerchants(ctx context.Context) ([]models.Merchant, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
@@ -278,6 +286,29 @@ func (m *MockShareService) HasVoucherAccess(ctx context.Context, voucherID, user
 func (m *MockShareService) HasGiftCardAccess(ctx context.Context, giftCardID, userID uuid.UUID) (bool, error) {
 	args := m.Called(ctx, giftCardID, userID)
 	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockShareService) CreateCardShare(ctx context.Context, cardID, sharedWithID uuid.UUID, canEdit, canDelete bool) error {
+	args := m.Called(ctx, cardID, sharedWithID, canEdit, canDelete)
+	return args.Error(0)
+}
+
+func (m *MockShareService) CreateVoucherShare(ctx context.Context, voucherID, sharedWithID uuid.UUID) error {
+	args := m.Called(ctx, voucherID, sharedWithID)
+	return args.Error(0)
+}
+
+func (m *MockShareService) CreateGiftCardShare(ctx context.Context, giftCardID, sharedWithID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
+	args := m.Called(ctx, giftCardID, sharedWithID, canEdit, canDelete, canEditTransactions)
+	return args.Error(0)
+}
+
+func (m *MockShareService) GetSharedUsers(ctx context.Context, userID uuid.UUID, searchQuery string) ([]models.User, error) {
+	args := m.Called(ctx, userID, searchQuery)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.User), args.Error(1)
 }
 
 // ============================================================================

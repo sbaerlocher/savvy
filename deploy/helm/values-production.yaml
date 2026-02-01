@@ -1,3 +1,4 @@
+---
 # Production values for savvy
 # Usage: helm install savvy ./helm/savvy -f helm/savvy/values-production.yaml
 

@@ -1,3 +1,4 @@
+---
 # HashiCorp Vault Example
 # Usage: helm install savvy ./helm/savvy -f values-examples/vault.yaml
 

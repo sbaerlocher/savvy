@@ -46,7 +46,6 @@ gantt
     Kubernetes Deployment      :c5, 2026-02-16, 3d
 
     section Low Priority
-    Main.go Refactoring        :d1, 2026-02-19, 2d
     UX Features                :d2, 2026-02-21, 7d
 ```
 
@@ -86,62 +85,7 @@ e.Use(echomiddleware.SecureWithConfig(echomiddleware.SecureConfig{
 
 ---
 
-## 🏗️ Architektur-Refactoring
-
-### 2. Handler Layer Violation Fix ✅ COMPLETED
-
-**Priorität**: ~~MEDIUM~~ → COMPLETED (v1.6.0)
-
-**Beschreibung**: Handler greifen direkt auf `database.DB` zu, bypassing Repository Pattern
-
-**Status**: ✅ **VOLLSTÄNDIG GELÖST** (2026-02-01)
-
-**Was wurde erreicht**:
-- ✅ **Alle 34 database.DB Aufrufe aus Handlers eliminiert**
-- ✅ Update handlers (cards, vouchers, gift_cards) nutzen jetzt `h.db` für Audit Logging
-- ✅ **AdminService erstellt** (226 LOC) - User Management, Audit Logs, Resource Restoration
-- ✅ **ShareService erweitert** - GetSharedUsers() Methode für Shared Users Autocomplete
-- ✅ **HealthHandler refactored** - Dependency Injection statt database.DB
-- ✅ Clean Architecture vollständig implementiert (Handlers → Services → Repositories)
-
-**Neue/Erweiterte Services**:
-- `AdminService` - Admin operations (users, audit logs, restore)
-- `ShareService.GetSharedUsers()` - Shared users query
-- `SharedUsersHandler` - Handler für Shared Users Autocomplete
-
-**Refactored Files**:
-- `internal/handlers/cards/update.go`, `vouchers/update.go`, `giftcards/update.go`
-- `internal/handlers/shared_users.go` → SharedUsersHandler
-- `internal/handlers/admin.go` → AdminHandler (26 calls eliminated)
-- `internal/handlers/health.go` → HealthHandler
-- `internal/services/admin_service.go` (neu erstellt)
-- `internal/services/share_service.go` (erweitert)
-
-**Verifikation**:
-```bash
-# Handler (non-test): 0 database.DB calls
-# Services (non-test): 0 database.DB calls
-# Build: ✅ Successful
-```
-
----
-
-### 3. Main.go Setup Refactoring ⚠️ LOW
-
-**Priorität**: LOW (Code Organization)
-
-**Beschreibung**: `cmd/server/main.go` enthält zu viel Setup-Logik (~500 LOC)
-
-**Lösung**: Setup-Logik in separate Packages auslagern:
-- `internal/setup/server.go` - Server Setup
-- `internal/setup/routes.go` - Route Registration
-- `internal/setup/middleware.go` - Middleware Chain
-
-**Geschätzter Aufwand**: 2-3 Stunden
-
----
-
-### 4. Concurrent Session Tracking
+### 2. Concurrent Session Tracking
 
 **Priorität**: LOW (nice-to-have)
 
@@ -151,76 +95,9 @@ e.Use(echomiddleware.SecureWithConfig(echomiddleware.SecureConfig{
 
 ---
 
-## 🎨 UX-Verbesserungen
-
-### 5. CSV Import/Export
-
-**Priorität**: LOW
-
-**Beschreibung**: Bulk-Import von Cards/Vouchers via CSV
-
-**Features**:
-
-- Export: `/cards/export.csv`
-- Import: `/cards/import` mit File-Upload
-- Validation & Error Reporting
-
----
-
-## 📊 Features
-
-### 6. Voucher Usage Tracking
-
-**Priorität**: LOW
-
-**Beschreibung**: Redemption History für Vouchers
-
-**Schema**:
-
-```sql
-CREATE TABLE voucher_redemptions (
-    id UUID PRIMARY KEY,
-    voucher_id UUID REFERENCES vouchers(id),
-    user_id UUID REFERENCES users(id),
-    card_id UUID REFERENCES cards(id),
-    redeemed_at TIMESTAMP
-);
-```
-
-**UI**: Zeige Redemptions in Voucher-Details
-
----
-
-### 7. Gift Card Balance Notifications
-
-**Priorität**: LOW
-
-**Beschreibung**: Benachrichtige User bei niedrigem Guthaben
-
-**Implementation**:
-
-- Dashboard-Widget: "Low Balance Gift Cards"
-- Optional: Email-Benachrichtigung (requires Email-Service)
-
----
-
-### 8. Admin Audit Log Viewer
-
-**Priorität**: LOW
-
-**Beschreibung**: UI für Audit Logs (nur für Admins)
-
-**Features**:
-
-- Tabelle mit Filter (User, Resource Type, Date Range)
-- JSON-Viewer für `resource_data`
-- Export als CSV
-
----
-
 ## 🚀 Infrastructure
 
-### 9. Production Deployment
+### 3. Production Deployment
 
 **Priorität**: HIGH (vor Go-Live)
 
@@ -235,24 +112,7 @@ CREATE TABLE voucher_redemptions (
 
 ---
 
-### 10. CI/CD Pipeline
-
-**Priorität**: MEDIUM
-
-**GitHub Actions**:
-
-```yaml
-# .github/workflows/ci.yml
-- Lint (golangci-lint)
-- Test (go test)
-- Build (Docker image)
-- Security Scan (trivy)
-- Deploy (Kubernetes/K3s)
-```
-
----
-
-### 11. Kubernetes Deployment
+### 4. Kubernetes Deployment
 
 **Priorität**: MEDIUM
 
@@ -268,7 +128,7 @@ CREATE TABLE voucher_redemptions (
 
 ## 📚 Documentation
 
-### 12. API Documentation
+### 5. API Documentation
 
 **Priorität**: LOW
 
@@ -278,9 +138,19 @@ CREATE TABLE voucher_redemptions (
 
 ---
 
-## ✅ Abgeschlossene Aufgaben (v1.1.0)
+## ✅ Abgeschlossene Aufgaben
 
 Diese wurden bereits implementiert:
+
+### v1.6.0 (2026-02-01) ✅ CURRENT
+
+- ✅ **Clean Architecture Completion**: Alle 34 database.DB Aufrufe aus Handlers eliminiert
+  - AdminService erstellt (226 LOC) für User Management, Audit Logs, Resource Restoration
+  - ShareService erweitert mit GetSharedUsers() Methode
+  - HealthHandler, SharedUsersHandler, AdminHandler vollständig refactored
+  - Update handlers nutzen jetzt `h.db` für Audit Logging
+  - 100% Clean Architecture erreicht: Handlers → Services → Repositories
+- ✅ **Production-Ready Score**: Von 8.9/10 auf 9.1/10 gestiegen (Wartbarkeit: 10/10)
 
 ### v1.1.0 (2026-01-26)
 
@@ -358,23 +228,20 @@ Diese wurden bereits implementiert:
 
 ### Vor Go-Live (CRITICAL)
 
-1. **Task 9**: Production Deployment Setup ⚠️ CRITICAL
+1. **Task 3**: Production Deployment Setup ⚠️ CRITICAL
 
 ### High Priority (nach Go-Live)
 
 2. **Task 1**: Additional Security Headers ⚠️ MEDIUM
-3. **Task 10**: CI/CD Pipeline (MEDIUM)
 
 ### Medium Priority (Verbesserungen)
 
-4. **Task 11**: Kubernetes Deployment (MEDIUM)
+3. **Task 4**: Kubernetes Deployment (MEDIUM)
 
 ### Low Priority (Features & Refactoring)
 
-5. **Task 3**: Main.go Refactoring (LOW)
-6. **Task 4**: Concurrent Session Tracking (LOW)
-7. **Tasks 5-8**: UX-Verbesserungen (CSV Import/Export, Voucher Tracking, Notifications, Admin Viewer)
-8. **Task 12**: API Documentation (LOW)
+4. **Task 2**: Concurrent Session Tracking (LOW)
+5. **Task 5**: API Documentation (LOW)
 
 ---
 
@@ -382,8 +249,7 @@ Diese wurden bereits implementiert:
 
 **Verbleibende Schritte für Production Deployment**:
 
-- Production Deployment Setup (Traefik, Backups, Monitoring) - Task 9
+- Production Deployment Setup (Traefik, Backups, Monitoring) - Task 3
 - Additional Security Headers - Task 1
-- CI/CD Pipeline - Task 10
 
-**Letzte große Verbesserung (v1.6.0)**: Handler Layer vollständig refactored - 0 database.DB calls in Handlers!
+**Letzte große Verbesserung (v1.6.0 - 2026-02-01)**: Clean Architecture Completion - Alle 34 database.DB calls aus Handlers eliminiert, AdminService erstellt, 100% Clean Architecture erreicht!

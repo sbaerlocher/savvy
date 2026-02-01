@@ -1,3 +1,5 @@
+// Package shares provides unified share handling logic for different resource types.
+// It implements the adapter pattern to eliminate code duplication across Card, Voucher, and Gift Card shares.
 package shares
 
 import (

@@ -65,6 +65,24 @@ func (m *MockGiftCardRepository) GetTotalBalance(ctx context.Context, userID uui
 	return args.Get(0).(float64), args.Error(1)
 }
 
+func (m *MockGiftCardRepository) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
+	args := m.Called(ctx, transaction)
+	return args.Error(0)
+}
+
+func (m *MockGiftCardRepository) GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error) {
+	args := m.Called(ctx, transactionID, giftCardID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.GiftCardTransaction), args.Error(1)
+}
+
+func (m *MockGiftCardRepository) DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error {
+	args := m.Called(ctx, transactionID)
+	return args.Error(0)
+}
+
 var _ repository.GiftCardRepository = (*MockGiftCardRepository)(nil)
 
 func TestGiftCardService_CreateGiftCard_Success(t *testing.T) {

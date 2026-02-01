@@ -1,3 +1,5 @@
+// Package shares provides unified share handling logic for different resource types.
+// It implements the adapter pattern to eliminate code duplication across Card, Voucher, and Gift Card shares.
 package shares
 
 import (
@@ -103,7 +105,7 @@ func (a *VoucherShareAdapter) CreateShare(ctx context.Context, req CreateShareRe
 }
 
 // UpdateShare is not supported for vouchers (read-only sharing).
-func (a *VoucherShareAdapter) UpdateShare(ctx context.Context, req UpdateShareRequest) error {
+func (a *VoucherShareAdapter) UpdateShare(_ context.Context, _ UpdateShareRequest) error {
 	return errors.New("updating voucher shares is not supported (read-only sharing)")
 }
 

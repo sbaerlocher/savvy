@@ -1,3 +1,4 @@
+---
 # Bitwarden Secrets Manager Example
 # Usage: helm install savvy ./helm/savvy -f values-examples/bitwarden.yaml
 #

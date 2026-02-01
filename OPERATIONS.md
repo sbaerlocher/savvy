@@ -1,7 +1,8 @@
 # Operations Guide
 
-**Letzte Aktualisierung**: 2026-01-25
+**Letzte Aktualisierung**: 2026-02-01
 **Projekt**: Savvy (Savvy System)
+**Version**: 1.6.0
 
 ---
 
@@ -74,7 +75,43 @@ ADD COLUMN created_by_user_id UUID REFERENCES users(id);
 
 ### Verwendung
 
-#### Automatisches Logging
+#### Via AdminService (Empfohlen - Clean Architecture)
+
+Seit v1.6.0 wird für alle Admin-Operationen der **AdminService** verwendet:
+
+```go
+// AdminService für Audit Log Erstellung (Clean Architecture)
+import "savvy/internal/services"
+
+// Dependency Injection
+adminService := services.NewAdminService(db)
+
+// Audit Log erstellen
+err := adminService.CreateAuditLog(ctx, &models.AuditLog{
+    UserID:       userID,
+    Action:       "delete",
+    ResourceType: "cards",
+    ResourceID:   cardID,
+    ResourceData: resourceData,
+    IPAddress:    ipAddress,
+    UserAgent:    userAgent,
+})
+```
+
+**AdminService Funktionen** (`internal/services/admin_service.go`, 226 LOC):
+
+- `GetAllUsers(ctx)` - Liste aller Benutzer
+- `GetUserByID(ctx, userID)` - User Details
+- `CreateUser(ctx, user)` - Neuen User erstellen
+- `UpdateUser(ctx, user)` - User aktualisieren
+- `DeleteUser(ctx, userID)` - User löschen
+- `GetAuditLogs(ctx)` - Alle Audit Logs
+- `CreateAuditLog(ctx, log)` - Audit Log erstellen
+- `RestoreCard(ctx, cardID)` - Soft-deleted Card wiederherstellen
+- `RestoreVoucher(ctx, voucherID)` - Soft-deleted Voucher wiederherstellen
+- `RestoreGiftCard(ctx, giftCardID)` - Soft-deleted Gift Card wiederherstellen
+
+#### Automatisches Logging (GORM Hooks)
 
 GORM Hooks erstellen automatisch Audit Logs bei Deletions:
 
@@ -83,12 +120,12 @@ GORM Hooks erstellen automatisch Audit Logs bei Deletions:
 database.DB.Delete(&card)
 ```
 
-#### Manuelles Logging
+#### Legacy: Manuelles Logging (Deprecated)
 
 ```go
 import "savvy/internal/audit"
 
-// Explizites Audit Logging
+// Explizites Audit Logging (Legacy - verwende AdminService stattdessen)
 err := audit.LogDeletionFromContext(
     c,              // Echo context
     database.DB,

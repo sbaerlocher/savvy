@@ -33,6 +33,14 @@ func (m *MockMerchantServiceNew) GetMerchantByID(ctx context.Context, id uuid.UU
 	return args.Get(0).(*models.Merchant), args.Error(1)
 }
 
+func (m *MockMerchantServiceNew) GetMerchantByName(ctx context.Context, name string) (*models.Merchant, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Merchant), args.Error(1)
+}
+
 func (m *MockMerchantServiceNew) CreateMerchant(ctx context.Context, merchant *models.Merchant) error {
 	args := m.Called(ctx, merchant)
 	return args.Error(0)
