@@ -1,0 +1,19 @@
+---
+# RoleBinding for Savvy ServiceAccount
+# Binds the Role to the ServiceAccount
+# Disabled by default - enable in overlays by adding to kustomization.yaml resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: savvy
+subjects:
+  - kind: ServiceAccount
+    name: savvy
+    namespace: savvy

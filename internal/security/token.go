@@ -37,14 +37,27 @@ func Init(secret string) {
 	tokenSecret = []byte(secret)
 }
 
+// getValidityWindow calculates a deterministic expiration time based on current date
+// All tokens generated on the same day will have the same expiration time
+// This enables Service Worker to cache barcode images with stable URLs
+func getValidityWindow(validDuration time.Duration) time.Time {
+	now := time.Now()
+	// Round to start of current day (midnight UTC)
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	// Token expires at midnight + validDuration (e.g., 7 days from today's midnight)
+	return midnight.Add(validDuration)
+}
+
 // GenerateBarcodeToken creates a cryptographically signed token for barcode access
-// The token is valid for the specified duration (e.g., 60 seconds)
+// The token is valid for the specified duration (e.g., 7 days)
+// Token uses daily rotation: all requests on the same day generate the same token
+// This enables Service Worker caching of barcode images for offline support
 func GenerateBarcodeToken(resourceID uuid.UUID, resourceType string, userID uuid.UUID, validDuration time.Duration) (string, error) {
 	claims := BarcodeTokenClaims{
 		ResourceID:   resourceID,
 		ResourceType: resourceType,
 		UserID:       userID,
-		ExpiresAt:    time.Now().Add(validDuration).Unix(),
+		ExpiresAt:    getValidityWindow(validDuration).Unix(),
 	}
 
 	// Marshal claims to JSON

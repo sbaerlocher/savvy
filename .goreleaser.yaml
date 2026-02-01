@@ -10,7 +10,7 @@ before:
     - npm ci --quiet
     - npm run build
 
-    # Service Worker generation (inject version with cat instead of redirect)
+    # Service Worker generation (inject version)
     - bash -c "sed 's/__VERSION__/{{.Version}}/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js"
 
     # Verify service worker was created (optional - don't fail build)

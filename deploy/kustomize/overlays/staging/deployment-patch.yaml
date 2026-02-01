@@ -7,6 +7,18 @@ spec:
   replicas: 2
   template:
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - savvy
+                topologyKey: kubernetes.io/hostname
       containers:
         - name: savvy
           image: ghcr.io/sbaerlocher/container/savvy:staging

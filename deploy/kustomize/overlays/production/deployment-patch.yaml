@@ -7,6 +7,7 @@ spec:
   replicas: 3
   template:
     spec:
+      priorityClassName: savvy
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

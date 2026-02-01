@@ -1,3 +1,4 @@
+{{- if .Values.monitoring }}
 {{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -17,4 +18,5 @@ spec:
       path: /metrics
       interval: {{ .Values.monitoring.serviceMonitor.interval }}
       scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+{{- end }}
 {{- end }}

@@ -205,10 +205,10 @@ func (h *BarcodeHandler) Generate(c echo.Context) error {
 	}
 
 	c.Response().Header().Set("Content-Type", "image/png")
-	// Security: Prevent barcode caching to avoid data leakage on shared computers or browser history
-	c.Response().Header().Set("Cache-Control", "private, no-store, must-revalidate")
-	c.Response().Header().Set("Pragma", "no-cache")
-	c.Response().Header().Set("Expires", "0")
+	// Cache for 7 days (matches token validity) - enables Service Worker offline support
+	// private: only user's browser can cache (no shared/proxy caches)
+	// immutable: browser won't revalidate (token rotation handles freshness)
+	c.Response().Header().Set("Cache-Control", "private, max-age=604800, immutable")
 
 	return png.Encode(c.Response().Writer, barcodeImage)
 }

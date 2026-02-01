@@ -8,6 +8,13 @@ metadata:
     app.kubernetes.io/component: backend
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 10
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app.kubernetes.io/name: savvy
@@ -23,6 +30,7 @@ spec:
         app.kubernetes.io/component: backend
     spec:
       serviceAccountName: savvy
+      terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -103,6 +111,14 @@ spec:
                   name: savvy
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
                   optional: true
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /health

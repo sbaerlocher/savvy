@@ -14,10 +14,15 @@ resources:
   - servicemonitor.yaml
   - oauth-configmap.yaml
   - oauth-externalsecret.yaml
+  # High-Availability Features
+  - ../../base/poddisruptionbudget.yaml
+  - ../../base/networkpolicy.yaml
+  - ../../base/priorityclass.yaml
 
 patches:
   - path: deployment-patch.yaml
   - path: configmap-patch.yaml
+  - path: networkpolicy-patch.yaml
 
 images:
   - name: ghcr.io/sbaerlocher/container/savvy

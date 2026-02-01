@@ -1,31 +1,29 @@
 ---
-# Default values for savvy
+# Default values for savvy.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
+# Image Configuration
 image:
-  repository: ghcr.io/sbaerlocher/container/savvy
+  repository: ghcr.io/sbaerlocher/savvy
   pullPolicy: IfNotPresent
-  tag: "@sha256:5d44e43d7a9efd6fb3d27166ab20d6a875dce9d951588f6c5b86f2e866384ac0"  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""  # Empty = uses Chart.appVersion (auto-synced via release workflow)
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# ServiceAccount
 serviceAccount:
   create: true
   automount: true
   annotations: {}
   name: ""
 
-podAnnotations:
-  k8s.grafana.com/scrape: "true"
-  k8s.grafana.com/metrics.portNumber: "3000"
-  k8s.grafana.com/metrics.path: "/metrics"
-  k8s.grafana.com/job: "savvy"
-
+# Pod Configuration
+podAnnotations: {}
 podLabels: {}
 
 podSecurityContext:
@@ -41,39 +39,193 @@ securityContext:
   capabilities:
     drop:
       - ALL
-  readOnlyRootFilesystem: false  # false wegen Session-Storage
+  readOnlyRootFilesystem: false
 
-service:
-  type: ClusterIP
-  port: 80
-  targetPort: 3000
+# Deployment Strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+minReadySeconds: 10
+revisionHistoryLimit: 10
+terminationGracePeriodSeconds: 30
+
+# Startup Probe (for slow starts)
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30  # 5 minutes max startup time
+
+# Autoscaling (HPA)
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+  # Custom metrics can be added here
+  customMetrics: []
+  # Scaling behavior
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 2
+          periodSeconds: 15
+      selectPolicy: Max
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1  # Use either minAvailable or maxUnavailable
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+# Pod Anti-Affinity (spread pods across nodes)
+podAntiAffinity:
+  enabled: false
+  type: soft  # soft or hard
+  topologyKey: kubernetes.io/hostname
+
+# Topology Spread Constraints (even distribution)
+topologySpreadConstraints: []
+# Example:
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+#   labelSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: savvy
+
+# Priority Class
+priorityClass:
+  enabled: false
+  create: false
+  name: ""
+  value: 1000
+  description: "Priority class for Savvy application"
+  preemptionPolicy: PreemptLowerPriority
+
+# RBAC
+rbac:
+  create: false
+  rules: []
+  # Example rules:
+  # - apiGroups: [""]
+  #   resources: ["configmaps"]
+  #   verbs: ["get", "list", "watch"]
+
+# Network Policy
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+  # Example ingress:
+  # - from:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           name: ingress
+  #   ports:
+  #     - protocol: TCP
+  #       port: 3000
+
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# External Secrets Configuration (external-secrets.io/v1)
+# Set enabled: true and configure your secret store to use External Secrets
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    name: ""  # Your ClusterSecretStore or SecretStore name
+    kind: ClusterSecretStore
+
+  # Target Secret Configuration
+  creationPolicy: Owner  # Owner, Orphan, Merge, None
+  deletionPolicy: Retain  # Retain, Delete
+
+  # Annotations for ExternalSecret resources
   annotations: {}
 
-ingress:
+  # Session Secret (required by Savvy)
+  # When enabled, provide the secret ID/key from your secret store
+  sessionSecretId: ""
+  sessionSecretProperty: ""
+
+  # OAuth Client Credentials (if OAuth is enabled)
+  oauthClientIdSecret: ""
+  oauthClientIdProperty: ""
+  oauthClientSecretId: ""
+  oauthClientSecretProperty: ""
+
+  # Data Conversion/Decoding Strategies
+  conversionStrategy: Default  # Default, Unicode
+  decodingStrategy: None  # None, Auto, Base64, Base64URL
+
+  # Template for complex secret transformations
+  template: {}
+
+  # DataFrom: Pull all keys from a secret
+  dataFrom: []
+
+  # Find: Search for secrets by name/tags
+  find: []
+
+  # Additional secrets to pull
+  additionalSecrets: []
+
+# Database Configuration
+database:
+  # Name of existing Kubernetes secret containing DATABASE_URL
+  existingSecret: ""
+  # Key within the secret that contains the database URL
+  databaseUrlKey: "DATABASE_URL"
+
+# Application Configuration
+config:
+  serverPort: 3000
+  goEnv: production
+  logLevel: info
+
+  # Feature Toggles
+  enableCards: true
+  enableVouchers: true
+  enableGiftCards: true
+  enableLocalLogin: false  # Set true to enable email/password login
+  enableRegistration: false  # Set true to enable user registration
+
+  # OpenTelemetry (optional)
+  otelEnabled: false
+  otelExporterOtlpEndpoint: ""  # e.g. "localhost:4318"
+
+# OAuth/OIDC Configuration
+oauth:
   enabled: false
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-  hosts:
-    - host: savvy.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: savvy-tls
-      hosts:
-        - savvy.example.com
+  issuer: ""  # e.g. "https://auth.example.com/application/o/savvy/"
+  redirectUrl: ""  # e.g. "https://savvy.example.com/auth/oauth/callback"
+  existingSecret: ""  # Name of secret containing OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET
+  adminGroup: ""  # Optional: OIDC group name for admin access
 
-resources:
-  limits:
-    cpu: "1"
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
-
+# Health Probes
 livenessProbe:
   httpGet:
     path: /health
@@ -92,102 +244,42 @@ readinessProbe:
   timeoutSeconds: 3
   failureThreshold: 3
 
-autoscaling:
+# Resource Limits
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 3000
+
+# Ingress Configuration
+ingress:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  className: ""  # e.g. "nginx", "traefik"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # Example TLS config:
+  # - secretName: savvy-tls
+  #   hosts:
+  #     - savvy.example.com
 
-volumes: []
-volumeMounts: []
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-# Application Configuration
-config:
-  serverPort: 3000
-  goEnv: production
-
-  # Feature Toggles
-  enableCards: true
-  enableVouchers: true
-  enableGiftCards: true
-  enableLocalLogin: true
-  enableRegistration: false
-
-  # Observability
-  otelEnabled: false
-  otelExporterOtlpEndpoint: "localhost:4318"
-
-  # Session (secret wird via External Secrets geladen)
-  sessionSecret: ""  # REQUIRED: Set via external secret
-
-# Database Configuration
-database:
-  existingSecret: "savvy-db"
-  databaseUrlKey: "uri"
-
-# External Secrets Operator Integration
-externalSecrets:
-  enabled: true
-  refreshInterval: 1h
-  secretStoreRef:
-    name: bitwarden-secret-store
-    kind: ClusterSecretStore
-
-  # Secrets to sync from Secret Manager
-  # remoteRef structure varies by provider:
-  #
-  # Bitwarden:
-  #   remoteRef:
-  #     key: "item-name"
-  #     property: password
-  #
-  # Vault:
-  #   remoteRef:
-  #     key: "secret/path"
-  #     property: "fieldname"
-  #
-  # AWS Secrets Manager:
-  #   remoteRef:
-  #     key: "arn:aws:secretsmanager:region:account:secret:name"
-  #
-  # Google Secret Manager:
-  #   remoteRef:
-  #     key: "projects/PROJECT_ID/secrets/SECRET_NAME/versions/latest"
-
-  secrets:
-    # Session Secret (Bitwarden example)
-    - target:
-        key: SESSION_SECRET
-      remoteRef:
-        key: "savvy-session-secret"
-        property: password
-
-    # Database Password (Bitwarden example)
-    - target:
-        key: password
-      remoteRef:
-        key: "savvy-db-password"
-        property: password
-
-# OAuth/OIDC Configuration (optional)
-oauth:
-  enabled: false
-  issuer: ""
-  redirectUrl: ""
-  existingSecret: "savvy-oauth"
-
-# Monitoring (Prometheus ServiceMonitor)
+# Monitoring Configuration
 monitoring:
   enabled: false
   serviceMonitor:
     enabled: false
     interval: 30s
     scrapeTimeout: 10s
-    labels: {}

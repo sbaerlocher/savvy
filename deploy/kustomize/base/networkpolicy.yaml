@@ -1,0 +1,50 @@
+---
+# NetworkPolicy for Savvy application
+# Restricts ingress/egress traffic to the application pods
+# Disabled by default - enable in overlays by adding to kustomization.yaml resources
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: savvy
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from Ingress Controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow PostgreSQL (adjust as needed)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow HTTPS for OAuth/external APIs
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

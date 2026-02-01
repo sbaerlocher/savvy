@@ -13,6 +13,8 @@ resources:
   - ../../base
   - ingress.yaml
   - hpa.yaml
+  # High-Availability Features for Staging
+  - ../../base/poddisruptionbudget.yaml
 
 patches:
   - path: deployment-patch.yaml

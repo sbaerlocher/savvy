@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "savvy.fullname" . }}
+  name: {{ include "savvy.fullname" . }}-config
   labels:
     {{- include "savvy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: config
 data:
   SERVER_PORT: {{ .Values.config.serverPort | quote }}
   GO_ENV: {{ .Values.config.goEnv }}
+  LOG_LEVEL: {{ .Values.config.logLevel }}
   ENABLE_CARDS: {{ .Values.config.enableCards | quote }}
   ENABLE_VOUCHERS: {{ .Values.config.enableVouchers | quote }}
   ENABLE_GIFT_CARDS: {{ .Values.config.enableGiftCards | quote }}
@@ -15,4 +17,9 @@ data:
   OTEL_ENABLED: {{ .Values.config.otelEnabled | quote }}
   {{- if .Values.config.otelEnabled }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otelExporterOtlpEndpoint }}
+  {{- end }}
+  {{- if .Values.oauth.enabled }}
+  OAUTH_ISSUER: {{ .Values.oauth.issuer }}
+  OAUTH_REDIRECT_URL: {{ .Values.oauth.redirectUrl }}
+  OAUTH_ADMIN_GROUP: {{ .Values.oauth.adminGroup | default "Savvy Admins" }}
   {{- end }}

@@ -8,6 +8,16 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.minReadySeconds }}
+  minReadySeconds: {{ . }}
+  {{- end }}
+  {{- with .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ . }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "savvy.selectorLabels" . | nindent 6 }}
@@ -29,6 +39,19 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "savvy.serviceAccountName" . }}
+      {{- if .Values.priorityClass.enabled }}
+      priorityClassName: {{ .Values.priorityClass.name | default (include "savvy.fullname" .) }}
+      {{- end }}
+      {{- with .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsPolicy }}
+      dnsPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -41,13 +64,11 @@ spec:
             - name: http
               containerPort: {{ .Values.config.serverPort }}
               protocol: TCP
+          envFrom:
+            # Application Configuration from ConfigMap
+            - configMapRef:
+                name: {{ include "savvy.fullname" . }}-config
           env:
-            # Server Configuration
-            - name: SERVER_PORT
-              value: {{ .Values.config.serverPort | quote }}
-            - name: GO_ENV
-              value: {{ .Values.config.goEnv }}
-
             # Database Configuration
             - name: DATABASE_URL
               valueFrom:
@@ -59,30 +80,10 @@ spec:
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: savvy-session
+                  name: {{ include "savvy.fullname" . }}-secrets
                   key: SESSION_SECRET
 
-            # Feature Toggles
-            - name: ENABLE_CARDS
-              value: {{ .Values.config.enableCards | quote }}
-            - name: ENABLE_VOUCHERS
-              value: {{ .Values.config.enableVouchers | quote }}
-            - name: ENABLE_GIFT_CARDS
-              value: {{ .Values.config.enableGiftCards | quote }}
-            - name: ENABLE_LOCAL_LOGIN
-              value: {{ .Values.config.enableLocalLogin | quote }}
-            - name: ENABLE_REGISTRATION
-              value: {{ .Values.config.enableRegistration | quote }}
-
-            # Observability
-            - name: OTEL_ENABLED
-              value: {{ .Values.config.otelEnabled | quote }}
-            {{- if .Values.config.otelEnabled }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ .Values.config.otelExporterOtlpEndpoint }}
-            {{- end }}
-
-            # OAuth (optional)
+            # OAuth Secrets (optional)
             {{- if .Values.oauth.enabled }}
             - name: OAUTH_CLIENT_ID
               valueFrom:
@@ -94,12 +95,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.oauth.existingSecret }}
                   key: client-secret
-            - name: OAUTH_ISSUER
-              value: {{ .Values.oauth.issuer }}
-            - name: OAUTH_REDIRECT_URL
-              value: {{ .Values.oauth.redirectUrl }}
             {{- end }}
 
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
@@ -118,8 +119,32 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- if or .Values.affinity .Values.podAntiAffinity.enabled }}
       affinity:
+        {{- with .Values.affinity }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.podAntiAffinity.enabled }}
+        podAntiAffinity:
+          {{- if eq .Values.podAntiAffinity.type "hard" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  {{- include "savvy.selectorLabels" . | nindent 18 }}
+              topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+          {{- else }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "savvy.selectorLabels" . | nindent 20 }}
+                topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}

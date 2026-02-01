@@ -1,0 +1,38 @@
+---
+# NetworkPolicy patch for production
+# Adjusts ingress/egress rules for production environment
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: savvy
+spec:
+  ingress:
+    # Allow traffic from Ingress Controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow PostgreSQL (external database)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow HTTPS for OAuth/external APIs
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

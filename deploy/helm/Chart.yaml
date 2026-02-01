@@ -5,10 +5,10 @@ description: A Helm chart for Savvy - Digital Cards, Vouchers & Gift Cards Manag
 type: application
 version: 1.1.0
 appVersion: "1.1.0"
-home: https://github.com/sbaerlocher/loyalty-system
+home: https://github.com/sbaerlocher/savvy
 maintainers:
   - name: Simon Bärlocher
-    email: noreply@sbaerlocher.ch
+    email: s.baerlocher@sbaerlocher.ch
 keywords:
   - savvy
   - loyalty
@@ -17,5 +17,5 @@ keywords:
   - gift-cards
   - pwa
 sources:
-  - https://github.com/sbaerlocher/loyalty-system
-icon: https://raw.githubusercontent.com/sbaerlocher/loyalty-system/main/static/icons/icon-512x512.png
+  - https://github.com/sbaerlocher/savvy
+icon: https://raw.githubusercontent.com/sbaerlocher/savvy/main/static/icons/icon-512x512.png
