@@ -7,7 +7,7 @@ replicaCount: 1
 
 # Image Configuration
 image:
-  repository: ghcr.io/sbaerlocher/savvy
+  repository: ghcr.io/sbaerlocher/container/savvy
   pullPolicy: IfNotPresent
   tag: ""  # Empty = uses Chart.appVersion (auto-synced via release workflow)
 
