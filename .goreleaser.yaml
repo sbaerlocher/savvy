@@ -13,6 +13,10 @@ before:
     # Service Worker generation (inject version)
     - sed 's/__VERSION__/{{.Version}}/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js
 
+    # Verify service worker was created
+    - ls -lh internal/assets/static/service-worker.js
+    - head -n 1 internal/assets/static/service-worker.js
+
     # Template generation (generates *_templ.go files which import github.com/a-h/templ)
     - templ generate
 

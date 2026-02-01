@@ -50,6 +50,21 @@ func NewEchoServer(sc *ServerConfig) *echo.Echo {
 func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 	cfg := sc.Config
 
+	// Trust proxy headers (X-Forwarded-Proto, X-Forwarded-For, X-Real-IP)
+	// IMPORTANT: Only enable in production behind reverse proxy (Traefik)
+	if cfg.IsProduction() {
+		e.IPExtractor = echo.ExtractIPFromXFFHeader()
+
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if proto := c.Request().Header.Get("X-Forwarded-Proto"); proto == "https" {
+					c.Request().URL.Scheme = "https"
+				}
+				return next(c)
+			}
+		})
+	}
+
 	// OpenTelemetry Middleware (must be first for proper tracing)
 	if cfg.OTelEnabled {
 		e.Use(otelecho.Middleware(cfg.ServiceName))
