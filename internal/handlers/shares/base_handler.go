@@ -7,20 +7,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/i18n"
 	"savvy/internal/models"
+	"savvy/internal/services"
 )
 
 // BaseShareHandler provides unified share handling logic for all resource types.
 // Eliminates 70% code duplication by using the adapter pattern.
 type BaseShareHandler struct {
-	adapter ShareAdapter
+	adapter     ShareAdapter
+	userService services.UserServiceInterface
 }
 
 // NewBaseShareHandler creates a new base share handler with the given adapter.
-func NewBaseShareHandler(adapter ShareAdapter) *BaseShareHandler {
-	return &BaseShareHandler{adapter: adapter}
+func NewBaseShareHandler(adapter ShareAdapter, userService services.UserServiceInterface) *BaseShareHandler {
+	return &BaseShareHandler{
+		adapter:     adapter,
+		userService: userService,
+	}
 }
 
 // Create handles share creation for any resource type.
@@ -55,8 +59,8 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 	isHTMX := c.Request().Header.Get("HX-Request") == "true"
 
 	// Validate email exists
-	var sharedUser models.User
-	if err := database.DB.Where("LOWER(email) = ?", email).First(&sharedUser).Error; err != nil {
+	_, err = h.userService.GetUserByEmail(c.Request().Context(), email)
+	if err != nil {
 		msg := i18n.T(c.Request().Context(), "error.user_not_found")
 		return c.String(http.StatusBadRequest, msg)
 	}

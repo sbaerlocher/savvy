@@ -18,15 +18,17 @@ type CardSharesHandler struct {
 	baseHandler  *shares.BaseShareHandler
 	db           *gorm.DB
 	authzService services.AuthzServiceInterface
+	userService  services.UserServiceInterface
 }
 
 // NewCardSharesHandler creates a new card shares handler.
-func NewCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *CardSharesHandler {
-	adapter := shares.NewCardShareAdapter(db, authzService)
+func NewCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *CardSharesHandler {
+	adapter := shares.NewCardShareAdapter(db, authzService, userService)
 	return &CardSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter),
+		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
 		db:           db,
 		authzService: authzService,
+		userService:  userService,
 	}
 }
 

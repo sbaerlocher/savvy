@@ -4,7 +4,6 @@ package handlers
 import (
 	"image/png"
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/security"
 	"savvy/internal/services"
@@ -25,13 +24,24 @@ import (
 
 // BarcodeHandler handles barcode generation with authorization checks.
 type BarcodeHandler struct {
-	authzService services.AuthzServiceInterface
+	authzService    services.AuthzServiceInterface
+	cardService     services.CardServiceInterface
+	voucherService  services.VoucherServiceInterface
+	giftCardService services.GiftCardServiceInterface
 }
 
 // NewBarcodeHandler creates a new barcode handler.
-func NewBarcodeHandler(authzService services.AuthzServiceInterface) *BarcodeHandler {
+func NewBarcodeHandler(
+	authzService services.AuthzServiceInterface,
+	cardService services.CardServiceInterface,
+	voucherService services.VoucherServiceInterface,
+	giftCardService services.GiftCardServiceInterface,
+) *BarcodeHandler {
 	return &BarcodeHandler{
-		authzService: authzService,
+		authzService:    authzService,
+		cardService:     cardService,
+		voucherService:  voucherService,
+		giftCardService: giftCardService,
 	}
 }
 
@@ -45,36 +55,36 @@ type resourceData struct {
 func (h *BarcodeHandler) fetchResourceData(ctx echo.Context, claims *security.BarcodeTokenClaims, userID uuid.UUID) (*resourceData, error) {
 	switch claims.ResourceType {
 	case "card":
-		var card models.Card
-		if err := database.DB.Where("id = ?", claims.ResourceID).First(&card).Error; err != nil {
+		card, err := h.cardService.GetCard(ctx.Request().Context(), claims.ResourceID)
+		if err != nil {
 			return nil, err
 		}
 		// Check access using AuthzService
-		_, err := h.authzService.CheckCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		_, err = h.authzService.CheckCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 		return &resourceData{barcodeType: card.BarcodeType, data: card.CardNumber}, nil
 
 	case "voucher":
-		var voucher models.Voucher
-		if err := database.DB.Where("id = ?", claims.ResourceID).First(&voucher).Error; err != nil {
+		voucher, err := h.voucherService.GetVoucher(ctx.Request().Context(), claims.ResourceID)
+		if err != nil {
 			return nil, err
 		}
 		// Check access using AuthzService
-		_, err := h.authzService.CheckVoucherAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		_, err = h.authzService.CheckVoucherAccess(ctx.Request().Context(), userID, claims.ResourceID)
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}
 		return &resourceData{barcodeType: voucher.BarcodeType, data: voucher.Code}, nil
 
 	case "gift_card":
-		var giftCard models.GiftCard
-		if err := database.DB.Where("id = ?", claims.ResourceID).First(&giftCard).Error; err != nil {
+		giftCard, err := h.giftCardService.GetGiftCard(ctx.Request().Context(), claims.ResourceID)
+		if err != nil {
 			return nil, err
 		}
 		// Check access using AuthzService
-		_, err := h.authzService.CheckGiftCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
+		_, err = h.authzService.CheckGiftCardAccess(ctx.Request().Context(), userID, claims.ResourceID)
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusForbidden, "Access denied")
 		}

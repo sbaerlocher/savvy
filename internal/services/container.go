@@ -13,10 +13,12 @@ type Container struct {
 	VoucherService   VoucherServiceInterface
 	GiftCardService  GiftCardServiceInterface
 	MerchantService  MerchantServiceInterface
+	UserService      UserServiceInterface
 	ShareService     ShareServiceInterface
 	FavoriteService  FavoriteServiceInterface
 	AuthzService     AuthzServiceInterface
 	DashboardService DashboardServiceInterface
+	AdminService     AdminServiceInterface
 }
 
 // NewContainer creates a new service container with all services initialized.
@@ -26,6 +28,7 @@ func NewContainer(db *gorm.DB) *Container {
 	voucherRepo := repository.NewVoucherRepository(db)
 	giftCardRepo := repository.NewGiftCardRepository(db)
 	merchantRepo := repository.NewMerchantRepository(db)
+	userRepo := repository.NewUserRepository(db)
 	favoriteRepo := repository.NewFavoriteRepository(db)
 
 	// Initialize services
@@ -34,9 +37,11 @@ func NewContainer(db *gorm.DB) *Container {
 		VoucherService:   NewVoucherService(voucherRepo),
 		GiftCardService:  NewGiftCardService(giftCardRepo),
 		MerchantService:  NewMerchantService(merchantRepo),
-		ShareService:     NewShareService(cardRepo, voucherRepo, giftCardRepo),
+		UserService:      NewUserService(userRepo),
+		ShareService:     NewShareService(cardRepo, voucherRepo, giftCardRepo, db),
 		FavoriteService:  NewFavoriteService(favoriteRepo, cardRepo, voucherRepo, giftCardRepo),
 		AuthzService:     NewAuthzService(db),
 		DashboardService: NewDashboardService(db),
+		AdminService:     NewAdminService(db),
 	}
 }

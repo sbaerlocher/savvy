@@ -479,7 +479,6 @@
     "id": "auth.login",
     "translation": "Anmelden"
   },
-
   {
     "id": "auth.login_with_oauth",
     "translation": "Mit SSO anmelden"
@@ -1783,5 +1782,69 @@
   {
     "id": "footer.in_switzerland",
     "translation": "in der Schweiz"
+  },
+  {
+    "id": "barcode.tap_to_close",
+    "translation": "Tippe um zu schließen"
+  },
+  {
+    "id": "update.title",
+    "translation": "Neue Version verfügbar"
+  },
+  {
+    "id": "update.description",
+    "translation": "Eine aktualisierte Version der App ist bereit."
+  },
+  {
+    "id": "update.update_now",
+    "translation": "Jetzt aktualisieren"
+  },
+  {
+    "id": "update.later",
+    "translation": "Später"
+  },
+  {
+    "id": "language.de",
+    "translation": "Deutsch"
+  },
+  {
+    "id": "language.en",
+    "translation": "English"
+  },
+  {
+    "id": "language.fr",
+    "translation": "Français"
+  },
+  {
+    "id": "impersonate.acting_as",
+    "translation": "⚠️ Agierst als {{.Name}}"
+  },
+  {
+    "id": "impersonate.back_to_account",
+    "translation": "Zurück zu deinem Account"
+  },
+  {
+    "id": "nav.more",
+    "translation": "Mehr"
+  },
+  {
+    "id": "merchants.new",
+    "translation": "Neuer Händler"
+  },
+  {
+    "id": "merchants.edit",
+    "translation": "Händler bearbeiten"
+  },
+  {
+    "id": "admin.create_user",
+    "translation": "Benutzer erstellen"
+  },
+  {
+    "id": "admin.create_user_title",
+    "translation": "Benutzer erstellen"
+  },
+  {
+    "id": "admin.password_min_chars",
+    "translation": "Mindestens 8 Zeichen"
   }
 ]

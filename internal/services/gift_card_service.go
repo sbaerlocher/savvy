@@ -22,6 +22,9 @@ type GiftCardServiceInterface interface {
 	GetTotalBalance(ctx context.Context, userID uuid.UUID) (float64, error)
 	GetCurrentBalance(ctx context.Context, giftCardID uuid.UUID) (float64, error)
 	CanUserAccessGiftCard(ctx context.Context, giftCardID, userID uuid.UUID) (bool, error)
+	CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error
+	GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error)
+	DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error
 }
 
 // GiftCardService implements GiftCardServiceInterface.
@@ -139,4 +142,24 @@ func (s *GiftCardService) CanUserAccessGiftCard(ctx context.Context, giftCardID,
 
 	// Check if shared (simplified - in real implementation check gift_card_shares table)
 	return false, nil
+}
+
+// CreateTransaction creates a new transaction for a gift card.
+func (s *GiftCardService) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
+	// Validate transaction
+	if transaction.Amount <= 0 {
+		return errors.New("transaction amount must be positive")
+	}
+
+	return s.repo.CreateTransaction(ctx, transaction)
+}
+
+// GetTransaction retrieves a transaction by ID, validating it belongs to the gift card.
+func (s *GiftCardService) GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error) {
+	return s.repo.GetTransaction(ctx, transactionID, giftCardID)
+}
+
+// DeleteTransaction deletes a transaction by ID.
+func (s *GiftCardService) DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error {
+	return s.repo.DeleteTransaction(ctx, transactionID)
 }

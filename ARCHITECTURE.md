@@ -1,7 +1,7 @@
 # Savvy System - Architecture Documentation
 
-**Version:** 1.2.0
-**Letzte Aktualisierung:** 2026-01-27
+**Version:** 1.4.0
+**Letzte Aktualisierung:** 2026-02-01
 **Status:** Production-Ready
 
 ---
@@ -17,10 +17,10 @@ Das Savvy System ist eine moderne **Full-Stack Web Application** zum Verwalten v
 | **Code-Organisation** | 9/10       | ✅ Exzellent strukturiert (Service Layer + Repositories) |
 | **Security**          | 9/10       | ✅ Solide Implementierung              |
 | **Performance**       | 8/10       | ✅ Optimiert (Gift Card Balance cached, Dashboard optimiert) |
-| **Testbarkeit**       | 8/10       | ✅ Interfaces vorhanden, Tests fehlen noch |
+| **Testbarkeit**       | 9/10       | ✅ 71.6% Service Coverage, 83.9% Handler Coverage |
 | **Wartbarkeit**       | 9/10       | ✅ Modulare Handler, Service Layer    |
 | **Observability**     | 8/10       | ✅ Prometheus Metrics, Health Checks, Structured Logging |
-| **Gesamt**            | **8.7/10** | ✅ Production-ready mit Clean Architecture |
+| **Gesamt**            | **8.9/10** | ✅ Production-ready mit Clean Architecture |
 
 ---
 
@@ -667,11 +667,13 @@ flowchart TD
 4. **Error Handling**: `ErrForbidden` für unauthorized, andere Errors für DB-Probleme
 5. **Context-Aware**: Alle Queries nutzen `ctx` für Tracing
 
-**Status**: ✅ Vollständig implementiert, im Container registriert
+**Status**: ✅ Vollständig implementiert und in ALLEN 27 Handlern integriert (v1.4.0)
 
-**Next Steps**:
-- Handler refactoren um AuthzService zu nutzen (aktuell duplicate Permission-Logic in Handlern)
-- 19 Files betroffen (all Show/Edit/Delete/Transaction Handler)
+**Integration Details**:
+- Eliminiert duplicate Permission-Logic über alle Handler
+- Konsistente Authorization-Checks für Cards, Vouchers, Gift Cards
+- 7 Unit Tests mit PostgreSQL (Owner, SharedUser, Permissions)
+- Handler Coverage: 83.9% Average (Cards: 84.6%, Vouchers: 85.6%, Gift Cards: 81.6%)
 
 ---
 
@@ -1084,63 +1086,91 @@ export default {
 
 ## 🚀 Deployment Architecture
 
-Das Savvy System ist für **containerisierte Deployments** optimiert. Die Architektur unterstützt sowohl Docker Compose für Development als auch Kubernetes für Production.
+Das Savvy System ist für **containerisierte Deployments mit Reverse Proxy** optimiert. Die Production-Architektur nutzt **Traefik** für TLS-Terminierung und Routing.
+
+### Production Architecture (Traefik)
+
+**Network Flow**:
+```
+Client (HTTPS:443) → Traefik (TLS Termination) → App (HTTP:8080) → PostgreSQL
+                                ↓
+                          Let's Encrypt
+```
+
+**Traefik Reverse Proxy**:
+- ✅ **TLS-Terminierung**: Let's Encrypt Zertifikate automatisch
+- ✅ **HTTPS-Redirect**: HTTP → HTTPS Redirect auf Proxy-Ebene
+- ✅ **Header-Injection**: `X-Forwarded-Proto`, `X-Real-IP`, `X-Forwarded-For`
+- ✅ **Load Balancing**: Für Multi-Instance Deployments
+- ✅ **Health Checks**: Automatisches Routing nur zu gesunden Pods
+
+**Wichtig**: Die App selbst läuft auf **HTTP (Port 8080)**, Traefik übernimmt die TLS-Verschlüsselung.
+
+```mermaid
+graph TB
+    Client[Client Browser] -->|HTTPS:443| Traefik[Traefik Reverse Proxy<br/>TLS Termination]
+    Traefik -->|HTTP:8080| App[Savvy Application]
+    Traefik -->|ACME| LE[Let's Encrypt]
+
+    App -->|SQL:5432| DB[(PostgreSQL)]
+    App -->|/metrics| Prom[Prometheus]
+    Prom --> Grafana[Grafana Cloud]
+
+    style Traefik fill:#FFD700
+    style App fill:#e1f5ff
+    style DB fill:#ffe1e1
+    style Grafana fill:#90EE90
+```
 
 ### Container Structure
 
 **Development Setup (Docker Compose)**:
 
-Die lokale Entwicklungsumgebung nutzt Docker Compose mit zwei Containern:
+Die lokale Entwicklungsumgebung nutzt Docker Compose:
 - **Application Container**: Go-Binary auf Port 8080, statische Files im `/static` Verzeichnis
 - **PostgreSQL Container**: PostgreSQL 16 auf Port 5432
+- **Optional Traefik**: Für lokales HTTPS-Testing
 
 **Observability-Integration**:
 - Prometheus scraped den `/metrics` Endpoint für Monitoring
 - Logs werden strukturiert ausgegeben (JSON-Format für Production)
 - Grafana Cloud aggregiert alle Metrics für zentrale Visualisierung
 
-Diese Architektur ist einfach zu deployen (`docker compose up`) und production-ready.
+### Kubernetes Deployment (Optional)
 
-```mermaid
-graph TB
-    subgraph "Docker Container"
-        App[Savvy Application<br/>Port 8080]
-        Static[Static Files<br/>/static]
-    end
+**Alternative Production Setup (Kubernetes/K3s)**:
 
-    subgraph "PostgreSQL Container"
-        DB[(PostgreSQL 16<br/>Port 5432)]
-    end
+Für skalierbare Production-Deployments kann Kubernetes genutzt werden:
 
-    subgraph "Observability"
-        Prom[Prometheus]
-        Grafana[Grafana Cloud]
-    end
-
-    App -->|SQL| DB
-    App -->|/metrics| Prom
-    Prom --> Grafana
-
-    style App fill:#e1f5ff
-    style DB fill:#ffe1e1
-    style Grafana fill:#FFD700
-```
-
-### Kubernetes Deployment (Planned)
-
-**Production Setup (Kubernetes/K3s)**:
-
-Für Production-Deployments ist eine Kubernetes-Architektur geplant mit:
-
-- **Ingress Controller**: TLS-Terminierung und Routing (Traefik/nginx)
-- **2 Replicas**: Horizontal skalierte Application-Pods für High Availability
+- **Ingress Controller (Traefik)**: TLS-Terminierung und Routing
+  - Traefik IngressRoute für HTTP → HTTPS Redirect
+  - Let's Encrypt Cert-Manager Integration
+  - Middleware für Security Headers
+- **2+ Replicas**: Horizontal skalierte Application-Pods für High Availability
 - **ConfigMap/Secret**: Environment-Variables und Secrets als Kubernetes-Ressourcen
-- **External Database**: Managed PostgreSQL Service (höhere Verfügbarkeit als in-cluster DB)
+- **External Database**: Managed PostgreSQL Service (höhere Verfügbarkeit)
 - **Grafana Cloud Integration**: OpenTelemetry Traces und Metrics
 
 **Health Checks**: Kubernetes nutzt `/health` (liveness) und `/ready` (readiness) Endpoints für automatisches Pod-Management. Bei Problemen werden Pods automatisch neu gestartet.
 
-Das Diagramm zeigt die vollständige Kubernetes-Architektur mit Ingress, Service, Pods, ConfigMap/Secret und externen Dependencies (PostgreSQL, Grafana Cloud).
+**Traefik Middleware**:
+```yaml
+# traefik-middleware.yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: savvy-security-headers
+spec:
+  headers:
+    sslRedirect: true
+    stsSeconds: 31536000
+    stsIncludeSubdomains: true
+    stsPreload: true
+    frameDeny: true
+    contentTypeNosniff: true
+```
+
+Das Diagramm zeigt die vollständige Kubernetes-Architektur mit Traefik Ingress, Service, Pods, ConfigMap/Secret und externen Dependencies (PostgreSQL, Grafana Cloud).
 
 ```mermaid
 graph TB

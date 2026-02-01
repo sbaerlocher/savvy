@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/services"
 )
@@ -15,13 +14,15 @@ import (
 type CardShareAdapter struct {
 	db           *gorm.DB
 	authzService services.AuthzServiceInterface
+	userService  services.UserServiceInterface
 }
 
 // NewCardShareAdapter creates a new card share adapter.
-func NewCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface) *CardShareAdapter {
+func NewCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *CardShareAdapter {
 	return &CardShareAdapter{
 		db:           db,
 		authzService: authzService,
+		userService:  userService,
 	}
 }
 
@@ -75,8 +76,8 @@ func (a *CardShareAdapter) ListShares(ctx context.Context, resourceID uuid.UUID)
 // CreateShare creates a new card share.
 func (a *CardShareAdapter) CreateShare(ctx context.Context, req CreateShareRequest) error {
 	// Validate email exists
-	var sharedUser models.User
-	if err := database.DB.Where("LOWER(email) = ?", req.SharedWithEmail).First(&sharedUser).Error; err != nil {
+	sharedUser, err := a.userService.GetUserByEmail(ctx, req.SharedWithEmail)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
 		}

@@ -16,6 +16,9 @@ type MerchantRepository interface {
 	// GetByID retrieves a merchant by ID.
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Merchant, error)
 
+	// GetByName retrieves a merchant by name.
+	GetByName(ctx context.Context, name string) (*models.Merchant, error)
+
 	// GetAll retrieves all merchants.
 	GetAll(ctx context.Context) ([]models.Merchant, error)
 

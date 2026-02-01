@@ -19,15 +19,17 @@ type VoucherSharesHandler struct {
 	baseHandler  *shares.BaseShareHandler
 	db           *gorm.DB
 	authzService services.AuthzServiceInterface
+	userService  services.UserServiceInterface
 }
 
 // NewVoucherSharesHandler creates a new voucher shares handler.
-func NewVoucherSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *VoucherSharesHandler {
-	adapter := shares.NewVoucherShareAdapter(db, authzService)
+func NewVoucherSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *VoucherSharesHandler {
+	adapter := shares.NewVoucherShareAdapter(db, authzService, userService)
 	return &VoucherSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter),
+		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
 		db:           db,
 		authzService: authzService,
+		userService:  userService,
 	}
 }
 

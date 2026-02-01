@@ -7,7 +7,6 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/validation"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -88,28 +87,17 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	// Handle sharing if email provided
-	// Note: Share creation still uses database.DB directly as ShareService.ShareGiftCard is not fully implemented
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
-		// Find user by email (normalize email)
-		shareEmail = strings.ToLower(strings.TrimSpace(shareEmail))
-
-		var sharedUser models.User
-		if err := database.DB.Where("LOWER(email) = ?", shareEmail).First(&sharedUser).Error; err == nil {
-			// User exists, create share
+		// Find user by email using UserService
+		sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), shareEmail)
+		if err == nil {
+			// User exists, create share using ShareService
 			canEdit := c.FormValue("share_can_edit") == trueStringValue
 			canDelete := c.FormValue("share_can_delete") == trueStringValue
 			canEditTransactions := c.FormValue("share_can_edit_transactions") == trueStringValue
 
-			share := models.GiftCardShare{
-				GiftCardID:          giftCard.ID,
-				SharedWithID:        sharedUser.ID,
-				CanEdit:             canEdit,
-				CanDelete:           canDelete,
-				CanEditTransactions: canEditTransactions,
-			}
-
-			if err := database.DB.Create(&share).Error; err != nil {
+			if err := h.shareService.CreateGiftCardShare(c.Request().Context(), giftCard.ID, sharedUser.ID, canEdit, canDelete, canEditTransactions); err != nil {
 				c.Logger().Warnf("Failed to create gift card share: %v", err)
 			} else {
 				c.Logger().Printf("Gift card shared with %s", shareEmail)

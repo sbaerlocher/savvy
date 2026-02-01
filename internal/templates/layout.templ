@@ -170,7 +170,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 			@click="$store.barcode.close()"
 		>
 			<div x-html="$store.barcode.barcodeHtml" class="text-center w-full"></div>
-			<p class="barcode-close-hint">Tippe um zu schließen</p>
+			<p class="barcode-close-hint">{ T(ctx, "barcode.tap_to_close") }</p>
 		</div>
 
 		<!-- Offline Banner (sticky at top, with reserved space to prevent layout shift) -->
@@ -207,10 +207,10 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 						</svg>
 						<div>
 							<p class="text-sm font-medium text-yellow-800">
-								Offline-Modus
+								{ T(ctx, "offline.title") }
 							</p>
 							<p class="text-xs text-yellow-700">
-								Du siehst gecachte Daten. Änderungen sind nicht möglich.
+								{ T(ctx, "offline.banner_info") }
 							</p>
 						</div>
 					</div>
@@ -246,7 +246,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 						.then(registration => {
 							console.log('[ServiceWorker] Registered successfully', registration.scope);
 
-							// Manuelles Cleanup beim Page Load (falls activate nicht lief)
+							// Manual cleanup on page load (in case activate didn't run)
 							if (navigator.serviceWorker.controller) {
 								navigator.serviceWorker.controller.postMessage({
 									type: 'CLEANUP_OLD_CACHES'
@@ -265,7 +265,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 
 								newWorker.addEventListener('statechange', () => {
 									if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-										// Neuer Service Worker wartet, zeige Update-Banner
+										// New service worker is waiting, show update banner
 										console.log('[ServiceWorker] New version available');
 										showUpdateBanner(newWorker);
 									}
@@ -277,9 +277,9 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 						});
 				});
 
-				// Zeige Update-Banner wenn neuer Service Worker verfügbar
+				// Show update banner when new service worker is available
 				function showUpdateBanner(newWorker) {
-					if (updateAvailableBanner) return; // Banner bereits angezeigt
+					if (updateAvailableBanner) return; // Banner already shown
 
 					updateAvailableBanner = document.createElement('div');
 					updateAvailableBanner.className = 'fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-blue-600 text-white rounded-lg shadow-lg p-4 z-50 animate-slide-up';
@@ -289,11 +289,11 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
 							</svg>
 							<div class="flex-1">
-								<h3 class="font-semibold mb-1">Neue Version verfügbar</h3>
-								<p class="text-sm text-blue-100 mb-3">Eine aktualisierte Version der App ist bereit.</p>
+								<h3 class="font-semibold mb-1">{ T(ctx, "update.title") }</h3>
+								<p class="text-sm text-blue-100 mb-3">{ T(ctx, "update.description") }</p>
 								<div class="flex gap-2">
 									<button onclick="window.location.reload()" class="bg-white text-blue-600 px-4 py-2 rounded text-sm font-medium hover:bg-blue-50">
-										Jetzt aktualisieren
+										{ T(ctx, "update.update_now") }
 									</button>
 									<button onclick="this.closest('.fixed').remove()" class="text-white hover:text-blue-100 px-4 py-2 rounded text-sm">
 										Später
@@ -304,7 +304,7 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 					`;
 					document.body.appendChild(updateAvailableBanner);
 
-					// Sende SKIP_WAITING Message an neuen Service Worker
+					// Send SKIP_WAITING message to new service worker
 					if (newWorker) {
 						newWorker.postMessage({ type: 'SKIP_WAITING' });
 					}
@@ -326,7 +326,7 @@ templ Nav(ctx context.Context, user *models.User, isImpersonating bool) {
 						</a>
 					</div>
 					if user != nil {
-						<!-- Desktop Navigation: nur auf größeren Bildschirmen -->
+						<!-- Desktop Navigation: only visible on larger screens -->
 						<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
 							if getConfig(ctx).EnableCards {
 								<a href="/cards" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
@@ -359,20 +359,20 @@ templ Nav(ctx context.Context, user *models.User, isImpersonating bool) {
 							</svg>
 						</button>
 						<div x-show="open" x-cloak class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
-							<a href="/set-language?lang=de" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Deutsch</a>
-							<a href="/set-language?lang=en" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">English</a>
-							<a href="/set-language?lang=fr" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Français</a>
+							<a href="/set-language?lang=de" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ T(ctx, "language.de") }</a>
+							<a href="/set-language?lang=en" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ T(ctx, "language.en") }</a>
+							<a href="/set-language?lang=fr" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ T(ctx, "language.fr") }</a>
 						</div>
 					</div>
 					if user != nil {
 						if isImpersonating {
 							<div class="hidden sm:flex items-center bg-yellow-50 border border-yellow-300 rounded-lg px-3 py-2">
 								<span class="text-sm text-yellow-800 font-medium mr-3">
-									⚠️ Agierst als { user.DisplayName() }
+									{ T(ctx, "impersonate.acting_as", map[string]any{"Name": user.DisplayName()}) }
 								</span>
 								<a href="/admin/stop-impersonate"
 								   class="text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded font-medium">
-									Zurück zu deinem Account
+									{ T(ctx, "impersonate.back_to_account") }
 								</a>
 							</div>
 							<!-- Mobile Impersonation Warning -->
@@ -405,7 +405,7 @@ templ Nav(ctx context.Context, user *models.User, isImpersonating bool) {
 }
 
 templ Footer(ctx context.Context, user *models.User) {
-	<!-- Desktop Footer: versteckt auf Mobile wenn eingeloggt -->
+	<!-- Desktop Footer: hidden on mobile when logged in -->
 	<footer class={ "bg-gradient-to-b from-gray-50 to-gray-100 border-t border-gray-200 mt-12", templ.KV("hidden sm:block", user != nil) }>
 		<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 			<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -508,7 +508,7 @@ templ Footer(ctx context.Context, user *models.User) {
 }
 
 templ MobileBottomNav(ctx context.Context, user *models.User) {
-	<!-- Mobile Bottom Navigation: nur auf kleinen Bildschirmen sichtbar -->
+	<!-- Mobile Bottom Navigation: only visible on small screens -->
 	<nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
 		// Count enabled features for grid layout
 		<div class={ "h-16", templ.KV("grid grid-cols-5", getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards), templ.KV("grid grid-cols-4", (getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards)), templ.KV("grid grid-cols-3", (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards)), templ.KV("grid grid-cols-2", !getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) }>
@@ -517,7 +517,7 @@ templ MobileBottomNav(ctx context.Context, user *models.User) {
 				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
 				</svg>
-				<span class="text-xs mt-1">Home</span>
+				<span class="text-xs mt-1">{ T(ctx, "nav.home") }</span>
 			</a>
 
 			<!-- Cards -->
@@ -556,7 +556,7 @@ templ MobileBottomNav(ctx context.Context, user *models.User) {
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
 					</svg>
-					<span class="text-xs mt-1">Mehr</span>
+					<span class="text-xs mt-1">{ T(ctx, "nav.more") }</span>
 				</button>
 
 				<!-- Dropdown Menu -->

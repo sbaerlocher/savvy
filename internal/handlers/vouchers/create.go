@@ -7,7 +7,6 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/validation"
 	"strconv"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -86,21 +85,13 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	// Handle sharing if email provided (vouchers are always read-only when shared)
-	// Note: Share creation still uses database.DB directly as ShareService.ShareVoucher is not fully implemented
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
-		// Find user by email (normalize email)
-		shareEmail = strings.ToLower(strings.TrimSpace(shareEmail))
-
-		var sharedUser models.User
-		if err := database.DB.Where("LOWER(email) = ?", shareEmail).First(&sharedUser).Error; err == nil {
-			// User exists, create share (vouchers have no edit permissions)
-			share := models.VoucherShare{
-				VoucherID:    voucher.ID,
-				SharedWithID: sharedUser.ID,
-			}
-
-			if err := database.DB.Create(&share).Error; err != nil {
+		// Find user by email using UserService
+		sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), shareEmail)
+		if err == nil {
+			// User exists, create share using ShareService (vouchers are always read-only)
+			if err := h.shareService.CreateVoucherShare(c.Request().Context(), voucher.ID, sharedUser.ID); err != nil {
 				c.Logger().Warnf("Failed to create voucher share: %v", err)
 			} else {
 				c.Logger().Printf("Voucher shared with %s", shareEmail)

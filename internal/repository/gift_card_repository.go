@@ -33,4 +33,13 @@ type GiftCardRepository interface {
 
 	// GetTotalBalance calculates total balance across all user's gift cards
 	GetTotalBalance(ctx context.Context, userID uuid.UUID) (float64, error)
+
+	// CreateTransaction creates a new transaction for a gift card
+	CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error
+
+	// GetTransaction retrieves a transaction by ID, validating it belongs to the gift card
+	GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error)
+
+	// DeleteTransaction deletes a transaction by ID
+	DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error
 }

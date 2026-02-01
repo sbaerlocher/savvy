@@ -17,6 +17,7 @@ import (
 	"savvy/internal/handlers"
 	"savvy/internal/handlers/cards"
 	"savvy/internal/handlers/giftcards"
+	"savvy/internal/handlers/merchants"
 	"savvy/internal/handlers/vouchers"
 	"savvy/internal/i18n"
 	"savvy/internal/metrics"
@@ -107,6 +108,12 @@ func updateMetrics() {
 func run() int {
 	// Load config
 	cfg := config.Load()
+
+	// Validate production secrets before starting
+	if err := cfg.ValidateProduction(); err != nil {
+		log.Fatalf("❌ Production validation failed: %v", err)
+		return 1
+	}
 
 	// Initialize structured logging
 	logLevel := slog.LevelInfo
@@ -216,6 +223,9 @@ func run() int {
 	// Create Echo instance
 	e := echo.New()
 
+	// Initialize health handler (needed early for observability endpoints)
+	healthHandler := handlers.NewHealthHandler(database.DB)
+
 	// OpenTelemetry Middleware (must be first for proper tracing)
 	if cfg.OTelEnabled {
 		e.Use(otelecho.Middleware(cfg.ServiceName))
@@ -266,14 +276,8 @@ func run() int {
 	}))
 
 	// Observability endpoints (public, BEFORE auth middleware)
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status":  "healthy",
-			"version": cfg.ServiceVersion,
-			"service": "savvy",
-		})
-	})
-	e.GET("/ready", handlers.Ready)
+	e.GET("/health", healthHandler.Health)
+	e.GET("/ready", healthHandler.Ready)
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	e.Use(middleware.SetCurrentUser)
@@ -317,6 +321,7 @@ func run() int {
 		serviceContainer.CardService,
 		serviceContainer.AuthzService,
 		serviceContainer.MerchantService,
+		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
 		database.DB,
@@ -325,6 +330,7 @@ func run() int {
 		serviceContainer.VoucherService,
 		serviceContainer.AuthzService,
 		serviceContainer.MerchantService,
+		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
 		database.DB,
@@ -333,15 +339,26 @@ func run() int {
 		serviceContainer.GiftCardService,
 		serviceContainer.AuthzService,
 		serviceContainer.MerchantService,
+		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
 		database.DB,
 	)
-	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService)
-	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService)
-	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService)
-	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService)
-	barcodeHandler := handlers.NewBarcodeHandler(serviceContainer.AuthzService)
+	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
+	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
+	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
+	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService, serviceContainer.FavoriteService)
+	barcodeHandler := handlers.NewBarcodeHandler(
+		serviceContainer.AuthzService,
+		serviceContainer.CardService,
+		serviceContainer.VoucherService,
+		serviceContainer.GiftCardService,
+	)
+	merchantsHandler := merchants.NewHandler(serviceContainer.MerchantService)
+	authHandler := handlers.NewAuthHandler(serviceContainer.UserService)
+	oauthHandler := handlers.NewOAuthHandler(serviceContainer.UserService)
+	sharedUsersHandler := handlers.NewSharedUsersHandler(serviceContainer.ShareService)
+	adminHandler := handlers.NewAdminHandler(serviceContainer.AdminService, serviceContainer.UserService)
 
 	// ========================================
 	// ROUTE REGISTRATION
@@ -357,13 +374,13 @@ func run() int {
 	// ========================================
 	auth := e.Group("/auth")
 	auth.GET("/login", handlers.AuthLoginGet) // Handler manages redirect to OAuth if local login disabled
-	auth.POST("/login", handlers.AuthLoginPost, middleware.RateLimitMiddleware(authLimiter), middleware.RequireLocalLoginEnabled(cfg))
+	auth.POST("/login", authHandler.LoginPost, middleware.RateLimitMiddleware(authLimiter), middleware.RequireLocalLoginEnabled(cfg))
 	auth.GET("/register", handlers.AuthRegisterGet, middleware.RequireRegistrationEnabled(cfg))
-	auth.POST("/register", handlers.AuthRegisterPost, middleware.RateLimitMiddleware(authLimiter), middleware.RequireRegistrationEnabled(cfg))
+	auth.POST("/register", authHandler.RegisterPost, middleware.RateLimitMiddleware(authLimiter), middleware.RequireRegistrationEnabled(cfg))
 	auth.GET("/logout", handlers.AuthLogout)
 	// OAuth routes (public)
 	auth.GET("/oauth/login", handlers.OAuthLogin)
-	auth.GET("/oauth/callback", handlers.OAuthCallback)
+	auth.GET("/oauth/callback", oauthHandler.Callback)
 
 	// ========================================
 	// Protected Routes (Authentication Required)
@@ -379,14 +396,14 @@ func run() int {
 	protected.GET("/barcode/:token", barcodeHandler.Generate)
 
 	// HTMX autocomplete endpoint (returns HTML fragment)
-	protected.GET("/api/shared-users", handlers.SharedUsersAutocomplete)
+	protected.GET("/api/shared-users", sharedUsersHandler.Autocomplete)
 
 	// ========================================
 	// Merchants Routes (Read-Only for All Users)
 	// ========================================
-	merchants := protected.Group("/merchants")
-	merchants.GET("", handlers.MerchantsIndex)
-	merchants.GET("/search", handlers.MerchantsSearch) // Autocomplete search
+	merchantsGroup := protected.Group("/merchants")
+	merchantsGroup.GET("", merchantsHandler.Index)
+	merchantsGroup.GET("/search", merchantsHandler.Search) // Autocomplete search
 
 	// ========================================
 	// Merchants CRUD Routes (Admin or Impersonation)
@@ -396,11 +413,11 @@ func run() int {
 	// ========================================
 	merchantsCRUD := protected.Group("/merchants")
 	merchantsCRUD.Use(middleware.RequireImpersonationOrAdmin)
-	merchantsCRUD.GET("/new", handlers.MerchantsNew)
-	merchantsCRUD.POST("", handlers.MerchantsCreate)
-	merchantsCRUD.GET("/:id/edit", handlers.MerchantsEdit)
-	merchantsCRUD.POST("/:id", handlers.MerchantsUpdate)
-	merchantsCRUD.DELETE("/:id", handlers.MerchantsDelete)
+	merchantsCRUD.GET("/new", merchantsHandler.New)
+	merchantsCRUD.POST("", merchantsHandler.Create)
+	merchantsCRUD.GET("/:id/edit", merchantsHandler.Edit)
+	merchantsCRUD.POST("/:id", merchantsHandler.Update)
+	merchantsCRUD.DELETE("/:id", merchantsHandler.Delete)
 
 	// ========================================
 	// Cards Resource (Customer Loyalty Cards)
@@ -509,13 +526,13 @@ func run() int {
 	// ========================================
 	admin := protected.Group("/admin")
 	admin.Use(middleware.RequireAdmin)
-	admin.GET("/users", handlers.AdminUsersIndex)
-	admin.GET("/users/create", handlers.AdminCreateUserGet)   // Only available if local login enabled
-	admin.POST("/users/create", handlers.AdminCreateUserPost) // Only available if local login enabled
-	admin.POST("/users/:id/role", handlers.AdminUpdateUserRole)
-	admin.GET("/audit-log", handlers.AdminAuditLogIndex)
-	admin.POST("/audit-log/restore", handlers.AdminRestoreResource)
-	admin.GET("/impersonate/:id", handlers.AdminImpersonate)
+	admin.GET("/users", adminHandler.UsersIndex)
+	admin.GET("/users/create", adminHandler.CreateUserGet)   // Only available if local login enabled
+	admin.POST("/users/create", adminHandler.CreateUserPost) // Only available if local login enabled
+	admin.POST("/users/:id/role", adminHandler.UpdateUserRole)
+	admin.GET("/audit-log", adminHandler.AuditLogIndex)
+	admin.POST("/audit-log/restore", adminHandler.RestoreResource)
+	admin.GET("/impersonate/:id", authHandler.Impersonate)
 
 	// ========================================
 	// Development Debug Tools

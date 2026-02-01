@@ -19,15 +19,17 @@ type GiftCardSharesHandler struct {
 	baseHandler  *shares.BaseShareHandler
 	db           *gorm.DB
 	authzService services.AuthzServiceInterface
+	userService  services.UserServiceInterface
 }
 
 // NewGiftCardSharesHandler creates a new gift card shares handler.
-func NewGiftCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface) *GiftCardSharesHandler {
-	adapter := shares.NewGiftCardShareAdapter(db, authzService)
+func NewGiftCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *GiftCardSharesHandler {
+	adapter := shares.NewGiftCardShareAdapter(db, authzService, userService)
 	return &GiftCardSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter),
+		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
 		db:           db,
 		authzService: authzService,
+		userService:  userService,
 	}
 }
 

@@ -4,7 +4,6 @@ package cards
 import (
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -62,8 +61,8 @@ func (h *Handler) Update(c echo.Context) error {
 	}
 
 	// Log update to audit log (only if DB is available)
-	if database.DB != nil {
-		if err := audit.LogUpdateFromContext(c, database.DB, "cards", card.ID, *card); err != nil {
+	if h.db != nil {
+		if err := audit.LogUpdateFromContext(c, h.db, "cards", card.ID, *card); err != nil {
 			c.Logger().Errorf("Failed to log card update: %v", err)
 		}
 	}

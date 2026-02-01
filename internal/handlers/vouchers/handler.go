@@ -16,6 +16,7 @@ type Handler struct {
 	voucherService  services.VoucherServiceInterface
 	authzService    services.AuthzServiceInterface
 	merchantService services.MerchantServiceInterface
+	userService     services.UserServiceInterface
 	favoriteService services.FavoriteServiceInterface
 	shareService    services.ShareServiceInterface
 	db              *gorm.DB
@@ -26,6 +27,7 @@ func NewHandler(
 	voucherService services.VoucherServiceInterface,
 	authzService services.AuthzServiceInterface,
 	merchantService services.MerchantServiceInterface,
+	userService services.UserServiceInterface,
 	favoriteService services.FavoriteServiceInterface,
 	shareService services.ShareServiceInterface,
 	db *gorm.DB,
@@ -34,6 +36,7 @@ func NewHandler(
 		voucherService:  voucherService,
 		authzService:    authzService,
 		merchantService: merchantService,
+		userService:     userService,
 		favoriteService: favoriteService,
 		shareService:    shareService,
 		db:              db,

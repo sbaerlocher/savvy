@@ -4,7 +4,6 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"savvy/internal/templates"
@@ -15,13 +14,15 @@ import (
 
 // FavoritesHandler handles favorite toggling operations
 type FavoritesHandler struct {
-	authzService services.AuthzServiceInterface
+	authzService    services.AuthzServiceInterface
+	favoriteService services.FavoriteServiceInterface
 }
 
 // NewFavoritesHandler creates a new favorites handler
-func NewFavoritesHandler(authzService services.AuthzServiceInterface) *FavoritesHandler {
+func NewFavoritesHandler(authzService services.AuthzServiceInterface, favoriteService services.FavoriteServiceInterface) *FavoritesHandler {
 	return &FavoritesHandler{
-		authzService: authzService,
+		authzService:    authzService,
+		favoriteService: favoriteService,
 	}
 }
 
@@ -70,31 +71,20 @@ func (h *FavoritesHandler) ToggleGiftCardFavorite(c echo.Context) error {
 // toggleFavorite is a helper function that handles the favorite toggle logic
 // Returns true if the resource is now favorited, false if unfavorited
 func (h *FavoritesHandler) toggleFavorite(userID uuid.UUID, resourceType string, resourceID uuid.UUID) bool {
-	// Check if favorite already exists (including soft-deleted)
-	var favorite models.UserFavorite
-	err := database.DB.Unscoped().Where("user_id = ? AND resource_type = ? AND resource_id = ?",
-		userID, resourceType, resourceID).First(&favorite).Error
-
-	if err == nil {
-		// Favorite exists - check if it's deleted
-		if favorite.DeletedAt.Valid {
-			// Restore soft-deleted favorite
-			database.DB.Unscoped().Model(&favorite).Update("deleted_at", nil)
-			return true
-		}
-		// Active favorite - soft delete it
-		database.DB.Delete(&favorite)
+	// Toggle the favorite using FavoriteService
+	ctx := context.Background()
+	if err := h.favoriteService.ToggleFavorite(ctx, userID, resourceType, resourceID); err != nil {
+		// Log error but don't fail - return current state
 		return false
 	}
 
-	// Favorite doesn't exist - create it
-	favorite = models.UserFavorite{
-		UserID:       userID,
-		ResourceType: resourceType,
-		ResourceID:   resourceID,
+	// Check current state after toggle
+	isFavorite, err := h.favoriteService.IsFavorite(ctx, userID, resourceType, resourceID)
+	if err != nil {
+		return false
 	}
-	database.DB.Create(&favorite)
-	return true
+
+	return isFavorite
 }
 
 // Legacy function names for backward compatibility with routes

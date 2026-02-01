@@ -1782,5 +1782,69 @@
   {
     "id": "footer.in_switzerland",
     "translation": "en Suisse"
+  },
+  {
+    "id": "barcode.tap_to_close",
+    "translation": "Appuyer pour fermer"
+  },
+  {
+    "id": "update.title",
+    "translation": "Nouvelle version disponible"
+  },
+  {
+    "id": "update.description",
+    "translation": "Une version actualisée de l'application est prête."
+  },
+  {
+    "id": "update.update_now",
+    "translation": "Mettre à jour maintenant"
+  },
+  {
+    "id": "update.later",
+    "translation": "Plus tard"
+  },
+  {
+    "id": "language.de",
+    "translation": "Allemand"
+  },
+  {
+    "id": "language.en",
+    "translation": "Anglais"
+  },
+  {
+    "id": "language.fr",
+    "translation": "Français"
+  },
+  {
+    "id": "impersonate.acting_as",
+    "translation": "⚠️ Agir en tant que {{.Name}}"
+  },
+  {
+    "id": "impersonate.back_to_account",
+    "translation": "Retour à votre compte"
+  },
+  {
+    "id": "nav.more",
+    "translation": "Plus"
+  },
+  {
+    "id": "merchants.new",
+    "translation": "Nouveau commerçant"
+  },
+  {
+    "id": "merchants.edit",
+    "translation": "Modifier le commerçant"
+  },
+  {
+    "id": "admin.create_user",
+    "translation": "Créer un utilisateur"
+  },
+  {
+    "id": "admin.create_user_title",
+    "translation": "Créer un utilisateur"
+  },
+  {
+    "id": "admin.password_min_chars",
+    "translation": "Au moins 8 caractères"
   }
 ]

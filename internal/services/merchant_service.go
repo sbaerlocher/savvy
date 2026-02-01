@@ -18,6 +18,9 @@ type MerchantServiceInterface interface {
 	// GetMerchantByID retrieves a merchant by ID.
 	GetMerchantByID(ctx context.Context, id uuid.UUID) (*models.Merchant, error)
 
+	// GetMerchantByName retrieves a merchant by name.
+	GetMerchantByName(ctx context.Context, name string) (*models.Merchant, error)
+
 	// GetAllMerchants retrieves all merchants.
 	GetAllMerchants(ctx context.Context) ([]models.Merchant, error)
 
@@ -60,6 +63,11 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 // GetMerchantByID retrieves a merchant by ID.
 func (s *MerchantService) GetMerchantByID(ctx context.Context, id uuid.UUID) (*models.Merchant, error) {
 	return s.repo.GetByID(ctx, id)
+}
+
+// GetMerchantByName retrieves a merchant by name.
+func (s *MerchantService) GetMerchantByName(ctx context.Context, name string) (*models.Merchant, error) {
+	return s.repo.GetByName(ctx, name)
 }
 
 // GetAllMerchants retrieves all merchants.

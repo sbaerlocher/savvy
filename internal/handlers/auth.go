@@ -4,9 +4,9 @@ package handlers
 import (
 	"net/http"
 	"net/mail"
-	"savvy/internal/database"
 	"savvy/internal/middleware"
 	"savvy/internal/models"
+	"savvy/internal/services"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
 	"strings"
@@ -15,6 +15,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// AuthHandler handles authentication operations.
+type AuthHandler struct {
+	userService services.UserServiceInterface
+}
+
+// NewAuthHandler creates a new auth handler.
+func NewAuthHandler(userService services.UserServiceInterface) *AuthHandler {
+	return &AuthHandler{userService: userService}
+}
 
 // AuthLoginGet shows the login page
 func AuthLoginGet(c echo.Context) error {
@@ -37,8 +47,8 @@ func AuthLoginGet(c echo.Context) error {
 	return templates.Login(ctx, csrfToken, IsOAuthEnabled(), IsLocalLoginEnabled()).Render(ctx, c.Response().Writer)
 }
 
-// AuthLoginPost handles login with constant-time response to prevent account enumeration
-func AuthLoginPost(c echo.Context) error {
+// LoginPost handles login with constant-time response to prevent account enumeration
+func (h *AuthHandler) LoginPost(c echo.Context) error {
 	// Check if local login is enabled
 	if !IsLocalLoginEnabled() {
 		return echo.NewHTTPError(http.StatusNotFound, "Local login is disabled")
@@ -58,8 +68,7 @@ func AuthLoginPost(c echo.Context) error {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	password := req.Password
 
-	var user models.User
-	err := database.DB.Where("LOWER(email) = ?", email).First(&user).Error
+	user, err := h.userService.GetUserByEmail(c.Request().Context(), email)
 
 	// Always run bcrypt comparison, even if user doesn't exist
 	// This prevents timing attacks that reveal whether an email exists
@@ -114,8 +123,8 @@ func AuthRegisterGet(c echo.Context) error {
 	return templates.Register(c.Request().Context(), csrfToken).Render(c.Request().Context(), c.Response().Writer)
 }
 
-// AuthRegisterPost handles registration
-func AuthRegisterPost(c echo.Context) error {
+// RegisterPost handles registration
+func (h *AuthHandler) RegisterPost(c echo.Context) error {
 	// Check if registration is enabled
 	if !IsRegistrationEnabled() {
 		// Redirect to login page instead of showing error
@@ -144,8 +153,8 @@ func AuthRegisterPost(c echo.Context) error {
 	}
 
 	// Check if email already exists (case-insensitive)
-	var existingUser models.User
-	if database.DB.Where("LOWER(email) = ?", email).First(&existingUser).Error == nil {
+	_, err = h.userService.GetUserByEmail(c.Request().Context(), email)
+	if err == nil {
 		return c.Redirect(http.StatusSeeOther, "/auth/register?error=email_exists")
 	}
 
@@ -168,7 +177,7 @@ func AuthRegisterPost(c echo.Context) error {
 		AuthProvider: "local",
 	}
 
-	if err := database.DB.Create(&user).Error; err != nil {
+	if err := h.userService.CreateUser(c.Request().Context(), &user); err != nil {
 		return c.Redirect(http.StatusSeeOther, "/auth/register")
 	}
 
@@ -199,8 +208,8 @@ func AuthLogout(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/auth/login")
 }
 
-// AdminImpersonate allows admin to impersonate another user
-func AdminImpersonate(c echo.Context) error {
+// Impersonate allows admin to impersonate another user
+func (h *AuthHandler) Impersonate(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	if !currentUser.IsAdmin() {
 		return c.Redirect(http.StatusSeeOther, "/")
@@ -212,8 +221,8 @@ func AdminImpersonate(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/admin/users")
 	}
 
-	var targetUser models.User
-	if err := database.DB.First(&targetUser, userUUID).Error; err != nil {
+	targetUser, err := h.userService.GetUserByID(c.Request().Context(), userUUID)
+	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/admin/users")
 	}
 

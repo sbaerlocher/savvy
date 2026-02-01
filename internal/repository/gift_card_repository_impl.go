@@ -108,3 +108,25 @@ func (r *GormGiftCardRepository) GetTotalBalance(ctx context.Context, userID uui
 
 	return totalBalance, nil
 }
+
+// CreateTransaction creates a new transaction for a gift card.
+func (r *GormGiftCardRepository) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
+	return r.db.WithContext(ctx).Create(transaction).Error
+}
+
+// GetTransaction retrieves a transaction by ID, validating it belongs to the gift card.
+func (r *GormGiftCardRepository) GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error) {
+	var transaction models.GiftCardTransaction
+	err := r.db.WithContext(ctx).
+		Where("id = ? AND gift_card_id = ?", transactionID, giftCardID).
+		First(&transaction).Error
+	if err != nil {
+		return nil, err
+	}
+	return &transaction, nil
+}
+
+// DeleteTransaction deletes a transaction by ID.
+func (r *GormGiftCardRepository) DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error {
+	return r.db.WithContext(ctx).Delete(&models.GiftCardTransaction{}, "id = ?", transactionID).Error
+}

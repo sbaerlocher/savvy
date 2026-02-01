@@ -1782,5 +1782,69 @@
   {
     "id": "footer.in_switzerland",
     "translation": "in Switzerland"
+  },
+  {
+    "id": "barcode.tap_to_close",
+    "translation": "Tap to close"
+  },
+  {
+    "id": "update.title",
+    "translation": "New version available"
+  },
+  {
+    "id": "update.description",
+    "translation": "An updated version of the app is ready."
+  },
+  {
+    "id": "update.update_now",
+    "translation": "Update now"
+  },
+  {
+    "id": "update.later",
+    "translation": "Later"
+  },
+  {
+    "id": "language.de",
+    "translation": "German"
+  },
+  {
+    "id": "language.en",
+    "translation": "English"
+  },
+  {
+    "id": "language.fr",
+    "translation": "French"
+  },
+  {
+    "id": "impersonate.acting_as",
+    "translation": "⚠️ Acting as {{.Name}}"
+  },
+  {
+    "id": "impersonate.back_to_account",
+    "translation": "Back to your account"
+  },
+  {
+    "id": "nav.more",
+    "translation": "More"
+  },
+  {
+    "id": "merchants.new",
+    "translation": "New Merchant"
+  },
+  {
+    "id": "merchants.edit",
+    "translation": "Edit Merchant"
+  },
+  {
+    "id": "admin.create_user",
+    "translation": "Create user"
+  },
+  {
+    "id": "admin.create_user_title",
+    "translation": "Create user"
+  },
+  {
+    "id": "admin.password_min_chars",
+    "translation": "At least 8 characters"
   }
 ]

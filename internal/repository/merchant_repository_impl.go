@@ -34,6 +34,16 @@ func (r *GormMerchantRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 	return &merchant, nil
 }
 
+// GetByName retrieves a merchant by name (exact match).
+func (r *GormMerchantRepository) GetByName(ctx context.Context, name string) (*models.Merchant, error) {
+	var merchant models.Merchant
+	err := r.db.WithContext(ctx).Where("name = ?", name).First(&merchant).Error
+	if err != nil {
+		return nil, err
+	}
+	return &merchant, nil
+}
+
 // GetAll retrieves all merchants ordered by name.
 func (r *GormMerchantRepository) GetAll(ctx context.Context) ([]models.Merchant, error) {
 	var merchants []models.Merchant

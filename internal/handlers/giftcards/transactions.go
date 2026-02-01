@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
@@ -101,7 +100,7 @@ func (h *Handler) TransactionCreate(c echo.Context) error {
 		CreatedByUserID: &user.ID, // Track who created this transaction
 	}
 
-	if err := database.DB.Create(&transaction).Error; err != nil {
+	if err := h.giftCardService.CreateTransaction(c.Request().Context(), &transaction); err != nil {
 		// Check if error is from balance constraint trigger
 		if strings.Contains(err.Error(), "Insufficient balance") ||
 			strings.Contains(err.Error(), "check_gift_card_balance") {
@@ -146,15 +145,15 @@ func (h *Handler) TransactionDelete(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
-	// Delete transaction
-	var transaction models.GiftCardTransaction
-	if err := database.DB.Where("id = ? AND gift_card_id = ?", transactionID, giftCardID).First(&transaction).Error; err != nil {
+	// Verify transaction exists and belongs to this gift card
+	_, err = h.giftCardService.GetTransaction(c.Request().Context(), transactionID, giftCardID)
+	if err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	// Add user context for audit logging (automatic hook will create audit log)
 	ctx := audit.AddUserIDToContext(c.Request().Context(), user.ID)
-	if err := database.DB.WithContext(ctx).Delete(&transaction).Error; err != nil {
+	if err := h.giftCardService.DeleteTransaction(ctx, transactionID); err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 

@@ -7,15 +7,25 @@ import (
 	"encoding/base64"
 	"net/http"
 	"savvy/internal/config"
-	"savvy/internal/database"
 	"savvy/internal/middleware"
 	"savvy/internal/models"
 	"savvy/internal/oauth"
+	"savvy/internal/services"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// OAuthHandler handles OAuth authentication operations.
+type OAuthHandler struct {
+	userService services.UserServiceInterface
+}
+
+// NewOAuthHandler creates a new OAuth handler.
+func NewOAuthHandler(userService services.UserServiceInterface) *OAuthHandler {
+	return &OAuthHandler{userService: userService}
+}
 
 const (
 	roleUser  = "user"
@@ -121,8 +131,8 @@ func OAuthLogin(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, url)
 }
 
-// OAuthCallback handles the OAuth callback from Authentik
-func OAuthCallback(c echo.Context) error {
+// Callback handles the OAuth callback from Authentik
+func (h *OAuthHandler) Callback(c echo.Context) error {
 	if oauthProvider == nil {
 		return c.Redirect(http.StatusSeeOther, "/auth/login?error=oauth_not_configured")
 	}
@@ -202,8 +212,7 @@ func OAuthCallback(c echo.Context) error {
 	}
 
 	// Find or create user
-	var user models.User
-	err = database.DB.Where("LOWER(email) = ?", email).First(&user).Error
+	user, err := h.userService.GetUserByEmail(c.Request().Context(), email)
 	if err != nil {
 		// User doesn't exist, create new user
 		c.Logger().Printf("Creating new user from OAuth: %s", email)
@@ -228,7 +237,7 @@ func OAuthCallback(c echo.Context) error {
 			role = roleAdmin
 		}
 
-		user = models.User{
+		newUser := models.User{
 			Email:        email,
 			PasswordHash: string(hashedPassword),
 			FirstName:    firstName,
@@ -237,10 +246,11 @@ func OAuthCallback(c echo.Context) error {
 			AuthProvider: "oauth",
 		}
 
-		if err := database.DB.Create(&user).Error; err != nil {
+		if err := h.userService.CreateUser(c.Request().Context(), &newUser); err != nil {
 			c.Logger().Errorf("Failed to create user: %v", err)
 			return c.Redirect(http.StatusSeeOther, "/auth/login?error=user_creation_failed")
 		}
+		user = &newUser
 
 		if isAdmin {
 			c.Logger().Printf("Created admin user from OAuth: %s (groups: %v)", email, userInfo.Groups)
@@ -278,7 +288,7 @@ func OAuthCallback(c echo.Context) error {
 		}
 
 		if updated {
-			database.DB.Save(&user)
+			h.userService.UpdateUser(c.Request().Context(), user)
 		}
 	}
 

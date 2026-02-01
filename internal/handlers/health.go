@@ -3,13 +3,25 @@ package handlers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
+// HealthHandler handles health check endpoints
+type HealthHandler struct {
+	db *gorm.DB
+}
+
+// NewHealthHandler creates a new health handler
+func NewHealthHandler(db *gorm.DB) *HealthHandler {
+	return &HealthHandler{
+		db: db,
+	}
+}
+
 // Health returns basic health status
-func Health(c echo.Context) error {
+func (h *HealthHandler) Health(c echo.Context) error {
 	// Get service version from context (set in main.go)
 	version := c.Get("service_version")
 	if version == nil {
@@ -24,9 +36,9 @@ func Health(c echo.Context) error {
 }
 
 // Ready checks if the service is ready to accept requests
-func Ready(c echo.Context) error {
+func (h *HealthHandler) Ready(c echo.Context) error {
 	// Check database connection
-	sqlDB, err := database.DB.DB()
+	sqlDB, err := h.db.DB()
 	if err != nil {
 		return c.JSON(http.StatusServiceUnavailable, map[string]interface{}{
 			"status": "not ready",

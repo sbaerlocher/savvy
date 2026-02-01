@@ -4,7 +4,6 @@ package giftcards
 import (
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/validation"
 	"strconv"
@@ -86,8 +85,8 @@ func (h *Handler) Update(c echo.Context) error {
 	}
 
 	// Log update to audit log (only if DB is available)
-	if database.DB != nil {
-		if err := audit.LogUpdateFromContext(c, database.DB, "gift_cards", giftCard.ID, *giftCard); err != nil {
+	if h.db != nil {
+		if err := audit.LogUpdateFromContext(c, h.db, "gift_cards", giftCard.ID, *giftCard); err != nil {
 			c.Logger().Errorf("Failed to log gift card update: %v", err)
 		}
 	}

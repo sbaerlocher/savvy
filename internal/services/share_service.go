@@ -8,58 +8,26 @@ import (
 	"savvy/internal/repository"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-// ShareServiceInterface defines the interface for sharing business logic.
+// ShareServiceInterface defines the interface for share business logic.
 type ShareServiceInterface interface {
-	// ShareCard shares a card with another user.
-	ShareCard(ctx context.Context, cardID, sharedWithID uuid.UUID, canEdit, canDelete bool) error
-
-	// ShareVoucher shares a voucher with another user (always read-only).
-	ShareVoucher(ctx context.Context, voucherID, sharedWithID uuid.UUID) error
-
-	// ShareGiftCard shares a gift card with another user.
-	ShareGiftCard(ctx context.Context, giftCardID, sharedWithID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error
-
-	// UpdateCardShare updates card share permissions.
-	UpdateCardShare(ctx context.Context, shareID uuid.UUID, canEdit, canDelete bool) error
-
-	// UpdateGiftCardShare updates gift card share permissions.
-	UpdateGiftCardShare(ctx context.Context, shareID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error
-
-	// RevokeCardShare revokes a card share.
-	RevokeCardShare(ctx context.Context, shareID uuid.UUID) error
-
-	// RevokeVoucherShare revokes a voucher share.
-	RevokeVoucherShare(ctx context.Context, shareID uuid.UUID) error
-
-	// RevokeGiftCardShare revokes a gift card share.
-	RevokeGiftCardShare(ctx context.Context, shareID uuid.UUID) error
-
-	// GetCardShares retrieves all shares for a card.
+	CreateCardShare(ctx context.Context, cardID, sharedWithID uuid.UUID, canEdit, canDelete bool) error
+	CreateVoucherShare(ctx context.Context, voucherID, sharedWithID uuid.UUID) error
+	CreateGiftCardShare(ctx context.Context, giftCardID, sharedWithID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error
 	GetCardShares(ctx context.Context, cardID uuid.UUID) ([]models.CardShare, error)
-
-	// GetVoucherShares retrieves all shares for a voucher.
 	GetVoucherShares(ctx context.Context, voucherID uuid.UUID) ([]models.VoucherShare, error)
-
-	// GetGiftCardShares retrieves all shares for a gift card.
 	GetGiftCardShares(ctx context.Context, giftCardID uuid.UUID) ([]models.GiftCardShare, error)
-
-	// HasCardAccess checks if user has access to a card.
-	HasCardAccess(ctx context.Context, cardID, userID uuid.UUID) (bool, error)
-
-	// HasVoucherAccess checks if user has access to a voucher.
-	HasVoucherAccess(ctx context.Context, voucherID, userID uuid.UUID) (bool, error)
-
-	// HasGiftCardAccess checks if user has access to a gift card.
-	HasGiftCardAccess(ctx context.Context, giftCardID, userID uuid.UUID) (bool, error)
+	GetSharedUsers(ctx context.Context, userID uuid.UUID, searchQuery string) ([]models.User, error)
 }
 
-// ShareService implements sharing business logic.
+// ShareService implements ShareServiceInterface.
 type ShareService struct {
 	cardRepo     repository.CardRepository
 	voucherRepo  repository.VoucherRepository
 	giftCardRepo repository.GiftCardRepository
+	db           *gorm.DB
 }
 
 // NewShareService creates a new share service.
@@ -67,148 +35,206 @@ func NewShareService(
 	cardRepo repository.CardRepository,
 	voucherRepo repository.VoucherRepository,
 	giftCardRepo repository.GiftCardRepository,
+	db *gorm.DB,
 ) ShareServiceInterface {
 	return &ShareService{
 		cardRepo:     cardRepo,
 		voucherRepo:  voucherRepo,
 		giftCardRepo: giftCardRepo,
+		db:           db,
 	}
 }
 
-// ShareCard shares a card with another user.
-func (s *ShareService) ShareCard(ctx context.Context, cardID, sharedWithID uuid.UUID, _ /* canEdit */, _ /* canDelete */ bool) error {
+// CreateCardShare creates a new card share.
+func (s *ShareService) CreateCardShare(ctx context.Context, cardID, sharedWithID uuid.UUID, canEdit, canDelete bool) error {
+	// Business logic: validate share
+	if cardID == uuid.Nil {
+		return errors.New("card ID is required")
+	}
+	if sharedWithID == uuid.Nil {
+		return errors.New("shared with user ID is required")
+	}
+
 	// Verify card exists
 	card, err := s.cardRepo.GetByID(ctx, cardID)
 	if err != nil {
-		return errors.New("card not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("card not found")
+		}
+		return err
 	}
 
 	// Prevent sharing with owner
 	if card.UserID != nil && *card.UserID == sharedWithID {
-		return errors.New("cannot share with card owner")
+		return errors.New("cannot share card with its owner")
 	}
 
-	// Business logic for share creation would go here
-	// For now, this returns an error indicating DB implementation needed
-	return errors.New("share creation not implemented - use handlers directly")
+	share := models.CardShare{
+		CardID:       cardID,
+		SharedWithID: sharedWithID,
+		CanEdit:      canEdit,
+		CanDelete:    canDelete,
+	}
+
+	return s.db.WithContext(ctx).Create(&share).Error
 }
 
-// ShareVoucher shares a voucher with another user (always read-only).
-func (s *ShareService) ShareVoucher(ctx context.Context, voucherID, sharedWithID uuid.UUID) error {
+// CreateVoucherShare creates a new voucher share.
+// Note: Vouchers are always read-only, so no edit/delete permissions.
+func (s *ShareService) CreateVoucherShare(ctx context.Context, voucherID, sharedWithID uuid.UUID) error {
+	// Business logic: validate share
+	if voucherID == uuid.Nil {
+		return errors.New("voucher ID is required")
+	}
+	if sharedWithID == uuid.Nil {
+		return errors.New("shared with user ID is required")
+	}
+
+	// Verify voucher exists
 	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
 	if err != nil {
-		return errors.New("voucher not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("voucher not found")
+		}
+		return err
 	}
 
+	// Prevent sharing with owner
 	if voucher.UserID != nil && *voucher.UserID == sharedWithID {
-		return errors.New("cannot share with voucher owner")
+		return errors.New("cannot share voucher with its owner")
 	}
 
-	return errors.New("share creation not implemented - use handlers directly")
+	share := models.VoucherShare{
+		VoucherID:    voucherID,
+		SharedWithID: sharedWithID,
+		// Vouchers are always read-only
+	}
+
+	return s.db.WithContext(ctx).Create(&share).Error
 }
 
-// ShareGiftCard shares a gift card with another user.
-func (s *ShareService) ShareGiftCard(ctx context.Context, giftCardID, sharedWithID uuid.UUID, _ /* canEdit */, _ /* canDelete */, _ /* canEditTransactions */ bool) error {
+// CreateGiftCardShare creates a new gift card share.
+func (s *ShareService) CreateGiftCardShare(ctx context.Context, giftCardID, sharedWithID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
+	// Business logic: validate share
+	if giftCardID == uuid.Nil {
+		return errors.New("gift card ID is required")
+	}
+	if sharedWithID == uuid.Nil {
+		return errors.New("shared with user ID is required")
+	}
+
+	// Verify gift card exists
 	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
 	if err != nil {
-		return errors.New("gift card not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("gift card not found")
+		}
+		return err
 	}
 
+	// Prevent sharing with owner
 	if giftCard.UserID != nil && *giftCard.UserID == sharedWithID {
-		return errors.New("cannot share with gift card owner")
+		return errors.New("cannot share gift card with its owner")
 	}
 
-	return errors.New("share creation not implemented - use handlers directly")
-}
+	share := models.GiftCardShare{
+		GiftCardID:          giftCardID,
+		SharedWithID:        sharedWithID,
+		CanEdit:             canEdit,
+		CanDelete:           canDelete,
+		CanEditTransactions: canEditTransactions,
+	}
 
-// UpdateCardShare updates card share permissions.
-func (s *ShareService) UpdateCardShare(_ context.Context, shareID uuid.UUID, canEdit, canDelete bool) error {
-	_ = shareID
-	_ = canEdit
-	_ = canDelete
-	return errors.New("share update not implemented - use handlers directly")
-}
-
-// UpdateGiftCardShare updates gift card share permissions.
-func (s *ShareService) UpdateGiftCardShare(_ context.Context, shareID uuid.UUID, canEdit, canDelete, canEditTransactions bool) error {
-	_ = shareID
-	_ = canEdit
-	_ = canDelete
-	_ = canEditTransactions
-	return errors.New("share update not implemented - use handlers directly")
-}
-
-// RevokeCardShare revokes a card share.
-func (s *ShareService) RevokeCardShare(_ context.Context, shareID uuid.UUID) error {
-	_ = shareID
-	return errors.New("share revocation not implemented - use handlers directly")
-}
-
-// RevokeVoucherShare revokes a voucher share.
-func (s *ShareService) RevokeVoucherShare(_ context.Context, _ uuid.UUID) error {
-	return errors.New("share revocation not implemented - use handlers directly")
-}
-
-// RevokeGiftCardShare revokes a gift card share.
-func (s *ShareService) RevokeGiftCardShare(_ context.Context, _ uuid.UUID) error {
-	return errors.New("share revocation not implemented - use handlers directly")
+	return s.db.WithContext(ctx).Create(&share).Error
 }
 
 // GetCardShares retrieves all shares for a card.
-func (s *ShareService) GetCardShares(_ context.Context, _ uuid.UUID) ([]models.CardShare, error) {
-	return nil, errors.New("get shares not implemented - use handlers directly")
+func (s *ShareService) GetCardShares(ctx context.Context, cardID uuid.UUID) ([]models.CardShare, error) {
+	var shares []models.CardShare
+	if err := s.db.WithContext(ctx).Where("card_id = ?", cardID).Preload("SharedWithUser").Find(&shares).Error; err != nil {
+		return nil, err
+	}
+	return shares, nil
 }
 
 // GetVoucherShares retrieves all shares for a voucher.
-func (s *ShareService) GetVoucherShares(_ context.Context, _ uuid.UUID) ([]models.VoucherShare, error) {
-	return nil, errors.New("get shares not implemented - use handlers directly")
+func (s *ShareService) GetVoucherShares(ctx context.Context, voucherID uuid.UUID) ([]models.VoucherShare, error) {
+	var shares []models.VoucherShare
+	if err := s.db.WithContext(ctx).Where("voucher_id = ?", voucherID).Preload("SharedWithUser").Find(&shares).Error; err != nil {
+		return nil, err
+	}
+	return shares, nil
 }
 
 // GetGiftCardShares retrieves all shares for a gift card.
-func (s *ShareService) GetGiftCardShares(_ context.Context, _ uuid.UUID) ([]models.GiftCardShare, error) {
-	return nil, errors.New("get shares not implemented - use handlers directly")
+func (s *ShareService) GetGiftCardShares(ctx context.Context, giftCardID uuid.UUID) ([]models.GiftCardShare, error) {
+	var shares []models.GiftCardShare
+	if err := s.db.WithContext(ctx).Where("gift_card_id = ?", giftCardID).Preload("SharedWithUser").Find(&shares).Error; err != nil {
+		return nil, err
+	}
+	return shares, nil
 }
 
-// HasCardAccess checks if user has access to a card (owner or shared).
-func (s *ShareService) HasCardAccess(ctx context.Context, cardID, userID uuid.UUID) (bool, error) {
-	card, err := s.cardRepo.GetByID(ctx, cardID)
-	if err != nil {
-		return false, err
+// GetSharedUsers retrieves all unique users that the given user has shared resources with.
+// Optionally filters by search query (email, first name, or last name).
+func (s *ShareService) GetSharedUsers(ctx context.Context, userID uuid.UUID, searchQuery string) ([]models.User, error) {
+	var userIDs []uuid.UUID
+
+	// Card shares
+	var cardSharedUserIDs []uuid.UUID
+	s.db.WithContext(ctx).Table("card_shares").
+		Select("DISTINCT shared_with_id").
+		Joins("JOIN cards ON cards.id = card_shares.card_id").
+		Where("cards.user_id = ?", userID).
+		Pluck("shared_with_id", &cardSharedUserIDs)
+	userIDs = append(userIDs, cardSharedUserIDs...)
+
+	// Voucher shares
+	var voucherSharedUserIDs []uuid.UUID
+	s.db.WithContext(ctx).Table("voucher_shares").
+		Select("DISTINCT shared_with_id").
+		Joins("JOIN vouchers ON vouchers.id = voucher_shares.voucher_id").
+		Where("vouchers.user_id = ?", userID).
+		Pluck("shared_with_id", &voucherSharedUserIDs)
+	userIDs = append(userIDs, voucherSharedUserIDs...)
+
+	// Gift card shares
+	var giftCardSharedUserIDs []uuid.UUID
+	s.db.WithContext(ctx).Table("gift_card_shares").
+		Select("DISTINCT shared_with_id").
+		Joins("JOIN gift_cards ON gift_cards.id = gift_card_shares.gift_card_id").
+		Where("gift_cards.user_id = ?", userID).
+		Pluck("shared_with_id", &giftCardSharedUserIDs)
+	userIDs = append(userIDs, giftCardSharedUserIDs...)
+
+	// Remove duplicates from userIDs
+	uniqueUserIDs := make(map[uuid.UUID]bool)
+	var filteredUserIDs []uuid.UUID
+	for _, id := range userIDs {
+		if !uniqueUserIDs[id] {
+			uniqueUserIDs[id] = true
+			filteredUserIDs = append(filteredUserIDs, id)
+		}
 	}
 
-	// Owner has access
-	if card.UserID != nil && *card.UserID == userID {
-		return true, nil
+	// If no shared users, return empty array
+	if len(filteredUserIDs) == 0 {
+		return []models.User{}, nil
 	}
 
-	// Check shared access (would need share repository)
-	return false, errors.New("share access check not implemented - use handlers directly")
-}
+	// Fetch users by IDs
+	var users []models.User
+	query := s.db.WithContext(ctx).Where("id IN ?", filteredUserIDs)
 
-// HasVoucherAccess checks if user has access to a voucher (owner or shared).
-func (s *ShareService) HasVoucherAccess(ctx context.Context, voucherID, userID uuid.UUID) (bool, error) {
-	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
-	if err != nil {
-		return false, err
+	// Apply search filter if provided
+	if searchQuery != "" {
+		query = query.Where("email ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?",
+			"%"+searchQuery+"%", "%"+searchQuery+"%", "%"+searchQuery+"%")
 	}
 
-	if voucher.UserID != nil && *voucher.UserID == userID {
-		return true, nil
+	if err := query.Find(&users).Error; err != nil {
+		return nil, err
 	}
 
-	return false, errors.New("share access check not implemented - use handlers directly")
-}
-
-// HasGiftCardAccess checks if user has access to a gift card (owner or shared).
-func (s *ShareService) HasGiftCardAccess(ctx context.Context, giftCardID, userID uuid.UUID) (bool, error) {
-	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
-	if err != nil {
-		return false, err
-	}
-
-	if giftCard.UserID != nil && *giftCard.UserID == userID {
-		return true, nil
-	}
-
-	return false, errors.New("share access check not implemented - use handlers directly")
+	return users, nil
 }

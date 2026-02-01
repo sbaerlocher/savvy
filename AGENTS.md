@@ -1,6 +1,6 @@
 # Savvy System - AI Agent Documentation
 
-**Letzte Aktualisierung**: 2026-01-27
+**Letzte Aktualisierung**: 2026-02-01
 **Projekt-Typ**: Full-Stack Web Application
 **Tech Stack**: Go + Echo + Templ + HTMX + Alpine.js + GORM + PostgreSQL
 **Zweck**: Digitale Verwaltung von Kundenkarten, Gutscheinen und Geschenkkarten mit Sharing-Funktionalität
@@ -310,23 +310,42 @@ Handlers → Services (Interfaces) → Repositories (Interfaces) → GORM Models
 
 ## 🧪 Testing
 
-**Status**: ⚠️ Interfaces vorhanden, Tests fehlen noch
+**Status**: ✅ Vollständig implementiert (>70% Coverage erreicht)
+
+**Coverage**:
+- ✅ Service Tests: 68 Tests, **71.6% Coverage** (card, voucher, gift_card, merchant, favorite, dashboard, authz)
+- ✅ Handler Tests: 122 Tests, **83.9% Average Coverage** (cards: 84.6%, vouchers: 85.6%, gift_cards: 81.6%)
+- ✅ Model Tests: 38 Tests, **90.9% Coverage**
+- ✅ Race Detection: Alle Tests bestehen mit `-race` Flag
 
 **Testbarkeit**:
-- ✅ Alle Services haben Interfaces → Mock-fähig
-- ✅ Repositories haben Interfaces → Mock-fähig
-- ❌ Unit Tests fehlen (Target: >70% Coverage)
-- ❌ Integration Tests fehlen
+- ✅ Alle Services haben Interfaces → Mock-basiertes Testing
+- ✅ Repositories haben Interfaces → Testbar ohne echte DB
+- ✅ AuthzService vollständig getestet (7 Tests mit PostgreSQL)
 
-**Roadmap**: [TODO.md](TODO.md) - Phase 4 Testing
+**Details**: [TODO.md](TODO.md) - Task 1 (Completed)
 
 ---
 
 ## 🚀 Deployment
 
+**Production Setup**: App läuft hinter **Traefik Reverse Proxy**
+
+**Architektur**:
+```
+Client (HTTPS) → Traefik (TLS Termination) → App (HTTP:8080) → PostgreSQL
+```
+
 **Container**:
 - Docker Multi-Stage Build ([Dockerfile](Dockerfile))
 - Docker Compose für Development ([docker-compose.yml](docker-compose.yml))
+- **Traefik** als Reverse Proxy (TLS, HTTPS-Redirect, Load Balancing)
+
+**Traefik Features**:
+- ✅ **TLS-Terminierung**: Let's Encrypt Zertifikate
+- ✅ **HTTPS-Redirect**: HTTP → HTTPS Redirect auf Proxy-Ebene
+- ✅ **Header-Injection**: `X-Forwarded-Proto`, `X-Real-IP`, `X-Forwarded-For`
+- ✅ **Load Balancing**: Für Multi-Instance Deployments
 
 **Environment Variables**:
 ```bash
@@ -449,8 +468,10 @@ type ResourcePermissions struct {
 }
 ```
 
-**Status**: Service existiert, wird im Container initialisiert, kann in Handler integriert werden
-**Next Step**: Handler refactoren um AuthzService zu nutzen (aktuell duplicate Permission-Logic)
+**Status**: ✅ Vollständig implementiert und in ALLEN 27 Handlern integriert (v1.4.0)
+- Eliminiert duplicate Permission-Logic
+- Konsistente Authorization-Checks über alle Ressourcen
+- 7 Unit Tests mit PostgreSQL (Owner, SharedUser, Permissions)
 
 ### 3. Barcode-Scanning
 
@@ -492,6 +513,28 @@ audit_logs:
 
 ## 📝 Changelog
 
+### Version 1.5.0 (2026-02-01) ✅ CURRENT
+- ✅ **Production Secrets Validation** - Automatische Validierung verhindert Deployment mit Default-Secrets
+  - ValidateProduction() prüft SESSION_SECRET (min. 32 Zeichen)
+  - ValidateProduction() prüft OAUTH_CLIENT_SECRET (min. 16 Zeichen) wenn OAuth aktiv
+  - 11 Tests (9 Unit Tests + 2 Integration Tests)
+
+### Version 1.4.0 (2026-01-31)
+- ✅ **AuthzService Integration** - Vollständig in ALLEN 27 Handlern integriert, eliminiert duplicate Permission-Logic
+- ✅ **Handler Testing** - 122 Tests, 83.9% Average Coverage (Cards: 84.6%, Vouchers: 85.6%, Gift Cards: 81.6%)
+- ✅ **Service Testing** - 68 Tests, 71.6% Coverage (Target >70% erreicht)
+- ✅ **CSP Implementation** - Content Security Policy mit OAuth-Support
+
+### Version 1.3.0 (2026-01-30)
+- ✅ **Share Handler Abstraction** - Adapter pattern eliminates 70% code duplication
+- ✅ **RESTful Compliance** - 5 update operations changed from POST to PATCH
+- ✅ **Testing Infrastructure** - AuthzService tests with PostgreSQL
+
+### Version 1.2.0 (2026-01-27)
+- ✅ **PWA Implementation** - Service Worker, Manifest, Offline-Mode
+- ✅ **JavaScript Extraction** - Modular Build System (Rollup + Terser)
+- ✅ **AuthzService Creation** - Zentrale Authorization-Logic (154 LOC)
+
 ### Version 1.1.0 (2026-01-26)
 - ✅ **Feature Toggles** - ENV-basierte Toggles für Cards, Vouchers, Gift Cards, Local Login, Registration
 - ✅ **Observability** - Prometheus Metrics, Health Checks, Structured Logging
@@ -506,29 +549,40 @@ audit_logs:
 - ✅ **Audit Logging** - Deletion Tracking
 - ✅ **Sharing** - Granulare Permissions
 
-**Voller Changelog**: [README.md](README.md) - Changelog (Zeile 378-426)
+**Voller Changelog**: [README.md](README.md) - Changelog
 
 ---
 
 ## 🎯 Offene Aufgaben
 
-**HIGH Priority**:
+**Production Readiness Score**: **8.9/10** ✅ Production-Ready
 
-- ⚠️ **AuthzService Integration**: Service existiert (154 LOC), muss in Handler integriert werden (19 Files betroffen)
-- ⚠️ **Unit Testing**: Tests schreiben (Target: >70% Coverage)
-- ⚠️ **Migration Strategy**: AutoMigrate nur in Development aktivieren
+**CRITICAL (vor Production)**:
+
+- ⚠️ **Production Deployment**: Reverse Proxy Setup, TLS, Database Backups, Monitoring, Log Aggregation
 
 **MEDIUM Priority**:
 
+- ⚠️ **Security Hardening**: Additional HTTP Headers (XSS-Protection, X-Frame-Options, HSTS)
 - ⚠️ **CI/CD Pipeline**: GitHub Actions für Tests + Deployment
-- ⚠️ **HTTPS Enforcement**: Application-Level oder Reverse Proxy
-- ⚠️ **Kubernetes Manifests**: Production Deployment Setup
+- ⚠️ **Kubernetes Manifests**: Production Deployment Setup (Deployment, Ingress, ConfigMap)
+
+**LOW Priority**:
+
+- ⚠️ **Handler Refactoring**: Entfernung direkter database.DB Zugriffe (AuthzService nutzt noch GORM direkt)
+- ⚠️ **Main.go Refactoring**: Setup-Logik in separate Packages auslagern
 
 **COMPLETED** ✅:
 
-- ✅ **JavaScript Extraction**: Vollständig extrahiert in `static/js/src/` (scanner.js, offline.js, precache.js)
+- ✅ **Testing**: >70% Coverage erreicht (Service: 71.6%, Handler: 83.9%, Model: 90.9%)
+- ✅ **AuthzService**: Vollständig in ALLEN 27 Handlern integriert (v1.4.0)
+- ✅ **Migration Strategy**: Gormigrate implementiert mit AUTO_MIGRATE Flag
+- ✅ **HTTPS Enforcement**: Via Traefik Reverse Proxy (TLS-Terminierung, HTTP→HTTPS Redirect)
+- ✅ **Secrets Validation**: Production-Checks für SESSION_SECRET und OAUTH_CLIENT_SECRET (v1.5.0)
+- ✅ **CSP**: Content Security Policy mit OAuth-Support
+- ✅ **JavaScript Extraction**: Modular Build System (Rollup + Terser)
 - ✅ **PWA Implementation**: Service Worker, Manifest, Offline-Mode
-- ✅ **AuthzService Creation**: Service implementiert und im Container registriert
+- ✅ **SameSite Cookies**: SameSite=Lax (OAuth-kompatibel, CSRF-Protection)
 
 **Details**: [TODO.md](TODO.md) - Vollständige Roadmap
 

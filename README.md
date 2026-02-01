@@ -336,26 +336,39 @@ Details siehe: [migrations/README.md](migrations/README.md)
 
 ## 🚀 Deployment
 
+### Production Setup (Traefik Reverse Proxy)
+
+**Architektur**:
+```
+Client (HTTPS:443) → Traefik (TLS Termination) → Savvy App (HTTP:8080) → PostgreSQL
+```
+
+**Traefik Features**:
+- ✅ **TLS-Terminierung**: Let's Encrypt Zertifikate
+- ✅ **HTTPS-Redirect**: Automatischer HTTP → HTTPS Redirect
+- ✅ **Security Headers**: HSTS, CSP, X-Frame-Options
+- ✅ **Load Balancing**: Multi-Instance Support
+
+**Wichtig**: Die App läuft intern auf HTTP (Port 8080), Traefik übernimmt HTTPS.
+
 ### Docker Production Build
 
 ```bash
 # Build image
 docker build -t savvy:latest .
 
-# Run with environment variables
-docker run -d \
-  -p 8080:8080 \
-  -e DB_HOST=postgres \
-  -e DB_USER=savvy_user \
-  -e DB_PASSWORD=secure_password \
-  -e DB_NAME=savvy_db \
-  -e SESSION_SECRET=your-secret-key \
-  savvy:latest
+# Run with Traefik labels (docker-compose.yml)
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.savvy.rule=Host(`savvy.example.com`)"
+  - "traefik.http.routers.savvy.entrypoints=websecure"
+  - "traefik.http.routers.savvy.tls.certresolver=letsencrypt"
+  - "traefik.http.services.savvy.loadbalancer.server.port=8080"
 ```
 
-### Kubernetes (K3s)
+### Kubernetes (K3s) mit Traefik Ingress
 
-Siehe [AGENTS.md](AGENTS.md) für Kubernetes Deployment-Beispiele.
+Siehe [ARCHITECTURE.md](ARCHITECTURE.md) für vollständige Kubernetes Deployment-Beispiele mit Traefik IngressRoute.
 
 ### Environment Variables
 
@@ -410,7 +423,35 @@ go test ./internal/models -run TestCard_GetColor
 
 ## 📝 Changelog
 
-### Version 1.2.0 (2026-01-27) ✅ CURRENT
+### Version 1.4.0 (2026-02-01) ✅ CURRENT
+
+**New Features**
+
+- ✅ **Testing Suite** - Comprehensive test coverage (>70%)
+  - Service Tests: 68 Tests, 71.6% Coverage
+  - Handler Tests: 122 Tests, 83.9% Average Coverage
+  - Model Tests: 38 Tests, 90.9% Coverage
+  - Race Detection: All tests pass with `-race` flag
+- ✅ **Content Security Policy (CSP)** - XSS Protection mit OAuth-Support
+  - CSP Headers implementiert
+  - OAuth-kompatibel (form-action https:)
+  - Alpine.js Unterstützung (unsafe-eval)
+
+**Improvements**
+
+- ✅ **AuthzService Integration** - Vollständig in ALLEN 27 Handlern integriert
+  - Eliminiert duplicate Permission-Logic
+  - Konsistente Authorization-Checks
+  - 7 PostgreSQL-basierte Unit Tests
+- ✅ **Documentation Update** - AGENTS.md, ARCHITECTURE.md, TODO.md konsolidiert
+
+### Version 1.3.0 (2026-01-30)
+
+- ✅ **Share Handler Abstraction** - Adapter pattern eliminates 70% code duplication
+- ✅ **RESTful Compliance** - 5 update operations changed from POST to PATCH
+- ✅ **Testing Infrastructure** - AuthzService tests with PostgreSQL
+
+### Version 1.2.0 (2026-01-27)
 
 **New Features**
 
@@ -424,7 +465,6 @@ go test ./internal/models -run TestCard_GetColor
   - Interface-basiertes Design für Testbarkeit
   - Resource-spezifische Permission-Checks
   - Ownership + Share-based Access Control
-  - Im Container registriert und einsatzbereit
 
 **Improvements**
 
@@ -434,7 +474,6 @@ go test ./internal/models -run TestCard_GetColor
   - Terser Minification (~150KB Bundle)
   - Hot Reload via `npm run watch`
 - ✅ **Build Pipeline** - PostCSS + TailwindCSS + Rollup
-- ✅ **Documentation Update** - AGENTS.md, ARCHITECTURE.md, TODO.md aktualisiert
 
 ### Version 1.1.0 (2026-01-26)
 
@@ -472,10 +511,10 @@ go test ./internal/models -run TestCard_GetColor
 
 - 🔄 QR-Code Export
 - 🔄 CSV Import/Export
-- 🔄 PWA Support (Offline-Fähigkeit)
 - 🔄 Push Notifications (Gift Card Balance)
-- 🔄 Authentik OAuth Integration
 - 🔄 API for Mobile Apps
+- 🔄 Admin Audit Log Viewer
+- 🔄 Voucher Usage Tracking (Redemption History)
 
 ## 📚 Dokumentation
 

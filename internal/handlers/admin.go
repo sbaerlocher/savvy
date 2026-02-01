@@ -3,8 +3,8 @@ package handlers
 
 import (
 	"net/http"
-	"savvy/internal/database"
 	"savvy/internal/models"
+	"savvy/internal/services"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
 	"strings"
@@ -14,8 +14,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// AdminUsersIndex lists all users for admin
-func AdminUsersIndex(c echo.Context) error {
+// AdminHandler handles admin operations
+type AdminHandler struct {
+	adminService services.AdminServiceInterface
+	userService  services.UserServiceInterface
+}
+
+// NewAdminHandler creates a new admin handler
+func NewAdminHandler(adminService services.AdminServiceInterface, userService services.UserServiceInterface) *AdminHandler {
+	return &AdminHandler{
+		adminService: adminService,
+		userService:  userService,
+	}
+}
+
+// UsersIndex lists all users for admin
+func (h *AdminHandler) UsersIndex(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
 	csrfToken, ok := c.Get("csrf").(string)
@@ -23,16 +37,16 @@ func AdminUsersIndex(c echo.Context) error {
 		csrfToken = ""
 	}
 
-	var users []models.User
-	if err := database.DB.Order("created_at DESC").Find(&users).Error; err != nil {
+	users, err := h.adminService.GetAllUsers(c.Request().Context())
+	if err != nil {
 		return err
 	}
 
 	return templates.AdminUsersIndex(c.Request().Context(), csrfToken, users, currentUser, isImpersonating).Render(c.Request().Context(), c.Response().Writer)
 }
 
-// AdminAuditLogIndex displays audit log entries with filtering
-func AdminAuditLogIndex(c echo.Context) error {
+// AuditLogIndex displays audit log entries with filtering
+func (h *AdminHandler) AuditLogIndex(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	isImpersonating := c.Get("is_impersonating") != nil
 	csrfToken, ok := c.Get("csrf").(string)
@@ -53,63 +67,43 @@ func AdminAuditLogIndex(c echo.Context) error {
 	searchQuery := c.QueryParam("search")
 
 	// Get all users for filter dropdown
-	var users []models.User
-	database.DB.Order("first_name, last_name").Find(&users)
+	users, _ := h.adminService.GetAllUsers(c.Request().Context())
 
-	// Build query with filters
-	query := database.DB.Model(&models.AuditLog{}).
-		Preload("User").
-		Order("created_at DESC")
-
-	// Apply filters
+	// Parse filter user ID
+	var filterUserID *uuid.UUID
 	if filterUser != "" {
 		if userID, err := uuid.Parse(filterUser); err == nil {
-			query = query.Where("user_id = ?", userID)
+			filterUserID = &userID
 		}
 	}
 
-	if filterResourceType != "" {
-		query = query.Where("resource_type = ?", filterResourceType)
+	// Build filters
+	filters := services.AuditLogFilters{
+		UserID:       filterUserID,
+		ResourceType: filterResourceType,
+		Action:       filterAction,
+		DateFrom:     filterDateFrom,
+		DateTo:       filterDateTo,
+		SearchQuery:  searchQuery,
+		Page:         page,
+		PerPage:      perPage,
 	}
 
-	if filterAction != "" {
-		query = query.Where("action = ?", filterAction)
-	}
-
-	if filterDateFrom != "" {
-		query = query.Where("created_at >= ?", filterDateFrom)
-	}
-
-	if filterDateTo != "" {
-		query = query.Where("created_at <= ?", filterDateTo+" 23:59:59")
-	}
-
-	if searchQuery != "" {
-		// Search in resource_data JSON field
-		query = query.Where("resource_data::text ILIKE ?", "%"+searchQuery+"%")
-	}
-
-	// Count total with filters
-	var total int64
-	query.Count(&total)
-
-	// Get paginated results
-	var auditLogs []models.AuditLog
-	offset := (page - 1) * perPage
-	if err := query.Limit(perPage).Offset(offset).Find(&auditLogs).Error; err != nil {
+	result, err := h.adminService.GetAuditLogs(c.Request().Context(), filters)
+	if err != nil {
 		return err
 	}
 
 	return templates.AdminAuditLogIndex(
 		c.Request().Context(),
 		csrfToken,
-		auditLogs,
+		result.Logs,
 		users,
 		currentUser,
 		isImpersonating,
 		page,
 		perPage,
-		int(total),
+		int(result.Total),
 		filterUser,
 		filterResourceType,
 		filterAction,
@@ -119,8 +113,8 @@ func AdminAuditLogIndex(c echo.Context) error {
 	).Render(c.Request().Context(), c.Response().Writer)
 }
 
-// AdminUpdateUserRole updates a user's role (only for local auth users)
-func AdminUpdateUserRole(c echo.Context) error {
+// UpdateUserRole updates a user's role (only for local auth users)
+func (h *AdminHandler) UpdateUserRole(c echo.Context) error {
 	currentUser := c.Get("current_user").(*models.User)
 	targetUserID := c.Param("id")
 	newRole := c.FormValue("role")
@@ -142,8 +136,8 @@ func AdminUpdateUserRole(c echo.Context) error {
 	}
 
 	// Get target user
-	var targetUser models.User
-	if err := database.DB.First(&targetUser, userUUID).Error; err != nil {
+	targetUser, err := h.userService.GetUserByID(c.Request().Context(), userUUID)
+	if err != nil {
 		return c.String(404, "User not found")
 	}
 
@@ -156,8 +150,7 @@ func AdminUpdateUserRole(c echo.Context) error {
 	oldRole := targetUser.Role
 
 	// Update role
-	targetUser.Role = newRole
-	if err := database.DB.Save(&targetUser).Error; err != nil {
+	if err := h.adminService.UpdateUserRole(c.Request().Context(), userUUID, newRole); err != nil {
 		c.Logger().Errorf("Failed to update user role: %v", err)
 		return c.String(500, "Failed to update user role")
 	}
@@ -173,15 +166,15 @@ func AdminUpdateUserRole(c echo.Context) error {
 		IPAddress:    c.RealIP(),
 		UserAgent:    c.Request().UserAgent(),
 	}
-	if err := database.DB.Create(&auditLog).Error; err != nil {
+	if err := h.adminService.CreateAuditLog(c.Request().Context(), &auditLog); err != nil {
 		c.Logger().Errorf("Failed to log role change: %v", err)
 	}
 
 	return c.Redirect(303, "/admin/users")
 }
 
-// AdminRestoreResource restores a soft-deleted resource
-func AdminRestoreResource(c echo.Context) error {
+// RestoreResource restores a soft-deleted resource
+func (h *AdminHandler) RestoreResource(c echo.Context) error {
 	resourceType := c.FormValue("resource_type")
 	resourceID := c.FormValue("resource_id")
 
@@ -195,120 +188,31 @@ func AdminRestoreResource(c echo.Context) error {
 		return c.Redirect(303, "/admin/audit-log?error=invalid_id")
 	}
 
-	// Restore based on resource type
-	var tableName string
-
-	switch resourceType {
-	case "cards":
-		var card models.Card
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&card).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=card")
-		}
-		if !card.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=card")
-		}
-		database.DB.Unscoped().Model(&card).Update("deleted_at", nil)
-		tableName = "cards"
-
-	case "card_shares":
-		var share models.CardShare
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&share).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=card_share")
-		}
-		if !share.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=card_share")
-		}
-		database.DB.Unscoped().Model(&share).Update("deleted_at", nil)
-		tableName = "card_shares"
-
-	case "vouchers":
-		var voucher models.Voucher
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&voucher).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=voucher")
-		}
-		if !voucher.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=voucher")
-		}
-		database.DB.Unscoped().Model(&voucher).Update("deleted_at", nil)
-		tableName = "vouchers"
-
-	case "voucher_shares":
-		var share models.VoucherShare
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&share).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=voucher_share")
-		}
-		if !share.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=voucher_share")
-		}
-		database.DB.Unscoped().Model(&share).Update("deleted_at", nil)
-		tableName = "voucher_shares"
-
-	case "gift_cards":
-		var giftCard models.GiftCard
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&giftCard).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=gift_card")
-		}
-		if !giftCard.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=gift_card")
-		}
-		database.DB.Unscoped().Model(&giftCard).Update("deleted_at", nil)
-		tableName = "gift_cards"
-
-	case "gift_card_shares":
-		var share models.GiftCardShare
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&share).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=gift_card_share")
-		}
-		if !share.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=gift_card_share")
-		}
-		database.DB.Unscoped().Model(&share).Update("deleted_at", nil)
-		tableName = "gift_card_shares"
-
-	case "gift_card_transactions":
-		var transaction models.GiftCardTransaction
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&transaction).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=transaction")
-		}
-		if !transaction.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=transaction")
-		}
-		database.DB.Unscoped().Model(&transaction).Update("deleted_at", nil)
-		tableName = "gift_card_transactions"
-
-	case "merchants":
-		var merchant models.Merchant
-		if err := database.DB.Unscoped().Where("id = ?", id).First(&merchant).Error; err != nil {
-			return c.Redirect(303, "/admin/audit-log?error=not_found&type=merchant")
-		}
-		if !merchant.DeletedAt.Valid {
-			return c.Redirect(303, "/admin/audit-log?error=not_deleted&type=merchant")
-		}
-		database.DB.Unscoped().Model(&merchant).Update("deleted_at", nil)
-		tableName = "merchants"
-
-	default:
-		return c.Redirect(303, "/admin/audit-log?error=unsupported_type")
+	// Restore resource
+	if err := h.adminService.RestoreResource(c.Request().Context(), resourceType, id); err != nil {
+		c.Logger().Errorf("Failed to restore resource: %v", err)
+		return c.Redirect(303, "/admin/audit-log?error=restore_failed&type="+resourceType)
 	}
 
 	// Create new audit log entry for restore action
+	currentUser := c.Get("current_user").(*models.User)
 	auditLog := models.AuditLog{
-		UserID:       &c.Get("current_user").(*models.User).ID,
+		UserID:       &currentUser.ID,
 		Action:       "restore",
-		ResourceType: tableName,
+		ResourceType: resourceType,
 		ResourceID:   id,
 		IPAddress:    c.RealIP(),
 		UserAgent:    c.Request().UserAgent(),
 	}
-	if err := database.DB.Create(&auditLog).Error; err != nil {
+	if err := h.adminService.CreateAuditLog(c.Request().Context(), &auditLog); err != nil {
 		c.Logger().Errorf("Failed to log restore action: %v", err)
 	}
 
 	return c.Redirect(303, "/admin/audit-log?success=restored&type="+resourceType)
 }
 
-// AdminCreateUserGet shows the user creation form (only if local login is enabled)
-func AdminCreateUserGet(c echo.Context) error {
+// CreateUserGet shows the user creation form (only if local login is enabled)
+func (h *AdminHandler) CreateUserGet(c echo.Context) error {
 	// Check if local login is enabled
 	if !IsLocalLoginEnabled() {
 		return echo.NewHTTPError(http.StatusNotFound, "User creation is disabled when local login is disabled")
@@ -324,8 +228,8 @@ func AdminCreateUserGet(c echo.Context) error {
 	return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, nil).Render(c.Request().Context(), c.Response().Writer)
 }
 
-// AdminCreateUserPost handles user creation (only if local login is enabled)
-func AdminCreateUserPost(c echo.Context) error {
+// CreateUserPost handles user creation (only if local login is enabled)
+func (h *AdminHandler) CreateUserPost(c echo.Context) error {
 	// Check if local login is enabled
 	if !IsLocalLoginEnabled() {
 		return echo.NewHTTPError(http.StatusNotFound, "User creation is disabled when local login is disabled")
@@ -356,8 +260,7 @@ func AdminCreateUserPost(c echo.Context) error {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 
 	// Check if user already exists
-	var existingUser models.User
-	if err := database.DB.Where("LOWER(email) = ?", email).First(&existingUser).Error; err == nil {
+	if _, err := h.userService.GetUserByEmail(c.Request().Context(), email); err == nil {
 		return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, map[string]string{
 			"error": "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits",
 		}).Render(c.Request().Context(), c.Response().Writer)
@@ -387,7 +290,7 @@ func AdminCreateUserPost(c echo.Context) error {
 		AuthProvider: "local",
 	}
 
-	if err := database.DB.Create(&user).Error; err != nil {
+	if err := h.adminService.CreateLocalUser(c.Request().Context(), &user); err != nil {
 		return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, map[string]string{
 			"error": "Fehler beim Erstellen des Benutzers",
 		}).Render(c.Request().Context(), c.Response().Writer)
@@ -402,7 +305,7 @@ func AdminCreateUserPost(c echo.Context) error {
 		IPAddress:    c.RealIP(),
 		UserAgent:    c.Request().UserAgent(),
 	}
-	database.DB.Create(&auditLog)
+	h.adminService.CreateAuditLog(c.Request().Context(), &auditLog)
 
 	return c.Redirect(http.StatusSeeOther, "/admin/users?success=user_created")
 }

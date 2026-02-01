@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"savvy/internal/database"
 	"savvy/internal/models"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -70,26 +69,16 @@ func (h *Handler) Create(c echo.Context) error {
 	}
 
 	// Handle sharing if email provided
-	// Note: Share creation still uses database.DB directly as ShareService.ShareCard is not fully implemented
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
-		// Find user by email (normalize email)
-		shareEmail = strings.ToLower(strings.TrimSpace(shareEmail))
-
-		var sharedUser models.User
-		if err := database.DB.Where("LOWER(email) = ?", shareEmail).First(&sharedUser).Error; err == nil {
-			// User exists, create share
+		// Find user by email using UserService
+		sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), shareEmail)
+		if err == nil {
+			// User exists, create share using ShareService
 			canEdit := c.FormValue("share_can_edit") == "true"
 			canDelete := c.FormValue("share_can_delete") == "true"
 
-			share := models.CardShare{
-				CardID:       card.ID,
-				SharedWithID: sharedUser.ID,
-				CanEdit:      canEdit,
-				CanDelete:    canDelete,
-			}
-
-			if err := database.DB.Create(&share).Error; err != nil {
+			if err := h.shareService.CreateCardShare(c.Request().Context(), card.ID, sharedUser.ID, canEdit, canDelete); err != nil {
 				c.Logger().Warnf("Failed to create card share: %v", err)
 				// Don't fail the whole request, just log the error
 			} else {

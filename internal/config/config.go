@@ -2,6 +2,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"strings"
@@ -79,6 +80,36 @@ func (c *Config) IsProduction() bool {
 // IsOAuthEnabled returns true if OAuth is configured
 func (c *Config) IsOAuthEnabled() bool {
 	return c.OAuthClientID != "" && c.OAuthClientSecret != "" && c.OAuthIssuer != ""
+}
+
+// ValidateProduction validates that production-critical secrets are properly configured
+// This prevents accidentally deploying with default development secrets
+func (c *Config) ValidateProduction() error {
+	if !c.IsProduction() {
+		return nil // Skip validation in non-production environments
+	}
+
+	// Check SESSION_SECRET is not using default development value
+	if c.SessionSecret == "dev-secret-change-in-production" {
+		return errors.New("SESSION_SECRET must be changed in production (currently using default dev value)")
+	}
+
+	// Check SESSION_SECRET has minimum length
+	if len(c.SessionSecret) < 32 {
+		return errors.New("SESSION_SECRET must be at least 32 characters in production")
+	}
+
+	// If OAuth is enabled, validate OAuth secrets
+	if c.OAuthClientID != "" || c.OAuthIssuer != "" {
+		if c.OAuthClientSecret == "" {
+			return errors.New("OAUTH_CLIENT_SECRET must be set in production when OAuth is enabled")
+		}
+		if len(c.OAuthClientSecret) < 16 {
+			return errors.New("OAUTH_CLIENT_SECRET must be at least 16 characters in production")
+		}
+	}
+
+	return nil
 }
 
 func getEnv(key, defaultValue string) string {
