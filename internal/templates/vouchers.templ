@@ -859,11 +859,6 @@ func voucherStatusText(ctx context.Context, voucher models.Voucher) string {
 }
 
 func getVoucherStatus(voucher models.Voucher) string {
-	// Check if exhausted (alle Verwendungen aufgebraucht)
-	if voucher.UsageLimitType == "single_use" && voucher.UsedCount >= 1 {
-		return "exhausted"
-	}
-
 	// Check validity by date
 	now := time.Now()
 	if now.Before(voucher.ValidFrom) {

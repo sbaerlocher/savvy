@@ -54,11 +54,9 @@ func (h *AdminHandler) AuditLogIndex(c echo.Context) error {
 		csrfToken = ""
 	}
 
-	// Pagination
 	page := 1
 	perPage := 50
 
-	// Filter parameters
 	filterUser := c.QueryParam("user")
 	filterResourceType := c.QueryParam("resource_type")
 	filterAction := c.QueryParam("action")
@@ -66,10 +64,8 @@ func (h *AdminHandler) AuditLogIndex(c echo.Context) error {
 	filterDateTo := c.QueryParam("date_to")
 	searchQuery := c.QueryParam("search")
 
-	// Get all users for filter dropdown
 	users, _ := h.adminService.GetAllUsers(c.Request().Context())
 
-	// Parse filter user ID
 	var filterUserID *uuid.UUID
 	if filterUser != "" {
 		if userID, err := uuid.Parse(filterUser); err == nil {
@@ -77,7 +73,6 @@ func (h *AdminHandler) AuditLogIndex(c echo.Context) error {
 		}
 	}
 
-	// Build filters
 	filters := services.AuditLogFilters{
 		UserID:       filterUserID,
 		ResourceType: filterResourceType,
@@ -119,43 +114,35 @@ func (h *AdminHandler) UpdateUserRole(c echo.Context) error {
 	targetUserID := c.Param("id")
 	newRole := c.FormValue("role")
 
-	// Parse target user ID
 	userUUID, err := uuid.Parse(targetUserID)
 	if err != nil {
 		return c.String(400, "Invalid user ID")
 	}
 
-	// Validate new role
 	if newRole != "user" && newRole != "admin" {
 		return c.String(400, "Invalid role. Must be 'user' or 'admin'")
 	}
 
-	// Prevent users from changing their own role
 	if currentUser.ID == userUUID {
 		return c.String(403, "You cannot change your own role")
 	}
 
-	// Get target user
 	targetUser, err := h.userService.GetUserByID(c.Request().Context(), userUUID)
 	if err != nil {
 		return c.String(404, "User not found")
 	}
 
-	// Prevent changing OAuth users' roles
 	if targetUser.IsOAuthUser() {
 		return c.String(403, "Cannot change role for OAuth users. Roles are managed by OAuth provider.")
 	}
 
-	// Store old role for audit log
 	oldRole := targetUser.Role
 
-	// Update role
 	if err := h.adminService.UpdateUserRole(c.Request().Context(), userUUID, newRole); err != nil {
 		c.Logger().Errorf("Failed to update user role: %v", err)
 		return c.String(500, "Failed to update user role")
 	}
 
-	// Create audit log entry
 	resourceData := `{"role_change": {"old": "` + oldRole + `", "new": "` + newRole + `"}, "user_email": "` + targetUser.Email + `"}`
 	auditLog := models.AuditLog{
 		UserID:       &currentUser.ID,
@@ -182,19 +169,16 @@ func (h *AdminHandler) RestoreResource(c echo.Context) error {
 		return c.Redirect(303, "/admin/audit-log?error=missing_params")
 	}
 
-	// Parse UUID
 	id, err := uuid.Parse(resourceID)
 	if err != nil {
 		return c.Redirect(303, "/admin/audit-log?error=invalid_id")
 	}
 
-	// Restore resource
 	if err := h.adminService.RestoreResource(c.Request().Context(), resourceType, id); err != nil {
 		c.Logger().Errorf("Failed to restore resource: %v", err)
 		return c.Redirect(303, "/admin/audit-log?error=restore_failed&type="+resourceType)
 	}
 
-	// Create new audit log entry for restore action
 	currentUser := c.Get("current_user").(*models.User)
 	auditLog := models.AuditLog{
 		UserID:       &currentUser.ID,
@@ -242,7 +226,6 @@ func (h *AdminHandler) CreateUserPost(c echo.Context) error {
 		csrfToken = ""
 	}
 
-	// Validate input
 	req := validation.RegisterRequest{
 		Email:     c.FormValue("email"),
 		Password:  c.FormValue("password"),
@@ -256,23 +239,19 @@ func (h *AdminHandler) CreateUserPost(c echo.Context) error {
 		}).Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	// Normalize email to lowercase
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 
-	// Check if user already exists
 	if _, err := h.userService.GetUserByEmail(c.Request().Context(), email); err == nil {
 		return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, map[string]string{
 			"error": "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits",
 		}).Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	// Check if admin checkbox is set
 	role := "user"
 	if c.FormValue("is_admin") == "on" {
 		role = "admin"
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return templates.AdminCreateUser(c.Request().Context(), csrfToken, currentUser, isImpersonating, map[string]string{
@@ -280,7 +259,6 @@ func (h *AdminHandler) CreateUserPost(c echo.Context) error {
 		}).Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	// Create user
 	user := models.User{
 		Email:        email,
 		PasswordHash: string(hashedPassword),
@@ -296,7 +274,6 @@ func (h *AdminHandler) CreateUserPost(c echo.Context) error {
 		}).Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	// Create audit log entry
 	auditLog := models.AuditLog{
 		UserID:       &currentUser.ID,
 		Action:       "create_user",

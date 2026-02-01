@@ -5,11 +5,9 @@
 
 import { Html5Qrcode, Html5QrcodeSupportedFormats as Html5QrcodeFormats } from 'html5-qrcode'
 
-// Make globally available
 window.Html5Qrcode = Html5Qrcode
 window.Html5QrcodeSupportedFormats = Html5QrcodeFormats
 
-// Barcode format mapping
 const BARCODE_TYPE_MAPPING = {
   QR_CODE: 'QR',
   AZTEC: 'AZTEC',
@@ -93,9 +91,7 @@ function createBarcodeScanner (config, formats = null) {
           (decodedText, decodedResult) => {
             this.onScanSuccess(decodedText, decodedResult)
           },
-          (errorMessage) => {
-            // Optional: Debug scan attempts
-          }
+          () => {}
         )
 
         this.scanMessage = 'Halte den Barcode in den Rahmen'
@@ -181,7 +177,6 @@ function createBarcodeScanner (config, formats = null) {
   }
 }
 
-// Export scanner factory functions
 window.cardForm = function (initialCardNumber = '') {
   const Html5QrcodeSupportedFormats = window.Html5QrcodeSupportedFormats || {}
   return createBarcodeScanner(

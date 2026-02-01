@@ -39,7 +39,6 @@ func NewGiftCardService(repo repository.GiftCardRepository) GiftCardServiceInter
 
 // CreateGiftCard creates a new gift card.
 func (s *GiftCardService) CreateGiftCard(ctx context.Context, giftCard *models.GiftCard) error {
-	// Business logic: validate gift card
 	if giftCard.MerchantName == "" {
 		return errors.New("merchant name is required")
 	}
@@ -66,25 +65,21 @@ func (s *GiftCardService) GetGiftCard(ctx context.Context, id uuid.UUID) (*model
 
 // GetUserGiftCards retrieves all gift cards for a user (owned + shared).
 func (s *GiftCardService) GetUserGiftCards(ctx context.Context, userID uuid.UUID) ([]models.GiftCard, error) {
-	// Get owned gift cards
 	ownedGiftCards, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get shared gift cards
 	sharedGiftCards, err := s.repo.GetSharedWithUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Combine and return
 	return append(ownedGiftCards, sharedGiftCards...), nil
 }
 
 // UpdateGiftCard updates a gift card.
 func (s *GiftCardService) UpdateGiftCard(ctx context.Context, giftCard *models.GiftCard) error {
-	// Business logic: validate gift card
 	if giftCard.MerchantName == "" {
 		return errors.New("merchant name is required")
 	}
@@ -146,7 +141,6 @@ func (s *GiftCardService) CanUserAccessGiftCard(ctx context.Context, giftCardID,
 
 // CreateTransaction creates a new transaction for a gift card.
 func (s *GiftCardService) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
-	// Validate transaction
 	if transaction.Amount <= 0 {
 		return errors.New("transaction amount must be positive")
 	}

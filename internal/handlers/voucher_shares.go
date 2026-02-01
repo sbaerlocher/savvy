@@ -55,7 +55,6 @@ func (h *VoucherSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid voucher ID")
 	}
 
-	// Check if user owns the voucher using AuthzService
 	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Voucher not found")

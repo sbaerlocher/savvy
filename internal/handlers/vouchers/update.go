@@ -32,44 +32,35 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	// Parse value
 	value, _ := strconv.ParseFloat(c.FormValue("value"), 64)
 	minPurchaseAmount, _ := strconv.ParseFloat(c.FormValue("min_purchase_amount"), 64)
-
-	// Parse usage limit type
 	usageLimitType := c.FormValue("usage_limit_type")
 
-	// Parse dates (date only, set time to start/end of day)
 	validFrom, validUntil, err := validation.ParseAndValidateDateRange(
 		c.FormValue("valid_from"),
 		c.FormValue("valid_until"),
-		true, // allow past dates for existing vouchers (editing)
+		true,
 	)
 	if err != nil {
 		c.Logger().Errorf("Date validation failed: %v", err)
 		return c.Redirect(http.StatusSeeOther, "/vouchers/"+voucher.ID.String()+"/edit?error=invalid_date")
 	}
 
-	// Handle merchant selection
 	merchantIDStr := c.FormValue("merchant_id")
 	if merchantIDStr != "" && merchantIDStr != newMerchantValue {
-		// Existing merchant selected from dropdown
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			voucher.MerchantID = &merchantID
-			// Load merchant to get name
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				voucher.MerchantName = merchant.Name
 			}
 		}
 	} else {
-		// New merchant name entered or no selection
 		voucher.MerchantID = nil
 		voucher.MerchantName = c.FormValue("merchant_name")
 	}
 
-	// Update fields
 	voucher.Code = c.FormValue("code")
 	voucher.Type = c.FormValue("type")
 	voucher.Value = value
@@ -84,7 +75,6 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers/"+voucher.ID.String()+"/edit")
 	}
 
-	// Log update to audit log (only if DB is available)
 	if h.db != nil {
 		if err := audit.LogUpdateFromContext(c, h.db, "vouchers", voucher.ID, *voucher); err != nil {
 			c.Logger().Errorf("Failed to log voucher update: %v", err)

@@ -27,22 +27,19 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
-	// Load card with relations via service
 	card, err := h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/cards")
 	}
 
-	// Load shares with users (only if owner)
 	var shares []models.CardShare
 	if perms.IsOwner {
 		shares, _ = h.shareService.GetCardShares(c.Request().Context(), cardID)
 	}
 
-	// Load all merchants for edit mode
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
-		merchants = []models.Merchant{} // Fallback to empty list
+		merchants = []models.Merchant{}
 	}
 
 	// Check if card is favorited by current user

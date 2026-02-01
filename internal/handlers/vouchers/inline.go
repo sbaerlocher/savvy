@@ -31,7 +31,7 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 
-	// Load all merchants for dropdown
+
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		c.Logger().Errorf("Failed to load merchants: %v", err)
@@ -66,7 +66,7 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 
 	canEdit := perms.CanEdit
 
-	// Check if voucher is favorited by current user
+
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 	if err != nil {
 		c.Logger().Errorf("Failed to check favorite status: %v", err)
@@ -124,7 +124,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			voucher.MerchantID = &merchantID
-			// Load merchant to get name
+
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				voucher.MerchantName = merchant.Name
@@ -158,7 +158,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Voucher not found")
 	}
 
-	// Check if voucher is favorited by current user
+
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 	if err != nil {
 		c.Logger().Errorf("Failed to check favorite status: %v", err)

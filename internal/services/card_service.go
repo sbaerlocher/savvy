@@ -34,7 +34,6 @@ func NewCardService(repo repository.CardRepository) CardServiceInterface {
 
 // CreateCard creates a new card.
 func (s *CardService) CreateCard(ctx context.Context, card *models.Card) error {
-	// Business logic: validate card
 	if card.MerchantName == "" {
 		return errors.New("merchant name is required")
 	}
@@ -53,25 +52,21 @@ func (s *CardService) GetCard(ctx context.Context, id uuid.UUID) (*models.Card, 
 
 // GetUserCards retrieves all cards for a user (owned + shared).
 func (s *CardService) GetUserCards(ctx context.Context, userID uuid.UUID) ([]models.Card, error) {
-	// Get owned cards
 	ownedCards, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get shared cards
 	sharedCards, err := s.repo.GetSharedWithUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Combine and return
 	return append(ownedCards, sharedCards...), nil
 }
 
 // UpdateCard updates a card.
 func (s *CardService) UpdateCard(ctx context.Context, card *models.Card) error {
-	// Business logic: validate card
 	if card.MerchantName == "" {
 		return errors.New("merchant name is required")
 	}

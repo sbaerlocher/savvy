@@ -36,16 +36,13 @@ func (h *FavoritesHandler) toggleFavoriteHandler(c echo.Context, resourceType st
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 
-	// Check authorization (owner or shared access can favorite)
 	_, err = checkAccess(c.Request().Context(), user.ID, resourceUUID)
 	if err != nil {
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 	}
 
-	// Toggle favorite
 	isFavorite := h.toggleFavorite(user.ID, resourceType, resourceUUID)
 
-	// Return updated button HTML for HTMX swap
 	csrfToken, ok := c.Get("csrf").(string)
 	if !ok {
 		csrfToken = ""
@@ -68,17 +65,14 @@ func (h *FavoritesHandler) ToggleGiftCardFavorite(c echo.Context) error {
 	return h.toggleFavoriteHandler(c, "gift_card", h.authzService.CheckGiftCardAccess)
 }
 
-// toggleFavorite is a helper function that handles the favorite toggle logic
-// Returns true if the resource is now favorited, false if unfavorited
+// toggleFavorite is a helper function that handles the favorite toggle logic.
+// Returns true if the resource is now favorited, false if unfavorited.
 func (h *FavoritesHandler) toggleFavorite(userID uuid.UUID, resourceType string, resourceID uuid.UUID) bool {
-	// Toggle the favorite using FavoriteService
 	ctx := context.Background()
 	if err := h.favoriteService.ToggleFavorite(ctx, userID, resourceType, resourceID); err != nil {
-		// Log error but don't fail - return current state
 		return false
 	}
 
-	// Check current state after toggle
 	isFavorite, err := h.favoriteService.IsFavorite(ctx, userID, resourceType, resourceID)
 	if err != nil {
 		return false

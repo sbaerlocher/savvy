@@ -20,7 +20,6 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &GormUserRepository{db: db}
 }
 
-// GetByID retrieves a user by ID.
 func (r *GormUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
 	if err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
@@ -29,9 +28,8 @@ func (r *GormUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*models
 	return &user, nil
 }
 
-// GetByEmail retrieves a user by email (case-insensitive).
+// GetByEmail normalizes email to lowercase for case-insensitive lookup.
 func (r *GormUserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	// Normalize email to lowercase for case-insensitive search
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 
 	var user models.User
@@ -41,12 +39,10 @@ func (r *GormUserRepository) GetByEmail(ctx context.Context, email string) (*mod
 	return &user, nil
 }
 
-// Create creates a new user.
 func (r *GormUserRepository) Create(ctx context.Context, user *models.User) error {
 	return r.db.WithContext(ctx).Create(user).Error
 }
 
-// Update updates a user.
 func (r *GormUserRepository) Update(ctx context.Context, user *models.User) error {
 	return r.db.WithContext(ctx).Save(user).Error
 }

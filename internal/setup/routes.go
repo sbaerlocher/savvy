@@ -221,7 +221,6 @@ func registerVouchersRoutes(
 	vouchersGroup.GET("/:id/edit", voucherHandler.Edit)
 	vouchersGroup.POST("/:id", voucherHandler.Update)
 	vouchersGroup.DELETE("/:id", voucherHandler.Delete)
-	vouchersGroup.POST("/:id/redeem", voucherHandler.Redeem)
 	// Inline editing (HTMX-powered)
 	vouchersGroup.GET("/:id/edit-inline", voucherHandler.EditInline)
 	vouchersGroup.GET("/:id/cancel-edit", voucherHandler.CancelEdit)

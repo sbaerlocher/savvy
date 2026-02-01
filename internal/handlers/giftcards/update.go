@@ -33,18 +33,15 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards")
 	}
 
-	// Parse balance
 	initialBalance, _ := strconv.ParseFloat(c.FormValue("initial_balance"), 64)
 
-	// Parse expiration date
 	var expiresAt *time.Time
 	if expiresAtStr := c.FormValue("expires_at"); expiresAtStr != "" {
-		parsed, err := validation.ParseAndValidateDate(expiresAtStr, true) // allow past for flexibility
+		parsed, err := validation.ParseAndValidateDate(expiresAtStr, true)
 		if err != nil {
 			c.Logger().Errorf("Expires_at validation failed: %v", err)
 			return c.Redirect(http.StatusSeeOther, "/gift-cards/"+giftCard.ID.String()+"/edit?error=invalid_date")
 		}
-		// Set to end of day
 		parsed = time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 23, 59, 59, 0, time.UTC)
 		expiresAt = &parsed
 	}
@@ -52,7 +49,6 @@ func (h *Handler) Update(c echo.Context) error {
 	merchantIDStr := c.FormValue("merchant_id")
 	merchantNameStr := c.FormValue("merchant_name")
 
-	// Update fields
 	giftCard.CardNumber = c.FormValue("card_number")
 	giftCard.InitialBalance = initialBalance
 	giftCard.Currency = c.FormValue("currency")
@@ -62,20 +58,16 @@ func (h *Handler) Update(c echo.Context) error {
 	giftCard.BarcodeType = c.FormValue("barcode_type")
 	giftCard.Notes = c.FormValue("notes")
 
-	// Handle merchant selection
 	if merchantIDStr != "" && merchantIDStr != "new" {
-		// Existing merchant selected from dropdown
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			giftCard.MerchantID = &merchantID
-			// Load merchant to get name
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				giftCard.MerchantName = merchant.Name
 			}
 		}
 	} else {
-		// New merchant name entered
 		giftCard.MerchantID = nil
 		giftCard.MerchantName = merchantNameStr
 	}
@@ -84,7 +76,6 @@ func (h *Handler) Update(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards/"+giftCard.ID.String()+"/edit")
 	}
 
-	// Log update to audit log (only if DB is available)
 	if h.db != nil {
 		if err := audit.LogUpdateFromContext(c, h.db, "gift_cards", giftCard.ID, *giftCard); err != nil {
 			c.Logger().Errorf("Failed to log gift card update: %v", err)

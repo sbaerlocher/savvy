@@ -18,14 +18,11 @@ func (h *Handler) Create(c echo.Context) error {
 
 	name := c.FormValue("name")
 
-	// Check for duplicate name BEFORE Create
 	_, err := h.merchantService.GetMerchantByName(c.Request().Context(), name)
 	if err == nil {
-		// Merchant with this name already exists
 		c.Logger().Warnf("Duplicate merchant name attempt: %s", name)
 		return c.Redirect(http.StatusSeeOther, "/merchants/new?error=name_exists")
 	} else if err != gorm.ErrRecordNotFound {
-		// Unexpected error
 		c.Logger().Errorf("Failed to check merchant name: %v", err)
 		return c.Redirect(http.StatusSeeOther, "/merchants/new?error=database_error")
 	}

@@ -19,12 +19,10 @@ func NewMerchantRepository(db *gorm.DB) MerchantRepository {
 	return &GormMerchantRepository{db: db}
 }
 
-// Create creates a new merchant.
 func (r *GormMerchantRepository) Create(ctx context.Context, merchant *models.Merchant) error {
 	return r.db.WithContext(ctx).Create(merchant).Error
 }
 
-// GetByID retrieves a merchant by ID.
 func (r *GormMerchantRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Merchant, error) {
 	var merchant models.Merchant
 	err := r.db.WithContext(ctx).First(&merchant, "id = ?", id).Error
@@ -34,7 +32,6 @@ func (r *GormMerchantRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 	return &merchant, nil
 }
 
-// GetByName retrieves a merchant by name (exact match).
 func (r *GormMerchantRepository) GetByName(ctx context.Context, name string) (*models.Merchant, error) {
 	var merchant models.Merchant
 	err := r.db.WithContext(ctx).Where("name = ?", name).First(&merchant).Error
@@ -44,14 +41,12 @@ func (r *GormMerchantRepository) GetByName(ctx context.Context, name string) (*m
 	return &merchant, nil
 }
 
-// GetAll retrieves all merchants ordered by name.
 func (r *GormMerchantRepository) GetAll(ctx context.Context) ([]models.Merchant, error) {
 	var merchants []models.Merchant
 	err := r.db.WithContext(ctx).Order("name ASC").Find(&merchants).Error
 	return merchants, err
 }
 
-// Search searches merchants by name (case-insensitive).
 func (r *GormMerchantRepository) Search(ctx context.Context, query string) ([]models.Merchant, error) {
 	var merchants []models.Merchant
 	searchPattern := "%" + query + "%"
@@ -62,17 +57,14 @@ func (r *GormMerchantRepository) Search(ctx context.Context, query string) ([]mo
 	return merchants, err
 }
 
-// Update updates an existing merchant.
 func (r *GormMerchantRepository) Update(ctx context.Context, merchant *models.Merchant) error {
 	return r.db.WithContext(ctx).Save(merchant).Error
 }
 
-// Delete deletes a merchant by ID.
 func (r *GormMerchantRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&models.Merchant{}, "id = ?", id).Error
 }
 
-// Count returns the total number of merchants.
 func (r *GormMerchantRepository) Count(ctx context.Context) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&models.Merchant{}).Count(&count).Error

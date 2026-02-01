@@ -16,13 +16,11 @@ function showToast (message, type = 'info') {
 
   document.body.appendChild(toast)
 
-  // Animate in
   setTimeout(() => {
     toast.style.opacity = '1'
     toast.style.transform = 'translateY(0)'
   }, 10)
 
-  // Animate out and remove
   setTimeout(() => {
     toast.style.opacity = '0'
     toast.style.transform = 'translateY(20px)'
@@ -39,18 +37,14 @@ function showToast (message, type = 'info') {
  * - true = unreliable (only means "connected to network", not "has internet")
  */
 async function checkOnlineStatus () {
-  // If navigator says offline, trust it (false is always reliable)
   if (!navigator.onLine) {
     return false
   }
 
-  // If navigator says online, verify with real fetch
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000) // Increased to 5s for service worker activation
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    // Use health endpoint with GET (HEAD might redirect)
-    // Add timestamp to prevent cache
     const response = await fetch(`/health?t=${Date.now()}`, {
       method: 'GET',
       cache: 'no-store',
@@ -60,20 +54,20 @@ async function checkOnlineStatus () {
     clearTimeout(timeoutId)
     return response.ok
   } catch {
-    // Network error or timeout = offline
     return false
   }
 }
 
-// Offline Detection - Alpine.js Store
+/**
+ * Initialize offline detection store in Alpine.js
+ * Provides reliable offline status with debouncing and localStorage persistence
+ */
 export function initOfflineStore (Alpine) {
   console.log('[Alpine] Init - creating offline store')
 
-  // Debounce timer for offline status changes
   let offlineDebounceTimer = null
   let actualOnlineStatus = navigator.onLine
 
-  // Restore last known status from localStorage (default to true for optimistic start)
   let lastKnownStatus = true
   try {
     const stored = localStorage.getItem('savvy:online-status')
@@ -82,55 +76,42 @@ export function initOfflineStore (Alpine) {
       console.log('[Offline] Restored status from localStorage:', lastKnownStatus)
     }
   } catch (e) {
-    // localStorage might be unavailable
   }
 
-  // Create store with last known state (or optimistic default)
   Alpine.store('offline', {
     isOnline: lastKnownStatus,
     checking: false
   })
 
-  // Helper to update online status with debounce
   function updateOnlineStatus (isOnline) {
     actualOnlineStatus = isOnline
 
-    // Clear existing timer
     if (offlineDebounceTimer) {
       clearTimeout(offlineDebounceTimer)
       offlineDebounceTimer = null
     }
 
-    // If going online, update immediately
     if (isOnline) {
       console.log('[Offline] Status changed to ONLINE (immediate)')
       Alpine.store('offline').isOnline = true
-      // Persist to localStorage
       try {
         localStorage.setItem('savvy:online-status', 'true')
       } catch (e) {}
       return
     }
 
-    // If going offline, debounce for 2 seconds to prevent flashing
     console.log('[Offline] Status may be OFFLINE, verifying...')
     offlineDebounceTimer = setTimeout(() => {
-      // Verify status hasn't changed during debounce
       if (!actualOnlineStatus) {
         console.log('[Offline] Status confirmed OFFLINE after debounce')
         Alpine.store('offline').isOnline = false
-        // Persist to localStorage
         try {
           localStorage.setItem('savvy:online-status', 'false')
         } catch (e) {}
       }
-    }, 2000) // 2 second debounce for offline status
+    }, 2000)
   }
 
-  // Only do initial check if:
-  // 1. No stored status (first use)
-  // 2. Last status was offline (need to verify if back online)
-  // 3. navigator.onLine disagrees with stored status
   const shouldVerify = !localStorage.getItem('savvy:online-status') ||
                        !lastKnownStatus ||
                        navigator.onLine !== lastKnownStatus
@@ -145,10 +126,8 @@ export function initOfflineStore (Alpine) {
     console.log('[Offline] Skipping initial check (using cached status:', lastKnownStatus, ')')
   }
 
-  // Listen to browser online/offline events
   window.addEventListener('online', async () => {
     console.log('[Offline] Browser online event')
-    // Verify with real check
     const isOnline = await checkOnlineStatus()
     updateOnlineStatus(isOnline)
     if (isOnline) {
@@ -161,7 +140,6 @@ export function initOfflineStore (Alpine) {
     updateOnlineStatus(false)
   })
 
-  // Periodic check every 10 seconds (backup for missed events, less frequent to reduce load)
   setInterval(async () => {
     const isOnline = await checkOnlineStatus()
     const storeOnline = Alpine.store('offline').isOnline
@@ -170,9 +148,8 @@ export function initOfflineStore (Alpine) {
       console.log('[Offline] Periodic check detected change:', isOnline)
       updateOnlineStatus(isOnline)
     }
-  }, 10000) // Increased from 5s to 10s
+  }, 10000)
 
-  // Add manual check method to store
   const store = Alpine.store('offline')
   store.checkConnection = async function () {
     this.checking = true
@@ -185,22 +162,19 @@ export function initOfflineStore (Alpine) {
     if (isOnline) {
       console.log('[Offline] Server reachable - reloading...')
       setTimeout(() => window.location.reload(), 300)
-    } else {
-      console.log('[Offline] Still offline')
     }
   }
 }
 
 /**
- * Offline Page Handler (for standalone offline.templ)
- * Simpler handler without Alpine.js store for the dedicated offline page
+ * Handler for standalone offline page (offline.templ)
+ * Simpler alternative without Alpine.js store for dedicated offline page
  */
 export function offlineHandler () {
   return {
     checking: false,
 
     init () {
-      // Auto-redirect when suddenly online
       window.addEventListener('online', () => {
         window.location.reload()
       })
@@ -216,7 +190,6 @@ export function offlineHandler () {
         })
 
         if (response.ok) {
-          // Online! Reload page
           window.location.reload()
         } else {
           this.showError()
@@ -229,7 +202,6 @@ export function offlineHandler () {
     },
 
     showError () {
-      // Still offline
       console.log('Still offline')
     }
   }

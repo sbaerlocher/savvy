@@ -68,6 +68,7 @@ func GetMigrations() []*gormigrate.Migration {
 		addAuditLog(),
 		addAuthProvider(),
 		autoSetGiftCardCurrentBalance(),
+		removeVoucherUsedCount(),
 	}
 }
 
@@ -145,7 +146,6 @@ func initSchema() *gormigrate.Migration {
 				ValidFrom         time.Time  `gorm:"type:timestamp with time zone;not null"`
 				ValidUntil        time.Time  `gorm:"type:timestamp with time zone;not null"`
 				UsageLimitType    string     `gorm:"type:text;default:'single_use'"`
-				UsedCount         int64      `gorm:"type:bigint;default:0"`
 				BarcodeType       string     `gorm:"type:text;default:'CODE128'"`
 				Color             string     `gorm:"type:text;default:'#10B981'"`
 				CreatedAt         time.Time  `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP"`
@@ -940,6 +940,21 @@ func autoSetGiftCardCurrentBalance() *gormigrate.Migration {
 				return err
 			}
 			return dropFunction(tx, "auto_set_gift_card_current_balance")
+		},
+	}
+}
+// removeVoucherUsedCount drops the unused used_count column from vouchers table
+// Migration 000011 - 2026-02-01
+func removeVoucherUsedCount() *gormigrate.Migration {
+	return &gormigrate.Migration{
+		ID: "202602010011_remove_voucher_used_count",
+		Migrate: func(tx *gorm.DB) error {
+			// Drop used_count column (no longer used after removing redeem functionality)
+			return tx.Exec("ALTER TABLE vouchers DROP COLUMN IF EXISTS used_count").Error
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// Re-add used_count column with default value
+			return tx.Exec("ALTER TABLE vouchers ADD COLUMN used_count BIGINT DEFAULT 0").Error
 		},
 	}
 }

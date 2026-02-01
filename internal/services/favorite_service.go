@@ -55,11 +55,9 @@ func NewFavoriteService(
 
 // ToggleFavorite toggles a favorite (create or soft-delete/restore).
 func (s *FavoriteService) ToggleFavorite(ctx context.Context, userID uuid.UUID, resourceType string, resourceID uuid.UUID) error {
-	// Check if favorite exists (including soft-deleted)
 	existing, err := s.repo.GetByUserAndResource(ctx, userID, resourceType, resourceID)
 
 	if err != nil {
-		// Favorite doesn't exist, create new
 		favorite := &models.UserFavorite{
 			UserID:       userID,
 			ResourceType: resourceType,
@@ -68,7 +66,6 @@ func (s *FavoriteService) ToggleFavorite(ctx context.Context, userID uuid.UUID, 
 		return s.repo.Create(ctx, favorite)
 	}
 
-	// Favorite exists
 	if existing.DeletedAt.Valid {
 		// Restore soft-deleted favorite
 		return s.repo.Restore(ctx, existing)

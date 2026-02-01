@@ -42,19 +42,15 @@ func (g *GiftCard) GetCurrentBalance() float64 {
 	return math.Round(g.CurrentBalance*100) / 100
 }
 
-// CurrentBalance method removed - use direct field access or GetCurrentBalance() method
-// The balance is now cached in the CurrentBalance field and auto-updated by DB trigger
-
 // GetColor returns the merchant color or a default red
 func (g *GiftCard) GetColor() string {
 	if g.Merchant != nil && g.Merchant.Color != "" {
 		return g.Merchant.Color
 	}
-	// Fallback to gift card's own color or default red
 	if g.Color != "" {
 		return g.Color
 	}
-	return "#DC2626" // Default red
+	return "#DC2626"
 }
 
 // GiftCardTransaction represents a transaction (purchase or reload) on a gift card

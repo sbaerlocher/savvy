@@ -32,10 +32,9 @@ func (h *Handler) Edit(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	// Load all merchants for dropdown
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
-		merchants = []models.Merchant{} // Fallback to empty list
+		merchants = []models.Merchant{}
 	}
 
 	csrfToken, ok := c.Get("csrf").(string)

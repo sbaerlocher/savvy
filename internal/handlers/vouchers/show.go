@@ -27,25 +27,25 @@ func (h *Handler) Show(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	// Load voucher with relations via service
+
 	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
 		return c.Redirect(http.StatusSeeOther, "/vouchers")
 	}
 
-	// Load shares with users (only if owner)
+
 	var shares []models.VoucherShare
 	if perms.IsOwner {
 		shares, _ = h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 	}
 
-	// Load all merchants for dropdown
+
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		merchants = []models.Merchant{} // Fallback to empty list
 	}
 
-	// Check if voucher is favorited by current user
+
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 
 	csrfToken, ok := c.Get("csrf").(string)

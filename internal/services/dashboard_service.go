@@ -60,7 +60,6 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 		return nil, err
 	}
 
-	// Load favorites and recent items in parallel using goroutines
 	type itemsResult struct {
 		cards      []models.Card
 		vouchers   []models.Voucher
@@ -71,25 +70,21 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 
 	resultsChan := make(chan itemsResult, 3)
 
-	// Load cards
 	go func() {
 		cards, err := s.loadCards(ctx, userID, favoriteCounts["card"] > 0)
 		resultsChan <- itemsResult{cards: cards, err: err, resultType: "cards"}
 	}()
 
-	// Load vouchers
 	go func() {
 		vouchers, err := s.loadVouchers(ctx, userID, favoriteCounts["voucher"] > 0)
 		resultsChan <- itemsResult{vouchers: vouchers, err: err, resultType: "vouchers"}
 	}()
 
-	// Load gift cards
 	go func() {
 		giftCards, err := s.loadGiftCards(ctx, userID, favoriteCounts["gift_card"] > 0)
 		resultsChan <- itemsResult{giftCards: giftCards, err: err, resultType: "gift_cards"}
 	}()
 
-	// Collect results
 	var recentCards []models.Card
 	var recentVouchers []models.Voucher
 	var recentGiftCards []models.GiftCard
@@ -134,49 +129,41 @@ func (s *DashboardService) getStats(ctx context.Context, userID uuid.UUID) (*Das
 
 	countChan := make(chan countResult, 6)
 
-	// Cards owned
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.Card{}).Where("user_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"cards_owned", count, err}
 	}()
 
-	// Cards shared
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.CardShare{}).Where("shared_with_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"cards_shared", count, err}
 	}()
 
-	// Vouchers owned
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.Voucher{}).Where("user_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"vouchers_owned", count, err}
 	}()
 
-	// Vouchers shared
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.VoucherShare{}).Where("shared_with_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"vouchers_shared", count, err}
 	}()
 
-	// Gift cards owned
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.GiftCard{}).Where("user_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"gift_cards_owned", count, err}
 	}()
 
-	// Gift cards shared
 	go func() {
 		var count int64
 		err := s.db.WithContext(ctx).Model(&models.GiftCardShare{}).Where("shared_with_id = ?", userID).Count(&count).Error
 		countChan <- countResult{"gift_cards_shared", count, err}
 	}()
-
-	// Collect results
 	for range 6 {
 		result := <-countChan
 		if result.err != nil {
@@ -241,7 +228,6 @@ func (s *DashboardService) getFavoriteCounts(ctx context.Context, userID uuid.UU
 		return nil, err
 	}
 
-	// Convert to map
 	counts := make(map[string]int64)
 	for _, row := range rows {
 		counts[row.ResourceType] = row.Count

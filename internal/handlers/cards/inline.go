@@ -30,7 +30,6 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 
-	// Load all merchants for dropdown
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		c.Logger().Errorf("Failed to load merchants: %v", err)
@@ -116,7 +115,6 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			card.MerchantID = &merchantID
-			// Load merchant to get name
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				card.MerchantName = merchant.Name

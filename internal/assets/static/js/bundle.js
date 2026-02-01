@@ -34647,11 +34647,9 @@ var Html5QrcodeScannerStatus;
  */
 
 
-// Make globally available
 window.Html5Qrcode = Html5Qrcode;
 window.Html5QrcodeSupportedFormats = Html5QrcodeSupportedFormats;
 
-// Barcode format mapping
 const BARCODE_TYPE_MAPPING = {
   QR_CODE: 'QR',
   AZTEC: 'AZTEC',
@@ -34735,9 +34733,7 @@ function createBarcodeScanner (config, formats = null) {
           (decodedText, decodedResult) => {
             this.onScanSuccess(decodedText, decodedResult);
           },
-          (errorMessage) => {
-            // Optional: Debug scan attempts
-          }
+          () => {}
         );
 
         this.scanMessage = 'Halte den Barcode in den Rahmen';
@@ -34823,7 +34819,6 @@ function createBarcodeScanner (config, formats = null) {
   }
 }
 
-// Export scanner factory functions
 window.cardForm = function (initialCardNumber = '') {
   const Html5QrcodeSupportedFormats = window.Html5QrcodeSupportedFormats || {};
   return createBarcodeScanner(
@@ -34957,13 +34952,11 @@ function showToast (message, type = 'info') {
 
   document.body.appendChild(toast);
 
-  // Animate in
   setTimeout(() => {
     toast.style.opacity = '1';
     toast.style.transform = 'translateY(0)';
   }, 10);
 
-  // Animate out and remove
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(20px)';
@@ -34980,18 +34973,14 @@ function showToast (message, type = 'info') {
  * - true = unreliable (only means "connected to network", not "has internet")
  */
 async function checkOnlineStatus () {
-  // If navigator says offline, trust it (false is always reliable)
   if (!navigator.onLine) {
     return false
   }
 
-  // If navigator says online, verify with real fetch
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased to 5s for service worker activation
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    // Use health endpoint with GET (HEAD might redirect)
-    // Add timestamp to prevent cache
     const response = await fetch(`/health?t=${Date.now()}`, {
       method: 'GET',
       cache: 'no-store',
@@ -35001,20 +34990,20 @@ async function checkOnlineStatus () {
     clearTimeout(timeoutId);
     return response.ok
   } catch {
-    // Network error or timeout = offline
     return false
   }
 }
 
-// Offline Detection - Alpine.js Store
+/**
+ * Initialize offline detection store in Alpine.js
+ * Provides reliable offline status with debouncing and localStorage persistence
+ */
 function initOfflineStore (Alpine) {
   console.log('[Alpine] Init - creating offline store');
 
-  // Debounce timer for offline status changes
   let offlineDebounceTimer = null;
   let actualOnlineStatus = navigator.onLine;
 
-  // Restore last known status from localStorage (default to true for optimistic start)
   let lastKnownStatus = true;
   try {
     const stored = localStorage.getItem('savvy:online-status');
@@ -35023,55 +35012,42 @@ function initOfflineStore (Alpine) {
       console.log('[Offline] Restored status from localStorage:', lastKnownStatus);
     }
   } catch (e) {
-    // localStorage might be unavailable
   }
 
-  // Create store with last known state (or optimistic default)
   Alpine.store('offline', {
     isOnline: lastKnownStatus,
     checking: false
   });
 
-  // Helper to update online status with debounce
   function updateOnlineStatus (isOnline) {
     actualOnlineStatus = isOnline;
 
-    // Clear existing timer
     if (offlineDebounceTimer) {
       clearTimeout(offlineDebounceTimer);
       offlineDebounceTimer = null;
     }
 
-    // If going online, update immediately
     if (isOnline) {
       console.log('[Offline] Status changed to ONLINE (immediate)');
       Alpine.store('offline').isOnline = true;
-      // Persist to localStorage
       try {
         localStorage.setItem('savvy:online-status', 'true');
       } catch (e) {}
       return
     }
 
-    // If going offline, debounce for 2 seconds to prevent flashing
     console.log('[Offline] Status may be OFFLINE, verifying...');
     offlineDebounceTimer = setTimeout(() => {
-      // Verify status hasn't changed during debounce
       if (!actualOnlineStatus) {
         console.log('[Offline] Status confirmed OFFLINE after debounce');
         Alpine.store('offline').isOnline = false;
-        // Persist to localStorage
         try {
           localStorage.setItem('savvy:online-status', 'false');
         } catch (e) {}
       }
-    }, 2000); // 2 second debounce for offline status
+    }, 2000);
   }
 
-  // Only do initial check if:
-  // 1. No stored status (first use)
-  // 2. Last status was offline (need to verify if back online)
-  // 3. navigator.onLine disagrees with stored status
   const shouldVerify = !localStorage.getItem('savvy:online-status') ||
                        !lastKnownStatus ||
                        navigator.onLine !== lastKnownStatus;
@@ -35086,10 +35062,8 @@ function initOfflineStore (Alpine) {
     console.log('[Offline] Skipping initial check (using cached status:', lastKnownStatus, ')');
   }
 
-  // Listen to browser online/offline events
   window.addEventListener('online', async () => {
     console.log('[Offline] Browser online event');
-    // Verify with real check
     const isOnline = await checkOnlineStatus();
     updateOnlineStatus(isOnline);
     if (isOnline) {
@@ -35102,7 +35076,6 @@ function initOfflineStore (Alpine) {
     updateOnlineStatus(false);
   });
 
-  // Periodic check every 10 seconds (backup for missed events, less frequent to reduce load)
   setInterval(async () => {
     const isOnline = await checkOnlineStatus();
     const storeOnline = Alpine.store('offline').isOnline;
@@ -35111,9 +35084,8 @@ function initOfflineStore (Alpine) {
       console.log('[Offline] Periodic check detected change:', isOnline);
       updateOnlineStatus(isOnline);
     }
-  }, 10000); // Increased from 5s to 10s
+  }, 10000);
 
-  // Add manual check method to store
   const store = Alpine.store('offline');
   store.checkConnection = async function () {
     this.checking = true;
@@ -35126,22 +35098,19 @@ function initOfflineStore (Alpine) {
     if (isOnline) {
       console.log('[Offline] Server reachable - reloading...');
       setTimeout(() => window.location.reload(), 300);
-    } else {
-      console.log('[Offline] Still offline');
     }
   };
 }
 
 /**
- * Offline Page Handler (for standalone offline.templ)
- * Simpler handler without Alpine.js store for the dedicated offline page
+ * Handler for standalone offline page (offline.templ)
+ * Simpler alternative without Alpine.js store for dedicated offline page
  */
 function offlineHandler () {
   return {
     checking: false,
 
     init () {
-      // Auto-redirect when suddenly online
       window.addEventListener('online', () => {
         window.location.reload();
       });
@@ -35157,7 +35126,6 @@ function offlineHandler () {
         });
 
         if (response.ok) {
-          // Online! Reload page
           window.location.reload();
         } else {
           this.showError();
@@ -35170,23 +35138,21 @@ function offlineHandler () {
     },
 
     showError () {
-      // Still offline
       console.log('Still offline');
     }
   }
 }
 
-// Orientation-based fullscreen barcode overlay
-// When on mobile and switching to landscape, show the barcode fullscreen
-// so it's easier to scan at a shop.
-
+/**
+ * Orientation-based barcode fullscreen
+ * Shows barcode fullscreen on mobile landscape for easier scanning at shops
+ */
 function initOrientationStore (Alpine) {
   Alpine.store('barcode', {
     fullscreen: false,
     barcodeHtml: ''
   });
 
-  // Only activate on touch devices (mobile)
   if (!('ontouchstart' in window)) {
     return
   }
@@ -35219,32 +35185,30 @@ function initOrientationStore (Alpine) {
     }
   }
 
-  // Listen to orientation changes
   window.addEventListener('orientationchange', () => {
-    // Small delay so innerWidth/innerHeight are updated
     setTimeout(handleOrientationChange, 100);
   });
 
-  // Fallback: resize event (some browsers fire this instead)
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     if (resizeTimer) clearTimeout(resizeTimer);
     resizeTimer = setTimeout(handleOrientationChange, 150);
   });
 
-  // Close on click/touch anywhere on the overlay
   store.close = function () {
     this.fullscreen = false;
     this.barcodeHtml = '';
   };
 }
 
-// Precache - Cache all detail pages for offline access
+/**
+ * Precache setup for offline access
+ * Caches all detail pages and associated resources for offline browsing
+ */
 let precacheInitialized = false;
 const cachedUrls = new Set();
 
 function setupPrecaching () {
-  // Only run once
   if (precacheInitialized || !('serviceWorker' in navigator)) {
     return
   }
@@ -35252,7 +35216,6 @@ function setupPrecaching () {
 
   console.log('[Precache] Initializing...');
 
-  // Helper to cache a URL (deduplicated)
   function cacheUrl (url) {
     if (cachedUrls.has(url)) {
       return
@@ -35264,12 +35227,10 @@ function setupPrecaching () {
       credentials: 'same-origin',
       cache: 'no-store'
     }).catch(() => {
-      // Silently fail, remove from set to retry later
       cachedUrls.delete(url);
     });
   }
 
-  // Fetch detail page and cache its barcode images
   async function cacheDetailPageWithBarcodes (detailUrl) {
     try {
       const response = await fetch(detailUrl, {
@@ -35282,12 +35243,10 @@ function setupPrecaching () {
 
       cachedUrls.add(detailUrl);
 
-      // Parse HTML to find barcode images
       const html = await response.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
 
-      // Find barcode images
       const barcodeImages = doc.querySelectorAll('img[src^="/barcode"]');
       barcodeImages.forEach(img => {
         const barcodeUrl = img.getAttribute('src');
@@ -35301,11 +35260,9 @@ function setupPrecaching () {
     }
   }
 
-  // Fetch and parse list pages to find all detail links
   async function cacheListPageAndDetails (listUrl) {
     console.log('[Precache] Fetching list page:', listUrl);
     try {
-      // First cache the list page itself
       const response = await fetch(listUrl, {
         method: 'GET',
         credentials: 'same-origin',
@@ -35320,12 +35277,10 @@ function setupPrecaching () {
       cachedUrls.add(listUrl);
       console.log('[Precache] Cached list page:', listUrl);
 
-      // Parse HTML to find detail page links
       const html = await response.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
 
-      // Find all detail page links in this list page
       const links = doc.querySelectorAll('a[href^="/cards/"], a[href^="/vouchers/"], a[href^="/gift-cards/"]');
       console.log(`[Precache] Found ${links.length} links in ${listUrl}`);
 
@@ -35333,7 +35288,6 @@ function setupPrecaching () {
         const url = link.getAttribute('href');
         if (/^\/(?:cards|vouchers|gift-cards)\/[0-9a-f-]{36}/.test(url)) {
           console.log('[Precache] Caching detail page with barcodes:', url);
-          // Cache detail page AND its barcodes
           cacheDetailPageWithBarcodes(url);
         }
       });
@@ -35342,12 +35296,9 @@ function setupPrecaching () {
     }
   }
 
-  // Cache dashboard and all three list pages with their details
   async function cacheAllPages () {
-    // First cache dashboard
     cacheUrl('/');
 
-    // Then cache all list pages and their details
     const listPages = ['/cards', '/vouchers', '/gift-cards'];
     for (const page of listPages) {
       await cacheListPageAndDetails(page);
@@ -35356,10 +35307,8 @@ function setupPrecaching () {
     console.log('[Precache] Initial caching complete');
   }
 
-  // Start caching
   cacheAllPages();
 
-  // Function to scan for detail pages in current DOM
   function scanForDetailPages () {
     const links = document.querySelectorAll('a[href^="/cards/"], a[href^="/vouchers/"], a[href^="/gift-cards/"]');
 
@@ -35371,14 +35320,12 @@ function setupPrecaching () {
     });
   }
 
-  // Initial scan after page load
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', scanForDetailPages);
   } else {
     scanForDetailPages();
   }
 
-  // Re-scan after HTMX swaps
   if (typeof htmx !== 'undefined') {
     document.body.addEventListener('htmx:afterSwap', () => {
       setTimeout(scanForDetailPages, 100);
@@ -35389,24 +35336,13 @@ function setupPrecaching () {
 // static/js/src/app.js - Main entry point for bundled JS
 
 
-// Make Alpine global
 window.Alpine = module_default;
-
-// Make HTMX global
 window.htmx = htmx$1;
-
-// Make offlineHandler global for standalone offline page
 window.offlineHandler = offlineHandler;
 
-// Initialize offline store before starting Alpine
 initOfflineStore(module_default);
-
-// Initialize orientation store for landscape barcode fullscreen
 initOrientationStore(module_default);
-
-// Setup precaching for detail pages
 setupPrecaching();
 
-// Start Alpine
 module_default.start();
 //# sourceMappingURL=bundle.js.map

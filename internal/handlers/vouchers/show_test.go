@@ -66,11 +66,6 @@ func (m *MockVoucherService) CountUserVouchers(ctx context.Context, userID uuid.
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockVoucherService) CanRedeemVoucher(ctx context.Context, voucherID uuid.UUID) (bool, error) {
-	args := m.Called(ctx, voucherID)
-	return args.Bool(0), args.Error(1)
-}
-
 // MockAuthzService is a manual mock for AuthzServiceInterface
 type MockAuthzService struct {
 	mock.Mock

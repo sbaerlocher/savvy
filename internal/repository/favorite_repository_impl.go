@@ -19,16 +19,15 @@ func NewFavoriteRepository(db *gorm.DB) FavoriteRepository {
 	return &GormFavoriteRepository{db: db}
 }
 
-// Create creates a new favorite (or restores soft-deleted).
 func (r *GormFavoriteRepository) Create(ctx context.Context, favorite *models.UserFavorite) error {
 	return r.db.WithContext(ctx).Create(favorite).Error
 }
 
-// GetByUserAndResource retrieves a favorite by user and resource (including soft-deleted).
+// GetByUserAndResource includes soft-deleted favorites for toggle functionality.
 func (r *GormFavoriteRepository) GetByUserAndResource(ctx context.Context, userID uuid.UUID, resourceType string, resourceID uuid.UUID) (*models.UserFavorite, error) {
 	var favorite models.UserFavorite
 	err := r.db.WithContext(ctx).
-		Unscoped(). // Include soft-deleted
+		Unscoped().
 		Where("user_id = ? AND resource_type = ? AND resource_id = ?", userID, resourceType, resourceID).
 		First(&favorite).Error
 	if err != nil {
@@ -37,7 +36,6 @@ func (r *GormFavoriteRepository) GetByUserAndResource(ctx context.Context, userI
 	return &favorite, nil
 }
 
-// GetByUser retrieves all favorites for a user (not soft-deleted).
 func (r *GormFavoriteRepository) GetByUser(ctx context.Context, userID uuid.UUID) ([]models.UserFavorite, error) {
 	var favorites []models.UserFavorite
 	err := r.db.WithContext(ctx).
@@ -47,12 +45,10 @@ func (r *GormFavoriteRepository) GetByUser(ctx context.Context, userID uuid.UUID
 	return favorites, err
 }
 
-// Delete soft-deletes a favorite.
 func (r *GormFavoriteRepository) Delete(ctx context.Context, favorite *models.UserFavorite) error {
 	return r.db.WithContext(ctx).Delete(favorite).Error
 }
 
-// Restore restores a soft-deleted favorite.
 func (r *GormFavoriteRepository) Restore(ctx context.Context, favorite *models.UserFavorite) error {
 	return r.db.WithContext(ctx).
 		Unscoped().
@@ -60,7 +56,6 @@ func (r *GormFavoriteRepository) Restore(ctx context.Context, favorite *models.U
 		Update("deleted_at", nil).Error
 }
 
-// IsFavorite checks if a resource is favorited by user.
 func (r *GormFavoriteRepository) IsFavorite(ctx context.Context, userID uuid.UUID, resourceType string, resourceID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).

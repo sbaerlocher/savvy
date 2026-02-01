@@ -16,19 +16,15 @@ import (
 func (h *Handler) Create(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
-	// Parse value
 	value, _ := strconv.ParseFloat(c.FormValue("value"), 64)
 	minPurchaseAmount, _ := strconv.ParseFloat(c.FormValue("min_purchase_amount"), 64)
-
-	// Parse usage limit type
 	usageLimitType := c.FormValue("usage_limit_type")
 	code := c.FormValue("code")
 
-	// Parse dates (date only, set time to start/end of day)
 	validFrom, validUntil, err := validation.ParseAndValidateDateRange(
 		c.FormValue("valid_from"),
 		c.FormValue("valid_until"),
-		false, // don't allow past dates for new vouchers
+		false,
 	)
 	if err != nil {
 		c.Logger().Errorf("Date validation failed: %v", err)
@@ -48,34 +44,27 @@ func (h *Handler) Create(c echo.Context) error {
 		ValidFrom:         validFrom,
 		ValidUntil:        validUntil,
 		UsageLimitType:    usageLimitType,
-		UsedCount:         0,
 		BarcodeType:       c.FormValue("barcode_type"),
 	}
 
-	// Handle merchant selection
 	if merchantIDStr != "" && merchantIDStr != "new" {
-		// Existing merchant selected from dropdown
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			voucher.MerchantID = &merchantID
-			// Load merchant to get name
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				voucher.MerchantName = merchant.Name
 			}
 		}
 	} else {
-		// New merchant name entered
 		voucher.MerchantName = merchantNameStr
 	}
 
-	// Default barcode type if not provided
 	if voucher.BarcodeType == "" {
 		voucher.BarcodeType = "QR"
 	}
 
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), &voucher); err != nil {
-		// Check if it's a duplicate key error (race condition caught by DB)
 		if database.IsDuplicateError(err) {
 			c.Logger().Warnf("Duplicate voucher code detected by database constraint: %s", code)
 			return c.Redirect(http.StatusSeeOther, "/vouchers/new?error=code_exists")
@@ -84,13 +73,10 @@ func (h *Handler) Create(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/vouchers/new?error=database_error")
 	}
 
-	// Handle sharing if email provided (vouchers are always read-only when shared)
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
-		// Find user by email using UserService
 		sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), shareEmail)
 		if err == nil {
-			// User exists, create share using ShareService (vouchers are always read-only)
 			if err := h.shareService.CreateVoucherShare(c.Request().Context(), voucher.ID, sharedUser.ID); err != nil {
 				c.Logger().Warnf("Failed to create voucher share: %v", err)
 			} else {

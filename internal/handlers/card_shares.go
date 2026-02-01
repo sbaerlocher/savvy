@@ -60,7 +60,6 @@ func (h *CardSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card using AuthzService
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
@@ -92,13 +91,11 @@ func (h *CardSharesHandler) EditInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card using AuthzService
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 
-	// Get share
 	var share models.CardShare
 	if err := h.db.Where("id = ? AND card_id = ?", shareID, cardID).
 		Preload("SharedWithUser").First(&share).Error; err != nil {
@@ -125,13 +122,11 @@ func (h *CardSharesHandler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid card ID")
 	}
 
-	// Check if user owns the card using AuthzService
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Card not found")
 	}
 
-	// Get share
 	var share models.CardShare
 	if err := h.db.Where("id = ? AND card_id = ?", shareID, cardID).
 		Preload("SharedWithUser").First(&share).Error; err != nil {

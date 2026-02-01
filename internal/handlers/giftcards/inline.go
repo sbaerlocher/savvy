@@ -33,7 +33,7 @@ func (h *Handler) EditInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-	// Load all merchants for dropdown
+
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		c.Logger().Errorf("Failed to load merchants: %v", err)
@@ -70,7 +70,7 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 
 	canEdit := perms.CanEdit
 
-	// Check if gift card is favorited by current user
+
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {
 		c.Logger().Errorf("Failed to check favorite status: %v", err)
@@ -140,7 +140,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			giftCard.MerchantID = &merchantID
-			// Load merchant to get name
+
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				giftCard.MerchantName = merchant.Name
@@ -162,7 +162,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-	// Check if gift card is favorited by current user
+
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {
 		c.Logger().Errorf("Failed to check favorite status: %v", err)

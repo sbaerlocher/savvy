@@ -17,19 +17,16 @@ import (
 func (h *Handler) Create(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
-	// Parse balance
 	initialBalance, _ := strconv.ParseFloat(c.FormValue("initial_balance"), 64)
 	cardNumber := c.FormValue("card_number")
 
-	// Parse expiration date
 	var expiresAt *time.Time
 	if expiresAtStr := c.FormValue("expires_at"); expiresAtStr != "" {
-		parsed, err := validation.ParseAndValidateDate(expiresAtStr, true) // allow past for flexibility
+		parsed, err := validation.ParseAndValidateDate(expiresAtStr, true)
 		if err != nil {
 			c.Logger().Errorf("Expires_at validation failed: %v", err)
 			return c.Redirect(http.StatusSeeOther, "/gift-cards/new?error=invalid_date")
 		}
-		// Set to end of day
 		parsed = time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 23, 59, 59, 0, time.UTC)
 		expiresAt = &parsed
 	}
@@ -49,35 +46,28 @@ func (h *Handler) Create(c echo.Context) error {
 		Notes:          c.FormValue("notes"),
 	}
 
-	// Handle merchant selection
 	if merchantIDStr != "" && merchantIDStr != newMerchantValue {
-		// Existing merchant selected from dropdown
 		merchantID, err := uuid.Parse(merchantIDStr)
 		if err == nil {
 			giftCard.MerchantID = &merchantID
-			// Load merchant to get name
 			merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), merchantID)
 			if err == nil {
 				giftCard.MerchantName = merchant.Name
 			}
 		}
 	} else {
-		// New merchant name entered
 		giftCard.MerchantName = merchantNameStr
 	}
 
-	// Default barcode type if not provided
 	if giftCard.BarcodeType == "" {
 		giftCard.BarcodeType = "CODE128"
 	}
 
-	// Default currency if not provided
 	if giftCard.Currency == "" {
 		giftCard.Currency = "CHF"
 	}
 
 	if err := h.giftCardService.CreateGiftCard(c.Request().Context(), &giftCard); err != nil {
-		// Check if it's a duplicate key error (race condition caught by DB)
 		if database.IsDuplicateError(err) {
 			c.Logger().Warnf("Duplicate gift card number detected by database constraint: %s", cardNumber)
 			return c.Redirect(http.StatusSeeOther, "/gift-cards/new?error=card_number_exists")
@@ -86,13 +76,10 @@ func (h *Handler) Create(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/gift-cards/new?error=database_error")
 	}
 
-	// Handle sharing if email provided
 	shareEmail := c.FormValue("share_with_email")
 	if shareEmail != "" {
-		// Find user by email using UserService
 		sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), shareEmail)
 		if err == nil {
-			// User exists, create share using ShareService
 			canEdit := c.FormValue("share_can_edit") == trueStringValue
 			canDelete := c.FormValue("share_can_delete") == trueStringValue
 			canEditTransactions := c.FormValue("share_can_edit_transactions") == trueStringValue

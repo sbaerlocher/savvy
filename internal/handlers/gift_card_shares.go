@@ -61,7 +61,6 @@ func (h *GiftCardSharesHandler) NewInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card using AuthzService
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
@@ -93,13 +92,11 @@ func (h *GiftCardSharesHandler) EditInline(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card using AuthzService
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-	// Get share
 	var share models.GiftCardShare
 	if err := h.db.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).
 		Preload("SharedWithUser").First(&share).Error; err != nil {
@@ -126,13 +123,11 @@ func (h *GiftCardSharesHandler) CancelEdit(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid gift card ID")
 	}
 
-	// Check if user owns the gift card using AuthzService
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardUUID)
 	if err != nil || !perms.IsOwner {
 		return c.String(http.StatusNotFound, "Gift card not found")
 	}
 
-	// Get share
 	var share models.GiftCardShare
 	if err := h.db.Where("id = ? AND gift_card_id = ?", shareID, giftCardID).
 		Preload("SharedWithUser").First(&share).Error; err != nil {

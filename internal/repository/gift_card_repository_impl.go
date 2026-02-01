@@ -19,12 +19,10 @@ func NewGiftCardRepository(db *gorm.DB) GiftCardRepository {
 	return &GormGiftCardRepository{db: db}
 }
 
-// Create creates a new gift card.
 func (r *GormGiftCardRepository) Create(ctx context.Context, giftCard *models.GiftCard) error {
 	return r.db.WithContext(ctx).Create(giftCard).Error
 }
 
-// GetByID retrieves a gift card by ID with optional preloads.
 func (r *GormGiftCardRepository) GetByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.GiftCard, error) {
 	var giftCard models.GiftCard
 	query := r.db.WithContext(ctx)
@@ -40,7 +38,6 @@ func (r *GormGiftCardRepository) GetByID(ctx context.Context, id uuid.UUID, prel
 	return &giftCard, nil
 }
 
-// GetByUserID retrieves all gift cards for a user.
 func (r *GormGiftCardRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.GiftCard, error) {
 	var giftCards []models.GiftCard
 	err := r.db.WithContext(ctx).
@@ -56,7 +53,6 @@ func (r *GormGiftCardRepository) GetByUserID(ctx context.Context, userID uuid.UU
 	return giftCards, err
 }
 
-// GetSharedWithUser retrieves gift cards shared with a user.
 func (r *GormGiftCardRepository) GetSharedWithUser(ctx context.Context, userID uuid.UUID) ([]models.GiftCard, error) {
 	var giftCards []models.GiftCard
 	err := r.db.WithContext(ctx).
@@ -73,17 +69,14 @@ func (r *GormGiftCardRepository) GetSharedWithUser(ctx context.Context, userID u
 	return giftCards, err
 }
 
-// Update updates a gift card.
 func (r *GormGiftCardRepository) Update(ctx context.Context, giftCard *models.GiftCard) error {
 	return r.db.WithContext(ctx).Save(giftCard).Error
 }
 
-// Delete soft-deletes a gift card.
 func (r *GormGiftCardRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&models.GiftCard{}, "id = ?", id).Error
 }
 
-// Count counts gift cards for a user.
 func (r *GormGiftCardRepository) Count(ctx context.Context, userID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
@@ -94,7 +87,6 @@ func (r *GormGiftCardRepository) Count(ctx context.Context, userID uuid.UUID) (i
 	return count, err
 }
 
-// GetTotalBalance calculates total balance across all user's gift cards.
 func (r *GormGiftCardRepository) GetTotalBalance(ctx context.Context, userID uuid.UUID) (float64, error) {
 	giftCards, err := r.GetByUserID(ctx, userID)
 	if err != nil {
@@ -109,12 +101,10 @@ func (r *GormGiftCardRepository) GetTotalBalance(ctx context.Context, userID uui
 	return totalBalance, nil
 }
 
-// CreateTransaction creates a new transaction for a gift card.
 func (r *GormGiftCardRepository) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
 	return r.db.WithContext(ctx).Create(transaction).Error
 }
 
-// GetTransaction retrieves a transaction by ID, validating it belongs to the gift card.
 func (r *GormGiftCardRepository) GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error) {
 	var transaction models.GiftCardTransaction
 	err := r.db.WithContext(ctx).
@@ -126,7 +116,6 @@ func (r *GormGiftCardRepository) GetTransaction(ctx context.Context, transaction
 	return &transaction, nil
 }
 
-// DeleteTransaction deletes a transaction by ID.
 func (r *GormGiftCardRepository) DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&models.GiftCardTransaction{}, "id = ?", transactionID).Error
 }

@@ -341,27 +341,3 @@ func TestVoucherService_CountUserVouchers_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCount, count)
 }
-
-func TestVoucherService_CanRedeemVoucher_ValidDates(t *testing.T) {
-	mockRepo := new(MockVoucherRepository)
-	service := NewVoucherService(mockRepo)
-	ctx := context.Background()
-
-	voucherID := uuid.New()
-	userID := uuid.New()
-	now := time.Now()
-	voucher := &models.Voucher{
-		ID:         voucherID,
-		UserID:     &userID,
-		Code:       "SAVE20",
-		ValidFrom:  now.Add(-1 * time.Hour), // Started 1 hour ago
-		ValidUntil: now.Add(24 * time.Hour), // Expires in 24 hours
-	}
-
-	mockRepo.On("GetByID", ctx, voucherID, []string{"Merchant", "User"}).Return(voucher, nil)
-
-	canRedeem, err := service.CanRedeemVoucher(ctx, voucherID)
-
-	assert.NoError(t, err)
-	assert.True(t, canRedeem)
-}

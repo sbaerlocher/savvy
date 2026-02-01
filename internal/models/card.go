@@ -31,7 +31,7 @@ func (c *Card) GetColor() string {
 	if c.Merchant != nil && c.Merchant.Color != "" {
 		return c.Merchant.Color
 	}
-	return "#0066CC" // Default color
+	return "#0066CC"
 }
 
 // CardShare represents a shared card with permissions

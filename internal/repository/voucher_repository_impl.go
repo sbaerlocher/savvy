@@ -27,37 +27,30 @@ func NewVoucherRepository(db *gorm.DB) VoucherRepository {
 	}
 }
 
-// Create creates a new voucher.
 func (r *GormVoucherRepository) Create(ctx context.Context, voucher *models.Voucher) error {
 	return r.BaseRepository.Create(ctx, voucher)
 }
 
-// GetByID retrieves a voucher by ID with optional preloads.
 func (r *GormVoucherRepository) GetByID(ctx context.Context, id uuid.UUID, preloads ...string) (*models.Voucher, error) {
 	return r.BaseRepository.GetByID(ctx, id, preloads...)
 }
 
-// GetByUserID retrieves all vouchers for a user.
 func (r *GormVoucherRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]models.Voucher, error) {
 	return r.BaseRepository.GetByUserID(ctx, userID)
 }
 
-// GetSharedWithUser retrieves vouchers shared with a user.
 func (r *GormVoucherRepository) GetSharedWithUser(ctx context.Context, userID uuid.UUID) ([]models.Voucher, error) {
 	return r.BaseRepository.GetSharedWithUser(ctx, userID)
 }
 
-// Update updates a voucher.
 func (r *GormVoucherRepository) Update(ctx context.Context, voucher *models.Voucher) error {
 	return r.BaseRepository.Update(ctx, voucher)
 }
 
-// Delete soft-deletes a voucher.
 func (r *GormVoucherRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.BaseRepository.Delete(ctx, id)
 }
 
-// Count counts vouchers for a user.
 func (r *GormVoucherRepository) Count(ctx context.Context, userID uuid.UUID) (int64, error) {
 	return r.BaseRepository.Count(ctx, userID)
 }

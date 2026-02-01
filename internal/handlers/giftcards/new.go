@@ -18,10 +18,9 @@ func (h *Handler) New(c echo.Context) error {
 		csrfToken = ""
 	}
 
-	// Load all merchants for dropdown
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
-		merchants = []models.Merchant{} // Fallback to empty list
+		merchants = []models.Merchant{}
 	}
 
 	view := views.GiftCardEditView{

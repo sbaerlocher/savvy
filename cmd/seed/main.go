@@ -235,7 +235,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now().AddDate(0, 0, -7),
 			ValidUntil:        time.Now().AddDate(0, 3, 0),
 			UsageLimitType:    "multiple_use_with_card",
-			UsedCount:         2,
 			BarcodeType:       "QR",
 		},
 		// Admin's vouchers - fixed_amount, single_use
@@ -251,7 +250,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 1, 0),
 			UsageLimitType:    "single_use",
-			UsedCount:         0,
 			BarcodeType:       "CODE128",
 		},
 		// Admin's vouchers - percentage, one_per_customer
@@ -267,7 +265,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 2, 0),
 			UsageLimitType:    "one_per_customer",
-			UsedCount:         0,
 			BarcodeType:       "CODE128",
 		},
 		// Admin's vouchers - points_multiplier, multiple_use_without_card
@@ -283,7 +280,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 1, 0),
 			UsageLimitType:    "multiple_use_without_card",
-			UsedCount:         5,
 			BarcodeType:       "QR",
 		},
 		// Admin's vouchers - unlimited usage
@@ -299,7 +295,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(5, 0, 0),
 			UsageLimitType:    "unlimited",
-			UsedCount:         0,
 			BarcodeType:       "CODE128",
 		},
 		// Admin's vouchers - expired
@@ -315,7 +310,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now().AddDate(0, -2, 0),
 			ValidUntil:        time.Now().AddDate(0, -1, 0),
 			UsageLimitType:    "single_use",
-			UsedCount:         0,
 			BarcodeType:       "CODE128",
 		},
 		// Anna's vouchers
@@ -331,7 +325,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 6, 0),
 			UsageLimitType:    "one_per_customer",
-			UsedCount:         0,
 			BarcodeType:       "QR",
 		},
 		{
@@ -346,7 +339,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 2, 0),
 			UsageLimitType:    "multiple_use_with_card",
-			UsedCount:         1,
 			BarcodeType:       "QR",
 		},
 		// Thomas's vouchers
@@ -362,7 +354,6 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 			ValidFrom:         time.Now(),
 			ValidUntil:        time.Now().AddDate(0, 1, 0),
 			UsageLimitType:    "single_use",
-			UsedCount:         0,
 			BarcodeType:       "CODE128",
 		},
 	}
