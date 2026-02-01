@@ -1180,6 +1180,22 @@
     "translation": "No merchants recorded yet."
   },
   {
+    "id": "merchants.sort.name_asc",
+    "translation": "Name (A-Z)"
+  },
+  {
+    "id": "merchants.sort.name_desc",
+    "translation": "Name (Z-A)"
+  },
+  {
+    "id": "merchants.sort.newest",
+    "translation": "Newest first"
+  },
+  {
+    "id": "merchants.sort.oldest",
+    "translation": "Oldest first"
+  },
+  {
     "id": "merchants.title",
     "translation": "Merchants"
   },
@@ -1846,5 +1862,29 @@
   {
     "id": "admin.password_min_chars",
     "translation": "At least 8 characters"
+  },
+  {
+    "id": "admin.create_user_description",
+    "translation": "Create a new user with local login"
+  },
+  {
+    "id": "admin.form.email_required",
+    "translation": "Email address *"
+  },
+  {
+    "id": "admin.form.password_required",
+    "translation": "Password *"
+  },
+  {
+    "id": "admin.form.password_hint",
+    "translation": "Password must be at least 8 characters long"
+  },
+  {
+    "id": "admin.form.first_name_required",
+    "translation": "First name *"
+  },
+  {
+    "id": "admin.form.last_name_required",
+    "translation": "Last name *"
   }
 ]

@@ -10,7 +10,7 @@ import (
 // AdminUsersIndex lists all users with admin actions
 templ AdminUsersIndex(ctx context.Context, csrfToken string, users []models.User, currentUser *models.User, isImpersonating bool) {
 	@Layout(ctx, T(ctx, "admin.title"), currentUser, isImpersonating) {
-		<div class="px-4 py-8">
+		<div class="px-4">
 			<div class="mb-6">
 				<div class="flex justify-between items-center">
 					<div>
@@ -470,10 +470,10 @@ func countUsers(users []models.User) int {
 // AdminCreateUser shows the user creation form (only when local login is enabled)
 templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models.User, isImpersonating bool, errors map[string]string) {
 	@Layout(ctx, T(ctx, "admin.create_user_title"), currentUser, isImpersonating) {
-		<div class="px-4 py-8 max-w-2xl mx-auto">
+		<div class="px-4 max-w-2xl mx-auto">
 			<div class="mb-6">
 				<h1 class="text-3xl font-bold text-gray-900 mb-2">{ T(ctx, "admin.create_user") }</h1>
-				<p class="text-gray-600">Erstelle einen neuen Benutzer mit lokalem Login</p>
+				<p class="text-gray-600">{ T(ctx, "admin.create_user_description") }</p>
 			</div>
 			<!-- Back Button -->
 			<div class="mb-6">
@@ -497,7 +497,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 					<!-- Email -->
 					<div>
 						<label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-							E-Mail-Adresse *
+							{ T(ctx, "admin.form.email_required") }
 						</label>
 						<input
 							type="email"
@@ -511,7 +511,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 					<!-- Password -->
 					<div>
 						<label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-							Passwort *
+							{ T(ctx, "admin.form.password_required") }
 						</label>
 						<input
 							type="password"
@@ -521,12 +521,12 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 							class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 							placeholder={ T(ctx, "admin.password_min_chars") }
 						/>
-						<p class="mt-1 text-xs text-gray-500">Passwort muss mindestens 8 Zeichen lang sein</p>
+						<p class="mt-1 text-xs text-gray-500">{ T(ctx, "admin.form.password_hint") }</p>
 					</div>
 					<!-- First Name -->
 					<div>
 						<label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
-							Vorname *
+							{ T(ctx, "admin.form.first_name_required") }
 						</label>
 						<input
 							type="text"
@@ -539,7 +539,7 @@ templ AdminCreateUser(ctx context.Context, csrfToken string, currentUser *models
 					<!-- Last Name -->
 					<div>
 						<label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">
-							Nachname *
+							{ T(ctx, "admin.form.last_name_required") }
 						</label>
 						<input
 							type="text"

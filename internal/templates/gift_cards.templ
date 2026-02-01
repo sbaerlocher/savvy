@@ -89,7 +89,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 				}
 			}
 		</script>
-		<div class="px-4 py-8" x-data={ fmt.Sprintf("giftCardsFilter('%s')", view.User.ID.String()) } x-init="init()">
+		<div class="px-4" x-data={ fmt.Sprintf("giftCardsFilter('%s')", view.User.ID.String()) } x-init="init()">
 			<div class="mb-8">
 				<h1 class="text-3xl font-bold text-gray-900 mb-4">
 					{ T(ctx, "giftcards.title") }
@@ -109,13 +109,11 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"/>
 							</div>
 							<!-- New Gift Card Button (Desktop) -->
-							<div class="relative hidden sm:block">
-								<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
-									{ T(ctx, "giftcards.add_new") }
+							<div class="hidden sm:block">
+								<a href="/gift-cards/new" class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "giftcards.add_new") }</span>
+									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "giftcards.add_new") }</span>
 								</a>
-								<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-									🔒
-								</div>
 							</div>
 						</div>
 
@@ -162,13 +160,11 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 						</div>
 					</div>
 				} else {
-					<div class="relative inline-block">
-						<a href="/gift-cards/new" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium inline-block" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
-							{ T(ctx, "giftcards.add_new") }
+					<div class="inline-block">
+						<a href="/gift-cards/new" class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+							<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "giftcards.add_new") }</span>
+							<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "giftcards.add_new") }</span>
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-1/2 -translate-y-1/2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
-							🔒
-						</div>
 					</div>
 				}
 			</div>
@@ -176,13 +172,11 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 			if len(view.GiftCards) == 0 {
 				<div class="bg-gray-50 rounded-lg p-12 text-center">
 					<p class="text-gray-600 text-lg mb-4">{ T(ctx, "giftcards.no_giftcards") }</p>
-					<div class="relative inline-block">
-						<a href="/gift-cards/new" class="text-red-600 hover:text-red-700 font-medium" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
-							{ T(ctx, "giftcards.create_first") }
+					<div class="inline-block">
+						<a href="/gift-cards/new" class="inline-flex items-center gap-1 text-red-600 hover:text-red-700 font-medium" :class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''" @click="if ($store.offline && !$store.offline.isOnline) { $event.preventDefault(); }">
+							<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "giftcards.create_first") }</span>
+							<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "giftcards.create_first") }</span>
 						</a>
-						<div x-show="$store.offline && !$store.offline.isOnline" x-cloak class="absolute top-0 -right-16 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap">
-							🔒
-						</div>
 					</div>
 				</div>
 			} else {
@@ -248,7 +242,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 // GiftCardsShow displays a single gift card with transactions
 templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardShowView) {
 	@Layout(ctx, fmt.Sprintf("%s %s", T(ctx, "home.recent_items.giftcard"), view.GiftCard.MerchantName), view.User, view.IsImpersonating) {
-		<div class="px-4 py-8 max-w-6xl mx-auto" x-data>
+		<div class="px-4 max-w-6xl mx-auto" x-data>
 			<div class="mb-6">
 				<a href="/gift-cards" class="text-red-600 hover:text-red-700">
 					{ T(ctx, "giftcards.back_to_overview") }
@@ -289,7 +283,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 										hx-get={ fmt.Sprintf("/gift-cards/%s/transactions/new", view.GiftCard.ID.String()) }
 										hx-target="#transaction-form"
 										hx-swap="innerHTML"
-										class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+										class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
 										:disabled="$store.offline && !$store.offline.isOnline"
 										:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 										<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "giftcards.transaction.new") }</span>
@@ -341,7 +335,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 									hx-get={ fmt.Sprintf("/gift-cards/%s/shares/new-inline", view.GiftCard.ID.String()) }
 									hx-target="#share-form"
 									hx-swap="innerHTML"
-									class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+									class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
 									:disabled="$store.offline && !$store.offline.isOnline"
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 									<span x-show="!($store.offline && !$store.offline.isOnline)">+ { T(ctx, "share.add") }</span>
@@ -364,7 +358,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 													hx-get={ fmt.Sprintf("/gift-cards/%s/shares/%s/edit-inline", view.GiftCard.ID.String(), share.ID.String()) }
 													hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
 													hx-swap="outerHTML"
-													class="text-blue-600 hover:text-blue-800 text-xs"
+													class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
 													:disabled="$store.offline && !$store.offline.isOnline"
 													:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 													<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
@@ -402,7 +396,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 // GiftCardsNew shows the form to create a new gift card
 templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEditView) {
 	@Layout(ctx, T(ctx, "giftcards.new.title"), view.User, view.IsImpersonating) {
-		<div class="px-4 py-8 max-w-7xl mx-auto" x-data="Object.assign(giftCardForm(), emailAutocomplete(), { canEdit: false, canDelete: false, canEditTransactions: false })">
+		<div class="px-4 max-w-7xl mx-auto" x-data="Object.assign(giftCardForm(), emailAutocomplete(), { canEdit: false, canDelete: false, canEditTransactions: false })">
 			<div class="mb-6">
 				<a href="/gift-cards" class="text-red-600 hover:text-red-700">
 					{ T(ctx, "giftcards.back_to_overview") }
@@ -704,7 +698,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 // GiftCardsEdit shows the form to edit a gift card
 templ GiftCardsEdit(ctx context.Context, csrfToken string, view views.GiftCardEditView) {
 	@Layout(ctx, T(ctx, "giftcards.edit.title"), view.User, view.IsImpersonating) {
-		<div class="px-4 py-8 max-w-2xl mx-auto">
+		<div class="px-4 max-w-2xl mx-auto">
 			<div class="mb-6">
 				<a href={ templ.URL(fmt.Sprintf("/gift-cards/%s", view.GiftCard.ID.String())) } class="text-red-600 hover:text-red-700">
 					{ T(ctx, "giftcards.back_to_card") }
@@ -1420,7 +1414,7 @@ templ GiftCardShareDisplay(ctx context.Context, csrfToken string, giftCardID str
 					hx-get={ fmt.Sprintf("/gift-cards/%s/shares/%s/edit-inline", giftCardID, share.ID.String()) }
 					hx-target={ fmt.Sprintf("#share-%s", share.ID.String()) }
 					hx-swap="outerHTML"
-					class="text-blue-600 hover:text-blue-800 text-xs"
+					class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
 					:disabled="$store.offline && !$store.offline.isOnline"
 					:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 					<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>
@@ -1470,7 +1464,7 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 								hx-get={ fmt.Sprintf("/gift-cards/%s/edit-inline", giftCard.ID.String()) }
 								hx-target="#gift-card-detail"
 								hx-swap="innerHTML"
-								class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm"
+								class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
 								:disabled="$store.offline && !$store.offline.isOnline"
 								:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
 								<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "common.edit") }</span>

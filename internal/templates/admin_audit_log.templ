@@ -11,7 +11,7 @@ import (
 // AdminAuditLogIndex displays audit log entries with filtering
 templ AdminAuditLogIndex(ctx context.Context, csrfToken string, auditLogs []models.AuditLog, users []models.User, currentUser *models.User, isImpersonating bool, page int, perPage int, total int, filterUser string, filterResourceType string, filterAction string, filterDateFrom string, filterDateTo string, searchQuery string) {
 	@Layout(ctx, T(ctx, "admin.audit_log.title"), currentUser, isImpersonating) {
-		<div class="px-4 py-8">
+		<div class="px-4">
 			<div class="mb-6">
 				<div class="flex justify-between items-center">
 					<div>

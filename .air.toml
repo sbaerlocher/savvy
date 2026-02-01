@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "/go/bin/templ generate && npm run build && sed 's/__VERSION__/dev-fix12/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js && go build -mod=readonly -o ./tmp/main ./cmd/server"
+  cmd = "/go/bin/templ generate && npm run build && sed 's/__VERSION__/dev-fix25/g' internal/assets/static/service-worker.js.tmpl > internal/assets/static/service-worker.js && go build -mod=readonly -o ./tmp/main ./cmd/server"
   delay = 1000
   exclude_dir = ["tmp", "vendor", "testdata", "node_modules", "bin"]
   exclude_file = []

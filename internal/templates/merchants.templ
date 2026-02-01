@@ -10,11 +10,51 @@ import (
 // MerchantsIndex lists all merchants
 templ MerchantsIndex(ctx context.Context, csrfToken string, merchants []models.Merchant, user *models.User, isImpersonating bool) {
 	@Layout(ctx, T(ctx, "merchants.title"), user, isImpersonating) {
-		<div class="px-4 py-8 max-w-6xl mx-auto">
-			<div class="flex justify-between items-center mb-8">
-				<h1 class="text-3xl font-bold text-gray-900">{ T(ctx, "merchants.title") }</h1>
-				if user.IsAdmin() {
-					<a href="/merchants/new" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+		<div class="px-4 max-w-6xl mx-auto" x-data="merchantsFilter()" x-init="init()">
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">
+					{ T(ctx, "merchants.title") }
+				</h1>
+				if len(merchants) > 0 {
+					<div class="space-y-3 mb-4">
+						<div class="flex flex-col sm:flex-row gap-3">
+							<div class="flex-1">
+								<input
+									type="text"
+									x-model="search"
+									@input="updateVisibility()"
+									placeholder={ T(ctx, "common.search_placeholder") }
+									class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
+							</div>
+							if user.IsAdmin() {
+								<div class="hidden sm:block">
+									<a href="/merchants/new" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium whitespace-nowrap block">
+										+ { T(ctx, "merchants.add_new") }
+									</a>
+								</div>
+							}
+						</div>
+						<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+							<select
+								x-model="sortBy"
+								@change="updateSort()"
+								class="col-span-2 sm:col-span-1 px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+								<option value="name-asc">{ T(ctx, "merchants.sort.name_asc") }</option>
+								<option value="name-desc">{ T(ctx, "merchants.sort.name_desc") }</option>
+								<option value="newest">{ T(ctx, "merchants.sort.newest") }</option>
+								<option value="oldest">{ T(ctx, "merchants.sort.oldest") }</option>
+							</select>
+							if user.IsAdmin() {
+								<div class="sm:hidden col-span-2">
+									<a href="/merchants/new" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md font-medium text-center text-sm block">
+										+ { T(ctx, "merchants.add_new") }
+									</a>
+								</div>
+							}
+						</div>
+					</div>
+				} else if user.IsAdmin() {
+					<a href="/merchants/new" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium inline-block">
 						+ { T(ctx, "merchants.add_new") }
 					</a>
 				}
@@ -24,7 +64,7 @@ templ MerchantsIndex(ctx context.Context, csrfToken string, merchants []models.M
 				<div class="bg-white rounded-lg shadow-lg p-12 text-center">
 					<p class="text-gray-500 mb-4">{ T(ctx, "merchants.empty") }</p>
 					if user.IsAdmin() {
-						<a href="/merchants/new" class="text-green-600 hover:text-green-700 font-medium">
+						<a href="/merchants/new" class="text-blue-600 hover:text-blue-700 font-medium">
 							{ T(ctx, "merchants.add_first") }
 						</a>
 					}
@@ -32,41 +72,91 @@ templ MerchantsIndex(ctx context.Context, csrfToken string, merchants []models.M
 			} else {
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					for _, merchant := range merchants {
-						<div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-							<div class="p-6">
-								if merchant.LogoURL != "" {
-									<div class="mb-4">
-										<img src={ merchant.LogoURL } alt={ merchant.Name } class="h-16 w-auto object-contain"/>
+						<div x-show={ fmt.Sprintf("isVisible('%s', '%s')", merchant.Name, merchant.CreatedAt.Format("2006-01-02")) }
+						     class="relative bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+						     style={ fmt.Sprintf("border-top: 6px solid %s", merchant.Color) }>
+							<a href={ templ.URL(fmt.Sprintf("/merchants/%s", merchant.ID.String())) } class="block p-6">
+								<div class="flex justify-between items-start mb-4">
+									<div class="flex-1">
+										if merchant.LogoURL != "" {
+											<div class="mb-3">
+												<img src={ merchant.LogoURL } alt={ merchant.Name } class="h-16 w-auto object-contain"/>
+											</div>
+										}
+										<h3 class="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors">{ merchant.Name }</h3>
+										if merchant.Website != "" {
+											<span class="text-sm text-gray-600 block">{ merchant.Website }</span>
+										}
 									</div>
-								}
-								<h3 class="text-xl font-bold text-gray-900 mb-2">{ merchant.Name }</h3>
-								if merchant.Website != "" {
-									<a href={ templ.URL(merchant.Website) } target="_blank" class="text-sm text-blue-600 hover:text-blue-800 mb-4 block">
-										{ merchant.Website }
-									</a>
-								}
-								if user.IsAdmin() {
-									<div class="flex gap-2 mt-4">
-										<a href={ templ.URL(fmt.Sprintf("/merchants/%s/edit", merchant.ID.String())) }
-										   class="flex-1 text-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm">
-											{ T(ctx, "common.edit") }
-										</a>
-										<button
-											hx-delete={ fmt.Sprintf("/merchants/%s", merchant.ID.String()) }
-											hx-confirm={ T(ctx, "merchants.delete_confirm") }
-											hx-target="closest div"
-											hx-swap="outerHTML"
-											hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
-											class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm">
-											{ T(ctx, "common.delete") }
-										</button>
-									</div>
-								}
-							</div>
+								</div>
+							</a>
+							if user.IsAdmin() {
+								<a href={ templ.URL(fmt.Sprintf("/merchants/%s/edit", merchant.ID.String())) }
+								   onclick="event.stopPropagation()"
+								   class="absolute top-4 right-4 bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm z-10">
+									{ T(ctx, "common.edit") }
+								</a>
+							}
 						</div>
 					}
 				</div>
 			}
+
+			<script>
+				function merchantsFilter() {
+					return {
+						search: '',
+						sortBy: 'name-asc',
+						merchants: [],
+
+						init() {
+							const merchantElements = document.querySelectorAll('[x-show]');
+							this.merchants = Array.from(merchantElements).map(el => {
+								const match = el.getAttribute('x-show').match(/isVisible\('([^']+)', '([^']+)'\)/);
+								return match ? {
+									element: el,
+									name: match[1],
+									created: match[2]
+								} : null;
+							}).filter(Boolean);
+							this.updateVisibility();
+						},
+
+						isVisible(name, created) {
+							const searchMatches = name.toLowerCase().includes(this.search.toLowerCase());
+							if (searchMatches) {
+								this.$nextTick(() => this.updateSort());
+							}
+							return searchMatches;
+						},
+
+						updateVisibility() {
+							this.$nextTick(() => this.updateSort());
+						},
+
+						updateSort() {
+							const container = this.merchants[0]?.element.parentElement;
+							if (!container) return;
+
+							const sortedMerchants = [...this.merchants].sort((a, b) => {
+								switch(this.sortBy) {
+									case 'name-asc': return a.name.localeCompare(b.name);
+									case 'name-desc': return b.name.localeCompare(a.name);
+									case 'newest': return b.created.localeCompare(a.created);
+									case 'oldest': return a.created.localeCompare(b.created);
+									default: return 0;
+								}
+							});
+
+							sortedMerchants.forEach(merchant => {
+								if (merchant.element.style.display !== 'none') {
+									container.appendChild(merchant.element);
+								}
+							});
+						}
+					}
+				}
+			</script>
 		</div>
 	}
 }
@@ -74,14 +164,17 @@ templ MerchantsIndex(ctx context.Context, csrfToken string, merchants []models.M
 // MerchantsNew shows form to create a new merchant
 templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isImpersonating bool) {
 	@Layout(ctx, T(ctx, "merchants.new"), user, isImpersonating) {
-		<div class="px-4 py-8 max-w-2xl mx-auto">
+		<div class="px-4 max-w-7xl mx-auto">
 			<div class="mb-6">
-				<a href="/merchants" class="text-green-600 hover:text-green-700">
+				<a href="/merchants" class="text-blue-600 hover:text-blue-700">
 					← { T(ctx, "merchants.back_to_overview") }
 				</a>
 			</div>
 
-			<div class="bg-white rounded-lg shadow-lg p-8">
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Form (2/3 width) -->
+				<div class="lg:col-span-2">
+					<div class="bg-white rounded-lg shadow-lg p-8">
 				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "merchants.add_new") }</h1>
 
 				<form method="POST" action="/merchants" class="space-y-6">
@@ -95,7 +188,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							id="name"
 							name="name"
 							required
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder={ T(ctx, "merchants.form.name_placeholder") }/>
 					</div>
 
@@ -107,7 +200,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							type="url"
 							id="logo_url"
 							name="logo_url"
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
 						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.logo_url_help") }</p>
 					</div>
@@ -120,7 +213,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 							type="url"
 							id="website"
 							name="website"
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder="https://www.example.com"/>
 						<p class="text-sm text-gray-500 mt-1">{ T(ctx, "merchants.form.website_help") }</p>
 					</div>
@@ -141,7 +234,7 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 					<div class="flex gap-3 pt-4">
 						<button
 							type="submit"
-							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
 							{ T(ctx, "merchants.form.create_button") }
 						</button>
 						<a
@@ -153,20 +246,30 @@ templ MerchantsNew(ctx context.Context, csrfToken string, user *models.User, isI
 				</form>
 			</div>
 		</div>
+
+		<!-- Right column: Empty -->
+		<div class="lg:col-span-1">
+			<!-- Reserved for future content -->
+		</div>
+	</div>
+		</div>
 	}
 }
 
 // MerchantsEdit shows form to edit a merchant
 templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merchant, user *models.User, isImpersonating bool) {
 	@Layout(ctx, T(ctx, "merchants.edit"), user, isImpersonating) {
-		<div class="px-4 py-8 max-w-2xl mx-auto">
+		<div class="px-4 max-w-7xl mx-auto">
 			<div class="mb-6">
-				<a href="/merchants" class="text-green-600 hover:text-green-700">
+				<a href="/merchants" class="text-blue-600 hover:text-blue-700">
 					← { T(ctx, "merchants.back_to_overview") }
 				</a>
 			</div>
 
-			<div class="bg-white rounded-lg shadow-lg p-8">
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Form (2/3 width) -->
+				<div class="lg:col-span-2">
+					<div class="bg-white rounded-lg shadow-lg p-8">
 				<h1 class="text-3xl font-bold text-gray-900 mb-8">{ T(ctx, "merchants.edit_title") }</h1>
 
 				<form method="POST" action={ templ.URL(fmt.Sprintf("/merchants/%s", merchant.ID.String())) } class="space-y-6">
@@ -181,7 +284,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							name="name"
 							value={ merchant.Name }
 							required
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"/>
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"/>
 					</div>
 
 					<div>
@@ -193,7 +296,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							id="logo_url"
 							name="logo_url"
 							value={ merchant.LogoURL }
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder={ T(ctx, "merchants.form.logo_url_placeholder") }/>
 					</div>
 
@@ -206,7 +309,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							id="website"
 							name="website"
 							value={ merchant.Website }
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
 							placeholder="https://www.example.com"/>
 					</div>
 
@@ -226,7 +329,7 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 					<div class="flex gap-3 pt-4">
 						<button
 							type="submit"
-							class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium">
+							class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium">
 							{ T(ctx, "common.save") }
 						</button>
 						<a
@@ -235,8 +338,110 @@ templ MerchantsEdit(ctx context.Context, csrfToken string, merchant models.Merch
 							{ T(ctx, "common.cancel") }
 						</a>
 					</div>
+
+					<div class="pt-4 border-t border-gray-200">
+						<button
+							type="button"
+							hx-delete={ fmt.Sprintf("/merchants/%s", merchant.ID.String()) }
+							hx-confirm={ T(ctx, "merchants.delete_confirm") }
+							hx-target="closest .px-4"
+							hx-swap="outerHTML"
+							hx-headers={ fmt.Sprintf("{\"X-CSRF-Token\": \"%s\"}", csrfToken) }
+							class="w-full text-red-600 hover:text-red-800 font-medium">
+							{ T(ctx, "common.delete") }
+						</button>
+					</div>
 				</form>
 			</div>
+		</div>
+
+		<!-- Right column: Empty -->
+		<div class="lg:col-span-1">
+			<!-- Reserved for future content -->
+		</div>
+	</div>
+		</div>
+	}
+}
+
+// MerchantsShow displays a single merchant with details
+templ MerchantsShow(ctx context.Context, csrfToken string, merchant models.Merchant, user *models.User, isImpersonating bool) {
+	@Layout(ctx, merchant.Name, user, isImpersonating) {
+		<div class="px-4 max-w-7xl mx-auto">
+			<div class="mb-6">
+				<a href="/merchants" class="text-blue-600 hover:text-blue-700">
+					← { T(ctx, "merchants.back_to_overview") }
+				</a>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<!-- Left column: Content (2/3 width) -->
+				<div class="lg:col-span-2">
+					<div class="bg-white rounded-lg shadow-lg overflow-hidden"
+					     style={ fmt.Sprintf("border-top: 6px solid %s", merchant.Color) }>
+				<div class="p-6">
+					<div class="mb-6">
+						<div class="flex items-start justify-between gap-4 mb-4">
+							<div class="flex-1">
+								<h1 class="text-3xl font-bold text-gray-900 mb-2">{ merchant.Name }</h1>
+								if merchant.Website != "" {
+									<a href={ templ.URL(merchant.Website) } target="_blank" class="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1">
+										{ merchant.Website }
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+										</svg>
+									</a>
+								}
+							</div>
+							if user.IsAdmin() {
+								<a href={ templ.URL(fmt.Sprintf("/merchants/%s/edit", merchant.ID.String())) }
+								   class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm flex-shrink-0">
+									{ T(ctx, "common.edit") }
+								</a>
+							}
+						</div>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+						if merchant.LogoURL != "" {
+							<div class="bg-gray-50 rounded-lg p-6 flex items-center justify-center">
+								<img src={ merchant.LogoURL } alt={ merchant.Name } class="max-h-32 w-auto object-contain"/>
+							</div>
+						}
+
+						<div class="space-y-4">
+							<div>
+								<h3 class="text-sm font-medium text-gray-500 mb-1">{ T(ctx, "merchants.form.name") }</h3>
+								<p class="text-lg text-gray-900">{ merchant.Name }</p>
+							</div>
+
+							if merchant.Website != "" {
+								<div>
+									<h3 class="text-sm font-medium text-gray-500 mb-1">{ T(ctx, "merchants.form.website") }</h3>
+									<a href={ templ.URL(merchant.Website) } target="_blank" class="text-blue-600 hover:text-blue-800">
+										{ merchant.Website }
+									</a>
+								</div>
+							}
+
+							<div>
+								<h3 class="text-sm font-medium text-gray-500 mb-1">{ T(ctx, "merchants.form.color") }</h3>
+								<div class="flex items-center gap-3">
+									<div class="w-12 h-12 rounded-lg border-2 border-gray-300" style={ fmt.Sprintf("background-color: %s", merchant.Color) }></div>
+									<span class="font-mono text-sm text-gray-700">{ merchant.Color }</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Right column: Empty -->
+		<div class="lg:col-span-1">
+				<!-- Reserved for future content -->
+			</div>
+		</div>
 		</div>
 	}
 }

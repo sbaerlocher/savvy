@@ -8,7 +8,7 @@ import (
 
 templ Home(ctx context.Context, user *models.User, isImpersonating bool, cardsCount int64, vouchersCount int64, giftCardsCount int64, totalBalance float64, recentCards []models.Card, recentVouchers []models.Voucher, recentGiftCards []models.GiftCard, hasFavorites bool, hasCardFavorites bool, hasVoucherFavorites bool, hasGiftCardFavorites bool) {
 	@Layout(ctx, T(ctx, "nav.home"), user, isImpersonating) {
-		<div class="px-4 py-8 max-w-7xl mx-auto" x-data>
+		<div class="px-4 max-w-7xl mx-auto" x-data>
 			<div class="mb-8">
 				<h1 class="text-3xl font-bold text-gray-900">
 					{ T(ctx, "home.welcome", map[string]any{"Name": user.FirstName}) }

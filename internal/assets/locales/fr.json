@@ -1180,6 +1180,22 @@
     "translation": "Aucun commerçant enregistré pour le moment."
   },
   {
+    "id": "merchants.sort.name_asc",
+    "translation": "Nom (A-Z)"
+  },
+  {
+    "id": "merchants.sort.name_desc",
+    "translation": "Nom (Z-A)"
+  },
+  {
+    "id": "merchants.sort.newest",
+    "translation": "Plus récent d'abord"
+  },
+  {
+    "id": "merchants.sort.oldest",
+    "translation": "Plus ancien d'abord"
+  },
+  {
     "id": "merchants.title",
     "translation": "Commerçants"
   },
@@ -1846,5 +1862,29 @@
   {
     "id": "admin.password_min_chars",
     "translation": "Au moins 8 caractères"
+  },
+  {
+    "id": "admin.create_user_description",
+    "translation": "Créer un nouvel utilisateur avec connexion locale"
+  },
+  {
+    "id": "admin.form.email_required",
+    "translation": "Adresse e-mail *"
+  },
+  {
+    "id": "admin.form.password_required",
+    "translation": "Mot de passe *"
+  },
+  {
+    "id": "admin.form.password_hint",
+    "translation": "Le mot de passe doit comporter au moins 8 caractères"
+  },
+  {
+    "id": "admin.form.first_name_required",
+    "translation": "Prénom *"
+  },
+  {
+    "id": "admin.form.last_name_required",
+    "translation": "Nom *"
   }
 ]

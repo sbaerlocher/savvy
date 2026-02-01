@@ -277,6 +277,14 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 						});
 				});
 
+				// Translation strings for update banner
+				const updateTranslations = {
+					title: '{ T(ctx, "update.title") }',
+					description: '{ T(ctx, "update.description") }',
+					updateNow: '{ T(ctx, "update.update_now") }',
+					later: '{ T(ctx, "update.later") }'
+				};
+
 				// Show update banner when new service worker is available
 				function showUpdateBanner(newWorker) {
 					if (updateAvailableBanner) return; // Banner already shown
@@ -289,14 +297,14 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
 							</svg>
 							<div class="flex-1">
-								<h3 class="font-semibold mb-1">{ T(ctx, "update.title") }</h3>
-								<p class="text-sm text-blue-100 mb-3">{ T(ctx, "update.description") }</p>
+								<h3 class="font-semibold mb-1">${updateTranslations.title}</h3>
+								<p class="text-sm text-blue-100 mb-3">${updateTranslations.description}</p>
 								<div class="flex gap-2">
 									<button onclick="window.location.reload()" class="bg-white text-blue-600 px-4 py-2 rounded text-sm font-medium hover:bg-blue-50">
-										{ T(ctx, "update.update_now") }
+										${updateTranslations.updateNow}
 									</button>
 									<button onclick="this.closest('.fixed').remove()" class="text-white hover:text-blue-100 px-4 py-2 rounded text-sm">
-										Später
+										${updateTranslations.later}
 									</button>
 								</div>
 							</div>
