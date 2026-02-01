@@ -89,12 +89,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.oauth.existingSecret }}
-                  key: client-id
+                  key: OAUTH_CLIENT_ID
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.oauth.existingSecret }}
-                  key: client-secret
+                  key: OAUTH_CLIENT_SECRET
             {{- end }}
 
           {{- with .Values.startupProbe }}
