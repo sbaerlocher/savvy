@@ -68,6 +68,12 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 		<!-- PWA Manifest -->
 		<link rel="manifest" href="/manifest.json"/>
 
+		<!-- Favicon -->
+		<link rel="icon" type="image/png" href="/static/logo.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png"/>
+
 		<!-- Bundled CSS (Tailwind) -->
 		<link rel="stylesheet" href="/static/css/bundle.css"/>
 
@@ -329,8 +335,9 @@ templ Nav(ctx context.Context, user *models.User, isImpersonating bool) {
 			<div class="flex justify-between h-16">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<a href="/" class="text-xl sm:text-2xl font-bold text-blue-600">
-							🎁 <span class="hidden sm:inline">{ T(ctx, "app.name") }</span>
+						<a href="/" class="flex items-center space-x-3">
+							<img src="/static/logo.png" alt="Savvy" class="h-12 sm:h-16"/>
+							<span class="hidden sm:inline text-2xl font-bold text-cyan-600">{ T(ctx, "app.name") }</span>
 						</a>
 					</div>
 					if user != nil {
