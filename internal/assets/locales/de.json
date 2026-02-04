@@ -728,6 +728,10 @@
     "translation": "Filter"
   },
   {
+    "id": "common.loading",
+    "translation": "Lade"
+  },
+  {
     "id": "common.mine",
     "translation": "Nur meine"
   },

@@ -1178,7 +1178,7 @@ Das Diagramm zeigt die vollständige Kubernetes-Architektur mit Traefik Ingress,
 
 ```mermaid
 graph TB
-    subgraph "Ingress"
+    subgraph "Ingress Layer"
         Ingress[Ingress<br/>TLS Termination]
     end
 

@@ -704,6 +704,10 @@
     "translation": "Filtrer"
   },
   {
+    "id": "common.loading",
+    "translation": "Chargement"
+  },
+  {
     "id": "common.mine",
     "translation": "Les Miens"
   },
