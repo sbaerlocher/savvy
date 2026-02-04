@@ -113,7 +113,12 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 					</div>
 				</div>
 			} else {
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<!-- Loading indicator while Alpine.js initializes -->
+				<div x-show="!initialized" class="flex justify-center items-center py-12">
+					<div class="text-gray-500">{ T(ctx, "common.loading") }...</div>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-show="initialized" x-cloak>
 					for _, card := range view.Cards {
 						<a href={ templ.URL(fmt.Sprintf("/cards/%s", card.ID.String())) }
 						   x-show={ fmt.Sprintf("isVisible('%s', '%s', '%s', '%s', '%s')", card.MerchantName, card.Program, card.CreatedAt.Format("2006-01-02"), func() string { if card.UserID != nil { return card.UserID.String() } else { return "" } }(), card.Status) }
@@ -174,6 +179,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 						currentUserId: currentUserId,
 						cards: [],
 						visibleCount: 0,
+						initialized: false,
 
 						init() {
 							// Initialize cards array from DOM
@@ -191,6 +197,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							}).filter(Boolean);
 
 							this.updateVisibility();
+							this.initialized = true;
 						},
 
 						isVisible(merchant, program, created, ownerId, status) {

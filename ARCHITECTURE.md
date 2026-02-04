@@ -1,7 +1,7 @@
 # Savvy System - Architecture Documentation
 
-**Version:** 1.6.0
-**Letzte Aktualisierung:** 2026-02-01
+**Version:** 1.7.0
+**Letzte Aktualisierung:** 2026-02-04
 **Status:** Production-Ready (Clean Architecture vollständig)
 
 ---
@@ -265,6 +265,7 @@ graph LR
         GS[GiftCardService]
         MS[MerchantService]
         SS[ShareService]
+        TS[TransferService]
         FS[FavoriteService]
         DS[DashboardService]
         AS[AuthzService]
@@ -285,6 +286,9 @@ graph LR
     SS --> CR
     SS --> VR
     SS --> GR
+    TS --> CR
+    TS --> VR
+    TS --> GR
     FS --> FR
     DS --> CR
     DS --> VR

@@ -1,6 +1,6 @@
 # Savvy System - AI Agent Documentation
 
-**Letzte Aktualisierung**: 2026-02-01
+**Letzte Aktualisierung**: 2026-02-04
 **Projekt-Typ**: Full-Stack Web Application
 **Tech Stack**: Go + Echo + Templ + HTMX + Alpine.js + GORM + PostgreSQL
 **Zweck**: Digitale Verwaltung von Kundenkarten, Gutscheinen und Geschenkkarten mit Sharing-Funktionalität
@@ -513,7 +513,23 @@ audit_logs:
 
 ## 📝 Changelog
 
-### Version 1.6.0 (2026-02-01) ✅ CURRENT
+### Version 1.7.0 (2026-02-04) ✅ CURRENT
+- ✅ **Transfer Feature** - Vollständige Ownership-Transfer Implementierung
+  - TransferService für Cards, Vouchers & Gift Cards (Clean Architecture)
+  - Transfer-Handler mit inline Formularen + Email-Autocomplete
+  - i18n-Übersetzungen (DE, EN, FR) für alle Transfer-Strings
+  - Audit-Logging für alle Ownership-Transfers
+  - Authorization: Nur Owner kann transferieren (AuthzService Integration)
+  - Clean Slate: Alle Shares werden beim Transfer gelöscht
+  - UI: Transfer-Box vor Share-Box, Titel "Eigentümer" statt "Eigentümer übertragen"
+- ✅ **Mobile Navigation Optimierung** - Mehr Platz und iPhone-Kompatibilität
+  - Home aus Hauptnavigation entfernt → ins Mehr-Menü verschoben
+  - 4 statt 5 Spalten (Cards/Vouchers/Gift Cards/Mehr)
+  - iPhone Safe-Area Support (`padding-bottom: env(safe-area-inset-bottom)`)
+  - User-Info neu gestylt (wie andere Menüpunkte, vor Logout)
+- ✅ **i18n Fix** - PWA Update-Banner Übersetzungen korrigiert (separate script-Block Interpolation)
+
+### Version 1.6.0 (2026-02-01)
 - ✅ **Clean Architecture Completion** - Alle 34 database.DB Aufrufe aus Handlers eliminiert
   - AdminService erstellt (226 LOC) - User Management, Audit Logs, Resource Restoration
   - ShareService erweitert - GetSharedUsers() für Shared Users Autocomplete

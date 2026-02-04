@@ -21,6 +21,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 					currentUserId: currentUserId,
 					giftCards: [],
 					visibleCount: 0,
+					initialized: false,
 
 					init() {
 						const cardElements = document.querySelectorAll('[x-show]');
@@ -35,6 +36,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 							} : null;
 						}).filter(Boolean);
 						this.updateVisibility();
+						this.initialized = true;
 					},
 
 					isVisible(merchant, created, status, ownerId) {
@@ -180,7 +182,12 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 					</div>
 				</div>
 			} else {
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<!-- Loading indicator while Alpine.js initializes -->
+				<div x-show="!initialized" class="flex justify-center items-center py-12">
+					<div class="text-gray-500">{ T(ctx, "common.loading") }...</div>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-show="initialized" x-cloak>
 					for _, giftCard := range view.GiftCards {
 						<a href={ templ.URL(fmt.Sprintf("/gift-cards/%s", giftCard.ID.String())) }
 						   class="block bg-white rounded-lg shadow-md hover:shadow-xl transition p-6"

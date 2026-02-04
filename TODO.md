@@ -142,7 +142,25 @@ e.Use(echomiddleware.SecureWithConfig(echomiddleware.SecureConfig{
 
 Diese wurden bereits implementiert:
 
-### v1.6.0 (2026-02-01) ✅ CURRENT
+### v1.7.0 (2026-02-04) ✅ CURRENT
+
+- ✅ **Transfer Feature**: Vollständige Implementierung für Cards, Vouchers & Gift Cards
+  - TransferService mit Clean Architecture Pattern (interface-based)
+  - Transfer-Handler für alle 3 Ressourcentypen (transfer.go, inline.go)
+  - Inline-Formulare mit Email-Autocomplete für Empfängerauswahl
+  - i18n-Übersetzungen (DE, EN, FR) für alle Transfer-Strings
+  - Audit-Logging für Ownership-Transfers
+  - Authorization: Nur Owner kann transferieren (AuthzService Integration)
+  - Clean Slate Approach: Alle Shares werden beim Transfer gelöscht
+  - Transfer-Box erscheint VOR Share-Box, Titel verkürzt auf "Eigentümer"
+- ✅ **Mobile Navigation Optimierung**
+  - Home-Button aus Hauptnavigation entfernt → ins Mehr-Menü verschoben
+  - Mehr Platz für Cards/Vouchers/Gift Cards (4 statt 5 Spalten)
+  - iPhone Safe-Area Support (`padding-bottom: env(safe-area-inset-bottom)`)
+  - User-Info neu gestylt (wie andere Menüpunkte, vor Logout platziert)
+- ✅ **i18n Fix**: `update.*` Strings für PWA Update-Banner korrigiert (separate script-Block Interpolation)
+
+### v1.6.0 (2026-02-01)
 
 - ✅ **Clean Architecture Completion**: Alle 34 database.DB Aufrufe aus Handlers eliminiert
   - AdminService erstellt (226 LOC) für User Management, Audit Logs, Resource Restoration
@@ -201,14 +219,6 @@ Diese wurden bereits implementiert:
 - ✅ **PWA Completion**: Service Worker, Manifest, Offline-Mode
 - ✅ **Build Pipeline**: PostCSS + TailwindCSS + Rollup
 - ✅ **Documentation Update**: AGENTS.md, ARCHITECTURE.md, TODO.md aktualisiert
-
-### v1.1.0 (2026-01-26)
-
-- ✅ **Feature Toggles**: ENV-basierte Toggles (5 Features)
-- ✅ **Observability**: Prometheus Metrics, Health Checks
-- ✅ **Performance**: Dashboard 40% faster, Gift Card Balance 78% faster
-- ✅ **Mobile Optimization**: Responsive Design
-- ✅ **OAuth/OIDC**: Provider-agnostische Auth
 
 ### v1.0.0 (2026-01-25)
 

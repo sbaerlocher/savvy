@@ -49,6 +49,16 @@ Ein modernes Web-basiertes System zur Verwaltung von Treuekarten, Rabatt-Gutsche
 - User-spezifische Favoriten (geteilte Items können individuell favorisiert werden)
 - Besitzer-Anzeige bei geteilten Items ("von [Name]")
 
+### 🔄 Ownership Transfer
+
+- **Vollständige Eigentumsübertragung** für Cards, Vouchers & Gift Cards
+- Email-basierte Empfängerauswahl mit Autocomplete
+- Nur Owner kann transferieren (Authorization via AuthzService)
+- Clean Slate Approach: Alle Shares werden beim Transfer gelöscht
+- Audit-Logging für alle Ownership-Transfers
+- Inline-Formular mit Warnhinweisen vor dem Transfer
+- HTMX-basierte UI ohne Page-Reload
+
 ### 📊 Dashboard
 
 - Statistiken (Anzahl Cards/Vouchers/Gift Cards)
