@@ -241,17 +241,25 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 			@MobileBottomNav(ctx, user)
 		}
 
-		<!-- Service Worker Registration -->
-		<script type="text/javascript">
-			// Translation strings for update banner
-			const updateTranslations = {
-				title: { T(ctx, "update.title") },
-				description: { T(ctx, "update.description") },
-				updateNow: { T(ctx, "update.update_now") },
-				later: { T(ctx, "update.later") }
-			};
-		</script>
-		<script>
+	<!-- Translations for JavaScript (evaluated server-side, never sent as T() to client) -->
+	<div id="update-translations" style="display: none;"
+		 data-title={ T(ctx, "update.title") }
+		 data-description={ T(ctx, "update.description") }
+		 data-update-now={ T(ctx, "update.update_now") }
+		 data-later={ T(ctx, "update.later") }>
+	</div>
+
+	<!-- Service Worker Registration -->
+	<script>
+		// Read translation strings from data attributes (populated server-side)
+		const translationsEl = document.getElementById('update-translations');
+		const updateTranslations = {
+			title: translationsEl.dataset.title,
+			description: translationsEl.dataset.description,
+			updateNow: translationsEl.dataset.updateNow,
+			later: translationsEl.dataset.later
+		};
+
 			// Register Service Worker
 			if ('serviceWorker' in navigator) {
 				let updateAvailableBanner = null;
