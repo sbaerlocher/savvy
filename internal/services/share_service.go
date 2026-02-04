@@ -152,7 +152,8 @@ func (s *ShareService) CreateGiftCardShare(ctx context.Context, giftCardID, shar
 func (s *ShareService) GetCardShares(ctx context.Context, cardID uuid.UUID) ([]models.CardShare, error) {
 	var shares []models.CardShare
 	if err := s.db.WithContext(ctx).
-		Where("card_id = ? AND deleted_at IS NULL", cardID).
+		Where("card_id = ?", cardID).
+		Where("deleted_at IS NULL").
 		Preload("SharedWithUser").
 		Find(&shares).Error; err != nil {
 		return nil, err
@@ -164,7 +165,8 @@ func (s *ShareService) GetCardShares(ctx context.Context, cardID uuid.UUID) ([]m
 func (s *ShareService) GetVoucherShares(ctx context.Context, voucherID uuid.UUID) ([]models.VoucherShare, error) {
 	var shares []models.VoucherShare
 	if err := s.db.WithContext(ctx).
-		Where("voucher_id = ? AND deleted_at IS NULL", voucherID).
+		Where("voucher_id = ?", voucherID).
+		Where("deleted_at IS NULL").
 		Preload("SharedWithUser").
 		Find(&shares).Error; err != nil {
 		return nil, err
@@ -176,7 +178,8 @@ func (s *ShareService) GetVoucherShares(ctx context.Context, voucherID uuid.UUID
 func (s *ShareService) GetGiftCardShares(ctx context.Context, giftCardID uuid.UUID) ([]models.GiftCardShare, error) {
 	var shares []models.GiftCardShare
 	if err := s.db.WithContext(ctx).
-		Where("gift_card_id = ? AND deleted_at IS NULL", giftCardID).
+		Where("gift_card_id = ?", giftCardID).
+		Where("deleted_at IS NULL").
 		Preload("SharedWithUser").
 		Find(&shares).Error; err != nil {
 		return nil, err
@@ -189,30 +192,30 @@ func (s *ShareService) GetGiftCardShares(ctx context.Context, giftCardID uuid.UU
 func (s *ShareService) GetSharedUsers(ctx context.Context, userID uuid.UUID, searchQuery string) ([]models.User, error) {
 	var userIDs []uuid.UUID
 
-	// Card shares (only active shares)
+	// Card shares (only active shares on active cards)
 	var cardSharedUserIDs []uuid.UUID
 	s.db.WithContext(ctx).Table("card_shares").
 		Select("DISTINCT shared_with_id").
 		Joins("JOIN cards ON cards.id = card_shares.card_id").
-		Where("cards.user_id = ? AND card_shares.deleted_at IS NULL", userID).
+		Where("cards.user_id = ? AND card_shares.deleted_at IS NULL AND cards.deleted_at IS NULL", userID).
 		Pluck("shared_with_id", &cardSharedUserIDs)
 	userIDs = append(userIDs, cardSharedUserIDs...)
 
-	// Voucher shares (only active shares)
+	// Voucher shares (only active shares on active vouchers)
 	var voucherSharedUserIDs []uuid.UUID
 	s.db.WithContext(ctx).Table("voucher_shares").
 		Select("DISTINCT shared_with_id").
 		Joins("JOIN vouchers ON vouchers.id = voucher_shares.voucher_id").
-		Where("vouchers.user_id = ? AND voucher_shares.deleted_at IS NULL", userID).
+		Where("vouchers.user_id = ? AND voucher_shares.deleted_at IS NULL AND vouchers.deleted_at IS NULL", userID).
 		Pluck("shared_with_id", &voucherSharedUserIDs)
 	userIDs = append(userIDs, voucherSharedUserIDs...)
 
-	// Gift card shares (only active shares)
+	// Gift card shares (only active shares on active gift cards)
 	var giftCardSharedUserIDs []uuid.UUID
 	s.db.WithContext(ctx).Table("gift_card_shares").
 		Select("DISTINCT shared_with_id").
 		Joins("JOIN gift_cards ON gift_cards.id = gift_card_shares.gift_card_id").
-		Where("gift_cards.user_id = ? AND gift_card_shares.deleted_at IS NULL", userID).
+		Where("gift_cards.user_id = ? AND gift_card_shares.deleted_at IS NULL AND gift_cards.deleted_at IS NULL", userID).
 		Pluck("shared_with_id", &giftCardSharedUserIDs)
 	userIDs = append(userIDs, giftCardSharedUserIDs...)
 

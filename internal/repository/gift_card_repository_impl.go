@@ -62,7 +62,7 @@ func (r *GormGiftCardRepository) GetSharedWithUser(ctx context.Context, userID u
 			return db.Order("transaction_date DESC")
 		}).
 		Joins("INNER JOIN gift_card_shares ON gift_card_shares.gift_card_id = gift_cards.id").
-		Where("gift_card_shares.shared_with_id = ?", userID).
+		Where("gift_card_shares.shared_with_id = ? AND gift_card_shares.deleted_at IS NULL", userID).
 		Order("gift_cards.created_at DESC").
 		Find(&giftCards).Error
 

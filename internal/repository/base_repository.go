@@ -73,7 +73,7 @@ func (r *BaseRepository[T]) GetByUserID(ctx context.Context, userID uuid.UUID) (
 	return entities, err
 }
 
-// GetSharedWithUser retrieves entities shared with a user.
+// GetSharedWithUser retrieves entities shared with a user (only active shares).
 // Requires shareConfig to be set.
 func (r *BaseRepository[T]) GetSharedWithUser(ctx context.Context, userID uuid.UUID) ([]T, error) {
 	if r.shareConfig == nil {
@@ -87,7 +87,8 @@ func (r *BaseRepository[T]) GetSharedWithUser(ctx context.Context, userID uuid.U
 		Joins("INNER JOIN "+r.shareConfig.ShareTableName+" ON "+
 			r.shareConfig.ShareTableName+"."+r.shareConfig.ResourceIDColumn+" = "+
 			r.shareConfig.TableName+".id").
-		Where(r.shareConfig.ShareTableName+".shared_with_id = ?", userID).
+		Where(r.shareConfig.ShareTableName+".shared_with_id = ? AND "+
+			r.shareConfig.ShareTableName+".deleted_at IS NULL", userID).
 		Order(r.shareConfig.TableName + ".created_at DESC").
 		Find(&entities).Error
 
