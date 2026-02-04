@@ -39,6 +39,7 @@ func RegisterRoutes(rc *RouteConfig) {
 		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
+		serviceContainer.TransferService,
 		database.DB,
 	)
 
@@ -49,6 +50,7 @@ func RegisterRoutes(rc *RouteConfig) {
 		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
+		serviceContainer.TransferService,
 		database.DB,
 	)
 
@@ -59,6 +61,7 @@ func RegisterRoutes(rc *RouteConfig) {
 		serviceContainer.UserService,
 		serviceContainer.FavoriteService,
 		serviceContainer.ShareService,
+		serviceContainer.TransferService,
 		database.DB,
 	)
 
@@ -200,6 +203,10 @@ func registerCardsRoutes(
 	cardsGroup.GET("/:id/shares/cancel", cardSharesHandler.Cancel)
 	cardsGroup.GET("/:id/shares/:share_id/edit-inline", cardSharesHandler.EditInline)
 	cardsGroup.GET("/:id/shares/:share_id/cancel-edit", cardSharesHandler.CancelEdit)
+	// Transfer
+	cardsGroup.GET("/:id/transfer/inline", cardHandler.TransferInline)
+	cardsGroup.GET("/:id/transfer/cancel", cardHandler.CancelTransfer)
+	cardsGroup.POST("/:id/transfer", cardHandler.Transfer)
 	// Favorites
 	cardsGroup.POST("/:id/favorite", favoritesHandler.ToggleCardFavorite)
 }
@@ -230,6 +237,10 @@ func registerVouchersRoutes(
 	vouchersGroup.DELETE("/:id/shares/:share_id", voucherSharesHandler.Delete)
 	vouchersGroup.GET("/:id/shares/new-inline", voucherSharesHandler.NewInline)
 	vouchersGroup.GET("/:id/shares/cancel", voucherSharesHandler.Cancel)
+	// Transfer
+	vouchersGroup.GET("/:id/transfer/inline", voucherHandler.TransferInline)
+	vouchersGroup.GET("/:id/transfer/cancel", voucherHandler.CancelTransfer)
+	vouchersGroup.POST("/:id/transfer", voucherHandler.Transfer)
 	// Favorites
 	vouchersGroup.POST("/:id/favorite", favoritesHandler.ToggleVoucherFavorite)
 }
@@ -268,6 +279,10 @@ func registerGiftCardsRoutes(
 	giftCardsGroup.GET("/:id/shares/cancel", giftCardSharesHandler.Cancel)
 	giftCardsGroup.GET("/:id/shares/:share_id/edit-inline", giftCardSharesHandler.EditInline)
 	giftCardsGroup.GET("/:id/shares/:share_id/cancel-edit", giftCardSharesHandler.CancelEdit)
+	// Transfer
+	giftCardsGroup.GET("/:id/transfer/inline", giftCardHandler.TransferInline)
+	giftCardsGroup.GET("/:id/transfer/cancel", giftCardHandler.CancelTransfer)
+	giftCardsGroup.POST("/:id/transfer", giftCardHandler.Transfer)
 	// Favorites
 	giftCardsGroup.POST("/:id/favorite", favoritesHandler.ToggleGiftCardFavorite)
 }

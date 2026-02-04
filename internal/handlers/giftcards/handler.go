@@ -20,6 +20,7 @@ type Handler struct {
 	userService     services.UserServiceInterface
 	favoriteService services.FavoriteServiceInterface
 	shareService    services.ShareServiceInterface
+	transferService services.TransferServiceInterface
 	db              *gorm.DB
 }
 
@@ -31,6 +32,7 @@ func NewHandler(
 	userService services.UserServiceInterface,
 	favoriteService services.FavoriteServiceInterface,
 	shareService services.ShareServiceInterface,
+	transferService services.TransferServiceInterface,
 	db *gorm.DB,
 ) *Handler {
 	return &Handler{
@@ -40,6 +42,7 @@ func NewHandler(
 		userService:     userService,
 		favoriteService: favoriteService,
 		shareService:    shareService,
+		transferService: transferService,
 		db:              db,
 	}
 }

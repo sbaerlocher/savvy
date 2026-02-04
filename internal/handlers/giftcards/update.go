@@ -54,7 +54,6 @@ func (h *Handler) Update(c echo.Context) error {
 	giftCard.Currency = c.FormValue("currency")
 	giftCard.PIN = c.FormValue("pin")
 	giftCard.ExpiresAt = expiresAt
-	giftCard.Status = c.FormValue("status")
 	giftCard.BarcodeType = c.FormValue("barcode_type")
 	giftCard.Notes = c.FormValue("notes")
 

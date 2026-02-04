@@ -15,25 +15,14 @@ func TestVoucher_GetColor_WithMerchant(t *testing.T) {
 
 	voucher := &Voucher{
 		Merchant: merchant,
-		Color:    "#00FF00", // Should be overridden by merchant color
 	}
 
 	assert.Equal(t, "#FF0000", voucher.GetColor())
 }
 
-func TestVoucher_GetColor_WithoutMerchant(t *testing.T) {
-	voucher := &Voucher{
-		Merchant: nil,
-		Color:    "#AABBCC",
-	}
-
-	assert.Equal(t, "#AABBCC", voucher.GetColor())
-}
-
 func TestVoucher_GetColor_DefaultGreen(t *testing.T) {
 	voucher := &Voucher{
 		Merchant: nil,
-		Color:    "",
 	}
 
 	assert.Equal(t, "#10B981", voucher.GetColor()) // Default green

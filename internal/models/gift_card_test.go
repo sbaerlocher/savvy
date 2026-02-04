@@ -15,25 +15,14 @@ func TestGiftCard_GetColor_WithMerchant(t *testing.T) {
 
 	giftCard := &GiftCard{
 		Merchant: merchant,
-		Color:    "#FF0000", // Should be overridden by merchant color
 	}
 
 	assert.Equal(t, "#00FF00", giftCard.GetColor())
 }
 
-func TestGiftCard_GetColor_WithoutMerchant(t *testing.T) {
-	giftCard := &GiftCard{
-		Merchant: nil,
-		Color:    "#AABBCC",
-	}
-
-	assert.Equal(t, "#AABBCC", giftCard.GetColor())
-}
-
 func TestGiftCard_GetColor_DefaultRed(t *testing.T) {
 	giftCard := &GiftCard{
 		Merchant: nil,
-		Color:    "",
 	}
 
 	assert.Equal(t, "#DC2626", giftCard.GetColor()) // Default red

@@ -3,6 +3,7 @@ package vouchers
 
 import (
 	"net/http"
+	"savvy/internal/i18n"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
@@ -17,18 +18,18 @@ func (h *Handler) EditInline(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	voucherID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid voucher ID")
+		return c.String(http.StatusBadRequest, i18n.T(c.Request().Context(), "error.invalid_voucher_id"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "No edit permission")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.no_edit_permission"))
 	}
 
 	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.voucher_not_found"))
 	}
 
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
@@ -49,18 +50,18 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	voucherID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid voucher ID")
+		return c.String(http.StatusBadRequest, i18n.T(c.Request().Context(), "error.invalid_voucher_id"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherID)
 	if err != nil {
-		return c.String(http.StatusForbidden, "No access")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.no_access"))
 	}
 
 	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.voucher_not_found"))
 	}
 
 	canEdit := perms.CanEdit
@@ -83,18 +84,18 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	voucherID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid voucher ID")
+		return c.String(http.StatusBadRequest, i18n.T(c.Request().Context(), "error.invalid_voucher_id"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckVoucherAccess(c.Request().Context(), user.ID, voucherID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "No edit permission")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.no_edit_permission"))
 	}
 
 	voucher, err := h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.voucher_not_found"))
 	}
 
 	// Parse value
@@ -112,7 +113,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	)
 	if err != nil {
 		c.Logger().Errorf("Date validation failed: %v", err)
-		return c.String(http.StatusBadRequest, "Invalid date range")
+		return c.String(http.StatusBadRequest, i18n.T(c.Request().Context(), "error.invalid_date_range"))
 	}
 
 	// Handle merchant selection
@@ -147,13 +148,13 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 
 	if err := h.voucherService.UpdateVoucher(c.Request().Context(), voucher); err != nil {
 		c.Logger().Errorf("Failed to update voucher: %v", err)
-		return c.String(http.StatusInternalServerError, "Failed to update voucher")
+		return c.String(http.StatusInternalServerError, i18n.T(c.Request().Context(), "error.updating_voucher"))
 	}
 
 	// Reload with merchant and user
 	voucher, err = h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Voucher not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.voucher_not_found"))
 	}
 
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)

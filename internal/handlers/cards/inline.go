@@ -3,6 +3,7 @@ package cards
 
 import (
 	"net/http"
+	"savvy/internal/i18n"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 
@@ -16,18 +17,18 @@ func (h *Handler) EditInline(c echo.Context) error {
 
 	cardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "Not authorized")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.unauthorized"))
 	}
 
 	card, err := h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
@@ -50,18 +51,18 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 
 	cardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	card, err := h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	canEdit := perms.CanEdit
@@ -87,18 +88,18 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 
 	cardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckCardAccess(c.Request().Context(), user.ID, cardID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "Not authorized")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.unauthorized"))
 	}
 
 	card, err := h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	// Update fields
@@ -127,13 +128,13 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	}
 
 	if err := h.cardService.UpdateCard(c.Request().Context(), card); err != nil {
-		return c.String(http.StatusInternalServerError, "Error updating card")
+		return c.String(http.StatusInternalServerError, i18n.T(c.Request().Context(), "error.updating_card"))
 	}
 
 	// Reload with merchant and user for display
 	card, err = h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.card_not_found"))
 	}
 
 	// Check if card is favorited by current user

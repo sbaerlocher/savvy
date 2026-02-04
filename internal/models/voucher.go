@@ -25,7 +25,6 @@ type Voucher struct {
 	ValidUntil        time.Time      `gorm:"not null" json:"valid_until"`
 	UsageLimitType    string         `gorm:"default:single_use" json:"usage_limit_type"` // single_use, one_per_customer, multiple_use_with_card, multiple_use_without_card, unlimited
 	BarcodeType       string         `gorm:"default:CODE128" json:"barcode_type"`
-	Color             string         `gorm:"default:#10B981" json:"color"`
 	CreatedAt         time.Time      `json:"created_at"`
 	UpdatedAt         time.Time      `json:"updated_at"`
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
@@ -35,9 +34,6 @@ type Voucher struct {
 func (v *Voucher) GetColor() string {
 	if v.Merchant != nil && v.Merchant.Color != "" {
 		return v.Merchant.Color
-	}
-	if v.Color != "" {
-		return v.Color
 	}
 	return "#10B981"
 }

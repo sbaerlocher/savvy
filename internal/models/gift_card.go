@@ -26,7 +26,6 @@ type GiftCard struct {
 	Status         string         `gorm:"default:active" json:"status"`
 	BarcodeType    string         `gorm:"default:CODE128" json:"barcode_type"`
 	Notes          string         `gorm:"type:text" json:"notes"`
-	Color          string         `gorm:"default:#DC2626" json:"color"`
 	CreatedAt      time.Time      `json:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
@@ -47,10 +46,37 @@ func (g *GiftCard) GetColor() string {
 	if g.Merchant != nil && g.Merchant.Color != "" {
 		return g.Merchant.Color
 	}
-	if g.Color != "" {
-		return g.Color
-	}
 	return "#DC2626"
+}
+
+// IsExpired checks if the gift card has expired
+func (g *GiftCard) IsExpired() bool {
+	if g.ExpiresAt == nil {
+		return false
+	}
+	return time.Now().After(*g.ExpiresAt)
+}
+
+// IsEmpty checks if the gift card has no balance left
+func (g *GiftCard) IsEmpty() bool {
+	return g.CurrentBalance <= 0
+}
+
+// GetComputedStatus returns the computed status based on balance and expiry
+// Returns: "redeemed" (balance 0), "expired" (date passed + balance > 0), "active"
+func (g *GiftCard) GetComputedStatus() string {
+	if g.IsEmpty() {
+		return "redeemed"
+	}
+	if g.IsExpired() {
+		return "expired"
+	}
+	return "active"
+}
+
+// IsUsable checks if the gift card can still be used
+func (g *GiftCard) IsUsable() bool {
+	return !g.IsExpired() && !g.IsEmpty()
 }
 
 // GiftCardTransaction represents a transaction (purchase or reload) on a gift card

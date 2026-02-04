@@ -3,6 +3,7 @@ package giftcards
 
 import (
 	"net/http"
+	"savvy/internal/i18n"
 	"savvy/internal/models"
 	"savvy/internal/templates"
 	"savvy/internal/validation"
@@ -19,18 +20,18 @@ func (h *Handler) EditInline(c echo.Context) error {
 
 	giftCardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "Not authorized")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.unauthorized"))
 	}
 
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
@@ -53,18 +54,18 @@ func (h *Handler) CancelEdit(c echo.Context) error {
 
 	giftCardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	canEdit := perms.CanEdit
@@ -89,18 +90,18 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 
 	giftCardID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	// Check authorization
 	perms, err := h.authzService.CheckGiftCardAccess(c.Request().Context(), user.ID, giftCardID)
 	if err != nil || !perms.CanEdit {
-		return c.String(http.StatusForbidden, "Not authorized")
+		return c.String(http.StatusForbidden, i18n.T(c.Request().Context(), "error.unauthorized"))
 	}
 
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	// Parse balance
@@ -112,7 +113,7 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 		parsed, err := validation.ParseAndValidateDate(expiresAtStr, true) // allow past for flexibility
 		if err != nil {
 			c.Logger().Errorf("Expires_at validation failed: %v", err)
-			return c.String(http.StatusBadRequest, "Invalid expiration date")
+			return c.String(http.StatusBadRequest, i18n.T(c.Request().Context(), "error.invalid_expiration_date"))
 		}
 		// Set to end of day
 		parsed = time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 23, 59, 59, 0, time.UTC)
@@ -128,7 +129,6 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	giftCard.Currency = c.FormValue("currency")
 	giftCard.PIN = c.FormValue("pin")
 	giftCard.ExpiresAt = expiresAt
-	giftCard.Status = c.FormValue("status")
 	giftCard.BarcodeType = c.FormValue("barcode_type")
 	giftCard.Notes = c.FormValue("notes")
 
@@ -151,13 +151,13 @@ func (h *Handler) UpdateInline(c echo.Context) error {
 	}
 
 	if err := h.giftCardService.UpdateGiftCard(c.Request().Context(), giftCard); err != nil {
-		return c.String(http.StatusInternalServerError, "Failed to update gift card")
+		return c.String(http.StatusInternalServerError, i18n.T(c.Request().Context(), "error.updating_gift_card"))
 	}
 
 	// Reload with merchant and user preloaded
 	giftCard, err = h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		return c.String(http.StatusNotFound, "Gift card not found")
+		return c.String(http.StatusNotFound, i18n.T(c.Request().Context(), "error.gift_card_not_found"))
 	}
 
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)

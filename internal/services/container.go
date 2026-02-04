@@ -19,6 +19,7 @@ type Container struct {
 	AuthzService     AuthzServiceInterface
 	DashboardService DashboardServiceInterface
 	AdminService     AdminServiceInterface
+	TransferService  TransferServiceInterface
 }
 
 // NewContainer creates a new service container with all services initialized.
@@ -43,5 +44,6 @@ func NewContainer(db *gorm.DB) *Container {
 		AuthzService:     NewAuthzService(db),
 		DashboardService: NewDashboardService(db),
 		AdminService:     NewAdminService(db),
+		TransferService:  NewTransferService(db, cardRepo, voucherRepo, giftCardRepo),
 	}
 }

@@ -796,6 +796,58 @@
     "translation": "Error deleting share"
   },
   {
+    "id": "error.card_not_found",
+    "translation": "Card not found"
+  },
+  {
+    "id": "error.only_owner_can_transfer",
+    "translation": "Only owner can transfer"
+  },
+  {
+    "id": "error.updating_card",
+    "translation": "Error updating card"
+  },
+  {
+    "id": "error.email_required",
+    "translation": "Email is required"
+  },
+  {
+    "id": "error.gift_card_not_found",
+    "translation": "Gift card not found"
+  },
+  {
+    "id": "error.invalid_expiration_date",
+    "translation": "Invalid expiration date"
+  },
+  {
+    "id": "error.updating_gift_card",
+    "translation": "Failed to update gift card"
+  },
+  {
+    "id": "error.voucher_not_found",
+    "translation": "Voucher not found"
+  },
+  {
+    "id": "error.invalid_voucher_id",
+    "translation": "Invalid voucher ID"
+  },
+  {
+    "id": "error.no_edit_permission",
+    "translation": "No edit permission"
+  },
+  {
+    "id": "error.no_access",
+    "translation": "No access"
+  },
+  {
+    "id": "error.invalid_date_range",
+    "translation": "Invalid date range"
+  },
+  {
+    "id": "error.updating_voucher",
+    "translation": "Failed to update voucher"
+  },
+  {
     "id": "giftcards.add_new",
     "translation": "New Gift Card"
   },
@@ -1226,6 +1278,54 @@
   {
     "id": "nav.vouchers",
     "translation": "Vouchers"
+  },
+  {
+    "id": "transfer.title",
+    "translation": "Owner"
+  },
+  {
+    "id": "transfer.button",
+    "translation": "Transfer"
+  },
+  {
+    "id": "transfer.warning",
+    "translation": "Warning: This action cannot be undone!"
+  },
+  {
+    "id": "transfer.warning_detail",
+    "translation": "All existing shares will be deleted. You will lose access to this resource."
+  },
+  {
+    "id": "transfer.new_owner_email",
+    "translation": "New Owner (Email)"
+  },
+  {
+    "id": "transfer.email_placeholder",
+    "translation": "user@example.com"
+  },
+  {
+    "id": "transfer.what_happens",
+    "translation": "What happens during transfer?"
+  },
+  {
+    "id": "transfer.effect.ownership",
+    "translation": "New owner receives full rights"
+  },
+  {
+    "id": "transfer.effect.shares_deleted",
+    "translation": "All existing shares will be removed"
+  },
+  {
+    "id": "transfer.effect.no_access",
+    "translation": "You will lose access (unless re-shared)"
+  },
+  {
+    "id": "transfer.effect.audit_log",
+    "translation": "Transfer will be logged"
+  },
+  {
+    "id": "transfer.confirm",
+    "translation": "Transfer Now"
   },
   {
     "id": "share.add",

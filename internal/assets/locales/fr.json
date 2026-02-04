@@ -796,6 +796,58 @@
     "translation": "Erreur lors de la suppression du partage"
   },
   {
+    "id": "error.card_not_found",
+    "translation": "Carte non trouvée"
+  },
+  {
+    "id": "error.only_owner_can_transfer",
+    "translation": "Seul le propriétaire peut transférer"
+  },
+  {
+    "id": "error.updating_card",
+    "translation": "Erreur lors de la mise à jour de la carte"
+  },
+  {
+    "id": "error.email_required",
+    "translation": "L'email est requis"
+  },
+  {
+    "id": "error.gift_card_not_found",
+    "translation": "Carte cadeau non trouvée"
+  },
+  {
+    "id": "error.invalid_expiration_date",
+    "translation": "Date d'expiration invalide"
+  },
+  {
+    "id": "error.updating_gift_card",
+    "translation": "Erreur lors de la mise à jour de la carte cadeau"
+  },
+  {
+    "id": "error.voucher_not_found",
+    "translation": "Bon non trouvé"
+  },
+  {
+    "id": "error.invalid_voucher_id",
+    "translation": "ID de bon invalide"
+  },
+  {
+    "id": "error.no_edit_permission",
+    "translation": "Aucune autorisation de modification"
+  },
+  {
+    "id": "error.no_access",
+    "translation": "Aucun accès"
+  },
+  {
+    "id": "error.invalid_date_range",
+    "translation": "Plage de dates invalide"
+  },
+  {
+    "id": "error.updating_voucher",
+    "translation": "Erreur lors de la mise à jour du bon"
+  },
+  {
     "id": "giftcards.add_new",
     "translation": "Nouvelle Carte Cadeau"
   },
@@ -1226,6 +1278,54 @@
   {
     "id": "nav.vouchers",
     "translation": "Bons"
+  },
+  {
+    "id": "transfer.title",
+    "translation": "Propriétaire"
+  },
+  {
+    "id": "transfer.button",
+    "translation": "Transférer"
+  },
+  {
+    "id": "transfer.warning",
+    "translation": "Attention : Cette action ne peut pas être annulée !"
+  },
+  {
+    "id": "transfer.warning_detail",
+    "translation": "Tous les partages existants seront supprimés. Vous perdrez l'accès à cette ressource."
+  },
+  {
+    "id": "transfer.new_owner_email",
+    "translation": "Nouveau propriétaire (Email)"
+  },
+  {
+    "id": "transfer.email_placeholder",
+    "translation": "user@example.com"
+  },
+  {
+    "id": "transfer.what_happens",
+    "translation": "Que se passe-t-il lors du transfert ?"
+  },
+  {
+    "id": "transfer.effect.ownership",
+    "translation": "Le nouveau propriétaire reçoit tous les droits"
+  },
+  {
+    "id": "transfer.effect.shares_deleted",
+    "translation": "Tous les partages existants seront supprimés"
+  },
+  {
+    "id": "transfer.effect.no_access",
+    "translation": "Vous perdrez l'accès (sauf nouveau partage)"
+  },
+  {
+    "id": "transfer.effect.audit_log",
+    "translation": "Le transfert sera enregistré"
+  },
+  {
+    "id": "transfer.confirm",
+    "translation": "Transférer maintenant"
   },
   {
     "id": "share.add",

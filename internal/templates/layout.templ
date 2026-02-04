@@ -242,6 +242,15 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 		}
 
 		<!-- Service Worker Registration -->
+		<script type="text/javascript">
+			// Translation strings for update banner
+			const updateTranslations = {
+				title: { T(ctx, "update.title") },
+				description: { T(ctx, "update.description") },
+				updateNow: { T(ctx, "update.update_now") },
+				later: { T(ctx, "update.later") }
+			};
+		</script>
 		<script>
 			// Register Service Worker
 			if ('serviceWorker' in navigator) {
@@ -282,14 +291,6 @@ templ Layout(ctx context.Context, title string, user *models.User, isImpersonati
 							console.error('[ServiceWorker] Registration failed:', err);
 						});
 				});
-
-				// Translation strings for update banner
-				const updateTranslations = {
-					title: '{ T(ctx, "update.title") }',
-					description: '{ T(ctx, "update.description") }',
-					updateNow: '{ T(ctx, "update.update_now") }',
-					later: '{ T(ctx, "update.later") }'
-				};
 
 				// Show update banner when new service worker is available
 				function showUpdateBanner(newWorker) {
@@ -523,18 +524,10 @@ templ Footer(ctx context.Context, user *models.User) {
 }
 
 templ MobileBottomNav(ctx context.Context, user *models.User) {
-	<!-- Mobile Bottom Navigation: only visible on small screens -->
-	<nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-		// Count enabled features for grid layout
-		<div class={ "h-16", templ.KV("grid grid-cols-5", getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards), templ.KV("grid grid-cols-4", (getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards)), templ.KV("grid grid-cols-3", (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards)), templ.KV("grid grid-cols-2", !getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) }>
-			<!-- Home -->
-			<a href="/" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors">
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-				</svg>
-				<span class="text-xs mt-1">{ T(ctx, "nav.home") }</span>
-			</a>
-
+	<!-- Mobile Bottom Navigation: only visible on small screens, with iPhone safe area support -->
+	<nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50" style="padding-bottom: env(safe-area-inset-bottom);">
+		// Count enabled features for grid layout (without Home button)
+		<div class={ "h-16", templ.KV("grid grid-cols-4", getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards), templ.KV("grid grid-cols-3", (getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards)), templ.KV("grid grid-cols-2", (getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && getConfig(ctx).EnableGiftCards) || (!getConfig(ctx).EnableCards && !getConfig(ctx).EnableVouchers && !getConfig(ctx).EnableGiftCards)) }>
 			<!-- Cards -->
 			if getConfig(ctx).EnableCards {
 				<a href="/cards" class="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors">
@@ -577,6 +570,13 @@ templ MobileBottomNav(ctx context.Context, user *models.User) {
 				<!-- Dropdown Menu -->
 				<div x-show="open" @click.outside="open = false" x-cloak
 					 class="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+					<a href="/" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+						<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+						</svg>
+						{ T(ctx, "nav.home") }
+					</a>
+
 					<a href="/merchants" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
 						<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -593,16 +593,17 @@ templ MobileBottomNav(ctx context.Context, user *models.User) {
 
 					<div class="border-t border-gray-200 my-2"></div>
 
+					<div class="flex items-center px-4 py-3 text-sm text-gray-700">
+						<span class="text-lg mr-3">👤</span>
+						{ user.DisplayName() }
+					</div>
+
 					<a href="/auth/logout" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-gray-50">
 						<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
 						</svg>
 						{ T(ctx, "nav.logout") }
 					</a>
-
-					<div class="px-4 py-2 border-t border-gray-200">
-						<p class="text-xs text-gray-500">👤 { user.DisplayName() }</p>
-					</div>
 				</div>
 			</div>
 		</div>
