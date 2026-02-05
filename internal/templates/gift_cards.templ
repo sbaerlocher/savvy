@@ -24,6 +24,9 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 					initialized: false,
 
 					init() {
+					// Load filters from localStorage
+					this.loadFilters();
+
 						const cardElements = document.querySelectorAll('[x-show]');
 						this.giftCards = Array.from(cardElements).map(el => {
 							const match = el.getAttribute('x-show').match(/isVisible\('([^']*)', '([^']*)', '([^']*)', '([^']*)'\)/);
@@ -38,6 +41,35 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 						this.updateVisibility();
 						this.initialized = true;
 					},
+
+				loadFilters() {
+					try {
+						const saved = localStorage.getItem('savvy_gift_cards_filters');
+						if (saved) {
+							const filters = JSON.parse(saved);
+							this.search = filters.search || '';
+							this.ownerFilter = filters.ownerFilter || 'all';
+							this.statusFilter = filters.statusFilter || 'active';
+							this.sortBy = filters.sortBy || 'merchant-asc';
+						}
+					} catch (e) {
+						console.error('Failed to load filters:', e);
+					}
+				},
+
+				saveFilters() {
+					try {
+						const filters = {
+							search: this.search,
+							ownerFilter: this.ownerFilter,
+							statusFilter: this.statusFilter,
+							sortBy: this.sortBy
+						};
+						localStorage.setItem('savvy_gift_cards_filters', JSON.stringify(filters));
+					} catch (e) {
+						console.error('Failed to save filters:', e);
+					}
+				},
 
 					isVisible(merchant, created, status, ownerId) {
 						const searchMatches = merchant.toLowerCase().includes(this.search.toLowerCase());
@@ -60,6 +92,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 					},
 
 					updateVisibility() {
+					this.saveFilters();
 						this.$nextTick(() => {
 							const visible = this.giftCards.filter(card =>
 								card.merchant.toLowerCase().includes(this.search.toLowerCase())
@@ -69,6 +102,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 					},
 
 					updateSort() {
+					this.saveFilters();
 						const container = this.giftCards[0]?.element.parentElement;
 						if (!container) return;
 
@@ -222,7 +256,7 @@ templ GiftCardsIndex(ctx context.Context, view views.GiftCardIndexView) {
 										alt={ fmt.Sprintf("%s Barcode", giftCard.BarcodeType) }
 										class="h-12 w-auto object-contain"/>
 								</div>
-								<p class="text-center text-xs text-gray-600 font-mono">{ giftCard.CardNumber }</p>
+								<p class="text-center text-xs text-gray-600 font-mono break-all px-1">{ giftCard.CardNumber }</p>
 							</div>
 
 							<div class="flex justify-between text-xs text-gray-600">
@@ -346,7 +380,7 @@ templ GiftCardsShow(ctx context.Context, csrfToken string, view views.GiftCardSh
 									class="inline-flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
 									:disabled="$store.offline && !$store.offline.isOnline"
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
-									<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "transfer.button") }</span>
+									<span x-show="!($store.offline && !$store.offline.isOnline)">→ { T(ctx, "transfer.button") }</span>
 									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "transfer.button") }</span>
 								</button>
 							</div>
@@ -470,7 +504,7 @@ templ GiftCardsNew(ctx context.Context, csrfToken string, view views.GiftCardEdi
 									<button
 										type="button"
 										@click="startScanning()"
-										class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+										class="flex-shrink-0 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
 										title={ T(ctx, "cards.form.scan_camera") }>
 										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -774,7 +808,7 @@ templ GiftCardsEdit(ctx context.Context, csrfToken string, view views.GiftCardEd
 							<button
 								type="button"
 								@click="startScanning()"
-								class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+								class="flex-shrink-0 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
 								title={ T(ctx, "cards.form.scan_camera") }>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -1457,10 +1491,10 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 		<div class="p-6">
 			// Single row: Händler | "Meine Geschenkkarte"/"Geschenkkarte von..." | Bearbeiten (rechtsbündig)
 			<div class="mb-6">
-				<div class="flex items-center justify-between gap-4 mb-3">
+				<div class="flex items-start justify-between gap-4 mb-3">
 					<div class="flex items-baseline gap-3 flex-wrap">
-						<h1 class="text-2xl font-bold text-gray-900">{ giftCard.MerchantName }</h1>
-						<span class="text-lg font-semibold" style={ fmt.Sprintf("color: %s", giftCard.GetColor()) }>
+						<h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{ giftCard.MerchantName }</h1>
+						<span class="text-sm sm:text-base md:text-lg font-semibold" style={ fmt.Sprintf("color: %s", giftCard.GetColor()) }>
 							{ fmt.Sprintf("%.2f %s", giftCard.CurrentBalance, giftCard.Currency) }
 							<span class="text-sm text-gray-500 font-normal">
 								({ fmt.Sprintf("%d%% übrig", giftCardBalancePercent(giftCard)) })
@@ -1518,7 +1552,7 @@ templ GiftCardDetailView(ctx context.Context, csrfToken string, giftCard models.
 				</div>
 
 				// Card number (no barcode type)
-				<p class="font-mono text-sm text-gray-600">{ giftCard.CardNumber }</p>
+				<p class="font-mono text-sm text-gray-600 break-all px-2">{ giftCard.CardNumber }</p>
 			</div>
 		</div>
 	</div>
@@ -1572,7 +1606,7 @@ templ GiftCardDetailEdit(ctx context.Context, csrfToken string, giftCard models.
 						<button
 							type="button"
 							@click="startScanning()"
-							class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
+							class="flex-shrink-0 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white border border-red-600 rounded-md flex items-center gap-2"
 							title={ T(ctx, "cards.form.scan_camera") }>
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>

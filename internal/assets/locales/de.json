@@ -1309,11 +1309,11 @@
   },
   {
     "id": "transfer.title",
-    "translation": "Eigentümer"
+    "translation": "Besitzerwechsel"
   },
   {
     "id": "transfer.button",
-    "translation": "Übertragen"
+    "translation": "Übergeben"
   },
   {
     "id": "transfer.warning",
@@ -1353,7 +1353,7 @@
   },
   {
     "id": "transfer.confirm",
-    "translation": "Jetzt übertragen"
+    "translation": "Jetzt übergeben"
   },
   {
     "id": "share.add",

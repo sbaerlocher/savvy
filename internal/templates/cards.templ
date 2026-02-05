@@ -152,7 +152,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 										alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
 										class="h-16 w-auto object-contain"/>
 								</div>
-								<p class="text-center text-xs text-gray-600 font-mono">{ card.CardNumber }</p>
+								<p class="text-center text-xs text-gray-600 font-mono break-all px-1">{ card.CardNumber }</p>
 							</div>
 
 							if card.Notes != "" {
@@ -200,6 +200,35 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 							this.initialized = true;
 						},
 
+				loadFilters() {
+					try {
+						const saved = localStorage.getItem('savvy_cards_filters');
+						if (saved) {
+							const filters = JSON.parse(saved);
+							this.search = filters.search || '';
+							this.sortBy = filters.sortBy || 'name-asc';
+							this.ownerFilter = filters.ownerFilter || 'all';
+							this.statusFilter = filters.statusFilter || 'active';
+						}
+					} catch (e) {
+						console.error('Failed to load filters:', e);
+					}
+				},
+
+				saveFilters() {
+					try {
+						const filters = {
+							search: this.search,
+							sortBy: this.sortBy,
+							ownerFilter: this.ownerFilter,
+							statusFilter: this.statusFilter
+						};
+						localStorage.setItem('savvy_cards_filters', JSON.stringify(filters));
+					} catch (e) {
+						console.error('Failed to save filters:', e);
+					}
+				},
+
 						isVisible(merchant, program, created, ownerId, status) {
 							const searchLower = this.search.toLowerCase();
 							const searchMatches = merchant.toLowerCase().includes(searchLower) ||
@@ -222,6 +251,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 						},
 
 						updateVisibility() {
+					this.saveFilters();
 							this.$nextTick(() => {
 								const visible = this.cards.filter(card =>
 									card.merchant.toLowerCase().includes(this.search.toLowerCase()) ||
@@ -232,6 +262,7 @@ templ CardsIndex(ctx context.Context, view views.CardIndexView) {
 						},
 
 						updateSort() {
+					this.saveFilters();
 							const container = this.cards[0]?.element.parentElement;
 							if (!container) return;
 
@@ -288,7 +319,7 @@ templ CardsShow(ctx context.Context, csrfToken string, view views.CardShowView) 
 									:disabled="$store.offline && !$store.offline.isOnline"
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : 'hover:bg-orange-700'"
 									class="inline-flex items-center gap-1 bg-orange-600 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
-									<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "transfer.button") }</span>
+									<span x-show="!($store.offline && !$store.offline.isOnline)">→ { T(ctx, "transfer.button") }</span>
 									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "transfer.button") }</span>
 								</button>
 							</div>
@@ -424,7 +455,7 @@ templ CardsNew(ctx context.Context, csrfToken string, view views.CardEditView) {
 							<button
 								type="button"
 								@click="startScanning()"
-								class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+								class="flex-shrink-0 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
 								title={ T(ctx, "cards.form.scan_camera") }>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -674,7 +705,7 @@ templ CardsEdit(ctx context.Context, csrfToken string, view views.CardEditView) 
 							<button
 								type="button"
 								@click="startScanning()"
-								class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+								class="flex-shrink-0 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
 								title={ T(ctx, "cards.form.scan_camera") }>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -1173,10 +1204,10 @@ templ CardDetailView(ctx context.Context, csrfToken string, card models.Card, cu
 		<div class="p-6">
 			// Single row: Händler | Programm | Von... | Favorit | Bearbeiten (rechtsbündig)
 			<div class="mb-6">
-				<div class="flex items-center justify-between gap-4 mb-3">
+				<div class="flex items-start justify-between gap-4 mb-3">
 					<div class="flex items-baseline gap-3 flex-wrap">
-						<h1 class="text-2xl font-bold text-gray-900">{ card.MerchantName }</h1>
-						<span class="text-lg text-gray-700">{ card.Program }</span>
+						<h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{ card.MerchantName }</h1>
+						<span class="text-sm sm:text-base md:text-lg text-gray-700">{ card.Program }</span>
 						if card.UserID != nil && card.User != nil {
 							if *card.UserID == currentUser.ID {
 								<span class="text-sm text-gray-500 italic">{ T(ctx, "cards.my_card") }</span>
@@ -1221,7 +1252,7 @@ templ CardDetailView(ctx context.Context, csrfToken string, card models.Card, cu
 					src={ templ.URL("/barcode/" + GenerateCardBarcodeToken(ctx, card.ID)) }
 					alt={ fmt.Sprintf("%s Barcode", card.BarcodeType) }
 					class="mx-auto max-h-32"/>
-				<p class="font-mono text-lg font-semibold text-gray-900 mt-4">{ card.CardNumber }</p>
+				<p class="font-mono text-sm sm:text-base md:text-lg font-semibold text-gray-900 mt-4 break-all">{ card.CardNumber }</p>
 			</div>
 		</div>
 	</div>
@@ -1288,7 +1319,7 @@ templ CardDetailEdit(ctx context.Context, csrfToken string, card models.Card, me
 						<button
 							type="button"
 							@click="startScanning()"
-							class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
+							class="flex-shrink-0 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 rounded-md flex items-center gap-2"
 							title={ T(ctx, "cards.form.scan_camera") }>
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>

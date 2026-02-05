@@ -24,6 +24,9 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 					initialized: false,
 
 					init() {
+					// Load filters from localStorage
+					this.loadFilters();
+
 						const voucherElements = document.querySelectorAll('[x-show]');
 						this.vouchers = Array.from(voucherElements).map(el => {
 							const match = el.getAttribute('x-show').match(/isVisible\('([^']*)', '([^']*)', '([^']*)', '([^']*)', '([^']*)'\)/);
@@ -39,6 +42,33 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 						this.updateVisibility();
 						this.initialized = true;
 					},
+
+				loadFilters() {
+					try {
+						const saved = localStorage.getItem('savvy_vouchers_filters');
+						if (saved) {
+							const filters = JSON.parse(saved);
+							this.search = filters.search || '';
+							ownerFilter = filters.ownerFilter || 'all';
+							this.statusFilter = filters.statusFilter || 'valid';
+						}
+					} catch (e) {
+						console.error('Failed to load filters:', e);
+					}
+				},
+
+				saveFilters() {
+					try {
+						const filters = {
+							search: this.search,
+							ownerFilter: this.ownerFilter,
+							statusFilter: this.statusFilter
+						};
+						localStorage.setItem('savvy_vouchers_filters', JSON.stringify(filters));
+					} catch (e) {
+						console.error('Failed to save filters:', e);
+					}
+				},
 
 					isVisible(merchantName, code, description, status, ownerId) {
 						const searchMatches = merchantName.toLowerCase().includes(this.search.toLowerCase()) ||
@@ -57,6 +87,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 					},
 
 					updateVisibility() {
+					this.saveFilters();
 						this.visibleCount = 0;
 						this.vouchers.forEach(voucher => {
 							const visible = this.isVisible(
@@ -194,7 +225,7 @@ templ VouchersIndex(ctx context.Context, view views.VoucherIndexView) {
 										src={ templ.URL("/barcode/" + GenerateVoucherBarcodeToken(ctx, voucher.ID)) }
 										alt={ fmt.Sprintf("%s Barcode", voucher.BarcodeType) }
 										class="mx-auto max-h-16"/>
-									<p class="text-xs text-gray-600 font-mono mt-1">{ voucher.Code }</p>
+									<p class="text-xs text-gray-600 font-mono mt-1 break-all px-1">{ voucher.Code }</p>
 								</div>
 							}
 
@@ -246,7 +277,7 @@ templ VouchersShow(ctx context.Context, csrfToken string, view views.VoucherShow
 									class="inline-flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
 									:disabled="$store.offline && !$store.offline.isOnline"
 									:class="$store.offline && !$store.offline.isOnline ? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]' : ''">
-									<span x-show="!($store.offline && !$store.offline.isOnline)">{ T(ctx, "transfer.button") }</span>
+									<span x-show="!($store.offline && !$store.offline.isOnline)">→ { T(ctx, "transfer.button") }</span>
 									<span x-show="$store.offline && !$store.offline.isOnline" x-cloak>🔒 { T(ctx, "transfer.button") }</span>
 								</button>
 							</div>
@@ -361,7 +392,7 @@ templ VouchersNew(ctx context.Context, csrfToken string, view views.VoucherEditV
 									<button
 										type="button"
 										@click="startScanning()"
-										class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
+										class="flex-shrink-0 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
 										title={ T(ctx, "cards.form.scan_camera") }>
 										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -676,7 +707,7 @@ templ VouchersEdit(ctx context.Context, csrfToken string, view views.VoucherEdit
 							<button
 								type="button"
 								@click="startScanning()"
-								class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
+								class="flex-shrink-0 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
 								title={ T(ctx, "cards.form.scan_camera") }>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -1160,9 +1191,9 @@ templ VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vo
 		<div class="p-6">
 			// Single row: Händler | Nutzungslimit | Besitzer | Bearbeiten (rechtsbündig)
 			<div class="mb-6">
-				<div class="flex items-center justify-between gap-4 mb-3">
+				<div class="flex items-start justify-between gap-4 mb-3">
 					<div class="flex items-baseline gap-3 flex-wrap">
-						<h1 class="text-2xl font-bold text-gray-900">{ voucher.MerchantName }</h1>
+						<h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{ voucher.MerchantName }</h1>
 						<span class="text-sm text-gray-600">{ formatUsageLimitShort(ctx, voucher) }</span>
 					</div>
 					<div class="flex gap-2 flex-shrink-0">
@@ -1203,7 +1234,7 @@ templ VoucherDetailView(ctx context.Context, csrfToken string, voucher models.Vo
 					class="mx-auto max-h-32 mb-2"/>
 
 				// Barcode Code
-				<p class="text-center text-sm text-gray-600 font-mono mb-3">{ voucher.Code }</p>
+				<p class="text-center text-sm text-gray-600 font-mono mb-3 break-all px-2">{ voucher.Code }</p>
 
 				// Gutscheinwert + Beschreibung in gleicher Zeile
 				<div class="flex items-baseline justify-center gap-3 flex-wrap">
@@ -1272,7 +1303,7 @@ templ VoucherDetailEdit(ctx context.Context, csrfToken string, voucher models.Vo
 						<button
 							type="button"
 							@click="startScanning()"
-							class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
+							class="flex-shrink-0 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white border border-green-600 rounded-md flex items-center gap-2"
 							title={ T(ctx, "cards.form.scan_camera") }>
 							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
