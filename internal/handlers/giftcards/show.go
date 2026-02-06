@@ -8,7 +8,7 @@ import (
 	"savvy/internal/views"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Show displays a single gift card with transactions

@@ -7,7 +7,7 @@ import (
 	"savvy/internal/templates"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Edit shows the form to edit a merchant

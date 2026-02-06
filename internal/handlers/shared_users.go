@@ -7,7 +7,7 @@ import (
 	"savvy/internal/services"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SharedUserResponse represents a user that has been shared with

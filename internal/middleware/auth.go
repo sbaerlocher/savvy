@@ -8,7 +8,7 @@ import (
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ContextKey is a custom type for context keys to avoid collisions

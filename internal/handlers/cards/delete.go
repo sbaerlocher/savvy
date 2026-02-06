@@ -7,7 +7,7 @@ import (
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Delete deletes a card

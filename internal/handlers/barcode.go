@@ -19,7 +19,7 @@ import (
 	"github.com/boombuler/barcode/pdf417"
 	"github.com/boombuler/barcode/qr"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // BarcodeHandler handles barcode generation with authorization checks.

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"savvy/internal/models"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RequireImpersonationOrAdmin checks if the user is an admin OR currently impersonating another user.
