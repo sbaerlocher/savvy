@@ -5,6 +5,7 @@ package shares
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -14,17 +15,19 @@ import (
 
 // CardShareAdapter implements ShareAdapter for Card resources.
 type CardShareAdapter struct {
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewCardShareAdapter creates a new card share adapter.
-func NewCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *CardShareAdapter {
+func NewCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *CardShareAdapter {
 	return &CardShareAdapter{
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 
@@ -101,7 +104,39 @@ func (a *CardShareAdapter) CreateShare(ctx context.Context, req CreateShareReque
 		CanDelete:    req.CanDelete,
 	}
 
-	return a.db.WithContext(ctx).Create(&share).Error
+	if err := a.db.WithContext(ctx).Create(&share).Error; err != nil {
+		return err
+	}
+
+	// Create notification for the shared user
+	var card models.Card
+	if err := a.db.WithContext(ctx).Where("id = ?", req.ResourceID).First(&card).Error; err == nil {
+		if card.UserID != nil {
+			var ownerUser models.User
+			if err := a.db.WithContext(ctx).Where("id = ?", *card.UserID).First(&ownerUser).Error; err == nil {
+				// Best effort notification - don't fail the share if notification fails
+				if err := a.notificationService.CreateShareNotification(
+					ctx,
+					sharedUser.ID,
+					*card.UserID,
+					ownerUser.DisplayName(),
+					"card",
+					req.ResourceID,
+					map[string]bool{
+						"can_edit":   req.CanEdit,
+						"can_delete": req.CanDelete,
+					},
+				); err != nil {
+					slog.Warn("Failed to create share notification for card",
+						"card_id", req.ResourceID,
+						"shared_with_id", sharedUser.ID,
+						"error", err)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // UpdateShare updates share permissions.

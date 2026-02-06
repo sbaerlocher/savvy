@@ -9,17 +9,18 @@ import (
 
 // Container holds all service instances.
 type Container struct {
-	CardService      CardServiceInterface
-	VoucherService   VoucherServiceInterface
-	GiftCardService  GiftCardServiceInterface
-	MerchantService  MerchantServiceInterface
-	UserService      UserServiceInterface
-	ShareService     ShareServiceInterface
-	FavoriteService  FavoriteServiceInterface
-	AuthzService     AuthzServiceInterface
-	DashboardService DashboardServiceInterface
-	AdminService     AdminServiceInterface
-	TransferService  TransferServiceInterface
+	CardService         CardServiceInterface
+	VoucherService      VoucherServiceInterface
+	GiftCardService     GiftCardServiceInterface
+	MerchantService     MerchantServiceInterface
+	UserService         UserServiceInterface
+	ShareService        ShareServiceInterface
+	FavoriteService     FavoriteServiceInterface
+	AuthzService        AuthzServiceInterface
+	DashboardService    DashboardServiceInterface
+	AdminService        AdminServiceInterface
+	TransferService     TransferServiceInterface
+	NotificationService NotificationServiceInterface
 }
 
 // NewContainer creates a new service container with all services initialized.
@@ -31,19 +32,24 @@ func NewContainer(db *gorm.DB) *Container {
 	merchantRepo := repository.NewMerchantRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	favoriteRepo := repository.NewFavoriteRepository(db)
+	notificationRepo := repository.NewNotificationRepository(db)
+
+	// Initialize notification service first (needed by ShareService and TransferService)
+	notificationService := NewNotificationService(notificationRepo)
 
 	// Initialize services
 	return &Container{
-		CardService:      NewCardService(cardRepo),
-		VoucherService:   NewVoucherService(voucherRepo),
-		GiftCardService:  NewGiftCardService(giftCardRepo),
-		MerchantService:  NewMerchantService(merchantRepo),
-		UserService:      NewUserService(userRepo),
-		ShareService:     NewShareService(cardRepo, voucherRepo, giftCardRepo, db),
-		FavoriteService:  NewFavoriteService(favoriteRepo, cardRepo, voucherRepo, giftCardRepo),
-		AuthzService:     NewAuthzService(db),
-		DashboardService: NewDashboardService(db),
-		AdminService:     NewAdminService(db),
-		TransferService:  NewTransferService(db, cardRepo, voucherRepo, giftCardRepo),
+		CardService:         NewCardService(cardRepo),
+		VoucherService:      NewVoucherService(voucherRepo),
+		GiftCardService:     NewGiftCardService(giftCardRepo),
+		MerchantService:     NewMerchantService(merchantRepo),
+		UserService:         NewUserService(userRepo),
+		ShareService:        NewShareService(cardRepo, voucherRepo, giftCardRepo, db, notificationService),
+		FavoriteService:     NewFavoriteService(favoriteRepo, cardRepo, voucherRepo, giftCardRepo),
+		AuthzService:        NewAuthzService(db),
+		DashboardService:    NewDashboardService(db),
+		AdminService:        NewAdminService(db),
+		TransferService:     NewTransferService(db, cardRepo, voucherRepo, giftCardRepo, notificationService),
+		NotificationService: notificationService,
 	}
 }

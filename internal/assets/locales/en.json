@@ -1990,5 +1990,81 @@
   {
     "id": "admin.form.last_name_required",
     "translation": "Last name *"
+  },
+  {
+    "id": "nav.notifications",
+    "translation": "Notifications"
+  },
+  {
+    "id": "notifications.title",
+    "translation": "Notifications"
+  },
+  {
+    "id": "notifications.no_notifications",
+    "translation": "No notifications"
+  },
+  {
+    "id": "notifications.mark_all_read",
+    "translation": "Mark all as read"
+  },
+  {
+    "id": "notifications.mark_read",
+    "translation": "Mark as read"
+  },
+  {
+    "id": "notifications.archive",
+    "translation": "Archive"
+  },
+  {
+    "id": "notifications.archive_confirm",
+    "translation": "Archive this notification?"
+  },
+  {
+    "id": "notifications.view_resource",
+    "translation": "View"
+  },
+  {
+    "id": "notifications.transfer.title",
+    "translation": "Ownership transferred"
+  },
+  {
+    "id": "notifications.transfer.message",
+    "translation": "{{.FromUser}} has transferred {{.ResourceType}} to you."
+  },
+  {
+    "id": "notifications.share.title",
+    "translation": "Shared with you"
+  },
+  {
+    "id": "notifications.share.message",
+    "translation": "{{.FromUser}} has shared {{.ResourceType}} with you."
+  },
+  {
+    "id": "notifications.resource_types.card",
+    "translation": "a card"
+  },
+  {
+    "id": "notifications.resource_types.voucher",
+    "translation": "a voucher"
+  },
+  {
+    "id": "notifications.resource_types.gift_card",
+    "translation": "a gift card"
+  },
+  {
+    "id": "notifications.permissions.can_edit",
+    "translation": "Edit"
+  },
+  {
+    "id": "notifications.permissions.can_delete",
+    "translation": "Delete"
+  },
+  {
+    "id": "notifications.permissions.can_edit_transactions",
+    "translation": "Edit transactions"
+  },
+  {
+    "id": "notifications.view_all",
+    "translation": "View all"
   }
 ]

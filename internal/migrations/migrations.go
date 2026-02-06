@@ -71,6 +71,9 @@ func GetMigrations() []*gormigrate.Migration {
 		removeVoucherUsedCount(),
 		removeUnusedColorColumns(),
 		fixGiftCardBalanceExcludeSoftDeletes(),
+		addNotifications(),
+		addNotificationsSoftDelete(),
+		fixShareUniqueConstraintsForSoftDelete(),
 	}
 }
 
@@ -1076,6 +1079,192 @@ func fixGiftCardBalanceExcludeSoftDeletes() *gormigrate.Migration {
 				END;
 				$$ LANGUAGE plpgsql;
 			`)
+		},
+	}
+}
+
+// addNotifications creates the notifications table for in-app notifications
+// Migration 000015 - 2026-02-06
+func addNotifications() *gormigrate.Migration {
+	return &gormigrate.Migration{
+		ID: "202602060015_add_notifications",
+		Migrate: func(tx *gorm.DB) error {
+			// Define Notification struct for migration
+			type Notification struct {
+				ID           uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+				UserID       uuid.UUID  `gorm:"type:uuid;not null;index:idx_notifications_user_id"`
+				Type         string     `gorm:"type:varchar(50);not null;index:idx_notifications_type"`
+				ResourceType string     `gorm:"type:varchar(50);not null"`
+				ResourceID   uuid.UUID  `gorm:"type:uuid;not null;index:idx_notifications_resource"`
+				Metadata     string     `gorm:"type:jsonb;default:'{}'"`
+				IsRead       bool       `gorm:"default:false;index:idx_notifications_is_read"`
+				ReadAt       *time.Time `gorm:"type:timestamp with time zone"`
+				CreatedAt    time.Time  `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP;index:idx_notifications_created_at"`
+				UpdatedAt    time.Time  `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP"`
+			}
+
+			// Create table
+			if err := tx.AutoMigrate(&Notification{}); err != nil {
+				return err
+			}
+
+			// Add foreign key constraint for user_id
+			if err := tx.Exec(`
+				ALTER TABLE notifications
+				ADD CONSTRAINT fk_notifications_user
+				FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add composite index for unread notifications query (most common query)
+			if err := tx.Exec(`
+				CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
+				ON notifications (user_id, created_at DESC)
+				WHERE is_read = FALSE;
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add composite index for resource lookups
+			if err := tx.Exec(`
+				CREATE INDEX IF NOT EXISTS idx_notifications_resource_lookup
+				ON notifications (resource_type, resource_id, created_at DESC);
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add table comment
+			if err := tx.Exec(`
+				COMMENT ON TABLE notifications IS 'In-app notifications for share and transfer events';
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add column comments
+			if err := tx.Exec(`
+				COMMENT ON COLUMN notifications.type IS 'Notification type: share_received, transfer_received';
+				COMMENT ON COLUMN notifications.resource_type IS 'Type of resource: card, voucher, gift_card';
+				COMMENT ON COLUMN notifications.resource_id IS 'UUID of the resource';
+				COMMENT ON COLUMN notifications.metadata IS 'JSONB metadata: from_user_id, from_user_name, permissions, etc.';
+			`).Error; err != nil {
+				return err
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			return tx.Exec("DROP TABLE IF EXISTS notifications CASCADE").Error
+		},
+	}
+}
+
+// addNotificationsSoftDelete adds soft delete support to notifications table
+// Migration 000016 - 2026-02-06
+func addNotificationsSoftDelete() *gormigrate.Migration {
+	return &gormigrate.Migration{
+		ID: "202602060016_add_notifications_soft_delete",
+		Migrate: func(tx *gorm.DB) error {
+			// Add deleted_at column with index
+			if err := tx.Exec(`
+				ALTER TABLE notifications
+				ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add index on deleted_at for soft delete queries
+			if err := tx.Exec(`
+				CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at
+				ON notifications (deleted_at);
+			`).Error; err != nil {
+				return err
+			}
+
+			// Add column comment
+			if err := tx.Exec(`
+				COMMENT ON COLUMN notifications.deleted_at IS 'Soft delete timestamp - NULL means not deleted';
+			`).Error; err != nil {
+				return err
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// Drop index and column
+			if err := tx.Exec("DROP INDEX IF EXISTS idx_notifications_deleted_at").Error; err != nil {
+				return err
+			}
+			return tx.Exec("ALTER TABLE notifications DROP COLUMN IF EXISTS deleted_at").Error
+		},
+	}
+}
+
+// fixShareUniqueConstraintsForSoftDelete fixes unique constraints to allow re-sharing after soft delete
+// Migration 000017 - 2026-02-06
+func fixShareUniqueConstraintsForSoftDelete() *gormigrate.Migration {
+	return &gormigrate.Migration{
+		ID: "202602060017_fix_share_unique_constraints_for_soft_delete",
+		Migrate: func(tx *gorm.DB) error {
+			// Card Shares: Drop constraint and create partial unique index (only for non-deleted)
+			if err := tx.Exec(`
+				ALTER TABLE card_shares DROP CONSTRAINT IF EXISTS card_shares_unique;
+				CREATE UNIQUE INDEX IF NOT EXISTS card_shares_unique_active
+				ON card_shares (card_id, shared_with_id)
+				WHERE deleted_at IS NULL;
+			`).Error; err != nil {
+				return err
+			}
+
+			// Voucher Shares: Drop constraint and create partial unique index (only for non-deleted)
+			if err := tx.Exec(`
+				ALTER TABLE voucher_shares DROP CONSTRAINT IF EXISTS voucher_shares_unique;
+				CREATE UNIQUE INDEX IF NOT EXISTS voucher_shares_unique_active
+				ON voucher_shares (voucher_id, shared_with_id)
+				WHERE deleted_at IS NULL;
+			`).Error; err != nil {
+				return err
+			}
+
+			// Gift Card Shares: Drop constraint and create partial unique index (only for non-deleted)
+			if err := tx.Exec(`
+				ALTER TABLE gift_card_shares DROP CONSTRAINT IF EXISTS gift_card_shares_unique;
+				CREATE UNIQUE INDEX IF NOT EXISTS gift_card_shares_unique_active
+				ON gift_card_shares (gift_card_id, shared_with_id)
+				WHERE deleted_at IS NULL;
+			`).Error; err != nil {
+				return err
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// Restore original unique constraints (without WHERE clause)
+			if err := tx.Exec(`
+				DROP INDEX IF EXISTS card_shares_unique_active;
+				CREATE UNIQUE INDEX card_shares_unique
+				ON card_shares (card_id, shared_with_id);
+			`).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Exec(`
+				DROP INDEX IF EXISTS voucher_shares_unique_active;
+				CREATE UNIQUE INDEX voucher_shares_unique
+				ON voucher_shares (voucher_id, shared_with_id);
+			`).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Exec(`
+				DROP INDEX IF EXISTS gift_card_shares_unique_active;
+				CREATE UNIQUE INDEX gift_card_shares_unique
+				ON gift_card_shares (gift_card_id, shared_with_id);
+			`).Error; err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 }

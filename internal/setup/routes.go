@@ -65,9 +65,9 @@ func RegisterRoutes(rc *RouteConfig) {
 		database.DB,
 	)
 
-	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
-	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
-	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService)
+	cardSharesHandler := handlers.NewCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService, serviceContainer.NotificationService)
+	voucherSharesHandler := handlers.NewVoucherSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService, serviceContainer.NotificationService)
+	giftCardSharesHandler := handlers.NewGiftCardSharesHandler(database.DB, serviceContainer.AuthzService, serviceContainer.UserService, serviceContainer.NotificationService)
 	favoritesHandler := handlers.NewFavoritesHandler(serviceContainer.AuthzService, serviceContainer.FavoriteService)
 
 	barcodeHandler := handlers.NewBarcodeHandler(
@@ -81,6 +81,7 @@ func RegisterRoutes(rc *RouteConfig) {
 	authHandler := handlers.NewAuthHandler(serviceContainer.UserService)
 	oauthHandler := handlers.NewOAuthHandler(serviceContainer.UserService)
 	sharedUsersHandler := handlers.NewSharedUsersHandler(serviceContainer.ShareService)
+	notificationHandler := handlers.NewNotificationHandler(serviceContainer.NotificationService)
 	adminHandler := handlers.NewAdminHandler(serviceContainer.AdminService, serviceContainer.UserService)
 
 	// Rate limiter for auth endpoints (5 requests per second, burst of 10)
@@ -113,6 +114,16 @@ func RegisterRoutes(rc *RouteConfig) {
 
 	// HTMX autocomplete endpoint (returns HTML fragment)
 	protected.GET("/api/shared-users", sharedUsersHandler.Autocomplete)
+
+	// ========================================
+	// Notifications
+	// ========================================
+	protected.GET("/notifications", notificationHandler.ShowNotifications)
+	protected.GET("/api/notifications/count", notificationHandler.GetUnreadCount)
+	protected.GET("/api/notifications/preview", notificationHandler.GetNotificationsDropdown)
+	protected.POST("/notifications/:id/read", notificationHandler.MarkAsRead)
+	protected.POST("/notifications/mark-all-read", notificationHandler.MarkAllAsRead)
+	protected.DELETE("/notifications/:id", notificationHandler.DeleteNotification)
 
 	// ========================================
 	// Merchants Routes (Read-Only for All Users)

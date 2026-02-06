@@ -15,20 +15,22 @@ import (
 // CardSharesHandler handles card sharing operations using the unified share handler.
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type CardSharesHandler struct {
-	baseHandler  *shares.BaseShareHandler
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	baseHandler         *shares.BaseShareHandler
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewCardSharesHandler creates a new card shares handler.
-func NewCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *CardSharesHandler {
-	adapter := shares.NewCardShareAdapter(db, authzService, userService)
+func NewCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *CardSharesHandler {
+	adapter := shares.NewCardShareAdapter(db, authzService, userService, notificationService)
 	return &CardSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		baseHandler:         shares.NewBaseShareHandler(adapter, userService),
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 

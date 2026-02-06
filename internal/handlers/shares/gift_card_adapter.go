@@ -5,6 +5,7 @@ package shares
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,17 +16,19 @@ import (
 // GiftCardShareAdapter implements ShareAdapter for GiftCard resources.
 // Gift cards support granular permissions including CanEditTransactions.
 type GiftCardShareAdapter struct {
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewGiftCardShareAdapter creates a new gift card share adapter.
-func NewGiftCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *GiftCardShareAdapter {
+func NewGiftCardShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *GiftCardShareAdapter {
 	return &GiftCardShareAdapter{
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 
@@ -104,7 +107,40 @@ func (a *GiftCardShareAdapter) CreateShare(ctx context.Context, req CreateShareR
 		CanEditTransactions: req.CanEditTransactions, // Gift card specific
 	}
 
-	return a.db.WithContext(ctx).Create(&share).Error
+	if err := a.db.WithContext(ctx).Create(&share).Error; err != nil {
+		return err
+	}
+
+	// Create notification for the shared user
+	var giftCard models.GiftCard
+	if err := a.db.WithContext(ctx).Where("id = ?", req.ResourceID).First(&giftCard).Error; err == nil {
+		if giftCard.UserID != nil {
+			var ownerUser models.User
+			if err := a.db.WithContext(ctx).Where("id = ?", *giftCard.UserID).First(&ownerUser).Error; err == nil {
+				// Best effort notification - don't fail the share if notification fails
+				if err := a.notificationService.CreateShareNotification(
+					ctx,
+					sharedUser.ID,
+					*giftCard.UserID,
+					ownerUser.DisplayName(),
+					"gift_card",
+					req.ResourceID,
+					map[string]bool{
+						"can_edit":              req.CanEdit,
+						"can_delete":            req.CanDelete,
+						"can_edit_transactions": req.CanEditTransactions,
+					},
+				); err != nil {
+					slog.Warn("Failed to create share notification for gift card",
+						"gift_card_id", req.ResourceID,
+						"shared_with_id", sharedUser.ID,
+						"error", err)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // UpdateShare updates share permissions.

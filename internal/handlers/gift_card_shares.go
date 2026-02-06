@@ -16,20 +16,22 @@ import (
 // Gift cards support granular permissions including CanEditTransactions.
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type GiftCardSharesHandler struct {
-	baseHandler  *shares.BaseShareHandler
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	baseHandler         *shares.BaseShareHandler
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewGiftCardSharesHandler creates a new gift card shares handler.
-func NewGiftCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *GiftCardSharesHandler {
-	adapter := shares.NewGiftCardShareAdapter(db, authzService, userService)
+func NewGiftCardSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *GiftCardSharesHandler {
+	adapter := shares.NewGiftCardShareAdapter(db, authzService, userService, notificationService)
 	return &GiftCardSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		baseHandler:         shares.NewBaseShareHandler(adapter, userService),
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 

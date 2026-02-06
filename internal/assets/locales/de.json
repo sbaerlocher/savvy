@@ -1396,6 +1396,10 @@
     "translation": "Transaktionen bearbeiten"
   },
   {
+    "id": "notifications.view_all",
+    "translation": "Alle ansehen"
+  },
+  {
     "id": "share.edit_permissions",
     "translation": "Berechtigungen bearbeiten"
   },
@@ -1990,5 +1994,81 @@
   {
     "id": "admin.form.last_name_required",
     "translation": "Nachname *"
+  },
+  {
+    "id": "nav.notifications",
+    "translation": "Benachrichtigungen"
+  },
+  {
+    "id": "notifications.title",
+    "translation": "Benachrichtigungen"
+  },
+  {
+    "id": "notifications.no_notifications",
+    "translation": "Keine Benachrichtigungen"
+  },
+  {
+    "id": "notifications.mark_all_read",
+    "translation": "Alle als gelesen markieren"
+  },
+  {
+    "id": "notifications.mark_read",
+    "translation": "Als gelesen markieren"
+  },
+  {
+    "id": "notifications.archive",
+    "translation": "Archivieren"
+  },
+  {
+    "id": "notifications.archive_confirm",
+    "translation": "Benachrichtigung archivieren?"
+  },
+  {
+    "id": "notifications.view_resource",
+    "translation": "Ansehen"
+  },
+  {
+    "id": "notifications.transfer.title",
+    "translation": "Eigentümerschaft übertragen"
+  },
+  {
+    "id": "notifications.transfer.message",
+    "translation": "{{.FromUser}} hat dir {{.ResourceType}} übertragen."
+  },
+  {
+    "id": "notifications.share.title",
+    "translation": "Mit dir geteilt"
+  },
+  {
+    "id": "notifications.share.message",
+    "translation": "{{.FromUser}} hat {{.ResourceType}} mit dir geteilt."
+  },
+  {
+    "id": "notifications.resource_types.card",
+    "translation": "eine Karte"
+  },
+  {
+    "id": "notifications.resource_types.voucher",
+    "translation": "einen Gutschein"
+  },
+  {
+    "id": "notifications.resource_types.gift_card",
+    "translation": "eine Geschenkkarte"
+  },
+  {
+    "id": "notifications.permissions.can_edit",
+    "translation": "Bearbeiten"
+  },
+  {
+    "id": "notifications.permissions.can_delete",
+    "translation": "Löschen"
+  },
+  {
+    "id": "notifications.permissions.can_edit_transactions",
+    "translation": "Transaktionen bearbeiten"
+  },
+  {
+    "id": "notifications.view_all",
+    "translation": "Alle ansehen"
   }
 ]

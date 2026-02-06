@@ -16,20 +16,22 @@ import (
 // Vouchers support read-only sharing only (no permission editing).
 // Eliminates code duplication by delegating to shares.BaseShareHandler.
 type VoucherSharesHandler struct {
-	baseHandler  *shares.BaseShareHandler
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	baseHandler         *shares.BaseShareHandler
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewVoucherSharesHandler creates a new voucher shares handler.
-func NewVoucherSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *VoucherSharesHandler {
-	adapter := shares.NewVoucherShareAdapter(db, authzService, userService)
+func NewVoucherSharesHandler(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *VoucherSharesHandler {
+	adapter := shares.NewVoucherShareAdapter(db, authzService, userService, notificationService)
 	return &VoucherSharesHandler{
-		baseHandler:  shares.NewBaseShareHandler(adapter, userService),
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		baseHandler:         shares.NewBaseShareHandler(adapter, userService),
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 

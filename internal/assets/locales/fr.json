@@ -1990,5 +1990,81 @@
   {
     "id": "admin.form.last_name_required",
     "translation": "Nom *"
+  },
+  {
+    "id": "nav.notifications",
+    "translation": "Notifications"
+  },
+  {
+    "id": "notifications.title",
+    "translation": "Notifications"
+  },
+  {
+    "id": "notifications.no_notifications",
+    "translation": "Aucune notification"
+  },
+  {
+    "id": "notifications.mark_all_read",
+    "translation": "Tout marquer comme lu"
+  },
+  {
+    "id": "notifications.mark_read",
+    "translation": "Marquer comme lu"
+  },
+  {
+    "id": "notifications.archive",
+    "translation": "Archiver"
+  },
+  {
+    "id": "notifications.archive_confirm",
+    "translation": "Archiver cette notification ?"
+  },
+  {
+    "id": "notifications.view_resource",
+    "translation": "Voir"
+  },
+  {
+    "id": "notifications.transfer.title",
+    "translation": "Propriété transférée"
+  },
+  {
+    "id": "notifications.transfer.message",
+    "translation": "{{.FromUser}} vous a transféré {{.ResourceType}}."
+  },
+  {
+    "id": "notifications.share.title",
+    "translation": "Partagé avec vous"
+  },
+  {
+    "id": "notifications.share.message",
+    "translation": "{{.FromUser}} a partagé {{.ResourceType}} avec vous."
+  },
+  {
+    "id": "notifications.resource_types.card",
+    "translation": "une carte"
+  },
+  {
+    "id": "notifications.resource_types.voucher",
+    "translation": "un bon d'achat"
+  },
+  {
+    "id": "notifications.resource_types.gift_card",
+    "translation": "une carte cadeau"
+  },
+  {
+    "id": "notifications.permissions.can_edit",
+    "translation": "Modifier"
+  },
+  {
+    "id": "notifications.permissions.can_delete",
+    "translation": "Supprimer"
+  },
+  {
+    "id": "notifications.permissions.can_edit_transactions",
+    "translation": "Modifier les transactions"
+  },
+  {
+    "id": "notifications.view_all",
+    "translation": "Tout voir"
   }
 ]

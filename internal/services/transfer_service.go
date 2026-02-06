@@ -4,6 +4,7 @@ package services
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
@@ -20,10 +21,11 @@ type TransferServiceInterface interface {
 
 // TransferService implements TransferServiceInterface.
 type TransferService struct {
-	db           *gorm.DB
-	cardRepo     repository.CardRepository
-	voucherRepo  repository.VoucherRepository
-	giftCardRepo repository.GiftCardRepository
+	db                  *gorm.DB
+	cardRepo            repository.CardRepository
+	voucherRepo         repository.VoucherRepository
+	giftCardRepo        repository.GiftCardRepository
+	notificationService NotificationServiceInterface
 }
 
 // NewTransferService creates a new transfer service.
@@ -32,12 +34,14 @@ func NewTransferService(
 	cardRepo repository.CardRepository,
 	voucherRepo repository.VoucherRepository,
 	giftCardRepo repository.GiftCardRepository,
+	notificationService NotificationServiceInterface,
 ) TransferServiceInterface {
 	return &TransferService{
-		db:           db,
-		cardRepo:     cardRepo,
-		voucherRepo:  voucherRepo,
-		giftCardRepo: giftCardRepo,
+		db:                  db,
+		cardRepo:            cardRepo,
+		voucherRepo:         voucherRepo,
+		giftCardRepo:        giftCardRepo,
+		notificationService: notificationService,
 	}
 }
 
@@ -79,6 +83,25 @@ func (s *TransferService) TransferCardOwnership(ctx context.Context, cardID, new
 	// 5. Delete ALL shares (clean slate)
 	if err := s.db.WithContext(ctx).Where("card_id = ?", cardID).Delete(&models.CardShare{}).Error; err != nil {
 		return err
+	}
+
+	// 6. Create notification for new owner
+	var currentUser models.User
+	if err := s.db.WithContext(ctx).Where("id = ?", currentOwnerID).First(&currentUser).Error; err == nil {
+		// Best effort notification - don't fail the transfer if notification fails
+		if err := s.notificationService.CreateTransferNotification(
+			ctx,
+			newOwnerID,
+			currentOwnerID,
+			currentUser.DisplayName(),
+			"card",
+			cardID,
+		); err != nil {
+			slog.Warn("Failed to create transfer notification for card",
+				"card_id", cardID,
+				"new_owner_id", newOwnerID,
+				"error", err)
+		}
 	}
 
 	return nil
@@ -124,6 +147,25 @@ func (s *TransferService) TransferVoucherOwnership(ctx context.Context, voucherI
 		return err
 	}
 
+	// 6. Create notification for new owner
+	var currentUser models.User
+	if err := s.db.WithContext(ctx).Where("id = ?", currentOwnerID).First(&currentUser).Error; err == nil {
+		// Best effort notification - don't fail the transfer if notification fails
+		if err := s.notificationService.CreateTransferNotification(
+			ctx,
+			newOwnerID,
+			currentOwnerID,
+			currentUser.DisplayName(),
+			"voucher",
+			voucherID,
+		); err != nil {
+			slog.Warn("Failed to create transfer notification for voucher",
+				"voucher_id", voucherID,
+				"new_owner_id", newOwnerID,
+				"error", err)
+		}
+	}
+
 	return nil
 }
 
@@ -165,6 +207,25 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 	// 5. Delete ALL shares (clean slate)
 	if err := s.db.WithContext(ctx).Where("gift_card_id = ?", giftCardID).Delete(&models.GiftCardShare{}).Error; err != nil {
 		return err
+	}
+
+	// 6. Create notification for new owner
+	var currentUser models.User
+	if err := s.db.WithContext(ctx).Where("id = ?", currentOwnerID).First(&currentUser).Error; err == nil {
+		// Best effort notification - don't fail the transfer if notification fails
+		if err := s.notificationService.CreateTransferNotification(
+			ctx,
+			newOwnerID,
+			currentOwnerID,
+			currentUser.DisplayName(),
+			"gift_card",
+			giftCardID,
+		); err != nil {
+			slog.Warn("Failed to create transfer notification for gift card",
+				"gift_card_id", giftCardID,
+				"new_owner_id", newOwnerID,
+				"error", err)
+		}
 	}
 
 	return nil

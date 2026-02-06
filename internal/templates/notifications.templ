@@ -1,0 +1,281 @@
+package templates
+
+import (
+	"context"
+	"savvy/internal/models"
+	"fmt"
+)
+
+templ NotificationsPage(ctx context.Context, user *models.User, notifications []models.Notification, unreadCount int64) {
+	@Layout(ctx, T(ctx, "notifications.title"), user, false) {
+		<div class="px-4">
+			<div class="mb-8">
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">
+					{ T(ctx, "notifications.title") }
+				</h1>
+
+				if len(notifications) > 0 {
+					<!-- Filter Row (like Cards) -->
+					<div class="flex flex-col sm:flex-row gap-3 mb-4">
+						if unreadCount > 0 {
+							<button
+								hx-post="/notifications/mark-all-read"
+								hx-swap="outerHTML"
+								hx-target="closest div.px-4"
+								class="inline-flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 whitespace-nowrap"
+							>
+								✓ { T(ctx, "notifications.mark_all_read") }
+							</button>
+						}
+					</div>
+				}
+
+				if len(notifications) == 0 {
+					<div class="bg-white rounded-lg shadow-md p-8 text-center">
+						<div class="text-gray-400 mb-4">
+							<svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+							</svg>
+						</div>
+						<p class="text-gray-500">{ T(ctx, "notifications.no_notifications") }</p>
+					</div>
+				} else {
+					<div class="space-y-4">
+						for _, notification := range notifications {
+							@NotificationItem(ctx, notification)
+						}
+					</div>
+				}
+			</div>
+		</div>
+	}
+}
+
+templ NotificationItem(ctx context.Context, notification models.Notification) {
+	<div
+		class={
+			"rounded-lg border p-4 transition",
+			templ.KV("bg-blue-50 border-blue-200", !notification.IsRead),
+			templ.KV("bg-white border-gray-200", notification.IsRead),
+		}
+		id={ fmt.Sprintf("notification-%s", notification.ID.String()) }
+	>
+		<div class="flex gap-4">
+			<!-- Icon -->
+			<div class="flex-shrink-0">
+				if notification.IsTransferNotification() {
+					<div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+						<svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+						</svg>
+					</div>
+				} else if notification.IsShareNotification() {
+					<div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+						<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+						</svg>
+					</div>
+				}
+			</div>
+
+			<!-- Content -->
+			<div class="flex-1 min-w-0">
+				<div class="flex items-start justify-between gap-2">
+					<div class="flex-1">
+						<p class="font-semibold text-gray-900">
+							if notification.IsTransferNotification() {
+								{ T(ctx, "notifications.transfer.title") }
+							} else if notification.IsShareNotification() {
+								{ T(ctx, "notifications.share.title") }
+							}
+						</p>
+
+						<p class="text-sm text-gray-600 mt-1">
+							if notification.IsTransferNotification() {
+								{ T(ctx, "notifications.transfer.message", map[string]any{
+									"FromUser": notification.GetFromUserName(),
+									"ResourceType": getResourceTypeTranslation(ctx, notification.ResourceType),
+								}) }
+							} else if notification.IsShareNotification() {
+								{ T(ctx, "notifications.share.message", map[string]any{
+									"FromUser": notification.GetFromUserName(),
+									"ResourceType": getResourceTypeTranslation(ctx, notification.ResourceType),
+								}) }
+							}
+						</p>
+
+						<!-- Permissions (for share notifications) -->
+						if notification.IsShareNotification() && notification.GetPermissions() != nil {
+							<div class="mt-2 flex flex-wrap gap-1">
+								if canEdit, ok := notification.GetPermissions()["can_edit"].(bool); ok && canEdit {
+									<span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+										{ T(ctx, "notifications.permissions.can_edit") }
+									</span>
+								}
+								if canDelete, ok := notification.GetPermissions()["can_delete"].(bool); ok && canDelete {
+									<span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+										{ T(ctx, "notifications.permissions.can_delete") }
+									</span>
+								}
+								if canEditTrans, ok := notification.GetPermissions()["can_edit_transactions"].(bool); ok && canEditTrans {
+									<span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
+										{ T(ctx, "notifications.permissions.can_edit_transactions") }
+									</span>
+								}
+							</div>
+						}
+
+						<p class="text-xs text-gray-400 mt-2">
+							{ notification.CreatedAt.Format("02.01.2006 15:04") }
+						</p>
+					</div>
+
+					<!-- Actions -->
+					<div class="flex gap-2 flex-shrink-0">
+						if !notification.IsRead {
+							<button
+								hx-post={ fmt.Sprintf("/notifications/%s/read", notification.ID.String()) }
+								hx-swap="none"
+								class="text-blue-600 hover:text-blue-800 p-1"
+								title={ T(ctx, "notifications.mark_read") }
+							>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+								</svg>
+							</button>
+						}
+
+						<button
+							hx-delete={ fmt.Sprintf("/notifications/%s", notification.ID.String()) }
+							hx-target={ fmt.Sprintf("#notification-%s", notification.ID.String()) }
+							hx-swap="outerHTML"
+							hx-confirm={ T(ctx, "notifications.archive_confirm") }
+							class="text-gray-600 hover:text-gray-800 p-1"
+							title={ T(ctx, "notifications.archive") }
+						>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+							</svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- View Resource Button -->
+				<a
+					href={ getResourceURL(notification.ResourceType, notification.ResourceID.String()) }
+					class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 mt-3 font-medium"
+				>
+					{ T(ctx, "notifications.view_resource") }
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+					</svg>
+				</a>
+			</div>
+		</div>
+	</div>
+}
+
+// Helper function to get resource type translation
+func getResourceTypeTranslation(ctx context.Context, resourceType string) string {
+	switch resourceType {
+	case "card":
+		return T(ctx, "notifications.resource_types.card")
+	case "voucher":
+		return T(ctx, "notifications.resource_types.voucher")
+	case "gift_card":
+		return T(ctx, "notifications.resource_types.gift_card")
+	default:
+		return resourceType
+	}
+}
+
+// Helper function to get resource URL
+func getResourceURL(resourceType, resourceID string) templ.SafeURL {
+	switch resourceType {
+	case "card":
+		return templ.URL(fmt.Sprintf("/cards/%s", resourceID))
+	case "voucher":
+		return templ.URL(fmt.Sprintf("/vouchers/%s", resourceID))
+	case "gift_card":
+		return templ.URL(fmt.Sprintf("/gift-cards/%s", resourceID))
+	default:
+		return templ.URL("/")
+	}
+}
+
+// NotificationsDropdown renders the dropdown preview of recent notifications
+templ NotificationsDropdown(ctx context.Context, notifications []models.Notification, unreadCount int64) {
+	<div class="w-80 max-h-96 overflow-y-auto">
+		if len(notifications) == 0 {
+			<div class="px-4 py-8 text-center text-gray-500 text-sm">
+				{ T(ctx, "notifications.no_notifications") }
+			</div>
+		} else {
+			<div class="divide-y divide-gray-100">
+				for _, notification := range notifications {
+					@NotificationDropdownItem(ctx, notification)
+				}
+			</div>
+			<div class="border-t border-gray-200 bg-gray-50">
+				<a href="/notifications" class="block px-4 py-3 text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
+					{ T(ctx, "notifications.view_all") }
+				</a>
+			</div>
+		}
+	</div>
+}
+
+// NotificationDropdownItem renders a single notification in the dropdown
+templ NotificationDropdownItem(ctx context.Context, notification models.Notification) {
+	<a href={ getResourceURL(notification.ResourceType, notification.ResourceID.String()) }
+	   @click.prevent={ fmt.Sprintf("const url = $el.href; if (!%t) { fetch('/notifications/%s/read', { method: 'POST' }).finally(() => window.location.href = url) } else { window.location.href = url }", notification.IsRead, notification.ID.String()) }
+	   class={
+		   "block px-4 py-3 hover:bg-gray-50 transition",
+		   templ.KV("bg-blue-50", !notification.IsRead),
+	   }>
+		<div class="flex items-start gap-3">
+			<!-- Icon -->
+			<div class="flex-shrink-0 mt-1">
+				if notification.IsTransferNotification() {
+					<span class="text-purple-600">🔄</span>
+				} else if notification.IsShareNotification() {
+					<span class="text-green-600">🔗</span>
+				}
+			</div>
+
+			<!-- Content -->
+			<div class="flex-1 min-w-0">
+				<p class="text-sm font-medium text-gray-900 truncate">
+					if notification.IsTransferNotification() {
+						{ T(ctx, "notifications.transfer.title") }
+					} else if notification.IsShareNotification() {
+						{ T(ctx, "notifications.share.title") }
+					}
+				</p>
+				<p class="text-xs text-gray-600 mt-1 line-clamp-2">
+					if notification.IsTransferNotification() {
+						{ T(ctx, "notifications.transfer.message", map[string]any{
+							"FromUser": notification.GetFromUserName(),
+							"ResourceType": getResourceTypeTranslation(ctx, notification.ResourceType),
+						}) }
+					} else if notification.IsShareNotification() {
+						{ T(ctx, "notifications.share.message", map[string]any{
+							"FromUser": notification.GetFromUserName(),
+							"ResourceType": getResourceTypeTranslation(ctx, notification.ResourceType),
+						}) }
+					}
+				</p>
+				<p class="text-xs text-gray-400 mt-1">
+					{ notification.CreatedAt.Format("02.01.2006 15:04") }
+				</p>
+			</div>
+
+			<!-- Unread indicator -->
+			if !notification.IsRead {
+				<div class="flex-shrink-0">
+					<span class="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
+				</div>
+			}
+		</div>
+	</a>
+}

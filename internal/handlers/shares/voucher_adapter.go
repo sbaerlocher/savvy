@@ -5,6 +5,7 @@ package shares
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,17 +16,19 @@ import (
 // VoucherShareAdapter implements ShareAdapter for Voucher resources.
 // Vouchers support read-only sharing only (no permission editing).
 type VoucherShareAdapter struct {
-	db           *gorm.DB
-	authzService services.AuthzServiceInterface
-	userService  services.UserServiceInterface
+	db                  *gorm.DB
+	authzService        services.AuthzServiceInterface
+	userService         services.UserServiceInterface
+	notificationService services.NotificationServiceInterface
 }
 
 // NewVoucherShareAdapter creates a new voucher share adapter.
-func NewVoucherShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface) *VoucherShareAdapter {
+func NewVoucherShareAdapter(db *gorm.DB, authzService services.AuthzServiceInterface, userService services.UserServiceInterface, notificationService services.NotificationServiceInterface) *VoucherShareAdapter {
 	return &VoucherShareAdapter{
-		db:           db,
-		authzService: authzService,
-		userService:  userService,
+		db:                  db,
+		authzService:        authzService,
+		userService:         userService,
+		notificationService: notificationService,
 	}
 }
 
@@ -101,7 +104,37 @@ func (a *VoucherShareAdapter) CreateShare(ctx context.Context, req CreateShareRe
 		SharedWithID: sharedUser.ID,
 	}
 
-	return a.db.WithContext(ctx).Create(&share).Error
+	if err := a.db.WithContext(ctx).Create(&share).Error; err != nil {
+		return err
+	}
+
+	// Create notification for the shared user
+	var voucher models.Voucher
+	if err := a.db.WithContext(ctx).Where("id = ?", req.ResourceID).First(&voucher).Error; err == nil {
+		if voucher.UserID != nil {
+			var ownerUser models.User
+			if err := a.db.WithContext(ctx).Where("id = ?", *voucher.UserID).First(&ownerUser).Error; err == nil {
+				// Best effort notification - don't fail the share if notification fails
+				// Vouchers are always read-only (no permissions)
+				if err := a.notificationService.CreateShareNotification(
+					ctx,
+					sharedUser.ID,
+					*voucher.UserID,
+					ownerUser.DisplayName(),
+					"voucher",
+					req.ResourceID,
+					nil, // No permissions for vouchers (always read-only)
+				); err != nil {
+					slog.Warn("Failed to create share notification for voucher",
+						"voucher_id", req.ResourceID,
+						"shared_with_id", sharedUser.ID,
+						"error", err)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // UpdateShare is not supported for vouchers (read-only sharing).
