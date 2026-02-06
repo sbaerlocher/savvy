@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"savvy/internal/audit"
 	"savvy/internal/i18n"
 	"savvy/internal/models"
@@ -81,11 +81,11 @@ func (h *Handler) Transfer(c echo.Context) error {
 	// Audit log the transfer
 	if h.db != nil {
 		auditData := map[string]string{
-			"action":           "transfer",
-			"old_owner_id":     user.ID.String(),
-			"old_owner_email":  user.Email,
-			"new_owner_id":     newOwner.ID.String(),
-			"new_owner_email":  newOwner.Email,
+			"action":          "transfer",
+			"old_owner_id":    user.ID.String(),
+			"old_owner_email": user.Email,
+			"new_owner_id":    newOwner.ID.String(),
+			"new_owner_email": newOwner.Email,
 		}
 		if err := audit.LogUpdateFromContext(c, h.db, "vouchers", voucherID, auditData); err != nil {
 			c.Logger().Errorf("Failed to log transfer: %v", err)

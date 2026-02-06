@@ -5,7 +5,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/templates"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Index lists all merchants

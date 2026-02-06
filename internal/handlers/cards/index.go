@@ -6,7 +6,7 @@ import (
 	"savvy/internal/templates"
 	"savvy/internal/views"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Index lists all cards for the current user (owned + shared).

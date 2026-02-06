@@ -13,7 +13,7 @@ import (
 	"savvy/internal/middleware"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RouteConfig holds dependencies needed for route registration.
