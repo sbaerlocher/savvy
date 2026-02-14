@@ -1,0 +1,241 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 10
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: savvy
+  template:
+    metadata:
+      annotations:
+        k8s.grafana.com/scrape: "true"
+        k8s.grafana.com/metrics.portNumber: "8080"
+        k8s.grafana.com/metrics.path: "/metrics"
+        k8s.grafana.com/job: "savvy"
+      labels:
+        app.kubernetes.io/name: savvy
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: savvy
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: savvy
+          image: ghcr.io/sbaerlocher/container/savvy:1.1.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENVIRONMENT
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-db
+                  key: password
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: DATABASE_URL
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-session
+                  key: SESSION_SECRET
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-smtp
+                  key: SMTP_USERNAME
+                  optional: true
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-smtp
+                  key: SMTP_PASSWORD
+                  optional: true
+            - name: VAPID_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-vapid
+                  key: VAPID_PRIVATE_KEY
+                  optional: true
+            - name: TOTP_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: savvy-totp
+                  key: TOTP_ENCRYPTION_KEY
+                  optional: true
+            - name: ENABLE_CARDS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_CARDS
+            - name: ENABLE_VOUCHERS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_VOUCHERS
+            - name: ENABLE_GIFT_CARDS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_GIFT_CARDS
+            - name: ENABLE_LOCAL_LOGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_LOCAL_LOGIN
+            - name: ENABLE_REGISTRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_REGISTRATION
+            - name: TIMEZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: TIMEZONE
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: SMTP_HOST
+                  optional: true
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: SMTP_PORT
+            - name: SMTP_FROM_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: SMTP_FROM_EMAIL
+            - name: SMTP_FROM_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: SMTP_FROM_NAME
+            - name: SMTP_USE_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: SMTP_USE_TLS
+            - name: VAPID_PUBLIC_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: VAPID_PUBLIC_KEY
+                  optional: true
+            - name: VAPID_SUBJECT
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: VAPID_SUBJECT
+            - name: ENABLE_EXPIRY_REMINDERS
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_EXPIRY_REMINDERS
+            - name: REMINDER_DAYS_BEFORE
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: REMINDER_DAYS_BEFORE
+            - name: REMINDER_CHECK_TIME
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: REMINDER_CHECK_TIME
+            - name: ENABLE_2FA
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: ENABLE_2FA
+            - name: TOTP_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: TOTP_ISSUER
+            - name: OTEL_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: OTEL_ENABLED
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: savvy
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  optional: true
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

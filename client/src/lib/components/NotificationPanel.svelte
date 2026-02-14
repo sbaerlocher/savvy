@@ -1,0 +1,363 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { t } from '$lib/stores/i18n';
+	import { notificationStore } from '$lib/stores/notifications';
+	import type { NotificationDTO } from '$lib/types/api';
+	import { onDestroy, onMount } from 'svelte';
+	import { platform } from '$lib/utils/platform';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+
+	const notifications = $derived($notificationStore.notifications);
+	const unreadCount = $derived($notificationStore.unreadCount);
+	const isOpen = $derived($notificationStore.isOpen);
+	const isLoading = $derived($notificationStore.isLoading);
+
+	onMount(() => {
+		notificationStore.startPolling();
+	});
+
+	onDestroy(() => {
+		notificationStore.stopPolling();
+	});
+
+	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		if (
+			isOpen &&
+			!target.closest('.notification-panel') &&
+			!target.closest('.notification-bell')
+		) {
+			notificationStore.closePanel();
+		}
+	}
+
+	function formatNotificationMessage(notification: NotificationDTO): string {
+		const fromUser = notification.metadata.from_user_name || 'Someone';
+		const resourceTypeLabel =
+			$t(`notifications.resourceWithArticle.${notification.resource_type}`) ||
+			$t(`common.${notification.resource_type}`) ||
+			notification.resource_type;
+
+		if (notification.type === 'share_received') {
+			return `${fromUser} ${$t('notifications.sharedWith', { resource: resourceTypeLabel })}`;
+		} else if (notification.type === 'transfer_received') {
+			return `${fromUser} ${$t('notifications.transferredTo', { resource: resourceTypeLabel })}`;
+		} else if (notification.type === 'expiry_reminder') {
+			const merchantName =
+				(notification.metadata.merchant_name as string) || '';
+			const daysLeft = notification.metadata.days_left as number;
+			return $t('notifications.expiryReminder', {
+				resource: resourceTypeLabel,
+				merchant: merchantName,
+				days: String(daysLeft)
+			});
+		} else if (notification.type === 'validity_start') {
+			const merchantName =
+				(notification.metadata.merchant_name as string) || '';
+			return $t('notifications.validityStart', {
+				merchant: merchantName
+			});
+		}
+
+		return $t('notifications.newNotification');
+	}
+
+	function getNotificationLink(notification: NotificationDTO): string {
+		const type = notification.resource_type.replace('_', '-');
+		return `/${type}s/${notification.resource_id}`;
+	}
+
+	async function handleNotificationClick(notification: NotificationDTO) {
+		if (!notification.is_read) {
+			await notificationStore.markAsRead(notification.id);
+		}
+		notificationStore.closePanel();
+		goto(getNotificationLink(notification));
+	}
+
+	function formatTimeAgo(dateString: string): string {
+		const date = new Date(dateString);
+		const now = new Date();
+		const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+		if (seconds < 60) return $t('notifications.timeAgo.justNow');
+		if (seconds < 3600)
+			return $t('notifications.timeAgo.minutesAgo', {
+				count: Math.floor(seconds / 60)
+			});
+		if (seconds < 86400)
+			return $t('notifications.timeAgo.hoursAgo', {
+				count: Math.floor(seconds / 3600)
+			});
+		if (seconds < 604800)
+			return $t('notifications.timeAgo.daysAgo', {
+				count: Math.floor(seconds / 86400)
+			});
+		return date.toLocaleDateString();
+	}
+</script>
+
+<svelte:window onclick={handleClickOutside} />
+
+<!-- Notification Bell Button -->
+<button
+	class="notification-bell relative flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-md hover:bg-gray-100"
+	onclick={() => notificationStore.togglePanel()}
+	aria-label={$t('notifications.title')}
+>
+	<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			stroke-width="2"
+			d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+		/>
+	</svg>
+
+	{#if unreadCount > 0}
+		<span
+			class="absolute top-0 right-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold leading-none text-white translate-x-1/6 -translate-y-1/5 bg-red-600 rounded-full"
+		>
+			{unreadCount > 99 ? '99+' : unreadCount}
+		</span>
+	{/if}
+</button>
+
+<!-- Notification Panel -->
+{#if isOpen}
+	<div
+		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-lg shadow-xl z-50 max-w-[90vw] {platform ===
+		'ios'
+			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
+			: 'bg-white border border-gray-200'}"
+	>
+		<!-- Header -->
+		<div
+			class="flex items-center justify-between px-4 py-3 border-b {platform ===
+			'ios'
+				? 'border-white/30'
+				: 'border-gray-200'}"
+		>
+			<h3 class="text-lg font-semibold text-gray-900">
+				{$t('notifications.title')}
+			</h3>
+
+			<div class="flex items-center gap-1">
+				{#if notifications.length > 0}
+					<button
+						class="text-cyan-600 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-50 transition-colors"
+						onclick={() => notificationStore.markAllAsRead()}
+						title={$t('notifications.markAllAsRead')}
+						aria-label={$t('notifications.markAllAsRead')}
+					>
+						<svg
+							class="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M2 13l4 4L15 8"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 13l4 4L22 8"
+							/>
+						</svg>
+					</button>
+				{/if}
+				<button
+					class="text-cyan-600 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-50 transition-colors"
+					onclick={() => {
+						notificationStore.closePanel();
+						goto('/notifications');
+					}}
+					title={$t('notifications.viewAll')}
+					aria-label={$t('notifications.viewAll')}
+				>
+					<svg
+						class="w-5 h-5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+						/>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<!-- Notification List -->
+		<div class="max-h-96 overflow-y-auto">
+			{#if isLoading}
+				<LoadingSpinner />
+			{:else if notifications.length === 0}
+				<div class="px-4 py-8 text-center text-gray-500">
+					<svg
+						class="w-12 h-12 mx-auto mb-2 text-gray-300"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.5"
+							d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+						/>
+					</svg>
+					<p>{$t('notifications.noNotifications')}</p>
+				</div>
+			{:else}
+				{#each notifications as notification (notification.id)}
+					<div
+						class="flex items-start px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors {notification.is_read
+							? 'opacity-60'
+							: 'bg-cyan-50'}"
+						onclick={() => handleNotificationClick(notification)}
+						onkeydown={(e) =>
+							e.key === 'Enter' && handleNotificationClick(notification)}
+						role="button"
+						tabindex="0"
+					>
+						<!-- Icon -->
+						<div class="shrink-0 mr-3 mt-0.5">
+							{#if notification.type === 'share_received'}
+								<svg
+									class="w-5 h-5 text-cyan-500"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+									/>
+								</svg>
+							{:else if notification.type === 'transfer_received'}
+								<svg
+									class="w-5 h-5 text-purple-500"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+									/>
+								</svg>
+							{:else if notification.type === 'expiry_reminder'}
+								<svg
+									class="w-5 h-5 text-amber-500"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+							{:else if notification.type === 'validity_start'}
+								<svg
+									class="w-5 h-5 text-emerald-500"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+							{:else}
+								<svg
+									class="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+									/>
+								</svg>
+							{/if}
+						</div>
+
+						<!-- Content -->
+						<div class="flex-1 min-w-0">
+							<p class="text-sm text-gray-900">
+								{formatNotificationMessage(notification)}
+							</p>
+							<p class="text-xs text-gray-500 mt-1">
+								{formatTimeAgo(notification.created_at)}
+							</p>
+						</div>
+
+						<!-- Actions -->
+						<div class="shrink-0 ml-2 flex items-center gap-1">
+							{#if !notification.is_read}
+								<button
+									class="text-cyan-500 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-100 transition-colors"
+									onclick={(e) => {
+										e.stopPropagation();
+										notificationStore.markAsRead(notification.id);
+									}}
+									aria-label={$t('notifications.markAsRead')}
+								>
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+										<circle cx="12" cy="12" r="5" />
+									</svg>
+								</button>
+							{/if}
+
+							<button
+								class="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+								onclick={(e) => {
+									e.stopPropagation();
+									notificationStore.delete(notification.id);
+								}}
+								aria-label={$t('notifications.delete')}
+							>
+								<svg
+									class="w-4 h-4"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M6 18L18 6M6 6l12 12"
+									/>
+								</svg>
+							</button>
+						</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
+	</div>
+{/if}

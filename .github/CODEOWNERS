@@ -1,0 +1,187 @@
+# Code Owners for Savvy
+#
+# This file defines individuals or teams responsible for code in this repository.
+# Code owners are automatically requested for review when someone opens a pull request
+# that modifies code that they own.
+#
+# For more information, see:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ==============================================================================
+# Global Ownership (Fallback)
+# ==============================================================================
+
+# Default owner for everything in the repository
+* @sbaerlocher
+
+# ==============================================================================
+# Documentation
+# ==============================================================================
+
+# Documentation files
+/*.md @sbaerlocher
+/docs/ @sbaerlocher
+/AGENTS.md @sbaerlocher
+/ARCHITECTURE.md @sbaerlocher
+/OPERATIONS.md @sbaerlocher
+/CONTRIBUTING.md @sbaerlocher
+/SECURITY.md @sbaerlocher
+/CHANGELOG.md @sbaerlocher
+/TODO.md @sbaerlocher
+
+# ==============================================================================
+# Backend (Go)
+# ==============================================================================
+
+# Backend entrypoint
+/cmd/ @sbaerlocher
+
+# Core business logic
+/internal/ @sbaerlocher
+/internal/handlers/ @sbaerlocher
+/internal/services/ @sbaerlocher
+/internal/repository/ @sbaerlocher
+/internal/models/ @sbaerlocher
+/internal/middleware/ @sbaerlocher
+
+# Configuration
+/internal/config/ @sbaerlocher
+
+# Database migrations
+/internal/migrations/ @sbaerlocher
+/migrations/ @sbaerlocher
+
+# ==============================================================================
+# Frontend (SvelteKit + TypeScript)
+# ==============================================================================
+
+# Frontend root
+/client/ @sbaerlocher
+
+# SvelteKit pages and routes
+/client/src/routes/ @sbaerlocher
+
+# Reusable components
+/client/src/lib/components/ @sbaerlocher
+
+# API client modules
+/client/src/lib/api/ @sbaerlocher
+
+# State management (Svelte stores)
+/client/src/lib/stores/ @sbaerlocher
+
+# Internationalization
+/client/src/lib/i18n/ @sbaerlocher
+
+# TypeScript types
+/client/src/lib/types/ @sbaerlocher
+
+# Frontend configuration
+/client/vite.config.ts @sbaerlocher
+/client/svelte.config.js @sbaerlocher
+/client/tsconfig.json @sbaerlocher
+/client/package.json @sbaerlocher
+
+# ==============================================================================
+# Testing
+# ==============================================================================
+
+# Go tests
+**/*_test.go @sbaerlocher
+
+# Frontend unit tests (Vitest)
+/client/src/**/*.test.ts @sbaerlocher
+
+# E2E tests (Playwright)
+/client/tests/ @sbaerlocher
+/client/playwright.config.ts @sbaerlocher
+
+# Test documentation
+/client/TEST_STATUS.md @sbaerlocher
+/E2E-TESTING.md @sbaerlocher
+
+# ==============================================================================
+# Infrastructure & DevOps
+# ==============================================================================
+
+# Docker
+/Dockerfile @sbaerlocher
+/docker-compose.yml @sbaerlocher
+/.dockerignore @sbaerlocher
+/scripts/ @sbaerlocher
+
+# CI/CD
+/.github/ @sbaerlocher
+/.github/workflows/ @sbaerlocher
+
+# Kubernetes & Helm
+/deploy/ @sbaerlocher
+/deploy/helm/ @sbaerlocher
+/deploy/kustomize/ @sbaerlocher
+
+# Build tools
+/Makefile @sbaerlocher
+/.air.toml @sbaerlocher
+/go.mod @sbaerlocher
+/go.sum @sbaerlocher
+
+# ==============================================================================
+# Security
+# ==============================================================================
+
+# Security-related files
+/SECURITY.md @sbaerlocher
+/GO_SECURITY_AUDIT*.md @sbaerlocher
+/SVELTE_SECURITY_AUDIT*.md @sbaerlocher
+/GO_SECURITY_FIXES.md @sbaerlocher
+
+# Security-sensitive code
+/internal/middleware/auth.go @sbaerlocher
+/internal/middleware/security.go @sbaerlocher
+/internal/middleware/csrf*.go @sbaerlocher
+/internal/handlers/oauth.go @sbaerlocher
+/client/src/lib/stores/auth.ts @sbaerlocher
+
+# ==============================================================================
+# Configuration & Secrets
+# ==============================================================================
+
+# Environment variables
+/.env.example @sbaerlocher
+/.gitignore @sbaerlocher
+
+# Go module configuration
+/go.mod @sbaerlocher
+/go.sum @sbaerlocher
+
+# NPM configuration
+/client/package.json @sbaerlocher
+/client/package-lock.json @sbaerlocher
+
+# ==============================================================================
+# Legal & Compliance
+# ==============================================================================
+
+# License and legal
+/LICENSE @sbaerlocher
+/NOTICE @sbaerlocher
+/CODE_OF_CONDUCT.md @sbaerlocher
+
+# ==============================================================================
+# Special Files
+# ==============================================================================
+
+# This file
+/CODEOWNERS @sbaerlocher
+
+# Git configuration
+/.gitattributes @sbaerlocher
+
+# Editor configuration
+/.editorconfig @sbaerlocher
+
+# Linting & Formatting
+/.golangci.yml @sbaerlocher
+/.revive.toml @sbaerlocher
+/client/.prettierrc @sbaerlocher
+/client/.eslintrc* @sbaerlocher

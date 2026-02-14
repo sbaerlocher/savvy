@@ -1,0 +1,21 @@
+---
+apiVersion: v2
+name: savvy
+description: A Helm chart for Savvy - Digital Cards, Vouchers & Gift Cards Management
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+home: https://github.com/sbaerlocher/savvy
+maintainers:
+  - name: Simon Bärlocher
+    email: s.baerlocher@sbaerlocher.ch
+keywords:
+  - savvy
+  - loyalty
+  - cards
+  - vouchers
+  - gift-cards
+  - pwa
+sources:
+  - https://github.com/sbaerlocher/savvy
+icon: https://raw.githubusercontent.com/sbaerlocher/savvy/main/static/icons/icon-512x512.png

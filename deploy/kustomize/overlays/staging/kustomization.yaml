@@ -1,0 +1,37 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-staging
+
+namespace: savvy-staging
+
+# namePrefix: staging-  # REMOVED: Breaks selectors (Service → Deployment)
+# Isolation via namespace: savvy-staging
+
+resources:
+  - ../../base
+  - ingress.yaml
+  - hpa.yaml
+  # High-Availability Features for Staging
+  - ../../base/poddisruptionbudget.yaml
+
+patches:
+  - path: deployment-patch.yaml
+  - path: configmap-patch.yaml
+
+images:
+  - name: ghcr.io/sbaerlocher/container/savvy
+    # Use immutable release candidate tags instead of mutable "staging"
+    # Example: 1.1.0-rc.1, 1.1.0-rc.2, etc.
+    # Or use digest: sha256:... (set via CI/CD)
+    newTag: 1.1.0-rc.1
+
+replicas:
+  - name: savvy
+    count: 2
+
+labels:
+  - pairs:
+      environment: staging

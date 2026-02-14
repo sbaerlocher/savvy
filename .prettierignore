@@ -1,0 +1,34 @@
+# Go files (formatted by gofmt)
+*.go
+go.sum
+go.mod
+
+# Client (has own .prettierrc + format script)
+client/
+
+# Build output
+internal/assets/
+
+# Dependencies
+node_modules/
+
+# Helm templates (contain Go template syntax)
+deploy/helm/templates/
+
+# Binary & generated files
+*.png
+*.ico
+*.svg
+*.woff
+*.woff2
+
+# Environment files
+.env
+.env.*
+
+# Lock files
+*.lock
+package-lock.json
+
+# Ansible
+.ansible/

@@ -1,0 +1,370 @@
+---
+# Default values for savvy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+# Image Configuration
+image:
+  repository: ghcr.io/sbaerlocher/container/savvy
+  pullPolicy: IfNotPresent
+  tag: "" # Empty = uses Chart.appVersion (auto-synced via release workflow)
+  digest: "" # Optional: SHA256 digest for immutable deployments (e.g., sha256:abc123...)
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# ServiceAccount
+serviceAccount:
+  create: true
+  automount: false # CIS 5.1.6: Don't mount token unless K8s API access needed
+  annotations: {}
+  name: ""
+
+# Pod Configuration
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true # CIS 5.2.6: Read-only root filesystem (PSS Restricted)
+
+# Deployment Strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+minReadySeconds: 10
+revisionHistoryLimit: 10
+terminationGracePeriodSeconds: 30
+
+# Startup Probe (for slow starts)
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30 # 5 minutes max startup time
+
+# Autoscaling (HPA)
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+  # Custom metrics can be added here
+  customMetrics: []
+  # Scaling behavior
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 2
+          periodSeconds: 15
+      selectPolicy: Max
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1  # Use either minAvailable or maxUnavailable
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+# Pod Anti-Affinity (spread pods across nodes)
+podAntiAffinity:
+  enabled: false
+  type: soft # soft or hard
+  topologyKey: kubernetes.io/hostname
+
+# Topology Spread Constraints (even distribution)
+topologySpreadConstraints: []
+# Example:
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+#   labelSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: savvy
+
+# Priority Class
+priorityClass:
+  enabled: false
+  create: false
+  name: ""
+  value: 1000
+  description: "Priority class for Savvy application"
+  preemptionPolicy: PreemptLowerPriority
+
+# RBAC
+rbac:
+  create: false
+  rules: []
+  # Example rules:
+  # - apiGroups: [""]
+  #   resources: ["configmaps"]
+  #   verbs: ["get", "list", "watch"]
+
+# Network Policy
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+  # Example ingress:
+  # - from:
+  #     - namespaceSelector:
+  #         matchLabels:
+  #           name: ingress
+  #   ports:
+  #     - protocol: TCP
+  #       port: 3000
+
+volumes:
+  # Writable /tmp directory (required when readOnlyRootFilesystem: true)
+  - name: tmp
+    emptyDir: {}
+
+volumeMounts:
+  # Mount writable /tmp directory
+  - name: tmp
+    mountPath: /tmp
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# External Secrets Configuration (external-secrets.io/v1)
+# Set enabled: true and configure your secret store to use External Secrets
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    name: "" # Your ClusterSecretStore or SecretStore name
+    kind: ClusterSecretStore
+
+  # Target Secret Configuration
+  creationPolicy: Owner # Owner, Orphan, Merge, None
+  deletionPolicy: Retain # Retain, Delete
+
+  # Annotations for ExternalSecret resources
+  annotations: {}
+
+  # Session Secret (required by Savvy)
+  # When enabled, provide the secret ID/key from your secret store
+  sessionSecretId: ""
+  sessionSecretProperty: ""
+
+  # OAuth Client Credentials (if OAuth is enabled)
+  oauthClientIdSecret: ""
+  oauthClientIdProperty: ""
+  oauthClientSecretId: ""
+  oauthClientSecretProperty: ""
+
+  # SMTP Credentials (if SMTP is configured)
+  smtpUsernameSecretId: ""
+  smtpUsernameProperty: ""
+  smtpPasswordSecretId: ""
+  smtpPasswordProperty: ""
+
+  # VAPID Private Key (if Web Push is enabled)
+  vapidPrivateKeySecretId: ""
+  vapidPrivateKeyProperty: ""
+
+  # TOTP Encryption Key (if 2FA is enabled)
+  totpEncryptionKeySecretId: ""
+  totpEncryptionKeyProperty: ""
+
+  # Data Conversion/Decoding Strategies
+  conversionStrategy: Default # Default, Unicode
+  decodingStrategy: None # None, Auto, Base64, Base64URL
+
+  # Template for complex secret transformations
+  template: {}
+
+  # DataFrom: Pull all keys from a secret
+  dataFrom: []
+
+  # Find: Search for secrets by name/tags
+  find: []
+
+  # Additional secrets to pull (for custom secrets not covered above)
+  additionalSecrets: []
+
+# Database Configuration
+database:
+  # Name of existing Kubernetes secret containing DATABASE_URL
+  existingSecret: ""
+  # Key within the secret that contains the database URL
+  databaseUrlKey: "DATABASE_URL"
+
+# Application Configuration
+config:
+  serverPort: 3000
+  metricsPort: 9090 # Separate port for Prometheus metrics (industry best practice)
+  environment: production # Was: goEnv (deprecated)
+  logLevel: info
+
+  # Database Migrations
+  autoMigrate: true # Run database migrations on startup
+
+  # Feature Toggles
+  enableCards: true
+  enableVouchers: true
+  enableGiftCards: true
+  enableLocalLogin: false # Set true to enable email/password login
+  enableRegistration: false # Set true to enable user registration
+
+  # Timezone for date calculations (voucher status, etc.)
+  timezone: "UTC" # IANA timezone (e.g., "Europe/Zurich")
+
+  # SMTP Configuration (Email Notifications)
+  smtpHost: "" # e.g. "smtp.gmail.com"
+  smtpPort: 587
+  smtpFromEmail: "" # e.g. "noreply@example.com"
+  smtpFromName: "Savvy"
+  smtpUseTLS: true
+
+  # Web Push Notifications (VAPID)
+  vapidPublicKey: "" # Generate with: npx web-push generate-vapid-keys
+  vapidSubject: "" # e.g. "mailto:admin@example.com"
+
+  # Expiry Reminders
+  enableExpiryReminders: true
+  reminderDaysBefore: "7,3,1" # Comma-separated list
+  reminderCheckTime: "08:00" # Daily check time (HH:MM in configured timezone)
+
+  # Two-Factor Authentication (2FA/TOTP)
+  enable2FA: false
+  totpIssuer: "Savvy"
+
+  # OpenTelemetry (optional)
+  otelEnabled: false
+  otelExporterOtlpEndpoint: "" # e.g. "localhost:4318"
+
+# OAuth/OIDC Configuration
+oauth:
+  enabled: false
+  issuer: "" # e.g. "https://auth.example.com/application/o/savvy/"
+  redirectUrl: "" # e.g. "https://savvy.example.com/auth/oauth/callback"
+  successUrl: "" # e.g. "https://savvy.example.com" (where to redirect after OAuth login)
+  adminGroup: "" # Optional: OIDC group name for admin access
+
+# Secrets Configuration
+# All application secrets are organized here for consistency
+# Use existingSecret to reference Kubernetes secrets containing the required values
+secrets:
+  # OAuth Credentials (required when oauth.enabled: true)
+  oauth:
+    existingSecret: "" # Name of secret containing OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET
+    clientIdKey: "OAUTH_CLIENT_ID"
+    clientSecretKey: "OAUTH_CLIENT_SECRET"
+
+  # SMTP Credentials (optional, for email notifications)
+  smtp:
+    existingSecret: "" # Name of secret containing SMTP_USERNAME and SMTP_PASSWORD
+    usernameKey: "SMTP_USERNAME"
+    passwordKey: "SMTP_PASSWORD"
+
+  # VAPID Private Key (optional, for web push notifications)
+  vapid:
+    existingSecret: "" # Name of secret containing VAPID_PRIVATE_KEY
+    privateKeyKey: "VAPID_PRIVATE_KEY"
+
+  # TOTP Encryption Key (optional, for 2FA/TOTP)
+  totp:
+    existingSecret: "" # Name of secret containing TOTP_ENCRYPTION_KEY
+    encryptionKeyKey: "TOTP_ENCRYPTION_KEY"
+
+# Health Probes
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Resource Limits
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+  metricsPort: 9090 # Separate port for Prometheus metrics (not exposed via Ingress)
+
+# Ingress Configuration
+ingress:
+  enabled: false
+  className: "" # e.g. "nginx", "traefik"
+  annotations: {}
+  # kubernetes.io/ingress.class: nginx
+  # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # Example TLS config:
+  # - secretName: savvy-tls
+  #   hosts:
+  #     - savvy.example.com
+
+# Monitoring Configuration
+monitoring:
+  enabled: false
+  # Prometheus Annotations (for non-Operator setups)
+  # Note: Metrics are served on a separate port (9090) for security
+  prometheus:
+    scrape: true
+    port: 9090 # Separate metrics port (not exposed via Ingress)
+    path: /metrics
+    scheme: http
+  # ServiceMonitor (for Prometheus Operator)
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s

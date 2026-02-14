@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"threshold": 5,
+	"reporters": ["html", "console"],
+	"ignore": [
+		"**/node_modules/**",
+		"**/build/**",
+		"**/dist/**",
+		"**/.svelte-kit/**",
+		"**/megalinter-reports/**"
+	],
+	"format": ["typescript", "javascript", "css", "svelte"],
+	"minLines": 5,
+	"minTokens": 70,
+	"output": "./megalinter-reports/copy-paste"
+}

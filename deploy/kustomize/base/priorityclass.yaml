@@ -1,0 +1,15 @@
+---
+# PriorityClass for Savvy application
+# Defines pod scheduling priority (higher value = higher priority)
+# Disabled by default - enable in overlays by adding to kustomization.yaml resources
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+value: 1000
+globalDefault: false
+description: "Priority class for Savvy application"
+preemptionPolicy: PreemptLowerPriority

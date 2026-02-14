@@ -1,0 +1,47 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-production
+
+namespace: savvy
+
+resources:
+  - ../../base
+  - ingress.yaml
+  - hpa.yaml
+  - servicemonitor.yaml
+  - oauth-configmap.yaml
+  - oauth-externalsecret.yaml
+  # High-Availability Features
+  - ../../base/poddisruptionbudget.yaml
+  - ../../base/networkpolicy.yaml
+  - ../../base/priorityclass.yaml
+
+patches:
+  - path: deployment-patch.yaml
+  - path: configmap-patch.yaml
+  - path: networkpolicy-patch.yaml
+
+images:
+  - name: ghcr.io/sbaerlocher/container/savvy
+    # TODO: Replace with digest in CI/CD pipeline
+    # Example: digest: sha256:abc123...
+    # CI/CD: IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE | cut -d'@' -f2)
+    #        kustomize edit set image ghcr.io/sbaerlocher/container/savvy@$IMAGE_DIGEST
+    newTag: 1.1.0
+
+replicas:
+  - name: savvy
+    count: 3
+
+labels:
+  - pairs:
+      environment: production
+
+commonAnnotations:
+  app.kubernetes.io/version: "1.1.0"
+  savvy.io/git-commit: "replace-in-cicd" # Set via CI/CD pipeline
+  savvy.io/deployed-by: "kustomize"
+  savvy.io/deployed-at: "replace-in-cicd" # Set via CI/CD pipeline

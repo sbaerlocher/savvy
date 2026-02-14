@@ -1,0 +1,278 @@
+---
+# Production values for Savvy Helm Chart
+# This file contains recommended settings for production deployments
+# Usage: helm upgrade --install savvy . -f values-production.yaml
+
+# High Availability: Run at least 2 replicas
+replicaCount: 2
+
+# Image Configuration
+image:
+  repository: ghcr.io/sbaerlocher/container/savvy
+  pullPolicy: IfNotPresent
+  tag: "" # Set via --set or use Chart.AppVersion
+  digest: "" # RECOMMENDED: Set to SHA256 digest for immutable deployments
+  # Example: digest: "sha256:abc123..."
+
+# ServiceAccount Security (CIS 5.1.6)
+serviceAccount:
+  create: true
+  automount: false # Don't mount token unless K8s API access needed
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container Security Context (PSS Restricted)
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true # CIS 5.2.6
+
+# Rolling Update Strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Disruption Budget (Zero-Downtime Deployments)
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+
+# Pod Anti-Affinity (spread across nodes)
+podAntiAffinity:
+  enabled: true
+  type: soft # Use 'hard' for strict separation
+  topologyKey: kubernetes.io/hostname
+
+# Network Policy (Defense in Depth)
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow traffic from Ingress Controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx # Adjust to your ingress namespace label
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # Allow DNS lookups
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow PostgreSQL access
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: database # Adjust to your database namespace label
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow HTTPS for OAuth/External APIs
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+
+# Writable volumes (required for readOnlyRootFilesystem: true)
+volumes:
+  - name: tmp
+    emptyDir: {}
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+
+# Database Configuration
+database:
+  existingSecret: "savvy-db-secret" # REQUIRED: Set your secret name
+  databaseUrlKey: "DATABASE_URL"
+
+# Application Configuration
+config:
+  serverPort: 3000
+  environment: production
+  logLevel: info
+  autoMigrate: true
+
+  # Feature Toggles
+  enableCards: true
+  enableVouchers: true
+  enableGiftCards: true
+  enableLocalLogin: false # Use OAuth for production
+  enableRegistration: false # Disable public registration
+
+  # Timezone for date calculations (voucher status, etc.)
+  timezone: "Europe/Zurich" # IANA timezone
+
+  # SMTP Configuration (Email Notifications)
+  smtpHost: "smtp.example.com" # REQUIRED: Set your SMTP server
+  smtpPort: 587
+  smtpFromEmail: "noreply@example.com" # REQUIRED: Set sender email
+  smtpFromName: "Savvy"
+  smtpUseTLS: true
+
+  # Web Push Notifications (VAPID)
+  vapidPublicKey: "" # REQUIRED: Generate with npx web-push generate-vapid-keys
+  vapidSubject: "mailto:admin@example.com"
+
+  # Expiry Reminders
+  enableExpiryReminders: true
+  reminderDaysBefore: "7,3,1"
+  reminderCheckTime: "08:00"
+
+  # Two-Factor Authentication (2FA/TOTP)
+  enable2FA: false
+  totpIssuer: "Savvy"
+
+  # OpenTelemetry
+  otelEnabled: false
+  otelExporterOtlpEndpoint: ""
+
+# OAuth/OIDC Configuration
+oauth:
+  enabled: true
+  issuer: "" # REQUIRED: Set your OAuth issuer URL
+  redirectUrl: "" # REQUIRED: Set your callback URL
+  successUrl: "" # Where to redirect after login
+  adminGroup: "Savvy Admins"
+
+# Secrets Configuration
+secrets:
+  # OAuth Credentials (required when oauth.enabled: true)
+  oauth:
+    existingSecret: "savvy-oauth-secret" # REQUIRED: Set your secret name
+    clientIdKey: "OAUTH_CLIENT_ID"
+    clientSecretKey: "OAUTH_CLIENT_SECRET"
+  # SMTP Credentials (optional, for email notifications)
+  smtp:
+    existingSecret: "savvy-smtp-secret" # REQUIRED: Create secret with SMTP credentials
+    usernameKey: "SMTP_USERNAME"
+    passwordKey: "SMTP_PASSWORD"
+  # VAPID Private Key (optional, for web push notifications)
+  vapid:
+    existingSecret: "savvy-vapid-secret" # REQUIRED: Create secret with VAPID private key
+    privateKeyKey: "VAPID_PRIVATE_KEY"
+  # TOTP Encryption Key (optional, for 2FA/TOTP)
+  totp:
+    existingSecret: "savvy-totp-secret" # REQUIRED if 2FA enabled
+    encryptionKeyKey: "TOTP_ENCRYPTION_KEY"
+
+# Health Probes
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+# Resource Limits (adjust based on load testing)
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 3000
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx" # Or "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+  hosts:
+    - host: savvy.example.com # REQUIRED: Set your domain
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: savvy-tls
+      hosts:
+        - savvy.example.com # REQUIRED: Set your domain
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  # Note: Metrics are served on a separate port (9090) for security (industry best practice)
+  prometheus:
+    scrape: true
+    port: 9090 # Separate metrics port (not exposed via Ingress)
+    path: /metrics
+    scheme: http
+  serviceMonitor:
+    enabled: true # Enable if using Prometheus Operator
+    interval: 30s
+    scrapeTimeout: 10s
+
+# External Secrets (Optional - for GitOps-safe secret management)
+externalSecrets:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreRef:
+    name: "aws-secrets-manager" # Or your secret store
+    kind: ClusterSecretStore
+  creationPolicy: Owner
+  deletionPolicy: Retain
+  # Configure your secret IDs/paths here
+  sessionSecretId: ""
+  sessionSecretProperty: ""
+  oauthClientIdSecret: ""
+  oauthClientIdProperty: ""
+  oauthClientSecretId: ""
+  oauthClientSecretProperty: ""

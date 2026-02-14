@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>sbaerlocher/.github:renovate-go#2026-02-14",
+    "github>sbaerlocher/.github:renovate-docker#2026-02-14"
+  ],
+  "packageRules": [
+    {
+      "description": "Disable digest pinning for Savvy image (version managed via Chart.appVersion)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
+      "pinDigests": false
+    }
+  ]
+}

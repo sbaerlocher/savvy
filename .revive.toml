@@ -1,0 +1,9 @@
+ignoreGeneratedHeader = false
+severity = "warning"
+confidence = 0.8
+errorCode = 1
+warningCode = 0
+
+# Disable var-naming rule (complains about generic package names like "api")
+[rule.var-naming]
+  disabled = true

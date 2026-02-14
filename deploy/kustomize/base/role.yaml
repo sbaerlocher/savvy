@@ -1,0 +1,18 @@
+---
+# Role for Savvy ServiceAccount
+# Grants permissions to access Kubernetes resources if needed
+# Disabled by default - enable in overlays by adding to kustomization.yaml resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+rules:
+  # Example: Allow reading ConfigMaps
+  # - apiGroups: [""]
+  #   resources: ["configmaps"]
+  #   verbs: ["get", "list", "watch"]
+  # Add your required permissions here
+  []

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="{{.Lang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Title}}</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, sans-serif;
+      background-color: #f3f4f6;
+    "
+  >
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px">
+      <!-- Savvy Header with Logo -->
+      <div
+        style="
+          background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+          color: white;
+          padding: 32px;
+          border-radius: 12px 12px 0 0;
+          text-align: center;
+        "
+      >
+        <div style="margin-bottom: 16px">
+          <img src="{{.LogoURL}}" alt="Savvy" style="height: 48px; width: auto" />
+        </div>
+        <h1 style="color: white; font-size: 24px; margin: 0; font-weight: 600">{{.Title}}</h1>
+      </div>
+
+      <!-- Email Content -->
+      <div
+        style="
+          background: white;
+          padding: 40px;
+          border-radius: 0 0 12px 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px">
+          {{.Greeting}}
+        </p>
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px">
+          {{.Message}}
+        </p>
+
+        <!-- Call-to-Action Button -->
+        <div style="text-align: center; margin: 32px 0">
+          <a
+            href="{{.VerifyURL}}"
+            style="
+              display: inline-block;
+              background-color: #06b6d4;
+              color: white;
+              text-decoration: none;
+              padding: 14px 32px;
+              border-radius: 8px;
+              font-size: 16px;
+              font-weight: 600;
+            "
+          >
+            {{.ButtonText}}
+          </a>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 24px">
+          {{.ExpiresText}}
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0" />
+
+        <p style="color: #9ca3af; font-size: 12px; margin: 0">
+          {{.FallbackText}}<br />
+          <a href="{{.VerifyURL}}" style="color: #06b6d4; word-break: break-all">{{.VerifyURL}}</a>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 24px">
+        {{.Footer}}
+      </p>
+    </div>
+  </body>
+</html>

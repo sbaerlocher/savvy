@@ -1,0 +1,345 @@
+[
+  {
+    "id": "email.account_deleted.ignore",
+    "translation": "If you didn't request this deletion, please contact support immediately."
+  },
+  {
+    "id": "email.account_deleted.message",
+    "translation": "Your Savvy account has been successfully deleted. All your data, including cards, vouchers, gift cards, and shares, has been permanently removed."
+  },
+  {
+    "id": "email.account_deleted.subject",
+    "translation": "Account Deleted - Savvy"
+  },
+  {
+    "id": "email.account_deleted.title",
+    "translation": "Account Deleted"
+  },
+  {
+    "id": "email.common.button_view",
+    "translation": "View in Savvy"
+  },
+  {
+    "id": "email.common.fallback_text",
+    "translation": "If the button doesn't work, copy and paste this URL into your browser:"
+  },
+  {
+    "id": "email.common.footer",
+    "translation": "Savvy - Your digital wallet for cards, vouchers, and gift cards"
+  },
+  {
+    "id": "email.common.greeting",
+    "translation": "Hi {{.UserName}},"
+  },
+  {
+    "id": "email.common.unsubscribe_notifications",
+    "translation": "Unsubscribe from notifications"
+  },
+  {
+    "id": "email.common.unsubscribe_reminders",
+    "translation": "Unsubscribe from expiry reminders"
+  },
+  {
+    "id": "email.expiry.code_label.gift_card",
+    "translation": "Card Number"
+  },
+  {
+    "id": "email.expiry.code_label.voucher",
+    "translation": "Code"
+  },
+  {
+    "id": "email.expiry.days_left",
+    "translation": {
+      "one": "1 day",
+      "other": "{{.Count}} days"
+    }
+  },
+  {
+    "id": "email.expiry.days_left_today",
+    "translation": "today"
+  },
+  {
+    "id": "email.expiry.days_left_label",
+    "translation": "Remaining"
+  },
+  {
+    "id": "email.expiry.detail_label",
+    "translation": "Details"
+  },
+  {
+    "id": "email.expiry.expires_label",
+    "translation": "Expires on"
+  },
+  {
+    "id": "email.expiry.ignore",
+    "translation": "You're receiving this email because you have expiry reminders enabled in Savvy."
+  },
+  {
+    "id": "email.expiry.merchant_label",
+    "translation": "Merchant"
+  },
+  {
+    "id": "email.expiry.message",
+    "translation": "Your {{.Resource}} from {{.Merchant}} expires in {{.DaysText}}. Don't forget to use it in time!"
+  },
+  {
+    "id": "email.expiry.subject",
+    "translation": "Expiry Reminder: {{.Resource}} from {{.Merchant}} - Savvy"
+  },
+  {
+    "id": "email.expiry.title",
+    "translation": "Expiry Reminder"
+  },
+  {
+    "id": "email.expiry.type_label",
+    "translation": "Type"
+  },
+  {
+    "id": "email.expiry.value_label.gift_card",
+    "translation": "Balance"
+  },
+  {
+    "id": "email.expiry.value_label.voucher",
+    "translation": "Value"
+  },
+  {
+    "id": "email.password_reset.button",
+    "translation": "Reset Password"
+  },
+  {
+    "id": "email.password_reset.expires",
+    "translation": "This link will expire in {{.ExpiresIn}}."
+  },
+  {
+    "id": "email.password_reset.ignore",
+    "translation": "If you didn't request a password reset, you can safely ignore this email."
+  },
+  {
+    "id": "email.password_reset.message",
+    "translation": "We received a request to reset your password. Click the button below to choose a new password:"
+  },
+  {
+    "id": "email.password_reset.subject",
+    "translation": "Reset Your Password - Savvy"
+  },
+  {
+    "id": "email.password_reset.title",
+    "translation": "Password Reset"
+  },
+  {
+    "id": "email.share.ignore",
+    "translation": "You're receiving this email because someone shared something with you in Savvy."
+  },
+  {
+    "id": "email.share.message",
+    "translation": "{{.FromName}} shared a {{.Resource}} with you. Open Savvy to view it."
+  },
+  {
+    "id": "email.share.subject",
+    "translation": "{{.FromName}} shared something with you - Savvy"
+  },
+  {
+    "id": "email.share.title",
+    "translation": "New Share"
+  },
+  {
+    "id": "email.test.automated",
+    "translation": "This email was automatically sent from the Savvy System Health Dashboard. No action is required."
+  },
+  {
+    "id": "email.test.message",
+    "translation": "This is a test email from your Savvy system health dashboard."
+  },
+  {
+    "id": "email.test.status_line1",
+    "translation": "SMTP connection successful"
+  },
+  {
+    "id": "email.test.status_line2",
+    "translation": "Email delivery working"
+  },
+  {
+    "id": "email.test.status_line3",
+    "translation": "System is ready to send notifications"
+  },
+  {
+    "id": "email.test.status_title",
+    "translation": "Email Configuration Status:"
+  },
+  {
+    "id": "email.test.subject",
+    "translation": "SMTP Test Successful - Savvy"
+  },
+  {
+    "id": "email.test.success",
+    "translation": "If you're reading this, it means your email configuration is working correctly!"
+  },
+  {
+    "id": "email.test.title",
+    "translation": "SMTP Test Successful"
+  },
+  {
+    "id": "email.transfer.ignore",
+    "translation": "You're receiving this email because someone transferred something to you in Savvy."
+  },
+  {
+    "id": "email.transfer.message",
+    "translation": "{{.FromName}} transferred a {{.Resource}} to you. You are now the owner. Open Savvy to view it."
+  },
+  {
+    "id": "email.transfer.subject",
+    "translation": "{{.FromName}} transferred something to you - Savvy"
+  },
+  {
+    "id": "email.transfer.title",
+    "translation": "New Transfer"
+  },
+  {
+    "id": "email.validity_start.badge",
+    "translation": "Valid from tomorrow"
+  },
+  {
+    "id": "email.validity_start.ignore",
+    "translation": "You're receiving this email because you have expiry reminders enabled in Savvy."
+  },
+  {
+    "id": "email.validity_start.message",
+    "translation": "Your voucher from {{.Merchant}} will be valid starting tomorrow. Don't forget to use it!"
+  },
+  {
+    "id": "email.validity_start.subject",
+    "translation": "Your voucher from {{.Merchant}} is valid tomorrow - Savvy"
+  },
+  {
+    "id": "email.validity_start.title",
+    "translation": "Voucher Now Valid"
+  },
+  {
+    "id": "email.validity_start.valid_from_label",
+    "translation": "Valid from"
+  },
+  {
+    "id": "email.verification.button",
+    "translation": "Verify Email"
+  },
+  {
+    "id": "email.verification.expires",
+    "translation": "This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email."
+  },
+  {
+    "id": "email.verification.message",
+    "translation": "Please verify your email address by clicking the button below:"
+  },
+  {
+    "id": "email.verification.subject",
+    "translation": "Verify Your Email - Savvy"
+  },
+  {
+    "id": "email.verification.title",
+    "translation": "Verify Your Email"
+  },
+  {
+    "id": "error.already_shared",
+    "translation": "Already shared with this user"
+  },
+  {
+    "id": "error.delete_share_failed",
+    "translation": "Error deleting share"
+  },
+  {
+    "id": "error.editing_not_supported",
+    "translation": "Editing not supported for this resource type"
+  },
+  {
+    "id": "error.invalid_id",
+    "translation": "Invalid ID"
+  },
+  {
+    "id": "error.invalid_resource_id",
+    "translation": "Invalid resource ID"
+  },
+  {
+    "id": "error.invalid_share_id",
+    "translation": "Invalid share ID"
+  },
+  {
+    "id": "error.server_error",
+    "translation": "Server Error"
+  },
+  {
+    "id": "error.unauthorized",
+    "translation": "Unauthorized"
+  },
+  {
+    "id": "error.update_share_failed",
+    "translation": "Error updating share"
+  },
+  {
+    "id": "error.updates_not_supported",
+    "translation": "Updates not supported for this resource type"
+  },
+  {
+    "id": "error.user_not_found",
+    "translation": "User not found"
+  },
+  {
+    "id": "push.expiry.body",
+    "translation": "Your {{.Resource}} from {{.Merchant}} expires in {{.Days}} days"
+  },
+  {
+    "id": "push.expiry.body_tomorrow",
+    "translation": "Your {{.Resource}} from {{.Merchant}} expires tomorrow"
+  },
+  {
+    "id": "push.expiry.title",
+    "translation": "Expiry Reminder"
+  },
+  {
+    "id": "push.validity_start.body",
+    "translation": "Your voucher from {{.Merchant}} is valid starting tomorrow"
+  },
+  {
+    "id": "push.validity_start.title",
+    "translation": "Voucher Now Valid"
+  },
+  {
+    "id": "push.resource.card",
+    "translation": "card"
+  },
+  {
+    "id": "push.resource.gift_card",
+    "translation": "gift card"
+  },
+  {
+    "id": "push.resource.voucher",
+    "translation": "voucher"
+  },
+  {
+    "id": "push.share.body",
+    "translation": "{{.User}} shared a {{.Resource}} with you"
+  },
+  {
+    "id": "push.share.title",
+    "translation": "New Share"
+  },
+  {
+    "id": "push.transfer.body",
+    "translation": "{{.User}} transferred a {{.Resource}} to you"
+  },
+  {
+    "id": "push.transfer.title",
+    "translation": "Ownership Transferred"
+  },
+  {
+    "id": "success.created",
+    "translation": "Successfully Created"
+  },
+  {
+    "id": "success.deleted",
+    "translation": "Successfully Deleted"
+  },
+  {
+    "id": "success.updated",
+    "translation": "Successfully Updated"
+  }
+]

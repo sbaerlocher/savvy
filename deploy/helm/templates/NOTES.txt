@@ -1,0 +1,128 @@
+******************************************************************************
+*                                                                            *
+*  █████   █████   █     █  █     █  █     █                                *
+*  █       █    █  █     █  █     █  █     █                                *
+*  █████   █████   █     █  █     █   █████                                 *
+*      █   █    █   █   █   █     █        █                                *
+*  █████   █    █    █ █     █████    █████                                 *
+*                                                                            *
+*  Enterprise-Grade Personal Finance Management                              *
+*  Chart Version: {{ .Chart.Version }} | App Version: {{ .Chart.AppVersion }}
+*                                                                            *
+******************************************************************************
+
+✅ Savvy has been successfully deployed!
+
+📊 Deployment Status:
+{{- if .Values.autoscaling.enabled }}
+  • Replicas: {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} (HPA enabled)
+{{- else }}
+  • Replicas: {{ .Values.replicaCount }}
+{{- end }}
+  • Namespace: {{ .Release.Namespace }}
+  • Release: {{ .Release.Name }}
+
+🔗 Access Information:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  • Application URL: https://{{ $host.host }}
+{{- end }}
+{{- else }}
+  • Service: {{ include "savvy.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}
+  • Port Forward: kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "savvy.fullname" . }} 3000:{{ .Values.service.port }}
+{{- end }}
+
+🔍 Monitoring Status:
+{{- if .Values.monitoring.enabled }}
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+  • ServiceMonitor: ✓ Enabled (Prometheus scraping)
+{{- end }}
+{{- end }}
+{{- if .Values.podAnnotations }}
+{{- if hasKey .Values.podAnnotations "k8s.grafana.com/scrape" }}
+  • Grafana Alloy: ✓ Enabled (metrics on port {{ index .Values.podAnnotations "k8s.grafana.com/metrics.portNumber" | default "3000" }})
+{{- end }}
+{{- end }}
+
+🛡️ Security Features:
+{{- if .Values.networkPolicy.enabled }}
+  • Network Policy: ✓ Enabled
+{{- else }}
+  • Network Policy: ✗ Disabled (consider enabling for production)
+{{- end }}
+{{- if .Values.rbac.create }}
+  • RBAC: ✓ Enabled
+{{- else }}
+  • RBAC: ✗ Using default service account
+{{- end }}
+  • Security Context: ✓ Non-root user ({{ .Values.podSecurityContext.runAsUser }})
+  • Capabilities: ✓ Dropped ALL
+
+🔄 High Availability:
+{{- if .Values.podDisruptionBudget.enabled }}
+  • Pod Disruption Budget: ✓ Enabled (minAvailable: {{ .Values.podDisruptionBudget.minAvailable }})
+{{- else }}
+  • Pod Disruption Budget: ✗ Disabled (consider enabling for production)
+{{- end }}
+{{- if .Values.podAntiAffinity.enabled }}
+  • Pod Anti-Affinity: ✓ Enabled ({{ .Values.podAntiAffinity.type }})
+{{- else }}
+  • Pod Anti-Affinity: ✗ Disabled
+{{- end }}
+
+📝 Useful Commands:
+
+  # Check deployment status
+  kubectl get deployment -n {{ .Release.Namespace }} {{ include "savvy.fullname" . }}
+
+  # View pods
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "savvy.name" . }}
+
+  # View logs
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "savvy.name" . }} -f
+
+  # Check health
+  kubectl exec -n {{ .Release.Namespace }} -it deployment/{{ include "savvy.fullname" . }} -- wget -O- http://localhost:{{ .Values.config.serverPort }}/health
+
+{{- if .Values.autoscaling.enabled }}
+  # Check HPA status
+  kubectl get hpa -n {{ .Release.Namespace }} {{ include "savvy.fullname" . }}
+{{- end }}
+
+  # Run Helm tests
+  helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+  # Upgrade release
+  helm upgrade {{ .Release.Name }} . -n {{ .Release.Namespace }} -f values.yaml
+
+  # Rollback release
+  helm rollback {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+📚 Documentation:
+  • Enterprise Features: ENTERPRISE.md
+  • Configuration Values: VALUES.md
+  • Helm Chart: Chart.yaml
+
+{{- if not .Values.autoscaling.enabled }}
+⚠️  Production Recommendation:
+  • Consider enabling HPA for automatic scaling
+  • Set minReplicas to at least 2 for high availability
+{{- end }}
+
+{{- if not .Values.networkPolicy.enabled }}
+⚠️  Security Recommendation:
+  • Enable NetworkPolicy for production deployments
+  • Review and configure RBAC permissions
+{{- end }}
+
+Feature Toggles:
+  • Cards:          {{ .Values.config.enableCards }}
+  • Vouchers:       {{ .Values.config.enableVouchers }}
+  • Gift Cards:     {{ .Values.config.enableGiftCards }}
+  • Local Login:    {{ .Values.config.enableLocalLogin }}
+  • Registration:   {{ .Values.config.enableRegistration }}
+
+🎉 Happy budgeting with Savvy!
+
+For support: https://github.com/sbaerlocher/savvy
+Maintainer: Simon Bärlocher <noreply@sbaerlo.ch>

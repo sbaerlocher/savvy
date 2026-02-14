@@ -1,0 +1,94 @@
+# ==============================================================================
+# Air Configuration for Backend-Only Development (No Frontend Build)
+# ==============================================================================
+# Used for: docker compose up (dev mode with separate frontend container)
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = []
+  bin = "./tmp/main"
+
+  # Build command: ONLY build Go binary (no frontend build)
+  # Frontend is handled by separate Vite Dev Server container
+  # Use -mod=mod to download dependencies if needed (vendor is excluded)
+  cmd = "go build -mod=mod -o ./tmp/main ./cmd/server"
+
+  # Delay after file change before rebuild (milliseconds)
+  delay = 1000
+
+  # Exclude directories from watching
+  exclude_dir = [
+    "tmp",
+    "vendor",
+    "testdata",
+    "node_modules",
+    "bin",
+    ".git",
+    "docs",
+    "frontend"  # Exclude entire frontend directory (separate container)
+  ]
+
+  exclude_file = []
+
+  # Exclude test files
+  exclude_regex = [
+    "_test\\.go$",
+    "\\.test$",
+    "\\.swp$"
+  ]
+
+  exclude_unchanged = true
+  follow_symlink = false
+  full_bin = ""
+
+  # Watch these directories for changes
+  include_dir = [
+    "cmd",
+    "internal"
+  ]
+
+  # File extensions to watch (Go only)
+  include_ext = ["go"]
+
+  include_file = []
+
+  # Graceful shutdown timeout
+  kill_delay = "1s"
+
+  # Build error log
+  log = "build-errors.log"
+
+  # CRITICAL: Enable polling for Docker
+  poll = true
+
+  # Polling interval (milliseconds)
+  poll_interval = 500
+
+  post_cmd = []
+  pre_cmd = []
+
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = false
+  stop_on_error = false
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  time = true
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true

@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# Prometheus Configuration
+# ==============================================================================
+# Metrics storage and querying for Savvy
+# Scrapes metrics from OpenTelemetry Collector
+# ==============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "savvy-docker-compose"
+    environment: "development"
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alerts/*.yml"
+
+scrape_configs:
+  # OpenTelemetry Collector - Internal Metrics (otelcol_*)
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8888"]
+    scrape_interval: 10s
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Grafana self-monitoring
+  - job_name: "grafana"
+    static_configs:
+      - targets: ["grafana:3000"]
+
+  # Savvy Metrics Server (separate port for security)
+  - job_name: "savvy"
+    static_configs:
+      - targets: ["api:9090"]
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+# Note: Storage retention is configured via command-line flags in docker-compose.yml
+# --storage.tsdb.path=/prometheus
+# --storage.tsdb.retention.time=7d (optional)

@@ -1,0 +1,221 @@
+@import 'tailwindcss';
+
+@theme {
+	/* Brand palette based on logo color #85d3dc */
+	--color-cyan-50: #f0fafb;
+	--color-cyan-100: #d6eff3;
+	--color-cyan-200: #b1e1e8;
+	--color-cyan-300: #85d3dc;
+	--color-cyan-400: #54b8c6;
+	--color-cyan-500: #389daa;
+	--color-cyan-600: #2b808d;
+	--color-cyan-700: #236974;
+	--color-cyan-800: #1e575f;
+	--color-cyan-900: #1a484f;
+
+	/* Primary alias (same as cyan) */
+	--color-primary-50: #f0fafb;
+	--color-primary-100: #d6eff3;
+	--color-primary-200: #b1e1e8;
+	--color-primary-300: #85d3dc;
+	--color-primary-400: #54b8c6;
+	--color-primary-500: #389daa;
+	--color-primary-600: #2b808d;
+	--color-primary-700: #236974;
+	--color-primary-800: #1e575f;
+	--color-primary-900: #1a484f;
+}
+
+@layer base {
+	html {
+		-webkit-tap-highlight-color: transparent;
+		overflow-y: scroll;
+		scrollbar-gutter: stable;
+	}
+
+	body {
+		@apply bg-gray-50 text-gray-900;
+	}
+}
+
+@layer components {
+	/* Button Base Styles - Consistent sizing, typography, and transitions */
+	.btn {
+		@apply px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 inline-flex items-center justify-center gap-2;
+		@apply disabled:opacity-50 disabled:cursor-not-allowed;
+	}
+
+	/* Button Sizes */
+	.btn-sm {
+		@apply px-3 py-1.5 text-sm font-medium;
+	}
+
+	.btn-xs {
+		@apply px-3 py-1 text-xs font-medium;
+	}
+
+	/* Button Colors - Primary Actions */
+	.btn-primary {
+		@apply bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500;
+	}
+
+	/* Button Colors - Secondary Actions */
+	.btn-secondary {
+		@apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+	}
+
+	/* Button Colors - Danger/Delete Actions */
+	.btn-danger {
+		@apply bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500;
+	}
+
+	/* Button Colors - Success Actions */
+	.btn-success {
+		@apply bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500;
+	}
+
+	/* Button Colors - Warning Actions (e.g., Transfer) */
+	.btn-warning {
+		@apply bg-orange-600 text-white hover:bg-orange-700 focus:ring-2 focus:ring-offset-2 focus:ring-orange-500;
+	}
+
+	/* Button Colors - Purple Actions (e.g., Transfer form) */
+	.btn-purple {
+		@apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
+	}
+
+	/* Button Colors - Gray Actions */
+	.btn-gray {
+		@apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-offset-2 focus:ring-gray-500;
+	}
+
+	/* Button Colors - Ghost/Outline */
+	.btn-ghost {
+		@apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+	}
+
+	/* Button Colors - Favorite Toggle */
+	.btn-favorite {
+		@apply bg-gray-100 text-gray-600 hover:bg-gray-200 rounded text-sm transition;
+	}
+
+	.btn-favorite.active {
+		@apply bg-yellow-100 text-yellow-600 hover:bg-yellow-200;
+	}
+
+	/* Button Colors - Text Only */
+	.btn-text {
+		@apply bg-transparent text-cyan-600 hover:text-cyan-800 px-0;
+	}
+
+	.btn-text-danger {
+		@apply bg-transparent text-red-600 hover:text-red-800 px-0;
+	}
+
+	/* Card styles */
+	.card {
+		@apply bg-white rounded-lg shadow-md;
+	}
+
+	/* Input styles */
+	.input {
+		@apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+	}
+
+	.label {
+		@apply block text-sm font-medium text-gray-700 mb-1;
+	}
+
+	/* iOS floating nav offset – single source of truth for nav, batch panel, and main content */
+	:root {
+		--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 1rem);
+	}
+
+	/* Mobile bottom navigation safe area */
+	.mobile-nav {
+		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	/* iOS floating nav: use margin for safe area instead of padding */
+	.mobile-nav-floating {
+		padding-bottom: 0;
+		margin-bottom: var(--mobile-nav-offset);
+	}
+
+	/* iOS floating batch panel: gap above nav */
+	.batch-panel-floating {
+		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
+	}
+
+	/* PWA standalone: safe-area is larger without Safari toolbar, reduce extra spacing */
+	@media (display-mode: standalone) {
+		:root {
+			--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 0.5rem);
+		}
+	}
+
+	/* Apple Liquid Glass: active tab pill indicator */
+	.liquid-glass-pill {
+		position: absolute;
+		inset-inline: -0.375rem;
+		top: 0.25rem;
+		bottom: 0.25rem;
+		border-radius: 9999px;
+		background: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.6),
+			rgba(255, 255, 255, 0.25)
+		);
+		backdrop-filter: blur(20px) saturate(1.8) brightness(1.1);
+		-webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.1);
+		border: 0.5px solid rgba(255, 255, 255, 0.5);
+		box-shadow:
+			0 0 0 0.5px rgba(0, 0, 0, 0.04),
+			0 2px 8px rgba(0, 0, 0, 0.06),
+			inset 0 1px 0 rgba(255, 255, 255, 0.5);
+		z-index: -1;
+	}
+
+	/* First and last nav items: pull pill inward to stay within nav rounding */
+	.grid > a:first-child .liquid-glass-pill {
+		inset-inline-start: 0.1rem;
+	}
+
+	.grid > a:last-child .liquid-glass-pill {
+		inset-inline-end: 0.1rem;
+	}
+
+	/* Fallback for browsers without backdrop-filter support */
+	@supports not (backdrop-filter: blur(1px)) {
+		.mobile-nav,
+		.batch-panel-floating {
+			background-color: white;
+			border-top-color: rgb(229 231 235);
+		}
+
+		.liquid-glass-pill {
+			background: rgba(133, 211, 220, 0.15);
+		}
+	}
+
+	/* Main content spacing when mobile nav is visible */
+	.main-with-mobile-nav {
+		padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1rem) !important;
+	}
+
+	/* Extra spacing for floating nav (iOS) */
+	.main-with-mobile-nav-floating {
+		padding-bottom: calc(4rem + var(--mobile-nav-offset) + 1.5rem) !important;
+	}
+
+	/* Toast positioning above mobile nav (uses --mobile-nav-offset from :root) */
+	.toast-container {
+		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
+	}
+
+	@media (min-width: 640px) {
+		.toast-container {
+			bottom: 1.5rem;
+		}
+	}
+}

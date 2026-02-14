@@ -1,0 +1,264 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+This project incorporates components from the projects listed below. The original copyright
+notices and licenses under which Simon Bärlocher received such components are set forth below.
+Simon Bärlocher reserves all rights not expressly granted herein, whether by implication,
+estoppel, or otherwise.
+
+================================================================================
+
+## Go Dependencies
+
+### 1. Echo Web Framework
+- Name: echo
+- Version: v4.15.0
+- License: MIT
+- Copyright: (c) 2023 LabStack LLC and Echo contributors
+- Repository: https://github.com/labstack/echo
+
+### 2. GORM
+- Name: gorm
+- Version: v1.31.1
+- License: MIT
+- Copyright: (c) 2013-2023 Jinzhu
+- Repository: https://github.com/go-gorm/gorm
+
+### 3. GORM PostgreSQL Driver
+- Name: gorm.io/driver/postgres
+- Version: v1.6.0
+- License: MIT
+- Copyright: (c) 2020 Jinzhu
+- Repository: https://github.com/go-gorm/postgres
+
+### 4. Gorilla Sessions
+- Name: gorilla/sessions
+- Version: v1.4.0
+- License: BSD-3-Clause
+- Copyright: (c) 2012-2024 The Gorilla Authors
+- Repository: https://github.com/gorilla/sessions
+
+### 5. Go Crypto
+- Name: golang.org/x/crypto
+- Version: v0.47.0
+- License: BSD-3-Clause
+- Copyright: (c) 2009 The Go Authors
+- Repository: https://go.googlesource.com/crypto
+
+### 6. Prometheus Client
+- Name: prometheus/client_golang
+- Version: v1.23.2
+- License: Apache-2.0
+- Copyright: (c) 2012-2015 The Prometheus Authors
+- Repository: https://github.com/prometheus/client_golang
+
+### 7. OpenTelemetry Go
+- Name: go.opentelemetry.io/otel
+- Version: v1.39.0
+- License: Apache-2.0
+- Copyright: (c) 2019 The OpenTelemetry Authors
+- Repository: https://github.com/open-telemetry/opentelemetry-go
+
+### 8. OpenTelemetry Echo Instrumentation
+- Name: go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho
+- Version: v0.64.0
+- License: Apache-2.0
+- Copyright: (c) 2019 The OpenTelemetry Authors
+- Repository: https://github.com/open-telemetry/opentelemetry-go-contrib
+
+### 9. Go OIDC
+- Name: github.com/coreos/go-oidc/v3
+- Version: v3.17.0
+- License: Apache-2.0
+- Copyright: (c) 2014 CoreOS, Inc.
+- Repository: https://github.com/coreos/go-oidc
+
+### 10. Go OAuth2
+- Name: golang.org/x/oauth2
+- Version: v0.34.0
+- License: BSD-3-Clause
+- Copyright: (c) 2009 The Go Authors
+- Repository: https://go.googlesource.com/oauth2
+
+### 11. Go Gormigrate
+- Name: github.com/go-gormigrate/gormigrate/v2
+- Version: v2.1.5
+- License: MIT
+- Copyright: (c) 2016 Go Gormigrate
+- Repository: https://github.com/go-gormigrate/gormigrate
+
+### 12. Go Playground Validator
+- Name: github.com/go-playground/validator/v10
+- Version: v10.30.1
+- License: MIT
+- Copyright: (c) 2015 Dean Karn
+- Repository: https://github.com/go-playground/validator
+
+### 13. Go I18n
+- Name: github.com/nicksnyder/go-i18n/v2
+- Version: v2.6.1
+- License: MIT
+- Copyright: (c) 2013 Nick Snyder
+- Repository: https://github.com/nicksnyder/go-i18n
+
+### 14. Google UUID
+- Name: github.com/google/uuid
+- Version: v1.6.0
+- License: BSD-3-Clause
+- Copyright: (c) 2009,2014 Google Inc.
+- Repository: https://github.com/google/uuid
+
+### 15. Testify
+- Name: github.com/stretchr/testify
+- Version: v1.11.1
+- License: MIT
+- Copyright: (c) 2012-2020 Mat Ryer, Tyler Bunnell and contributors
+- Repository: https://github.com/stretchr/testify
+
+================================================================================
+
+## Node.js / Frontend Dependencies
+
+### 1. SvelteKit
+- Name: @sveltejs/kit
+- Version: ^2.51.0
+- License: MIT
+- Copyright: (c) 2016-2024 Rich Harris and contributors
+- Repository: https://github.com/sveltejs/kit
+
+### 2. Svelte
+- Name: svelte
+- Version: 5.51.0
+- License: MIT
+- Copyright: (c) 2016-2024 Rich Harris and contributors
+- Repository: https://github.com/sveltejs/svelte
+
+### 3. Vite
+- Name: vite
+- Version: ^7.3.1
+- License: MIT
+- Copyright: (c) 2019-present Evan You and Vite contributors
+- Repository: https://github.com/vitejs/vite
+
+### 4. TailwindCSS
+- Name: tailwindcss
+- Version: ^4.1.18
+- License: MIT
+- Copyright: (c) 2019 Tailwind Labs, Inc.
+- Repository: https://github.com/tailwindlabs/tailwindcss
+
+### 5. bwip-js
+- Name: bwip-js
+- Version: ^4.8.0
+- License: MIT
+- Copyright: (c) 2011-2024 Mark Warren
+- Repository: https://github.com/metafloor/bwip-js
+
+### 6. ZBar WebAssembly
+- Name: @undecaf/zbar-wasm
+- Version: ^0.11.0
+- License: LGPL-2.1+
+- Copyright: (c) 2020-2024 Ferdinand Kasper
+- Repository: https://github.com/undecaf/zbar-wasm
+- Note: LGPL-2.1+ allows use in proprietary software when dynamically linked
+
+### 7. Vite PWA Plugin
+- Name: @vite-pwa/sveltekit
+- Version: ^1.1.0
+- License: MIT
+- Copyright: (c) 2022 Anthony Fu
+- Repository: https://github.com/vite-pwa/sveltekit
+
+### 8. Workbox
+- Name: workbox-window
+- Version: ^7.4.0
+- License: Apache-2.0
+- Copyright: (c) 2017 Google LLC
+- Repository: https://github.com/GoogleChrome/workbox
+
+### 9. OpenTelemetry API
+- Name: @opentelemetry/api
+- Version: ^1.9.0
+- License: Apache-2.0
+- Copyright: (c) OpenTelemetry Authors
+- Repository: https://github.com/open-telemetry/opentelemetry-js
+
+### 10. OpenTelemetry SDK (Web)
+- Name: @opentelemetry/sdk-trace-web
+- Version: ^2.5.1
+- License: Apache-2.0
+- Copyright: (c) OpenTelemetry Authors
+- Repository: https://github.com/open-telemetry/opentelemetry-js
+
+### 11. Playwright
+- Name: @playwright/test
+- Version: 1.58.2
+- License: Apache-2.0
+- Copyright: (c) Microsoft Corporation
+- Repository: https://github.com/microsoft/playwright
+
+### 12. Vitest
+- Name: vitest
+- Version: ^4.0.18
+- License: MIT
+- Copyright: (c) 2021-Present Anthony Fu and Vitest contributors
+- Repository: https://github.com/vitest-dev/vitest
+
+### 13. PostCSS
+- Name: postcss
+- Version: ^8.5.6
+- License: MIT
+- Copyright: (c) 2013 Andrey Sitnik
+- Repository: https://github.com/postcss/postcss
+
+### 14. TypeScript
+- Name: typescript
+- Version: 5.9.3
+- License: Apache-2.0
+- Copyright: (c) Microsoft Corporation
+- Repository: https://github.com/microsoft/TypeScript
+
+================================================================================
+
+## PostgreSQL Database
+
+### PostgreSQL
+- Version: 16
+- License: PostgreSQL License (similar to BSD/MIT)
+- Copyright: (c) 1996-2024 The PostgreSQL Global Development Group
+- Website: https://www.postgresql.org/
+
+================================================================================
+
+## Build Tools and Infrastructure
+
+### 1. Docker
+- License: Apache-2.0
+- Copyright: (c) 2013-2024 Docker, Inc.
+- Website: https://www.docker.com/
+
+### 2. Air (Hot Reload)
+- Name: github.com/air-verse/air
+- Version: v1.61.1
+- License: GPL-3.0
+- Repository: https://github.com/air-verse/air
+
+### 3. Alpine Linux
+- Version: 3.23
+- License: Various (primarily MIT, GPL, BSD)
+- Website: https://alpinelinux.org/
+
+================================================================================
+
+ADDITIONAL LICENSES
+
+For the full license text of each dependency, please refer to the respective
+project repositories or the LICENSE files in the node_modules and vendor directories.
+
+This NOTICE file is for informational purposes and does not alter the terms of any
+license under which this software is distributed.
+
+For a complete list of all transitive dependencies, please refer to:
+- Go dependencies: go.mod and go.sum
+- Node.js dependencies: client/package.json and client/package-lock.json
+
+Last Updated: 2026-02-13

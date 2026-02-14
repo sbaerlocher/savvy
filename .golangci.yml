@@ -1,0 +1,70 @@
+---
+version: "2"
+
+run:
+  timeout: 5m
+  go: "1.26"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - gosec
+    - misspell
+    - unconvert
+    - unparam
+    - gocyclo
+    - bodyclose
+    - noctx
+  disable:
+    - goconst # Disabled: too noisy for test files with sample data
+    - dupl # Disabled: acceptable duplication in test code patterns
+  settings:
+    dupl:
+      # Increase threshold to reduce false positives
+      # Migrations and repositories intentionally follow patterns with Go generics
+      threshold: 300
+    gosec:
+      excludes:
+        # G117: Struct fields matching "secret/password/key" patterns
+        # These are legitimate field names (Password, Secret, AuthKey) not actual secrets
+        - G117
+    revive:
+      rules:
+        # Disable var-naming rule (complains about generic package names like "api")
+        - name: var-naming
+          disabled: true
+  exclusions:
+    # Exclude specific patterns
+    rules:
+      - path: (.+)\.go$
+        text: "avoid meaningless package names"
+      - path: (.+)\.go$
+        text: "avoid package names that conflict with Go standard library package names"
+      # Exclude var-naming for package declarations (false positives for standard names)
+      - path: internal/(debug|handlers/api|metrics)/
+        linters:
+          - revive
+        text: "var-naming"
+      - path: _repository_impl\.go
+        linters:
+          - dupl
+      # Exclude goconst, dupl, and gosec for test files
+      # Test code often has acceptable duplication, hardcoded strings, and test credentials
+      - path: _test\.go$
+        linters:
+          - goconst
+          - dupl
+          - gosec
+      # Exclude goconst for seed files (sample test data)
+      - path: cmd/seed/main\.go$
+        linters:
+          - goconst
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 3

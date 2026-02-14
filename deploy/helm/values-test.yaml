@@ -1,0 +1,99 @@
+---
+# Test values for CI/CD and Helm chart validation
+# These values satisfy required validations without real secrets
+
+# Use minimal resources for testing
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Database Configuration (required)
+database:
+  existingSecret: "savvy-test-db-secret" # Test secret name
+  databaseUrlKey: "DATABASE_URL"
+
+# Application Configuration
+config:
+  serverPort: 3000
+  environment: development # Must be: development, staging, or production
+  logLevel: debug
+  autoMigrate: true
+
+  # Feature Toggles (all enabled for testing)
+  enableCards: true
+  enableVouchers: true
+  enableGiftCards: true
+  enableLocalLogin: true
+  enableRegistration: true
+
+  # Timezone
+  timezone: "UTC"
+
+  # SMTP disabled for testing
+  smtpHost: ""
+  smtpPort: 587
+  smtpFromEmail: "test@example.com"
+  smtpFromName: "Savvy Test"
+  smtpUseTLS: true
+
+  # VAPID disabled for testing
+  vapidPublicKey: ""
+  vapidSubject: "mailto:test@example.com"
+
+  # Expiry Reminders
+  enableExpiryReminders: false
+  reminderDaysBefore: "7"
+  reminderCheckTime: "08:00"
+
+  # 2FA disabled for testing
+  enable2FA: false
+  totpIssuer: "Savvy Test"
+
+  # Telemetry disabled for testing
+  otelEnabled: false
+
+# OAuth disabled for testing
+oauth:
+  enabled: false
+
+# Monitoring disabled for testing
+monitoring:
+  enabled: false
+  prometheus:
+    scrape: false
+  serviceMonitor:
+    enabled: false
+
+# Autoscaling disabled for testing
+autoscaling:
+  enabled: false
+
+# Pod Disruption Budget disabled for testing
+podDisruptionBudget:
+  enabled: false
+
+# Ingress disabled for testing
+ingress:
+  enabled: false
+
+# External Secrets disabled for testing
+externalSecrets:
+  enabled: false
+
+# Network Policy disabled for testing
+networkPolicy:
+  enabled: false
+
+# RBAC disabled for testing
+rbac:
+  create: false
+
+# Priority Class disabled for testing
+priorityClass:
+  enabled: false

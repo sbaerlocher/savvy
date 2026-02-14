@@ -1,0 +1,23 @@
+{
+	"name": "Savvy - Loyalty Cards Manager",
+	"short_name": "Savvy",
+	"description": "Digitale Verwaltung von Kundenkarten, Gutscheinen und Geschenkkarten",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"handle_links": "preferred",
+	"background_color": "#ffffff",
+	"theme_color": "#3b82f6",
+	"icons": [
+		{
+			"src": "/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	]
+}

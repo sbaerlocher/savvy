@@ -1,0 +1,112 @@
+---
+# ==============================================================================
+# OpenTelemetry Collector Configuration
+# ==============================================================================
+# Receives OTLP (OpenTelemetry Protocol) from Backend + Frontend
+# Exports to: Loki (Logs), Tempo (Traces), Prometheus (Metrics)
+# ==============================================================================
+
+receivers:
+  # OTLP Receiver - accepts logs, traces, metrics from applications
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "http://localhost:5173" # SvelteKit Dev Server
+            - "http://localhost:8080" # Go Backend
+
+  # Prometheus Receiver - scrapes metrics from /metrics endpoint
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "savvy-api"
+          scrape_interval: 15s
+          static_configs:
+            - targets: ["api:8080"]
+
+extensions:
+  # Health Check - for container healthcheck
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+processors:
+  # Batch processor - reduces number of outgoing connections
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  # Memory Limiter - prevents OOM
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+  # Resource Detection - auto-detect service info
+  resourcedetection:
+    detectors: [env, system, docker]
+    timeout: 5s
+
+  # Attributes Processor - add custom attributes
+  attributes:
+    actions:
+      - key: deployment.environment
+        value: development
+        action: insert
+
+exporters:
+  # Loki Exporter - for Logs
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: false
+      job: true
+
+  # Tempo Exporter - for Traces
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  # Prometheus Exporter - for Metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: savvy
+
+  # Debug Exporter - for development (logs to console)
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  extensions: [health_check]
+
+  # Telemetry - OTEL Collector internal metrics
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888 # Prometheus endpoint for OTEL Collector internal metrics
+
+  pipelines:
+    # Logs Pipeline: OTLP → Loki
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [loki, debug]
+
+    # Traces Pipeline: OTLP → Tempo
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [otlp/tempo, debug]
+
+    # Metrics Pipeline: OTLP + Prometheus Scrape → Prometheus
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters: [prometheus, debug]

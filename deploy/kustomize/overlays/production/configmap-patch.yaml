@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: savvy
+data:
+  ENVIRONMENT: "production"
+  DATABASE_URL: "postgres://savvy:$(DATABASE_PASSWORD)@postgres.database.svc.cluster.local:5432/savvy?sslmode=require"
+  ENABLE_LOCAL_LOGIN: "false"
+  ENABLE_REGISTRATION: "false"
+  TIMEZONE: "Europe/Zurich"
+  SMTP_HOST: "smtp.example.com"
+  SMTP_PORT: "587"
+  SMTP_FROM_EMAIL: "noreply@example.com"
+  SMTP_FROM_NAME: "Savvy"
+  SMTP_USE_TLS: "true"
+  VAPID_PUBLIC_KEY: ""
+  VAPID_SUBJECT: "mailto:admin@example.com"
+  ENABLE_EXPIRY_REMINDERS: "true"
+  REMINDER_DAYS_BEFORE: "7,3,1"
+  REMINDER_CHECK_TIME: "08:00"
+  ENABLE_2FA: "false"
+  TOTP_ISSUER: "Savvy"
+  OTEL_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "grafana-alloy.observability.svc.cluster.local:4318"

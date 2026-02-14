@@ -1,0 +1,8 @@
+{
+  "test.hello": "Bonjour",
+  "test.greeting": "Bonjour {{.Name}}",
+  "test.items": {
+    "one": "{{.Count}} article",
+    "other": "{{.Count}} articles"
+  }
+}

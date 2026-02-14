@@ -1,0 +1,118 @@
+---
+version: 2
+
+before:
+  hooks:
+    # Go dependencies
+    - go mod download
+
+    # Full build: Sync version + Build client (platform-independent Go tool)
+    - go run cmd/release-tool/main.go build-all
+
+    # Verify dependencies
+    - go mod tidy
+
+builds:
+  - main: ./cmd/server
+    binary: savvy
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.buildTime={{.Date}}
+      - -extldflags "-static"
+    flags:
+      - -trimpath
+      - -tags=production # Enable production build tags for go:embed
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    formats:
+      - tar.gz
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - .env.example
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  disable: true
+
+release:
+  github:
+    owner: sbaerlocher
+    name: savvy
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## 🎁 Savvy {{.Tag}}
+
+    Savvy is a digital management system for cards, vouchers, and gift cards with sharing capabilities.
+    Built with Go + Echo + SvelteKit + TypeScript + GORM + PostgreSQL.
+
+    📝 **Full details**: See [CHANGELOG.md](https://github.com/sbaerlocher/savvy/blob/{{.Tag}}/CHANGELOG.md)
+
+    ---
+
+    ### 📦 Installation
+
+    **Binary Downloads:**
+    Choose the appropriate binary for your platform from the assets below.
+
+    **Kubernetes (Helm):**
+    ```bash
+    # Production deployment with Helm
+    helm repo add savvy https://sbaerlocher.github.io/savvy
+    helm install savvy savvy/savvy --version {{.Tag}} \
+      --set postgresql.auth.password=changeme \
+      --set sessionSecret=$(openssl rand -base64 32)
+    ```
+
+    **Kubernetes (Kustomize):**
+    ```bash
+    # Deploy with Kustomize overlays
+    kubectl apply -k https://github.com/sbaerlocher/savvy/deploy/kustomize/overlays/production?ref={{.Tag}}
+    ```
+
+    **Docker (Development):**
+    ```bash
+    # Quick start for testing/development
+    docker pull ghcr.io/sbaerlocher/container/savvy:{{.Tag}}
+    docker run -p 3000:3000 ghcr.io/sbaerlocher/container/savvy:{{.Tag}}
+    ```
+
+    ### 🐳 Container Images
+    - **Registry**: ghcr.io/sbaerlocher/container/savvy:{{.Tag}}
+    - **Platforms**: linux/amd64, linux/arm64
+    - **Tags**: `{{.Tag}}`, `{{.Major}}`, `{{.Major}}.{{.Minor}}`, `latest`
+
+    ### 📚 Documentation
+    - **Deployment**: See [OPERATIONS.md](https://github.com/sbaerlocher/savvy/blob/{{.Tag}}/OPERATIONS.md)
+    - **Architecture**: See [ARCHITECTURE.md](https://github.com/sbaerlocher/savvy/blob/{{.Tag}}/ARCHITECTURE.md)
+    - **Development**: See [DEVELOPMENT.md](https://github.com/sbaerlocher/savvy/blob/{{.Tag}}/DEVELOPMENT.md)
+
+  footer: |
+    ### 🔐 Verification
+    ```bash
+    sha256sum -c checksums.txt
+    ```

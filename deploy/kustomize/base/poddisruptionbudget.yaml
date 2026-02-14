@@ -1,0 +1,17 @@
+---
+# PodDisruptionBudget for Savvy application
+# Ensures minimum availability during voluntary disruptions (node drains, cluster upgrades)
+# Disabled by default - enable in overlays by adding to kustomization.yaml resources
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: savvy
+  labels:
+    app.kubernetes.io/name: savvy
+    app.kubernetes.io/component: backend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: savvy
+  unhealthyPodEvictionPolicy: IfHealthyBudget

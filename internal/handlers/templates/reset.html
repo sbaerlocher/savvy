@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Savvy – Reset</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f9fafb;
+        color: #111827;
+        min-height: 100vh;
+        padding: 3rem 1rem;
+      }
+      .wrapper {
+        max-width: 64rem;
+        margin: 0 auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      @media (min-width: 1024px) {
+        .grid {
+          grid-template-columns: 2fr 1fr;
+        }
+      }
+      .card {
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        padding: 1.5rem 2rem;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .logo {
+        height: 3rem;
+      }
+      @media (min-width: 640px) {
+        .logo {
+          height: 4rem;
+        }
+      }
+      h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #111827;
+      }
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+      }
+      .desc {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+      }
+      .progress {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+      }
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #2b808d;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .status {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+      .error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 1rem;
+      }
+      .link {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #2b808d;
+        text-decoration: none;
+      }
+      .link:hover {
+        color: #236974;
+      }
+
+      /* Right column: info items */
+      .info-text {
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin-bottom: 1rem;
+      }
+      .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .info-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+      }
+      .info-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #111827;
+      }
+      .info-desc {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="grid">
+        <!-- Left column: Reset action -->
+        <div class="card">
+          <div class="header">
+            <img src="/logo.png" alt="Savvy" class="logo" />
+            <h1>App zurücksetzen</h1>
+          </div>
+          <p class="desc">
+            Lokale Daten, Caches und der Service Worker werden gelöscht. Danach wirst du zum Login
+            weitergeleitet.
+          </p>
+          <div class="progress" id="progress">
+            <div class="spinner" id="spinner"></div>
+            <div class="status" id="status">Wird vorbereitet…</div>
+          </div>
+        </div>
+
+        <!-- Right column: Info -->
+        <div class="card">
+          <h2>Was passiert?</h2>
+          <p class="info-text">Folgende Daten werden von diesem Gerät entfernt:</p>
+          <div class="info-item">
+            <svg class="info-icon" fill="#2b808d" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <div>
+              <div class="info-title">Service Worker</div>
+              <div class="info-desc">Veraltete Hintergrund-Scripts werden entfernt.</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg class="info-icon" fill="#2b808d" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <div>
+              <div class="info-title">Caches &amp; Offline-Daten</div>
+              <div class="info-desc">Gecachte Seiten und API-Antworten werden gelöscht.</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <svg class="info-icon" fill="#2b808d" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <div>
+              <div class="info-title">Lokaler Speicher</div>
+              <div class="info-desc">Einstellungen und Sitzungsdaten werden zurückgesetzt.</div>
+            </div>
+          </div>
+          <div class="info-item" style="margin-bottom: 0">
+            <svg
+              class="info-icon"
+              style="color: #2b808d"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <div>
+              <div class="info-title">Deine Daten sind sicher</div>
+              <div class="info-desc">
+                Karten, Gutscheine und Geschenkkarten bleiben auf dem Server erhalten.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (async function () {
+        var status = document.getElementById("status");
+        var log = function (msg) {
+          status.textContent = msg;
+        };
+
+        try {
+          log("Service Worker werden entfernt…");
+          if ("serviceWorker" in navigator) {
+            var registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(
+              registrations.map(function (r) {
+                return r.unregister();
+              })
+            );
+          }
+
+          log("Caches werden gelöscht…");
+          if ("caches" in window) {
+            var names = await caches.keys();
+            await Promise.all(
+              names.map(function (name) {
+                return caches.delete(name);
+              })
+            );
+          }
+
+          log("Lokale Datenbank wird gelöscht…");
+          if ("indexedDB" in window) {
+            var dbs = await indexedDB.databases().catch(function () {
+              return [];
+            });
+            await Promise.all(
+              dbs.map(function (db) {
+                return new Promise(function (resolve) {
+                  var req = indexedDB.deleteDatabase(db.name);
+                  req.onsuccess = resolve;
+                  req.onerror = resolve;
+                  req.onblocked = resolve;
+                });
+              })
+            );
+          }
+
+          log("Lokaler Speicher wird gelöscht…");
+          localStorage.clear();
+
+          log("Weiterleitung zum Login…");
+          window.location.replace("/login");
+        } catch (err) {
+          document.getElementById("spinner").style.display = "none";
+          status.innerHTML = '<span class="error">' + err.message + "</span>";
+          document
+            .getElementById("progress")
+            .insertAdjacentHTML("afterend", '<a href="/login" class="link">Zum Login &rarr;</a>');
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: savvy-base
+
+namespace: savvy
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+  - externalsecret.yaml
+  - deployment.yaml
+  - service.yaml
+  # Optional resources (add in overlays as needed):
+  # - networkpolicy.yaml
+  # - poddisruptionbudget.yaml
+  # - priorityclass.yaml
+  # - role.yaml
+  # - rolebinding.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: savvy
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/part-of: savvy
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/version: "1.1.0"
+
+images:
+  - name: ghcr.io/sbaerlocher/container/savvy
+    newTag: 1.1.0
+
+configMapGenerator:
+  - name: savvy-version
+    literals:
+      - VERSION=1.1.0
+      - BUILD_DATE=2026-01-27
+    # Hash-based name suffix enabled (savvy-version-abc123xyz)
+    # This triggers pod restarts when config changes
+    options:
+      disableNameSuffixHash: false
+
+generatorOptions:
+  disableNameSuffixHash: false

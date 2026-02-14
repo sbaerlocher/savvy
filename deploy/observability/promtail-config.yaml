@@ -1,0 +1,79 @@
+---
+# ==============================================================================
+# Promtail Configuration
+# ==============================================================================
+# Collects logs from Docker containers and sends them to Loki
+# ==============================================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["savvy-api", "savvy-client"]
+
+    relabel_configs:
+      # Extract container name
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: "container"
+
+      # Extract container ID
+      - source_labels: ["__meta_docker_container_id"]
+        target_label: "container_id"
+
+      # Set job label based on container name
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/savvy-api"
+        target_label: "job"
+        replacement: "savvy-api"
+
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/savvy-client"
+        target_label: "job"
+        replacement: "savvy-client"
+
+      # Add compose project label
+      - source_labels: ["__meta_docker_container_label_com_docker_compose_project"]
+        target_label: "compose_project"
+
+      # Add compose service label
+      - source_labels: ["__meta_docker_container_label_com_docker_compose_service"]
+        target_label: "compose_service"
+
+    pipeline_stages:
+      # Parse JSON logs from Go application
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            time: time
+            trace_id: trace_id
+            span_id: span_id
+
+      # Extract timestamp
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+
+      # Set log level label
+      - labels:
+          level:
+          trace_id:
+
+      # Output parsed message
+      - output:
+          source: msg

@@ -1,0 +1,12 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/sbaerlocher/savvy/discussions
+    about: Ask questions, share ideas, and discuss Savvy with the community
+  - name: 📚 Documentation
+    url: https://github.com/sbaerlocher/savvy/blob/main/README.md
+    about: Read the documentation to learn more about Savvy
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/sbaerlocher/savvy/security/advisories/new
+    about: Report a security vulnerability privately (DO NOT create a public issue)

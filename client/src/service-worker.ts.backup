@@ -1,0 +1,159 @@
+/**
+ * Custom Service Worker with Background Sync
+ *
+ * Optional: Nur nötig für erweiterte Features wie Background Sync
+ * Für normale Offline-Funktionalität reicht vite.config.ts
+ */
+
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { NetworkFirst, CacheFirst } from 'workbox-strategies';
+import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+declare const self: ServiceWorkerGlobalScope;
+
+// Precache all build assets
+precacheAndRoute(self.__WB_MANIFEST);
+
+// Background Sync Queue für Write-Operationen
+const bgSyncPlugin = new BackgroundSyncPlugin('savvy-queue', {
+  maxRetentionTime: 24 * 60 // 24 hours
+});
+
+// POST/PUT/PATCH/DELETE - mit Background Sync
+registerRoute(
+  /^\/api\/v1\/(cards|vouchers|gift-cards)/,
+  new NetworkFirst({
+    cacheName: 'api-mutations',
+    plugins: [
+      bgSyncPlugin,
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'POST'
+);
+
+registerRoute(
+  /^\/api\/v1\/(cards|vouchers|gift-cards)/,
+  new NetworkFirst({
+    cacheName: 'api-mutations',
+    plugins: [
+      bgSyncPlugin,
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'PUT'
+);
+
+registerRoute(
+  /^\/api\/v1\/(cards|vouchers|gift-cards)/,
+  new NetworkFirst({
+    cacheName: 'api-mutations',
+    plugins: [
+      bgSyncPlugin,
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'PATCH'
+);
+
+registerRoute(
+  /^\/api\/v1\/(cards|vouchers|gift-cards)/,
+  new NetworkFirst({
+    cacheName: 'api-mutations',
+    plugins: [
+      bgSyncPlugin,
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'DELETE'
+);
+
+// GET Requests - NetworkFirst
+registerRoute(
+  /^\/api\/v1\/cards/,
+  new NetworkFirst({
+    cacheName: 'cards-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'GET'
+);
+
+registerRoute(
+  /^\/api\/v1\/vouchers/,
+  new NetworkFirst({
+    cacheName: 'vouchers-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'GET'
+);
+
+registerRoute(
+  /^\/api\/v1\/gift-cards/,
+  new NetworkFirst({
+    cacheName: 'gift-cards-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 60 * 5
+      })
+    ]
+  }),
+  'GET'
+);
+
+// Merchants - CacheFirst
+registerRoute(
+  /^\/api\/v1\/merchants/,
+  new CacheFirst({
+    cacheName: 'merchants-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 60 * 60 * 24 // 1 day
+      })
+    ]
+  })
+);
+
+// Listen for Background Sync events
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'savvy-queue') {
+    event.waitUntil(
+      // Background Sync Plugin handles this automatically
+      Promise.resolve()
+    );
+  }
+});
+
+// Listen for messages from client
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+console.log('Savvy Service Worker loaded with Background Sync support');
