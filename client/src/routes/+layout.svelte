@@ -170,9 +170,6 @@
 	}
 </script>
 
-<svelte:head>
-	<meta name="theme-color" content="#4F46E5" />
-</svelte:head>
 
 <!-- Offline Indicator (über der Navigation) -->
 <OfflineIndicator />
