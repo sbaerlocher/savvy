@@ -218,13 +218,16 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 
 	role := user.Role
 	if req.Role != nil && *req.Role != "" {
-		if *req.Role != roleUser && *req.Role != roleAdmin {
-			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   "invalid_role",
-				Message: "Role must be 'user' or 'admin'",
-			})
+		// OAuth users: role is managed by OAuth provider, ignore role changes
+		if user.AuthProvider != "oauth" {
+			if *req.Role != roleUser && *req.Role != roleAdmin {
+				return c.JSON(http.StatusBadRequest, ErrorResponse{
+					Error:   "invalid_role",
+					Message: "Role must be 'user' or 'admin'",
+				})
+			}
+			role = *req.Role
 		}
-		role = *req.Role
 	}
 
 	// Validate required fields

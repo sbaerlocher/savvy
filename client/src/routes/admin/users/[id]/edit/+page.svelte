@@ -28,6 +28,7 @@
 	const currentUser = $derived($authStore.user);
 	const isAdmin = $derived(currentUser?.is_admin || false);
 	const isEditingSelf = $derived(user?.id === currentUser?.id);
+	const isOAuthUser = $derived(user?.auth_provider === 'oauth');
 
 	// ✅ Server-side admin check in +layout.server.ts (SVL-002 Fix)
 	// No client-side check needed - user is already validated server-side
@@ -202,13 +203,17 @@
 							<select
 								id="role"
 								bind:value={role}
-								disabled={!isAdmin || isEditingSelf}
+								disabled={!isAdmin || isEditingSelf || isOAuthUser}
 								class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
 							>
 								<option value="user">{$t('admin.users.roleUser')}</option>
 								<option value="admin">{$t('admin.users.roleAdmin')}</option>
 							</select>
-							{#if isEditingSelf}
+							{#if isOAuthUser}
+								<p class="text-sm text-gray-500 mt-1">
+									{$t('admin.users.oauthRoleManaged')}
+								</p>
+							{:else if isEditingSelf}
 								<p class="text-sm text-gray-500 mt-1">
 									{$t('admin.users.cannotChangeOwnRole')}
 								</p>

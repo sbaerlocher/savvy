@@ -472,7 +472,11 @@
 														<button
 															onclick={() => toggleRole(user.id, user.role)}
 															disabled={isOffline ||
-																user.id === currentUser?.id}
+																user.id === currentUser?.id ||
+																user.auth_provider === 'oauth'}
+															title={user.auth_provider === 'oauth'
+																? $t('admin.users.oauthRoleManaged')
+																: ''}
 															class="btn btn-sm btn-ghost"
 														>
 															{$t('admin.users.changeRole')}

@@ -1131,6 +1131,7 @@ export type TranslationKeys = {
 			showDetails: string;
 			userId: string;
 			oauthUserCannotEdit: string;
+			oauthRoleManaged: string;
 			roleInfo: {
 				title: string;
 				description: string;
