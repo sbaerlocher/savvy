@@ -215,6 +215,13 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 		return fmt.Errorf("update session: %w", err)
 	}
 
+	// Refresh cookie MaxAge to implement sliding sessions.
+	// Without this, the browser deletes the cookie after the original MaxAge
+	// even though the DB session keeps extending via ExpiresAt updates.
+	if cookie, err := r.Cookie(session.Name()); err == nil && cookie.Value != "" {
+		setCookie(w, session.Name(), cookie.Value, session.Options, r)
+	}
+
 	return nil
 }
 
