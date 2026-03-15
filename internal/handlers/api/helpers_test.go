@@ -89,7 +89,7 @@ func TestParsePaginationParams_InvalidValues(t *testing.T) {
 
 	page, perPage, isPaginated := parsePaginationParams(c)
 
-	assert.Equal(t, 1, page)  // Default when invalid
+	assert.Equal(t, 1, page)     // Default when invalid
 	assert.Equal(t, 25, perPage) // Default when invalid (negative)
 	assert.True(t, isPaginated)
 }
@@ -102,7 +102,7 @@ func TestParsePaginationParams_ZeroValues(t *testing.T) {
 
 	page, perPage, isPaginated := parsePaginationParams(c)
 
-	assert.Equal(t, 1, page)  // Default when zero
+	assert.Equal(t, 1, page)     // Default when zero
 	assert.Equal(t, 25, perPage) // Default when zero
 	assert.True(t, isPaginated)
 }

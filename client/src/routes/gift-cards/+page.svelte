@@ -51,22 +51,6 @@
 	let showImportDialog = $state(false);
 
 	const selectedCount = $derived(selectedIds.size);
-	const sharedSelectedCount = $derived(
-		filteredGiftCards.filter(
-			(gc) =>
-				selectedIds.has(gc.id) && gc.owner && gc.owner.id !== currentUserId
-		).length
-	);
-	// Gift cards have permissions in list response, so check can_delete precisely
-	const hasNonDeletableShared = $derived(
-		filteredGiftCards.some(
-			(gc) =>
-				selectedIds.has(gc.id) &&
-				gc.owner &&
-				gc.owner.id !== currentUserId &&
-				!gc.permissions?.can_delete
-		)
-	);
 
 	function toggleSelectMode() {
 		selectMode = !selectMode;
@@ -281,6 +265,23 @@
 
 		return result;
 	});
+
+	const sharedSelectedCount = $derived(
+		filteredGiftCards.filter(
+			(gc) =>
+				selectedIds.has(gc.id) && gc.owner && gc.owner.id !== currentUserId
+		).length
+	);
+	// Gift cards have permissions in list response, so check can_delete precisely
+	const hasNonDeletableShared = $derived(
+		filteredGiftCards.some(
+			(gc) =>
+				selectedIds.has(gc.id) &&
+				gc.owner &&
+				gc.owner.id !== currentUserId &&
+				!gc.permissions?.can_delete
+		)
+	);
 
 	onMount(async () => {
 		loadFilters();

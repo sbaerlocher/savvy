@@ -65,7 +65,7 @@ func SetCurrentUserWithService(userService UserService) echo.MiddlewareFunc {
 					session.Options.MaxAge = -1
 					_ = SaveSession(c, session)
 					slog.Info("Invalidated stale session after password change") //nolint:gosec // no tainted data
-					return next(c) // Continue without user; RequireAuth will 401
+					return next(c)                                               // Continue without user; RequireAuth will 401
 				}
 			}
 

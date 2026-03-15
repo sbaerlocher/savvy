@@ -52,13 +52,6 @@
 	let showImportDialog = $state(false);
 
 	const selectedCount = $derived(selectedIds.size);
-	const sharedSelectedCount = $derived(
-		filteredVouchers.filter(
-			(v) => selectedIds.has(v.id) && v.owner && v.owner.id !== currentUserId
-		).length
-	);
-	// Vouchers list doesn't include permissions, so conservatively disable delete for all shared items
-	const hasNonDeletableShared = $derived(sharedSelectedCount > 0);
 
 	function toggleSelectMode() {
 		selectMode = !selectMode;
@@ -261,6 +254,14 @@
 			}
 		});
 	});
+
+	const sharedSelectedCount = $derived(
+		filteredVouchers.filter(
+			(v) => selectedIds.has(v.id) && v.owner && v.owner.id !== currentUserId
+		).length
+	);
+	// Vouchers list doesn't include permissions, so conservatively disable delete for all shared items
+	const hasNonDeletableShared = $derived(sharedSelectedCount > 0);
 
 	onMount(async () => {
 		loadFilters();
