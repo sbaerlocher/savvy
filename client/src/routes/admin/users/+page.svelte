@@ -328,6 +328,7 @@
 							</thead>
 							<tbody class="bg-white divide-y divide-gray-200">
 								{#each filteredUsers as user (user.id)}
+									{@const isOAuth = user.auth_provider === 'oauth'}
 									<tr
 										class="hover:bg-gray-50 transition-colors md:cursor-default cursor-pointer"
 										onclick={() => {
@@ -449,7 +450,6 @@
 													</div>
 
 													<!-- Actions -->
-													{@const isOAuth = user.auth_provider === 'oauth'}
 													<div
 														class="flex flex-wrap gap-2 pt-2 border-t border-gray-200"
 													>
