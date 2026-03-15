@@ -1220,6 +1220,7 @@ export const de: TranslationKeys = {
 			showDetails: 'Details anzeigen',
 			userId: 'Benutzer-ID',
 			oauthUserCannotEdit: 'OAuth-Benutzer können nicht bearbeitet werden',
+			oauthRoleManaged: 'Rolle wird vom OAuth-Provider gesteuert',
 			roleInfo: {
 				title: 'Benutzerrollen',
 				description: 'Wählen Sie die passende Rolle für den neuen Benutzer:',

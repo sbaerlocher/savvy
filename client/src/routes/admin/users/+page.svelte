@@ -328,6 +328,7 @@
 							</thead>
 							<tbody class="bg-white divide-y divide-gray-200">
 								{#each filteredUsers as user (user.id)}
+									{@const isOAuth = user.auth_provider === 'oauth'}
 									<tr
 										class="hover:bg-gray-50 transition-colors md:cursor-default cursor-pointer"
 										onclick={() => {
@@ -452,7 +453,7 @@
 													<div
 														class="flex flex-wrap gap-2 pt-2 border-t border-gray-200"
 													>
-														{#if user.auth_provider === 'local'}
+														{#if !isOAuth}
 															<a
 																href="/admin/users/{user.id}/edit"
 																class="btn btn-sm btn-primary"
@@ -472,7 +473,11 @@
 														<button
 															onclick={() => toggleRole(user.id, user.role)}
 															disabled={isOffline ||
-																user.id === currentUser?.id}
+																user.id === currentUser?.id ||
+																isOAuth}
+															title={isOAuth
+																? $t('admin.users.oauthRoleManaged')
+																: ''}
 															class="btn btn-sm btn-ghost"
 														>
 															{$t('admin.users.changeRole')}

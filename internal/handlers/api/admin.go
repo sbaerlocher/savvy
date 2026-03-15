@@ -218,6 +218,14 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 
 	role := user.Role
 	if req.Role != nil && *req.Role != "" {
+		// OAuth users: role is managed by the OAuth provider (via OAUTH_ADMIN_EMAILS/
+		// OAUTH_ADMIN_GROUP) and re-evaluated on every login.
+		if user.IsOAuthUser() {
+			return c.JSON(http.StatusUnprocessableEntity, ErrorResponse{
+				Error:   "role_readonly",
+				Message: "Role of OAuth users is managed by the OAuth provider and cannot be changed",
+			})
+		}
 		if *req.Role != roleUser && *req.Role != roleAdmin {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_role",
