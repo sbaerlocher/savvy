@@ -43,8 +43,8 @@ test.describe('Security', () => {
 
 			await securityPage.changePassword(
 				'wrongpassword',
-				'newPass123',
-				'newPass123'
+				'NewPass123!abc',
+				'NewPass123!abc'
 			);
 
 			// Should show error toast
@@ -108,16 +108,9 @@ test.describe('Security', () => {
 				return;
 			}
 
-			// Wait for sessions to load (API call)
-			await securityPage.page.waitForResponse(
-				(resp) =>
-					resp.url().includes('/profile/sessions') && resp.status() < 400,
-				{ timeout: 10000 }
-			);
-
-			// Current session should have a badge
+			// Current session should have a badge (sessions load during page mount)
 			await expect(securityPage.currentSessionBadge).toBeVisible({
-				timeout: 5000
+				timeout: 10000
 			});
 		});
 
@@ -135,21 +128,14 @@ test.describe('Security', () => {
 				return;
 			}
 
-			// Wait for sessions API response
-			await securityPage.page.waitForResponse(
-				(resp) =>
-					resp.url().includes('/profile/sessions') && resp.status() < 400,
-				{ timeout: 10000 }
-			);
-
-			// At least one session should show browser/device info
+			// At least one session should show browser/device info (sessions load during page mount)
 			const sessionCard = securityPage.page
 				.locator('.bg-cyan-50, .bg-gray-50')
 				.filter({
 					hasText: /Chrome|Firefox|Safari|Edge|Unknown|Unbekannt/i
 				})
 				.first();
-			await expect(sessionCard).toBeVisible({ timeout: 5000 });
+			await expect(sessionCard).toBeVisible({ timeout: 10000 });
 		});
 	});
 
