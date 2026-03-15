@@ -43,6 +43,7 @@ var pgstoreInternalKeys = map[string]bool{
 	sessionTokenHashKey:  true,
 	sessionDBIDKey:       true,
 	sessionLastActiveKey: true,
+	sessionRawTokenKey:   true,
 }
 
 // ClearSessionUserValues removes all user-facing session values while
