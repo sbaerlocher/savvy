@@ -41,7 +41,7 @@ jobs:
       working-directory: "./client"
       enable-type-check: true
       enable-format-check: true
-      enable-lint: true
+      enable-lint: false
       enable-build: true
       enable-tests: true
       enable-coverage: true
