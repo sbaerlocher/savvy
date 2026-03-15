@@ -98,21 +98,21 @@ type MerchantUpdateRequest struct {
 
 // CardDTO represents a customer card
 type CardDTO struct {
-	ID               string         `json:"id"`
-	MerchantID       *string        `json:"merchant_id,omitempty"`
-	Merchant         *MerchantDTO   `json:"merchant,omitempty"`
-	Owner            *UserDTO       `json:"owner,omitempty"`
-	Program          *string        `json:"program,omitempty"`
-	CardNumber       string         `json:"card_number"`
-	BarcodeType      *string        `json:"barcode_type,omitempty"`
-	Notes            *string        `json:"notes,omitempty"`
-	Status           string         `json:"status"`
-	IsFavorite       bool           `json:"is_favorite"`
-	IsShared         bool           `json:"is_shared"`
-	SharedWithCount  int            `json:"shared_with_count"`
-	CreatedAt        string         `json:"created_at"`
-	UpdatedAt        string         `json:"updated_at"`
-	Permissions      *PermissionDTO `json:"permissions,omitempty"` // Included in detail views
+	ID              string         `json:"id"`
+	MerchantID      *string        `json:"merchant_id,omitempty"`
+	Merchant        *MerchantDTO   `json:"merchant,omitempty"`
+	Owner           *UserDTO       `json:"owner,omitempty"`
+	Program         *string        `json:"program,omitempty"`
+	CardNumber      string         `json:"card_number"`
+	BarcodeType     *string        `json:"barcode_type,omitempty"`
+	Notes           *string        `json:"notes,omitempty"`
+	Status          string         `json:"status"`
+	IsFavorite      bool           `json:"is_favorite"`
+	IsShared        bool           `json:"is_shared"`
+	SharedWithCount int            `json:"shared_with_count"`
+	CreatedAt       string         `json:"created_at"`
+	UpdatedAt       string         `json:"updated_at"`
+	Permissions     *PermissionDTO `json:"permissions,omitempty"` // Included in detail views
 }
 
 // CardCreateRequest represents card creation data

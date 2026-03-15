@@ -145,8 +145,8 @@ func createMerchants() []models.Merchant {
 		{Name: "Denner", LogoURL: "", Website: "https://www.denner.ch", Color: "#DC2626"},
 		// New merchants for additional use cases
 		{Name: "IKEA", LogoURL: "", Website: "https://www.ikea.ch", Color: "#0058A3"},
-		{Name: "H&M", LogoURL: "", Website: "", Color: "#E50010"},           // No website
-		{Name: "Starbucks", LogoURL: "", Website: "", Color: "#00704A"},      // No website
+		{Name: "H&M", LogoURL: "", Website: "", Color: "#E50010"},       // No website
+		{Name: "Starbucks", LogoURL: "", Website: "", Color: "#00704A"}, // No website
 		{Name: "Apple Store", LogoURL: "", Website: "https://www.apple.com", Color: "#555555"},
 	}
 
@@ -609,16 +609,16 @@ func createVouchers(users []models.User, merchants []models.Merchant) {
 		},
 		// Voucher without merchant reference (free text)
 		{
-			UserID:       &users[0].ID,
-			MerchantID:   nil,
-			MerchantName: "Restaurant Sternen",
-			Code:         "STERNEN-LUNCH-50",
-			Type:         "fixed_amount",
-			Value:        50.0,
-			Currency:     "CHF",
-			Description:  "Mittagessen-Gutschein vom Restaurant",
-			ValidFrom:    time.Now(),
-			ValidUntil:   time.Now().AddDate(0, 6, 0),
+			UserID:         &users[0].ID,
+			MerchantID:     nil,
+			MerchantName:   "Restaurant Sternen",
+			Code:           "STERNEN-LUNCH-50",
+			Type:           "fixed_amount",
+			Value:          50.0,
+			Currency:       "CHF",
+			Description:    "Mittagessen-Gutschein vom Restaurant",
+			ValidFrom:      time.Now(),
+			ValidUntil:     time.Now().AddDate(0, 6, 0),
 			UsageLimitType: "single_use",
 			BarcodeType:    "QR",
 		},

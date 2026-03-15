@@ -34,7 +34,7 @@
 	let statusFilter = $state('active');
 	let favoritesOnly = $state(false);
 	let showFilterMenu = $state(false);
-	let dialogRef = $state<HTMLDivElement | null>(null);
+	let dialogRef = $state<HTMLDivElement | undefined>(undefined);
 	let filterApplied = $state(false);
 
 	// Batch selection state
@@ -46,13 +46,6 @@
 	let showImportDialog = $state(false);
 
 	const selectedCount = $derived(selectedIds.size);
-	const sharedSelectedCount = $derived(
-		filteredCards.filter(
-			(c) => selectedIds.has(c.id) && c.owner && c.owner.id !== currentUserId
-		).length
-	);
-	// Cards list doesn't include permissions, so conservatively disable delete for all shared items
-	const hasNonDeletableShared = $derived(sharedSelectedCount > 0);
 
 	function toggleSelectMode() {
 		selectMode = !selectMode;
@@ -254,6 +247,14 @@
 			}
 		});
 	});
+
+	const sharedSelectedCount = $derived(
+		filteredCards.filter(
+			(c) => selectedIds.has(c.id) && c.owner && c.owner.id !== currentUserId
+		).length
+	);
+	// Cards list doesn't include permissions, so conservatively disable delete for all shared items
+	const hasNonDeletableShared = $derived(sharedSelectedCount > 0);
 
 	onMount(async () => {
 		loadFilters();
