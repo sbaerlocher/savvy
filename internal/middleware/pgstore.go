@@ -40,6 +40,12 @@ const (
 	// This enables throttled LastActiveAt updates in the auth middleware.
 	sessionLastActiveKey = "__pgstore_last_active_at"
 
+	// sessionRawTokenKey stashes the raw (unhashed) token in memory so that
+	// subsequent Save calls on the same request can refresh the cookie with the
+	// correct value. Without this, the sliding-session refresh reads the stale
+	// cookie from the original request, which breaks after RegenerateSession.
+	sessionRawTokenKey = "__pgstore_raw_token"
+
 	// lastActiveThrottle is the minimum interval between LastActiveAt updates.
 	lastActiveThrottle = 60 * time.Second
 )
@@ -142,7 +148,7 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 	// Prepare session data for serialization (strip internal keys)
 	valuesToEncode := make(map[interface{}]interface{})
 	for k, v := range session.Values {
-		if k == sessionTokenHashKey || k == sessionDBIDKey || k == sessionLastActiveKey {
+		if k == sessionTokenHashKey || k == sessionDBIDKey || k == sessionLastActiveKey || k == sessionRawTokenKey {
 			continue
 		}
 		valuesToEncode[k] = v
@@ -181,6 +187,7 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 		// Stash metadata for future Save calls
 		session.Values[sessionTokenHashKey] = tokenHash
 		session.Values[sessionDBIDKey] = dbSession.ID.String()
+		session.Values[sessionRawTokenKey] = rawToken
 		session.IsNew = false
 
 		// Set cookie with raw token
@@ -218,7 +225,14 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 	// Refresh cookie MaxAge to implement sliding sessions.
 	// Without this, the browser deletes the cookie after the original MaxAge
 	// even though the DB session keeps extending via ExpiresAt updates.
-	if cookie, err := r.Cookie(session.Name()); err == nil && cookie.Value != "" {
+	//
+	// Prefer the in-memory raw token (set during session creation in the same request)
+	// over the request cookie. After RegenerateSession, the request cookie still holds
+	// the old (deleted) token, so reading r.Cookie() would overwrite the new cookie
+	// with a stale value, causing a 401 on the next request.
+	if rawToken, ok := session.Values[sessionRawTokenKey].(string); ok && rawToken != "" {
+		setCookie(w, session.Name(), rawToken, session.Options, r)
+	} else if cookie, err := r.Cookie(session.Name()); err == nil && cookie.Value != "" {
 		setCookie(w, session.Name(), cookie.Value, session.Options, r)
 	} else {
 		slog.Debug("sliding session: no cookie present on request, skipping refresh", "session_name", session.Name())
