@@ -335,6 +335,42 @@ func TestSave_ExistingSession_UpdatesRepo(t *testing.T) {
 	assert.Nil(t, decoded[sessionLastActiveKey])
 }
 
+func TestSave_ExistingSession_RefreshesCookie(t *testing.T) {
+	store, _ := newTestPGStore()
+
+	dbID := uuid.New()
+	tokenHash := "existing-hash-abc"
+	rawToken := "raw-token-value"
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.RemoteAddr = "10.0.0.1:12345"
+	req.Header.Set("User-Agent", "TestBrowser/1.0")
+	req.AddCookie(&http.Cookie{Name: "session", Value: rawToken})
+	rec := httptest.NewRecorder()
+
+	session, err := store.New(req, "session")
+	require.NoError(t, err)
+	session.IsNew = false
+	session.Values[sessionTokenHashKey] = tokenHash
+	session.Values[sessionDBIDKey] = dbID.String()
+
+	err = store.Save(req, rec, session)
+	require.NoError(t, err)
+
+	// Cookie should be refreshed with the same value and full MaxAge
+	cookies := rec.Result().Cookies()
+	var sessionCookie *http.Cookie
+	for _, c := range cookies {
+		if c.Name == "session" {
+			sessionCookie = c
+			break
+		}
+	}
+	require.NotNil(t, sessionCookie, "cookie should be refreshed on existing-session save")
+	assert.Equal(t, rawToken, sessionCookie.Value)
+	assert.Equal(t, 3600, sessionCookie.MaxAge)
+}
+
 func TestSave_DeleteSession_CallsDeleteByTokenHash(t *testing.T) {
 	store, repo := newTestPGStore()
 

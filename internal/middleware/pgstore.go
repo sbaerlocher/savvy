@@ -220,6 +220,8 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 	// even though the DB session keeps extending via ExpiresAt updates.
 	if cookie, err := r.Cookie(session.Name()); err == nil && cookie.Value != "" {
 		setCookie(w, session.Name(), cookie.Value, session.Options, r)
+	} else {
+		slog.Debug("sliding session: no cookie present on request, skipping refresh", "session_name", session.Name())
 	}
 
 	return nil
