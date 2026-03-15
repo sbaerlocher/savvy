@@ -170,7 +170,6 @@
 	}
 </script>
 
-
 <!-- Offline Indicator (über der Navigation) -->
 <OfflineIndicator />
 
