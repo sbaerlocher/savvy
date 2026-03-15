@@ -449,10 +449,11 @@
 													</div>
 
 													<!-- Actions -->
+													{@const isOAuth = user.auth_provider === 'oauth'}
 													<div
 														class="flex flex-wrap gap-2 pt-2 border-t border-gray-200"
 													>
-														{#if user.auth_provider === 'local'}
+														{#if !isOAuth}
 															<a
 																href="/admin/users/{user.id}/edit"
 																class="btn btn-sm btn-primary"
@@ -473,8 +474,8 @@
 															onclick={() => toggleRole(user.id, user.role)}
 															disabled={isOffline ||
 																user.id === currentUser?.id ||
-																user.auth_provider === 'oauth'}
-															title={user.auth_provider === 'oauth'
+																isOAuth}
+															title={isOAuth
 																? $t('admin.users.oauthRoleManaged')
 																: ''}
 															class="btn btn-sm btn-ghost"

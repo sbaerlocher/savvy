@@ -75,7 +75,7 @@
 				email,
 				first_name: firstName,
 				last_name: lastName,
-				role
+				...(isOAuthUser ? {} : { role })
 			});
 			toastStore.success($t('admin.users.updateSuccess'));
 			goto('/admin/users');
