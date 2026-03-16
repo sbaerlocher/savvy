@@ -45,12 +45,12 @@ export class SettingsPage extends BasePage {
 
 	/** Push subcategories container (only visible when push enabled) */
 	get pushSubcategories(): Locator {
-		return this.notificationCard.locator('.border-l-2').first();
+		return this.notificationCard.locator('[data-testid="push-subcategories"]');
 	}
 
 	/** Email subcategories container (only visible when email enabled) */
 	get emailSubcategories(): Locator {
-		return this.notificationCard.locator('.border-l-2').nth(1);
+		return this.notificationCard.locator('[data-testid="email-subcategories"]');
 	}
 
 	/** Push Reminders subcategory toggle */
