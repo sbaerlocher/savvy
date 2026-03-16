@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+
+[rules.allowlist]
+paths = [
+  '''_test\.go$''',
+]
