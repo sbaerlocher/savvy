@@ -236,7 +236,7 @@ services:
   # ============================================================================
   mailpit:
     profiles: ["dev", ""]
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:latest@sha256:fdaf09bd71dc0829ce8b62e4bfb5180bc5c0674c3e444283fc90681853f5a3c0
     container_name: savvy-mailpit
     restart: unless-stopped
     ports:
