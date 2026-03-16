@@ -4,6 +4,7 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -281,7 +282,7 @@ func (h *BatchHandler) batchDelete(
 
 	for _, id := range ids {
 		if err := deleteResource(auditCtx, id); err != nil {
-			c.Logger().Errorf("Batch delete %s %s failed: %v", resourceType, id, err)
+			slog.ErrorContext(ctx, "batch delete failed", "resource_type", resourceType, "resource_id", id, "error", err)
 			failed = append(failed, BatchFailedItem{
 				ID:    id.String(),
 				Error: sanitizeBatchError(err, "Failed to delete "+resourceType),
@@ -361,7 +362,7 @@ func (h *BatchHandler) batchShare(
 		}
 
 		if err := createShare(ctx, id, user.ID, sharedUser.ID, req); err != nil {
-			c.Logger().Errorf("Batch share %s %s failed: %v", resourceType, id, err)
+			slog.ErrorContext(ctx, "batch share failed", "resource_type", resourceType, "resource_id", id, "error", err)
 			failed = append(failed, BatchFailedItem{
 				ID:    id.String(),
 				Error: sanitizeBatchError(err, "Failed to share "+resourceType),
@@ -442,7 +443,7 @@ func (h *BatchHandler) batchTransfer(
 		}
 
 		if err := transferOwnership(auditCtx, id, newOwner.ID, user.ID); err != nil {
-			c.Logger().Errorf("Batch transfer %s %s failed: %v", resourceType, id, err)
+			slog.ErrorContext(ctx, "batch transfer failed", "resource_type", resourceType, "resource_id", id, "error", err)
 			failed = append(failed, BatchFailedItem{
 				ID:    id.String(),
 				Error: sanitizeBatchError(err, "Failed to transfer "+resourceType),

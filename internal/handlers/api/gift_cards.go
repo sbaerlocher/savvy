@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -165,7 +166,7 @@ func (h *GiftCardsHandler) Show(c echo.Context) error {
 	// Check if favorited
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for gift card %s: %v", giftCardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 	}
 
 	giftCardDTO := ToGiftCardDTO(giftCard, isFavorite)
@@ -188,7 +189,7 @@ func (h *GiftCardsHandler) Show(c echo.Context) error {
 	if perms.IsOwner {
 		giftCardShares, err := h.shareService.GetGiftCardShares(c.Request().Context(), giftCardID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for gift card %s: %v", giftCardID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 		}
 		shares = ToGiftCardShareDTOs(giftCardShares)
 	}
@@ -273,7 +274,7 @@ func (h *GiftCardsHandler) Create(c echo.Context) error {
 	var duplicateWarning *DuplicateWarning
 	duplicate, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
-		c.Logger().Warnf("Failed to check duplicate: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 	}
 	if duplicate != nil {
 		duplicateWarning = &DuplicateWarning{
@@ -282,7 +283,7 @@ func (h *GiftCardsHandler) Create(c echo.Context) error {
 			ResourceNumber: duplicate.CardNumber,
 			ExistingID:     duplicate.ID.String(),
 		}
-		c.Logger().Infof("Duplicate gift card detected: existing gift card %s", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate gift card detected", "existing_id", duplicate.ID)
 	}
 
 	// Create gift card
@@ -309,7 +310,7 @@ func (h *GiftCardsHandler) Create(c echo.Context) error {
 	// Reload with merchant relation
 	giftCard, err = h.giftCardService.GetGiftCard(c.Request().Context(), giftCard.ID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload gift card %s after creation: %v", giftCard.ID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload gift card after creation", "gift_card_id", giftCard.ID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Gift card created but failed to reload",
@@ -395,7 +396,7 @@ func (h *GiftCardsHandler) Update(c echo.Context) error {
 	// Reload
 	giftCard, err = h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload gift card %s after update: %v", giftCardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload gift card after update", "gift_card_id", giftCardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Gift card updated but failed to reload",
@@ -403,7 +404,7 @@ func (h *GiftCardsHandler) Update(c echo.Context) error {
 	}
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for gift card %s: %v", giftCardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 	}
 
 	// Map transactions
@@ -417,7 +418,7 @@ func (h *GiftCardsHandler) Update(c echo.Context) error {
 	if perms.IsOwner {
 		giftCardShares, err := h.shareService.GetGiftCardShares(c.Request().Context(), giftCardID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for gift card %s: %v", giftCardID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 		}
 		shares = ToGiftCardShareDTOs(giftCardShares)
 	}
@@ -500,7 +501,7 @@ func (h *GiftCardsHandler) CreateShare(c echo.Context) error {
 	canEditTransactions := req.CanEditTransactions != nil && *req.CanEditTransactions
 
 	if err := h.shareService.CreateGiftCardShare(c.Request().Context(), user.ID, giftCardID, sharedUser.ID, canEdit, canDelete, canEditTransactions); err != nil {
-		c.Logger().Errorf("Failed to create gift card share for gift card %s: %v", giftCardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to create gift card share", "gift_card_id", giftCardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to share gift card",
@@ -510,7 +511,7 @@ func (h *GiftCardsHandler) CreateShare(c echo.Context) error {
 	// Return updated shares list
 	shares, err := h.shareService.GetGiftCardShares(c.Request().Context(), giftCardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to load shares for gift card %s: %v", giftCardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{
@@ -560,7 +561,7 @@ func (h *GiftCardsHandler) UpdateShare(c echo.Context) error {
 	ctx := audit.AddAuditContextToContext(c.Request().Context(), user.ID, c.RealIP(), c.Request().UserAgent())
 
 	if err := h.shareService.UpdateGiftCardShare(ctx, user.ID, giftCardID, sharedWithID, canEdit, canDelete, canEditTransactions); err != nil {
-		c.Logger().Errorf("Failed to update gift card share for gift card %s, user %s: %v", giftCardID, sharedWithID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to update gift card share", "gift_card_id", giftCardID, "shared_with_id", sharedWithID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to update share permissions",
@@ -570,7 +571,7 @@ func (h *GiftCardsHandler) UpdateShare(c echo.Context) error {
 	// Return updated shares list
 	shares, err := h.shareService.GetGiftCardShares(c.Request().Context(), giftCardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to load shares for gift card %s: %v", giftCardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "gift_card", "resource_id", giftCardID, "error", err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]any{
@@ -657,7 +658,7 @@ func checkGiftCardDuplicate(c echo.Context, svc services.GiftCardServiceInterfac
 	}
 	duplicate, err := svc.CheckDuplicate(c.Request().Context(), *cardNumber, userID, excludeID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check duplicate: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 		return nil
 	}
 	if duplicate == nil {
@@ -780,7 +781,7 @@ func (h *GiftCardsHandler) CreateTransaction(c echo.Context) error {
 	// Return created transaction + updated balance
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload gift card %s after transaction: %v", giftCardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload gift card after transaction", "gift_card_id", giftCardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Transaction created but failed to reload gift card",
@@ -844,7 +845,7 @@ func (h *GiftCardsHandler) DeleteTransaction(c echo.Context) error {
 	// Return updated balance
 	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCardID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload gift card %s after transaction deletion: %v", giftCardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload gift card after transaction deletion", "gift_card_id", giftCardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Transaction deleted but failed to reload gift card",

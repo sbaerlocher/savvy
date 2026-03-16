@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/models"
 	"savvy/internal/services"
@@ -143,7 +144,7 @@ func (h *VouchersHandler) Show(c echo.Context) error {
 	// Check if favorited
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for voucher %s: %v", voucherID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "voucher", "resource_id", voucherID, "error", err)
 	}
 
 	voucherDTO := ToVoucherDTO(voucher, isFavorite)
@@ -159,7 +160,7 @@ func (h *VouchersHandler) Show(c echo.Context) error {
 	if perms.IsOwner {
 		voucherShares, err := h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for voucher %s: %v", voucherID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "voucher", "resource_id", voucherID, "error", err)
 		}
 		shares = ToVoucherShareDTOs(voucherShares)
 	}
@@ -265,7 +266,7 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 	var duplicateWarning *DuplicateWarning
 	duplicate, err := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
 	if err != nil {
-		c.Logger().Warnf("Failed to check duplicate: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 	}
 	if duplicate != nil {
 		duplicateWarning = &DuplicateWarning{
@@ -274,7 +275,7 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 			ResourceNumber: duplicate.Code,
 			ExistingID:     duplicate.ID.String(),
 		}
-		c.Logger().Infof("Duplicate voucher detected: existing voucher %s", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate voucher detected", "existing_id", duplicate.ID)
 	}
 
 	// Create voucher
@@ -295,7 +296,7 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 	}
 
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), voucher); err != nil {
-		c.Logger().Errorf("Failed to create voucher: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create voucher", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to create voucher",
@@ -309,9 +310,9 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 		if err == nil && sharedUser.ID != user.ID {
 			// Create share (vouchers are always read-only)
 			if err := h.shareService.CreateVoucherShare(c.Request().Context(), user.ID, voucher.ID, sharedUser.ID); err != nil {
-				c.Logger().Warnf("Failed to create share for voucher %s: %v", voucher.ID, err)
+				slog.WarnContext(c.Request().Context(), "failed to create share on voucher creation", "voucher_id", voucher.ID, "error", err)
 			} else {
-				c.Logger().Infof("Share created for voucher %s with user %s", voucher.ID, sharedUser.ID)
+				slog.InfoContext(c.Request().Context(), "share created on voucher creation", "voucher_id", voucher.ID, "shared_with_id", sharedUser.ID)
 			}
 		}
 	}
@@ -319,7 +320,7 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 	// Reload with merchant relation
 	voucher, err = h.voucherService.GetVoucher(c.Request().Context(), voucher.ID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload voucher %s after creation: %v", voucher.ID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload voucher after creation", "voucher_id", voucher.ID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Voucher created but failed to reload",
@@ -460,7 +461,7 @@ func (h *VouchersHandler) Update(c echo.Context) error {
 	// Reload
 	voucher, err = h.voucherService.GetVoucher(c.Request().Context(), voucherID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload voucher %s after update: %v", voucherID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload voucher after update", "voucher_id", voucherID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Voucher updated but failed to reload",
@@ -468,7 +469,7 @@ func (h *VouchersHandler) Update(c echo.Context) error {
 	}
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for voucher %s: %v", voucherID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "voucher", "resource_id", voucherID, "error", err)
 	}
 
 	// Get shares if owner
@@ -476,7 +477,7 @@ func (h *VouchersHandler) Update(c echo.Context) error {
 	if perms.IsOwner {
 		voucherShares, err := h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for voucher %s: %v", voucherID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "voucher", "resource_id", voucherID, "error", err)
 		}
 		shares = ToVoucherShareDTOs(voucherShares)
 	}
@@ -553,7 +554,7 @@ func (h *VouchersHandler) CreateShare(c echo.Context) error {
 
 	// Create share (vouchers are always read-only)
 	if err := h.shareService.CreateVoucherShare(c.Request().Context(), user.ID, voucherID, sharedUser.ID); err != nil {
-		c.Logger().Errorf("Failed to create voucher share for voucher %s: %v", voucherID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to create voucher share", "voucher_id", voucherID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to share voucher",
@@ -563,7 +564,7 @@ func (h *VouchersHandler) CreateShare(c echo.Context) error {
 	// Return updated shares list
 	shares, err := h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
 	if err != nil {
-		c.Logger().Warnf("Failed to load shares for voucher %s: %v", voucherID, err)
+		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "voucher", "resource_id", voucherID, "error", err)
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{
@@ -591,7 +592,7 @@ func checkVoucherDuplicate(c echo.Context, svc services.VoucherServiceInterface,
 	}
 	duplicate, err := svc.CheckDuplicate(c.Request().Context(), *code, userID, excludeID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check duplicate: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 		return nil
 	}
 	if duplicate == nil {
