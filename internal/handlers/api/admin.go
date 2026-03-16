@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/email"
@@ -55,7 +56,7 @@ func NewAdminHandler(
 func (h *AdminHandler) ListUsers(c echo.Context) error {
 	users, err := h.adminService.GetAllUsers(c.Request().Context())
 	if err != nil {
-		c.Logger().Errorf("Failed to load users: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to load users", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to load users",
@@ -77,7 +78,7 @@ func (h *AdminHandler) GetUser(c echo.Context) error {
 
 	user, err := h.adminService.GetUserByID(c.Request().Context(), userID)
 	if err != nil {
-		c.Logger().Errorf("Failed to load user: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to load user", "user_id", userID, "error", err)
 		return c.JSON(http.StatusNotFound, ErrorResponse{
 			Error:   "user_not_found",
 			Message: "User not found",
@@ -131,7 +132,7 @@ func (h *AdminHandler) CreateUser(c echo.Context) error {
 	// Hash password with cost 12 for enhanced security
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 12)
 	if err != nil {
-		c.Logger().Errorf("Failed to hash password: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to hash password", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to hash password",
@@ -160,14 +161,14 @@ func (h *AdminHandler) CreateUser(c echo.Context) error {
 	}
 
 	if err := h.adminService.CreateLocalUser(c.Request().Context(), user); err != nil {
-		c.Logger().Errorf("Failed to create user: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create user", "email", email, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to create user",
 		})
 	}
 
-	c.Logger().Infof("User created successfully: %s", user.Email)
+	slog.InfoContext(c.Request().Context(), "user created successfully", "email", user.Email)
 
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message": "User created successfully",
@@ -256,14 +257,14 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 
 	// Update user
 	if err := h.adminService.UpdateUser(c.Request().Context(), userID, email, firstName, lastName, role); err != nil {
-		c.Logger().Errorf("Failed to update user: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to update user", "user_id", userID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to update user",
 		})
 	}
 
-	c.Logger().Infof("User updated successfully: %s", userID.String())
+	slog.InfoContext(c.Request().Context(), "user updated successfully", "user_id", userID)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "User updated successfully",
@@ -316,7 +317,7 @@ func (h *AdminHandler) GetAuditLogs(c echo.Context) error {
 
 	result, err := h.adminService.GetAuditLogs(c.Request().Context(), filters)
 	if err != nil {
-		c.Logger().Errorf("Failed to load audit logs: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to load audit logs", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to load audit logs",
@@ -362,7 +363,7 @@ func (h *AdminHandler) StartImpersonation(c echo.Context) error {
 
 	// 3. Validate impersonation
 	if err := h.adminService.ValidateImpersonation(c.Request().Context(), admin.ID, targetUserID); err != nil {
-		c.Logger().Errorf("Impersonation validation failed for admin %s targeting %s: %v", admin.ID, targetUserID, err)
+		slog.ErrorContext(c.Request().Context(), "impersonation validation failed", "admin_id", admin.ID, "target_user_id", targetUserID, "error", err)
 		status := http.StatusBadRequest
 		msg := "Impersonation validation failed"
 		if err.Error() == "only admins can impersonate" {
@@ -390,7 +391,7 @@ func (h *AdminHandler) StartImpersonation(c echo.Context) error {
 
 	// 5. Create impersonation session (regenerates to prevent session fixation)
 	if _, err := middleware.CreateImpersonationSession(c, targetUser.ID.String(), admin.ID.String()); err != nil {
-		c.Logger().Errorf("Failed to create impersonation session: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create impersonation session", "admin_id", admin.ID, "target_user_id", targetUserID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "session_error",
 			Message: "Failed to create impersonation session",
@@ -410,11 +411,11 @@ func (h *AdminHandler) StartImpersonation(c echo.Context) error {
 	}
 
 	if err := h.adminService.StartImpersonation(ctx, admin.ID, targetUser.ID, resourceData); err != nil {
-		c.Logger().Errorf("Failed to create audit log: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create impersonation audit log", "admin_id", admin.ID, "target_user_id", targetUser.ID, "error", err)
 		// Don't fail the request, just log the error
 	}
 
-	c.Logger().Infof("Admin %s started impersonating user %s", admin.Email, targetUser.Email)
+	slog.InfoContext(c.Request().Context(), "admin started impersonating user", "admin_id", admin.ID, "admin_email", admin.Email, "target_user_id", targetUser.ID, "target_email", targetUser.Email)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "Impersonation started successfully",
@@ -455,12 +456,12 @@ func (h *AdminHandler) StopImpersonation(c echo.Context) error {
 	currentUserIDStr := middleware.GetSessionUserID(session)
 	currentUserID, err := uuid.Parse(currentUserIDStr)
 	if err != nil {
-		c.Logger().Warnf("Failed to parse current user ID from session: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to parse current user ID from session", "error", err)
 	}
 
 	// 4. Restore admin session (regenerates for security)
 	if _, err := middleware.StopImpersonationSession(c, originalUserID.String()); err != nil {
-		c.Logger().Errorf("Failed to stop impersonation: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to stop impersonation", "original_user_id", originalUserID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "session_error",
 			Message: "Failed to restore admin session",
@@ -487,12 +488,12 @@ func (h *AdminHandler) StopImpersonation(c echo.Context) error {
 		// Add audit context (user ID, IP address, user agent) for audit logging
 		ctx := audit.AddAuditContextToContext(c.Request().Context(), originalUserID, c.RealIP(), c.Request().UserAgent())
 		if err := h.adminService.StopImpersonation(ctx, originalUserID, currentUserID, resourceData); err != nil {
-			c.Logger().Errorf("Failed to create audit log: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to create stop-impersonation audit log", "admin_id", originalUserID, "target_user_id", currentUserID, "error", err)
 			// Don't fail the request
 		}
 	}
 
-	c.Logger().Infof("Admin %s stopped impersonating", originalUserID.String())
+	slog.InfoContext(c.Request().Context(), "admin stopped impersonating", "admin_id", originalUserID, "target_user_id", currentUserID)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Impersonation stopped successfully",
@@ -538,14 +539,14 @@ func (h *AdminHandler) RestoreResource(c echo.Context) error {
 			})
 		}
 
-		c.Logger().Errorf("Failed to restore resource: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to restore resource", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to restore resource",
 		})
 	}
 
-	c.Logger().Infof("Admin restored %s resource %s", resourceType, resourceID.String())
+	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", resourceType, "resource_id", resourceID.String())
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Resource restored successfully",
@@ -557,7 +558,7 @@ func (h *AdminHandler) RestoreResource(c echo.Context) error {
 func (h *AdminHandler) GetSystemHealth(c echo.Context) error {
 	report, err := h.healthService.CheckReadiness(c.Request().Context())
 	if err != nil {
-		c.Logger().Errorf("Failed to check system health: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to check system health", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to check system health",
@@ -591,14 +592,14 @@ func (h *AdminHandler) SendTestEmail(c echo.Context) error {
 
 	// Send test email using EmailService with user's preferred language
 	if err := h.emailService.SendTestEmail(ctx, user.Email, user.FirstName, user.Language); err != nil {
-		c.Logger().Errorf("Failed to send test email to %s: %v", user.Email, err)
+		slog.ErrorContext(ctx, "failed to send test email", "email", user.Email, "error", err)
 		return c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Error:   "smtp_error",
 			Message: "Failed to send test email. Check server logs for details.",
 		})
 	}
 
-	c.Logger().Infof("Test email sent successfully to admin %s (%s) in language %s", user.Email, user.ID.String(), user.Language)
+	slog.InfoContext(ctx, "test email sent", "email", user.Email, "user_id", user.ID, "language", user.Language)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Test email sent successfully! Check your inbox.",
@@ -634,14 +635,14 @@ func (h *AdminHandler) SendTestPush(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	if err := h.pushService.SendTestPush(ctx, user.ID); err != nil {
-		c.Logger().Errorf("Failed to send test push to %s: %v", user.Email, err)
+		slog.ErrorContext(ctx, "failed to send test push", "email", user.Email, "user_id", user.ID, "error", err)
 		return c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Error:   "push_error",
 			Message: "Failed to send test push notification. Check server logs for details.",
 		})
 	}
 
-	c.Logger().Infof("Test push sent successfully to admin %s (%s)", user.Email, user.ID.String())
+	slog.InfoContext(ctx, "test push sent", "email", user.Email, "user_id", user.ID)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Test push notification sent! Check your browser notifications.",
@@ -727,14 +728,14 @@ func (h *AdminHandler) SendPreviewEmail(c echo.Context) error {
 	}
 
 	if err != nil {
-		c.Logger().Errorf("Failed to send preview email (%s) to %s: %v", req.Template, user.Email, err)
+		slog.ErrorContext(c.Request().Context(), "failed to send preview email", "template", req.Template, "email", user.Email, "error", err)
 		return c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Error:   "smtp_error",
 			Message: "Failed to send preview email. Check server logs for details.",
 		})
 	}
 
-	c.Logger().Infof("Preview email (%s) sent to admin %s in language %s", req.Template, user.Email, lang)
+	slog.InfoContext(c.Request().Context(), "preview email sent", "template", req.Template, "email", user.Email, "language", lang)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Preview email sent successfully! Check your inbox.",

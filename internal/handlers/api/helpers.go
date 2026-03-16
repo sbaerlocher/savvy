@@ -3,6 +3,7 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -88,7 +89,7 @@ func resolveMerchant(
 
 		merchant, err := merchantService.GetMerchantByID(c.Request().Context(), mid)
 		if err != nil {
-			c.Logger().Errorf("Failed to get merchant: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "error", err)
 			return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant",
 				Message: "Merchant not found",
@@ -100,7 +101,7 @@ func resolveMerchant(
 		// Create new merchant
 		merchant := &models.Merchant{Name: *newMerchantName}
 		if err := merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-			c.Logger().Errorf("Failed to create merchant: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", *newMerchantName, "error", err)
 			return nil, "", c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "server_error",
 				Message: "Failed to create merchant",
@@ -218,7 +219,7 @@ func handleResourceToggleFavorite(
 
 	isFavorite, err := favoriteService.IsFavorite(c.Request().Context(), user.ID, resourceType, resourceID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for %s %s: %v", resourceType, resourceID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", resourceType, "resource_id", resourceID, "error", err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]bool{"is_favorite": isFavorite})
@@ -330,7 +331,7 @@ func handleResourceTransfer(
 
 	if err := transferOwnership(ctx, resourceID, newOwner.ID, user.ID); err != nil {
 		// Log the detailed error server-side
-		c.Logger().Errorf("Failed to transfer %s ownership: %v", resourceType, err)
+		slog.ErrorContext(c.Request().Context(), "failed to transfer ownership", "resource_type", resourceType, "resource_id", resourceID, "error", err)
 
 		// Return generic error message to client (don't leak internal details)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

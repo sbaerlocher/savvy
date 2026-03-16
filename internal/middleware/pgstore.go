@@ -128,8 +128,8 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 				slog.Error("Failed to delete session from DB", "error", err)
 			}
 		}
-		// Set cookie to expire
-		http.SetCookie(w, sessions.NewCookie(session.Name(), "", session.Options))
+		// Set cookie to expire (use dynamic Secure flag like other cookie paths)
+		setCookie(w, session.Name(), "", session.Options, r)
 		return nil
 	}
 

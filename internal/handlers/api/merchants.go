@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -119,7 +120,7 @@ func (h *MerchantsHandler) Create(c echo.Context) error {
 	}
 
 	if err := h.merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-		c.Logger().Errorf("Failed to create merchant: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", req.Name, "error", err)
 
 		// Check for duplicate name error
 		if err.Error() == "merchant with this name already exists" {
@@ -135,7 +136,7 @@ func (h *MerchantsHandler) Create(c echo.Context) error {
 		})
 	}
 
-	c.Logger().Infof("Merchant created: %s (ID: %s)", merchant.Name, merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant created", "name", merchant.Name, "id", merchant.ID)
 
 	return c.JSON(http.StatusCreated, map[string]any{
 		"message":  "Merchant created successfully",
@@ -191,7 +192,7 @@ func (h *MerchantsHandler) Update(c echo.Context) error {
 	}
 
 	if err := h.merchantService.UpdateMerchant(c.Request().Context(), merchant); err != nil {
-		c.Logger().Errorf("Failed to update merchant: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to update merchant", "merchant_id", merchantID, "error", err)
 
 		// Check for duplicate name error
 		if err.Error() == "merchant with this name already exists" {
@@ -207,7 +208,7 @@ func (h *MerchantsHandler) Update(c echo.Context) error {
 		})
 	}
 
-	c.Logger().Infof("Merchant updated: %s (ID: %s)", merchant.Name, merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant updated", "name", merchant.Name, "id", merchant.ID)
 
 	return c.JSON(http.StatusOK, map[string]any{
 		"message":  "Merchant updated successfully",
@@ -237,14 +238,14 @@ func (h *MerchantsHandler) Delete(c echo.Context) error {
 	ctx := audit.AddAuditContextToContext(c.Request().Context(), user.ID, c.RealIP(), c.Request().UserAgent())
 
 	if err := h.merchantService.DeleteMerchant(ctx, merchantID); err != nil {
-		c.Logger().Errorf("Failed to delete merchant: %v", err)
+		slog.ErrorContext(ctx, "failed to delete merchant", "merchant_id", merchantID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to delete merchant",
 		})
 	}
 
-	c.Logger().Infof("Merchant deleted: %s (ID: %s)", merchant.Name, merchant.ID)
+	slog.InfoContext(ctx, "merchant deleted", "name", merchant.Name, "merchant_id", merchant.ID)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Merchant deleted successfully",

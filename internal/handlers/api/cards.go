@@ -5,6 +5,7 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -146,7 +147,7 @@ func (h *CardsHandler) Show(c echo.Context) error {
 	// Check if favorited
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "card", cardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for card %s: %v", cardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "card", "resource_id", cardID, "error", err)
 	}
 
 	cardDTO := ToCardDTO(card, isFavorite)
@@ -163,7 +164,7 @@ func (h *CardsHandler) Show(c echo.Context) error {
 	if perms.IsOwner {
 		cardShares, err := h.shareService.GetCardShares(c.Request().Context(), cardID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for card %s: %v", cardID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
 		}
 		shares = ToCardShareDTOs(cardShares)
 	}
@@ -222,7 +223,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 		// Use existing merchant
 		mid, err := uuid.Parse(*req.MerchantID)
 		if err != nil {
-			c.Logger().Errorf("Failed to parse merchant ID: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to parse merchant ID", "error", err)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant_id",
 				Message: "Invalid merchant ID",
@@ -233,7 +234,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 		// Get merchant name
 		merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), mid)
 		if err != nil {
-			c.Logger().Errorf("Failed to get merchant: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant",
 				Message: "Merchant not found",
@@ -244,7 +245,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 		// Create new merchant
 		merchant := &models.Merchant{Name: *req.NewMerchantName}
 		if err := h.merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-			c.Logger().Errorf("Failed to create merchant: %v", err)
+			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", *req.NewMerchantName, "error", err)
 			return c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "server_error",
 				Message: "Failed to create merchant",
@@ -273,7 +274,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 	var duplicateWarning *DuplicateWarning
 	duplicate, err := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
-		c.Logger().Warnf("Failed to check duplicate: %v", err)
+		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 		// Don't fail the request, just log
 	}
 	if duplicate != nil {
@@ -283,7 +284,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 			ResourceNumber: duplicate.CardNumber,
 			ExistingID:     duplicate.ID.String(),
 		}
-		c.Logger().Infof("Duplicate card detected: existing card %s", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate card detected", "existing_id", duplicate.ID)
 	}
 
 	// Create card
@@ -299,14 +300,14 @@ func (h *CardsHandler) Create(c echo.Context) error {
 	}
 
 	if err := h.cardService.CreateCard(c.Request().Context(), card); err != nil {
-		c.Logger().Errorf("Failed to create card: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create card", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to create card",
 		})
 	}
 
-	c.Logger().Infof("Card created successfully: %s", card.ID)
+	slog.InfoContext(c.Request().Context(), "card created", "card_id", card.ID)
 
 	// Handle optional sharing on creation
 	if req.ShareWithEmail != nil && *req.ShareWithEmail != "" {
@@ -317,9 +318,9 @@ func (h *CardsHandler) Create(c echo.Context) error {
 			canEdit := req.ShareCanEdit != nil && *req.ShareCanEdit
 			canDelete := req.ShareCanDelete != nil && *req.ShareCanDelete
 			if err := h.shareService.CreateCardShare(c.Request().Context(), user.ID, card.ID, sharedUser.ID, canEdit, canDelete); err != nil {
-				c.Logger().Warnf("Failed to create share for card %s: %v", card.ID, err)
+				slog.WarnContext(c.Request().Context(), "failed to create share on card creation", "card_id", card.ID, "error", err)
 			} else {
-				c.Logger().Infof("Share created for card %s with user %s", card.ID, sharedUser.ID)
+				slog.InfoContext(c.Request().Context(), "share created on card creation", "card_id", card.ID, "shared_with_id", sharedUser.ID)
 			}
 		}
 		// Silently ignore errors during share creation - card is still created
@@ -328,7 +329,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 	// Reload with merchant relation
 	card, err = h.cardService.GetCard(c.Request().Context(), card.ID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload card %s after creation: %v", card.ID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload card after creation", "card_id", card.ID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Card created but failed to reload",
@@ -439,7 +440,7 @@ func (h *CardsHandler) Update(c echo.Context) error {
 	if req.CardNumber != nil && *req.CardNumber != "" {
 		duplicate, err := h.cardService.CheckDuplicate(c.Request().Context(), card.CardNumber, user.ID, &cardID)
 		if err != nil {
-			c.Logger().Warnf("Failed to check duplicate: %v", err)
+			slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 		}
 		if duplicate != nil {
 			duplicateWarning = &DuplicateWarning{
@@ -448,27 +449,24 @@ func (h *CardsHandler) Update(c echo.Context) error {
 				ResourceNumber: duplicate.CardNumber,
 				ExistingID:     duplicate.ID.String(),
 			}
-			c.Logger().Infof("Duplicate card detected during update: existing card %s", duplicate.ID)
+			slog.InfoContext(c.Request().Context(), "duplicate card detected during update", "existing_id", duplicate.ID)
 		}
 	}
 
-	// Debug: Log before update
-	c.Logger().Infof("UPDATING Card %s with MerchantID: %v, MerchantName: %s", cardID, card.MerchantID, card.MerchantName)
+	slog.DebugContext(c.Request().Context(), "updating card", "card_id", cardID, "merchant_id", card.MerchantID, "merchant_name", card.MerchantName)
 
 	if err := h.cardService.UpdateCard(c.Request().Context(), card); err != nil {
-		c.Logger().Errorf("Update failed: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to update card", "card_id", cardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to update card",
 		})
 	}
 
-	c.Logger().Infof("Update successful, reloading card %s", cardID)
-
 	// Reload with relations
 	card, err = h.cardService.GetCard(c.Request().Context(), cardID)
 	if err != nil {
-		c.Logger().Errorf("Failed to reload card %s after update: %v", cardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to reload card after update", "card_id", cardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Card updated but failed to reload",
@@ -476,16 +474,7 @@ func (h *CardsHandler) Update(c echo.Context) error {
 	}
 	isFavorite, err := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "card", cardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to check favorite status for card %s: %v", cardID, err)
-	}
-
-	// Debug: Log merchant info
-	if card.Merchant != nil {
-		c.Logger().Infof("Card %s has merchant %s (%s)", card.ID, card.Merchant.Name, card.Merchant.ID)
-	} else if card.MerchantID != nil {
-		c.Logger().Warnf("Card %s has MerchantID %s but Merchant is nil", card.ID, *card.MerchantID)
-	} else {
-		c.Logger().Infof("Card %s has no merchant", card.ID)
+		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", "card", "resource_id", cardID, "error", err)
 	}
 
 	cardDTO := ToCardDTO(card, isFavorite)
@@ -502,7 +491,7 @@ func (h *CardsHandler) Update(c echo.Context) error {
 	if perms.IsOwner {
 		cardShares, err := h.shareService.GetCardShares(c.Request().Context(), cardID)
 		if err != nil {
-			c.Logger().Warnf("Failed to load shares for card %s: %v", cardID, err)
+			slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
 		}
 		shares = ToCardShareDTOs(cardShares)
 	}
@@ -577,7 +566,7 @@ func (h *CardsHandler) CreateShare(c echo.Context) error {
 	canDelete := req.CanDelete != nil && *req.CanDelete
 
 	if err := h.shareService.CreateCardShare(c.Request().Context(), user.ID, cardID, sharedUser.ID, canEdit, canDelete); err != nil {
-		c.Logger().Errorf("Failed to create card share for card %s: %v", cardID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to create card share", "card_id", cardID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to share card",
@@ -587,7 +576,7 @@ func (h *CardsHandler) CreateShare(c echo.Context) error {
 	// Return updated shares list
 	shares, err := h.shareService.GetCardShares(c.Request().Context(), cardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to load shares for card %s: %v", cardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
 	}
 
 	return c.JSON(http.StatusCreated, map[string]any{
@@ -636,7 +625,7 @@ func (h *CardsHandler) UpdateShare(c echo.Context) error {
 	ctx := audit.AddAuditContextToContext(c.Request().Context(), user.ID, c.RealIP(), c.Request().UserAgent())
 
 	if err := h.shareService.UpdateCardShare(ctx, user.ID, cardID, sharedWithID, canEdit, canDelete); err != nil {
-		c.Logger().Errorf("Failed to update card share for card %s, user %s: %v", cardID, sharedWithID, err)
+		slog.ErrorContext(c.Request().Context(), "failed to update card share", "card_id", cardID, "shared_with_id", sharedWithID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to update share permissions",
@@ -664,7 +653,7 @@ func (h *CardsHandler) UpdateShare(c echo.Context) error {
 	// Return updated shares list
 	shares, err := h.shareService.GetCardShares(c.Request().Context(), cardID)
 	if err != nil {
-		c.Logger().Warnf("Failed to load shares for card %s: %v", cardID, err)
+		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]any{
