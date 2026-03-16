@@ -16,19 +16,19 @@ type User struct {
 	FirstName                 string     `gorm:"not null" json:"first_name"`
 	LastName                  string     `gorm:"not null" json:"last_name"`
 	Role                      string     `gorm:"default:user;not null" json:"role"`
-	AuthProvider              string     `gorm:"default:local;not null" json:"auth_provider"`     // "local" or "oauth"
-	Language                  string     `gorm:"default:de;not null" json:"language"`             // User's preferred language (de, en, fr)
+	AuthProvider              string     `gorm:"default:local;not null" json:"auth_provider"`      // "local" or "oauth"
+	Language                  string     `gorm:"default:de;not null" json:"language"`              // User's preferred language (de, en, fr)
 	PushNotificationsEnabled  bool       `gorm:"default:false" json:"push_notifications_enabled"`  // Global push notifications channel (enabled on first push subscription)
 	EmailNotificationsEnabled bool       `gorm:"default:false" json:"email_notifications_enabled"` // Global email notifications channel (enabled on email verification)
 	PushRemindersEnabled      bool       `gorm:"default:false" json:"push_reminders_enabled"`      // Push for expiry & validity start
 	PushSharingEnabled        bool       `gorm:"default:false" json:"push_sharing_enabled"`        // Push for share & transfer
 	EmailRemindersEnabled     bool       `gorm:"default:false" json:"email_reminders_enabled"`     // Email for expiry & validity start
 	EmailSharingEnabled       bool       `gorm:"default:false" json:"email_sharing_enabled"`       // Email for share & transfer
-	EmailVerified             bool       `gorm:"default:false" json:"email_verified"`             // Whether email is verified
-	EmailVerifiedAt           *time.Time `gorm:"" json:"-"`                                       // When email was verified
-	PasswordChangedAt         *time.Time `gorm:"" json:"-"`                                       // When password was last changed (for session invalidation)
-	FailedLoginAttempts       int        `gorm:"default:0" json:"-"`                              // Count of failed login attempts
-	LockedUntil               *time.Time `gorm:"index" json:"-"`                                  // Account lock expiry time
+	EmailVerified             bool       `gorm:"default:false" json:"email_verified"`              // Whether email is verified
+	EmailVerifiedAt           *time.Time `gorm:"" json:"-"`                                        // When email was verified
+	PasswordChangedAt         *time.Time `gorm:"" json:"-"`                                        // When password was last changed (for session invalidation)
+	FailedLoginAttempts       int        `gorm:"default:0" json:"-"`                               // Count of failed login attempts
+	LockedUntil               *time.Time `gorm:"index" json:"-"`                                   // Account lock expiry time
 	CreatedAt                 time.Time  `json:"created_at"`
 	UpdatedAt                 time.Time  `json:"updated_at"`
 }
