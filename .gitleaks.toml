@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore dummy secrets in test files"
+paths = ['''_test\.go$''']
