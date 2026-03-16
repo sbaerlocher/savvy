@@ -36,4 +36,5 @@ jobs:
     name: Container Security
     uses: sbaerlocher/.github/.github/workflows/security-containers.yml@2026-03-15
     with:
+      # Must match the image pushed by the release workflow
       image-ref: "ghcr.io/sbaerlocher/container/savvy:latest"
