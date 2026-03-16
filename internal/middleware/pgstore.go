@@ -314,7 +314,9 @@ func extractIP(r *http.Request) string {
 
 // setCookie sets the session cookie on the response.
 func setCookie(w http.ResponseWriter, name, value string, options *sessions.Options) {
-	http.SetCookie(w, sessions.NewCookie(name, value, options))
+	cookie := sessions.NewCookie(name, value, options)
+	cookie.Secure = true
+	http.SetCookie(w, cookie)
 }
 
 // GetCurrentSessionTokenHash extracts the current session's token hash from the echo context.

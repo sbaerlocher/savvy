@@ -720,14 +720,15 @@ func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
 
 // --- setCookie Tests ---
 
-func TestSetCookie_PassesThroughSecureFlag(t *testing.T) {
+func TestSetCookie_AlwaysSetSecureTrue(t *testing.T) {
+	// setCookie enforces Secure=true regardless of options value
 	for _, secure := range []bool{true, false} {
 		rec := httptest.NewRecorder()
 		opts := &sessions.Options{Secure: secure}
 		setCookie(rec, "session", "tok", opts)
 		cookies := rec.Result().Cookies()
 		require.Len(t, cookies, 1)
-		assert.Equal(t, secure, cookies[0].Secure)
+		assert.True(t, cookies[0].Secure, "cookie must always be Secure even if options.Secure=%v", secure)
 	}
 }
 
