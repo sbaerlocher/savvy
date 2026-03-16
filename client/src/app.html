@@ -24,9 +24,50 @@
 			rel="apple-touch-icon"
 			href="%sveltekit.assets%/apple-touch-icon.png"
 		/>
+		<meta name="theme-color" content="#2b808d" />
+		<style>
+			#splash {
+				position: fixed;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: #f3f4f6;
+				z-index: 9999;
+			}
+			@media (prefers-color-scheme: dark) {
+				#splash { background: #111827; }
+			}
+			#splash img {
+				width: 80px;
+				height: 80px;
+				animation: pulse 1.5s ease-in-out infinite;
+			}
+			@keyframes pulse {
+				0%, 100% { opacity: 1; transform: scale(1); }
+				50% { opacity: 0.7; transform: scale(0.95); }
+			}
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
+		<div id="splash">
+			<img src="%sveltekit.assets%/logo.png" alt="" />
+		</div>
 		<div style="display: contents">%sveltekit.body%</div>
+		<script>
+			(function () {
+				var s = document.getElementById('splash');
+				if (!s) return;
+				var obs = new MutationObserver(function () {
+					if (document.querySelector('[data-sveltekit-hydrated]') || document.querySelector('nav, main')) {
+						s.remove();
+						obs.disconnect();
+					}
+				});
+				obs.observe(document.documentElement, { attributes: true, childList: true, subtree: true });
+				setTimeout(function () { if (s.parentNode) s.remove(); }, 3000);
+			})();
+		</script>
 	</body>
 </html>

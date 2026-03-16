@@ -213,6 +213,12 @@ test.describe('Profile', () => {
 			await profilePage.deleteConfirmationInput.clear();
 			await profilePage.deleteConfirmationInput.fill('DELETE');
 
+			// For local auth users, password is also required
+			const passwordInput = profilePage.deletePasswordInput;
+			if (await passwordInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+				await passwordInput.fill(TEST_USERS.regular.password);
+			}
+
 			// Button should now be enabled (or at least not disabled)
 			await expect(confirmBtn).toBeEnabled({ timeout: 3000 });
 
