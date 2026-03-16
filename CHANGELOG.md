@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-03-16
+
+### Added
+
+- **Splash Screen** - Animated logo splash screen during SvelteKit hydration with dark mode support
+- **Cross-browser select styling** - Normalized `<select>` appearance across all browsers
+
+### Changed
+
+- **Barcode Scanner** - Migrated from zbar-wasm to barcode-detector polyfill
+  (spec-compliant BarcodeDetector API, smaller bundle)
+- **Notification preference defaults** - Changed from `true` to `false`;
+  email prefs auto-enabled on verification, push prefs on first subscription
+- **Cookie Secure attribute** - Set statically to `true` instead of dynamic
+  per-request detection (app always runs behind HTTPS/Traefik)
+
+### Fixed
+
+- **Email header injection** - Added `sanitizeHeader()` to strip CR/LF from email headers (CodeQL `go/email-injection`)
+- **Open redirect prevention** - Block protocol-relative URLs (`//evil.com`) in i18n redirect validation
+- **Sliding sessions** - Cookie MaxAge now refreshed on every session update, preventing premature cookie expiry
+- **Session regeneration** - Fixed stale cookie overwrite after `RegenerateSession` by stashing raw token in memory
+- **Structured logging** - Complete migration from `c.Logger()` to `slog`
+  across all handlers (prevents log injection)
+- **Admin OAuth roles** - Made OAuth user roles readonly in admin panel (cannot be changed server-side)
+
+### Security
+
+- Resolved 13 CodeQL code scanning alerts (email injection, cookie secure, open redirect, log injection)
+- Enforced `Secure=true` on all session cookies
+- Added email header sanitization against CRLF injection
+
+### CI/CD
+
+- Added Claude code review workflow for PRs
+- Updated reusable workflows to `2026-03-16`
+- Added gitleaks allowlist for test file false positives
+- Fixed security workflow for Go 1.26 and GHCR access
+
+### Dependencies
+
+- Migrated `@nickvdyck/barcode-scanner` / `zbar-wasm` to `barcode-detector` polyfill
+- Updated Node.js to v24.14.0
+- Updated Go dependencies and Docker base images
+- Updated `cookie` to >=1.1.1
+
 ## [1.0.0] - 2026-03-04
 
 ### Added
@@ -106,4 +152,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[1.1.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.0
 [1.0.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.0.0
