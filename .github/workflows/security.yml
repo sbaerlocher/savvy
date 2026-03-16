@@ -36,4 +36,4 @@ jobs:
     name: Container Security
     uses: sbaerlocher/.github/.github/workflows/security-containers.yml@2026-03-15
     with:
-      image-ref: "ghcr.io/${{ github.repository }}:latest"
+      image-ref: "ghcr.io/sbaerlocher/container/savvy:latest"
