@@ -1,6 +1,6 @@
 {
 	"overrides": {
-		"cookie": ">=0.7.2"
+		"cookie": ">=1.1.1"
 	},
 	"dependencies": {
 		"barcode-detector": "^3.1.1",
