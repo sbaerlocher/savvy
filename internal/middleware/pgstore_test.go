@@ -720,22 +720,15 @@ func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
 
 // --- setCookie Tests ---
 
-func TestSetCookie_UsesOptionsSecureFlag(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
+func TestSetCookie_PassesThroughSecureFlag(t *testing.T) {
+	for _, secure := range []bool{true, false} {
+		rec := httptest.NewRecorder()
+		opts := &sessions.Options{Secure: secure}
+		setCookie(rec, "session", "tok", opts)
+		cookies := rec.Result().Cookies()
+		require.Len(t, cookies, 1)
+		assert.Equal(t, secure, cookies[0].Secure)
 	}
-
-	setCookie(rec, "session", "test-token", opts)
-
-	cookies := rec.Result().Cookies()
-	require.Len(t, cookies, 1)
-	assert.True(t, cookies[0].Secure)
 }
 
 // --- GetMaxAge Test ---
@@ -908,7 +901,7 @@ func TestSave_DeleteSession_RepoError_StillSetsCookie(t *testing.T) {
 }
 
 func TestSetCookie_SetsCorrectAttributes(t *testing.T) {
-	rec := httptest.NewRecorder() //nolint:bodyclose // no request body
+	rec := httptest.NewRecorder()
 
 	opts := &sessions.Options{
 		Path:     "/app",
