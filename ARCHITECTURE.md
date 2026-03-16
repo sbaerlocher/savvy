@@ -30,7 +30,7 @@ The Savvy is a modern **Full-Stack Web Application** for managing customer cards
 The Savvy follows a **modern API-First Full-Stack Architecture** with a SvelteKit SPA and JSON API backend. The architecture is divided into four main layers:
 
 **Client Layer**: A **SvelteKit Single Page Application** (TypeScript) communicates with the backend via
-a JSON API. SvelteKit uses Vite for build/dev server, TailwindCSS for styling, html5-qrcode for
+a JSON API. SvelteKit uses Vite for build/dev server, TailwindCSS for styling, barcode-detector for
 barcode scanning (browser), and bwip-js for barcode generation (server). Svelte Stores manage global
 state (auth, offline, notifications, i18n). PWA functionality is provided via custom Service Worker
 with Workbox Recipes (injectManifest strategy) for offline-first caching.
@@ -48,7 +48,7 @@ graph TB
         SvelteKit[SvelteKit SPA]
         Vite[Vite Build/Dev]
         Tailwind[TailwindCSS 3.x]
-        Scanner[html5-qrcode]
+        Scanner[barcode-detector]
         Stores[Svelte Stores]
     end
 
@@ -1001,7 +1001,7 @@ graph TB
         Components[Svelte Components]
         Stores[Svelte Stores]
         Tailwind[TailwindCSS 3.x<br/>Styling]
-        Scanner[html5-qrcode<br/>Barcode Scanner]
+        Scanner[barcode-detector<br/>Barcode Scanner]
     end
 
     subgraph "Development"
@@ -1099,8 +1099,8 @@ Svelte Stores are used for **global state** that needs to be shared across multi
 
 The barcode scanner is a Svelte component with local state:
 
-1. User clicks "Scan" → Component opens modal and starts camera (html5-qrcode)
-2. html5-qrcode processes video stream and detects barcode
+1. User clicks "Scan" → Component opens modal and starts camera (barcode-detector)
+2. barcode-detector processes video stream and detects barcode
 3. On success: Barcode is emitted via `dispatch('scan', { barcode })` event
 4. Parent component receives event and updates form field
 
@@ -1110,7 +1110,7 @@ The state diagram shows the different states (Idle, Scanning, Processing, Succes
 stateDiagram-v2
     [*] --> Idle
     Idle --> Scanning: Click "Scan Barcode"
-    Scanning --> Processing: html5-qrcode Decode
+    Scanning --> Processing: barcode-detector Decode
     Processing --> Success: Valid Barcode
     Processing --> Error: Invalid Barcode
     Success --> Idle: Dispatch Event
@@ -1120,7 +1120,7 @@ stateDiagram-v2
     note right of Scanning
         Camera Access
         Video Feed
-        html5-qrcode Processing
+        barcode-detector Processing
     end note
 
     note right of Success
@@ -1714,8 +1714,7 @@ Svelte Stores are the **central state management system** for global application
 
 **Technologies**:
 
-- Primary: Native BarcodeDetector API (Chrome, Edge)
-- Fallback: zbar-wasm (Firefox, Safari)
+- barcode-detector polyfill (spec-compliant BarcodeDetector API for all browsers, ZXing-C++ WASM)
 
 **Component State**:
 

@@ -15,11 +15,11 @@ export default defineConfig({
 		// Target modern browsers for smaller output
 		target: 'es2020'
 	},
-	// Include WASM files as assets (needed for @undecaf/zbar-wasm)
+	// Include WASM files as assets (needed for barcode-detector WASM polyfill)
 	assetsInclude: ['**/*.wasm'],
 	optimizeDeps: {
 		// Exclude WASM modules from optimization to preserve dynamic imports
-		exclude: ['@undecaf/zbar-wasm']
+		exclude: ['barcode-detector']
 	},
 	plugins: [
 		sveltekit(),

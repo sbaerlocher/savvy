@@ -153,13 +153,12 @@ estoppel, or otherwise.
 - Copyright: (c) 2011-2024 Mark Warren
 - Repository: https://github.com/metafloor/bwip-js
 
-### 6. ZBar WebAssembly
-- Name: @undecaf/zbar-wasm
-- Version: ^0.11.0
-- License: LGPL-2.1+
-- Copyright: (c) 2020-2024 Ferdinand Kasper
-- Repository: https://github.com/undecaf/zbar-wasm
-- Note: LGPL-2.1+ allows use in proprietary software when dynamically linked
+### 6. barcode-detector
+- Name: barcode-detector
+- Version: ^3.1.1
+- License: MIT
+- Copyright: (c) Niclas Gruhn
+- Repository: https://github.com/niclas-gruhn/barcode-detector
 
 ### 7. Vite PWA Plugin
 - Name: @vite-pwa/sveltekit

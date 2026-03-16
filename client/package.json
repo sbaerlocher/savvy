@@ -3,7 +3,7 @@
 		"cookie": ">=0.7.2"
 	},
 	"dependencies": {
-		"@undecaf/zbar-wasm": "^0.11.0",
+		"barcode-detector": "^3.1.1",
 		"@vite-pwa/sveltekit": "^1.1.0",
 		"bwip-js": "^4.8.0",
 		"workbox-window": "^7.4.0"

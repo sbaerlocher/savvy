@@ -36,18 +36,65 @@ func (m *MockPushSubscriptionRepo) DeleteByEndpoint(ctx context.Context, endpoin
 	return m.Called(ctx, endpoint).Error(0)
 }
 
+// ==================== Mock User Repository (for Push) ====================
+
+type MockUserRepo struct {
+	mock.Mock
+}
+
+var _ repository.UserRepository = (*MockUserRepo)(nil)
+
+func (m *MockUserRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockUserRepo) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	args := m.Called(ctx, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockUserRepo) Create(ctx context.Context, user *models.User) error {
+	return m.Called(ctx, user).Error(0)
+}
+
+func (m *MockUserRepo) Update(ctx context.Context, user *models.User) error {
+	return m.Called(ctx, user).Error(0)
+}
+
+func (m *MockUserRepo) GetAll(ctx context.Context) ([]models.User, error) {
+	args := m.Called(ctx)
+	return args.Get(0).([]models.User), args.Error(1)
+}
+
+func (m *MockUserRepo) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]models.User, error) {
+	args := m.Called(ctx, ids)
+	return args.Get(0).([]models.User), args.Error(1)
+}
+
+func (m *MockUserRepo) SearchByIDs(ctx context.Context, ids []uuid.UUID, query string) ([]models.User, error) {
+	args := m.Called(ctx, ids, query)
+	return args.Get(0).([]models.User), args.Error(1)
+}
+
 // ==================== PushService Tests ====================
 
 func TestPushService_IsEnabled_WithKeys(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "public-key", "private-key", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "public-key", "private-key", "mailto:test@example.com")
 
 	assert.True(t, svc.IsEnabled())
 }
 
 func TestPushService_IsEnabled_WithoutKeys(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "", "", "")
+	svc := NewPushService(repo, nil, "", "", "")
 
 	assert.False(t, svc.IsEnabled())
 }
@@ -55,29 +102,73 @@ func TestPushService_IsEnabled_WithoutKeys(t *testing.T) {
 func TestPushService_IsEnabled_PartialKeys(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
 
-	svc1 := NewPushService(repo, "public", "", "")
+	svc1 := NewPushService(repo, nil, "public", "", "")
 	assert.False(t, svc1.IsEnabled())
 
-	svc2 := NewPushService(repo, "", "private", "")
+	svc2 := NewPushService(repo, nil, "", "private", "")
 	assert.False(t, svc2.IsEnabled())
 
-	svc3 := NewPushService(repo, "public", "private", "")
+	svc3 := NewPushService(repo, nil, "public", "private", "")
 	assert.False(t, svc3.IsEnabled())
 }
 
 func TestPushService_GetVAPIDPublicKey(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "my-public-key", "private", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "my-public-key", "private", "mailto:test@example.com")
 
 	assert.Equal(t, "my-public-key", svc.GetVAPIDPublicKey())
 }
 
-func TestPushService_Subscribe_Success(t *testing.T) {
+func TestPushService_Subscribe_Success_FirstSubscription(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "pub", "priv", "mailto:test@example.com")
+	userRepo := new(MockUserRepo)
+	svc := NewPushService(repo, userRepo, "pub", "priv", "mailto:test@example.com")
 	ctx := context.Background()
 	userID := uuid.New()
 
+	// First subscription: no existing subs
+	repo.On("GetByUserID", ctx, userID).Return([]models.PushSubscription{}, nil)
+	repo.On("Create", ctx, mock.AnythingOfType("*models.PushSubscription")).Return(nil)
+
+	// Should enable push preferences
+	user := &models.User{ID: userID, PushNotificationsEnabled: false}
+	userRepo.On("GetByID", ctx, userID).Return(user, nil)
+	userRepo.On("Update", ctx, mock.MatchedBy(func(u *models.User) bool {
+		return u.PushNotificationsEnabled && u.PushRemindersEnabled && u.PushSharingEnabled
+	})).Return(nil)
+
+	err := svc.Subscribe(ctx, userID, "https://push.example.com/sub1", "p256dh-key", "auth-key", "Mozilla/5.0")
+
+	assert.NoError(t, err)
+	repo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
+}
+
+func TestPushService_Subscribe_Success_ExistingSubscription(t *testing.T) {
+	repo := new(MockPushSubscriptionRepo)
+	userRepo := new(MockUserRepo)
+	svc := NewPushService(repo, userRepo, "pub", "priv", "mailto:test@example.com")
+	ctx := context.Background()
+	userID := uuid.New()
+
+	// Existing subscription: should NOT update preferences
+	repo.On("GetByUserID", ctx, userID).Return([]models.PushSubscription{{UserID: userID}}, nil)
+	repo.On("Create", ctx, mock.AnythingOfType("*models.PushSubscription")).Return(nil)
+
+	err := svc.Subscribe(ctx, userID, "https://push.example.com/sub2", "p256dh-key", "auth-key", "Mozilla/5.0")
+
+	assert.NoError(t, err)
+	repo.AssertExpectations(t)
+	userRepo.AssertNotCalled(t, "GetByID")
+}
+
+func TestPushService_Subscribe_NilUserRepo(t *testing.T) {
+	repo := new(MockPushSubscriptionRepo)
+	svc := NewPushService(repo, nil, "pub", "priv", "mailto:test@example.com")
+	ctx := context.Background()
+	userID := uuid.New()
+
+	repo.On("GetByUserID", ctx, userID).Return([]models.PushSubscription{}, nil)
 	repo.On("Create", ctx, mock.AnythingOfType("*models.PushSubscription")).Return(nil)
 
 	err := svc.Subscribe(ctx, userID, "https://push.example.com/sub1", "p256dh-key", "auth-key", "Mozilla/5.0")
@@ -88,7 +179,7 @@ func TestPushService_Subscribe_Success(t *testing.T) {
 
 func TestPushService_Unsubscribe_Success(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "pub", "priv", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "pub", "priv", "mailto:test@example.com")
 	ctx := context.Background()
 
 	repo.On("DeleteByEndpoint", ctx, "https://push.example.com/sub1").Return(nil)
@@ -101,7 +192,7 @@ func TestPushService_Unsubscribe_Success(t *testing.T) {
 
 func TestPushService_SendPushToUser_NotEnabled(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "", "", "") // Not enabled
+	svc := NewPushService(repo, nil, "", "", "") // Not enabled
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -114,7 +205,7 @@ func TestPushService_SendPushToUser_NotEnabled(t *testing.T) {
 
 func TestPushService_SendPushToUser_NoSubscriptions(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "pub", "priv", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "pub", "priv", "mailto:test@example.com")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -128,7 +219,7 @@ func TestPushService_SendPushToUser_NoSubscriptions(t *testing.T) {
 
 func TestPushService_SendPushToUser_RepoError(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "pub", "priv", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "pub", "priv", "mailto:test@example.com")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -180,23 +271,23 @@ func TestPushService_IsEnabled(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
 
 	// Enabled when all VAPID params are set
-	svc := NewPushService(repo, "pub", "priv", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "pub", "priv", "mailto:test@example.com")
 	assert.True(t, svc.IsEnabled())
 
 	// Disabled when public key is empty
-	svc2 := NewPushService(repo, "", "priv", "mailto:test@example.com")
+	svc2 := NewPushService(repo, nil, "", "priv", "mailto:test@example.com")
 	assert.False(t, svc2.IsEnabled())
 }
 
 func TestPushService_GetVAPIDPublicKey_Value(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "my-public-key", "priv", "mailto:test@example.com")
+	svc := NewPushService(repo, nil, "my-public-key", "priv", "mailto:test@example.com")
 	assert.Equal(t, "my-public-key", svc.GetVAPIDPublicKey())
 }
 
 func TestPushService_SendTestPush_NotEnabled(t *testing.T) {
 	repo := new(MockPushSubscriptionRepo)
-	svc := NewPushService(repo, "", "", "")
+	svc := NewPushService(repo, nil, "", "", "")
 	ctx := context.Background()
 
 	err := svc.SendTestPush(ctx, uuid.New())
