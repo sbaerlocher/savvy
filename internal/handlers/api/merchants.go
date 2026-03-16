@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -135,7 +136,7 @@ func (h *MerchantsHandler) Create(c echo.Context) error {
 		})
 	}
 
-	c.Logger().Infof("Merchant created: %s (ID: %s)", merchant.Name, merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant created", "name", merchant.Name, "id", merchant.ID)
 
 	return c.JSON(http.StatusCreated, map[string]any{
 		"message":  "Merchant created successfully",
@@ -207,7 +208,7 @@ func (h *MerchantsHandler) Update(c echo.Context) error {
 		})
 	}
 
-	c.Logger().Infof("Merchant updated: %s (ID: %s)", merchant.Name, merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant updated", "name", merchant.Name, "id", merchant.ID)
 
 	return c.JSON(http.StatusOK, map[string]any{
 		"message":  "Merchant updated successfully",

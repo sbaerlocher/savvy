@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/email"
@@ -167,7 +168,7 @@ func (h *AdminHandler) CreateUser(c echo.Context) error {
 		})
 	}
 
-	c.Logger().Infof("User created successfully: %s", user.Email)
+	slog.InfoContext(c.Request().Context(), "user created successfully", "email", user.Email)
 
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message": "User created successfully",
@@ -538,14 +539,14 @@ func (h *AdminHandler) RestoreResource(c echo.Context) error {
 			})
 		}
 
-		c.Logger().Errorf("Failed to restore resource: %v", err)
+		slog.ErrorContext(c.Request().Context(), "failed to restore resource", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to restore resource",
 		})
 	}
 
-	c.Logger().Infof("Admin restored %s resource %s", resourceType, resourceID.String())
+	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", resourceType, "resource_id", resourceID.String())
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Resource restored successfully",
@@ -727,14 +728,14 @@ func (h *AdminHandler) SendPreviewEmail(c echo.Context) error {
 	}
 
 	if err != nil {
-		c.Logger().Errorf("Failed to send preview email (%s) to %s: %v", req.Template, user.Email, err)
+		slog.ErrorContext(c.Request().Context(), "failed to send preview email", "template", req.Template, "email", user.Email, "error", err)
 		return c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Error:   "smtp_error",
 			Message: "Failed to send preview email. Check server logs for details.",
 		})
 	}
 
-	c.Logger().Infof("Preview email (%s) sent to admin %s in language %s", req.Template, user.Email, lang)
+	slog.InfoContext(c.Request().Context(), "preview email sent", "template", req.Template, "email", user.Email, "language", lang)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Preview email sent successfully! Check your inbox.",

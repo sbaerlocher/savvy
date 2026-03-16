@@ -118,12 +118,12 @@ func SetLanguage(c echo.Context) error {
 
 	// Redirect back to referrer or home (validate to prevent open redirect)
 	referer := c.Request().Header.Get("Referer")
-	if parsed, err := url.Parse(referer); err != nil || parsed.Scheme != "" || parsed.Host != "" || !strings.HasPrefix(parsed.Path, "/") {
+	if parsed, err := url.Parse(referer); err != nil || parsed.Scheme != "" || parsed.Host != "" || !strings.HasPrefix(parsed.Path, "/") || strings.HasPrefix(parsed.Path, "//") {
 		referer = "/"
 	} else {
 		// Use only the path component (strip query params and fragments)
 		referer = parsed.Path
 	}
 
-	return c.Redirect(303, referer)
+	return c.Redirect(http.StatusSeeOther, referer)
 }

@@ -481,10 +481,21 @@ func (s *SMTPEmailService) renderTemplate(name string, data any) (string, error)
 	return buf.String(), nil
 }
 
+// sanitizeHeader removes CR/LF characters to prevent email header injection.
+func sanitizeHeader(s string) string {
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\n", "")
+	return s
+}
+
 func (s *SMTPEmailService) sendMail(to, subject, htmlBody string) error {
+	// Sanitize header values to prevent email header injection
+	to = sanitizeHeader(to)
+	subject = sanitizeHeader(subject)
+
 	from := s.config.FromEmail
 	if s.config.FromName != "" {
-		from = fmt.Sprintf("%s <%s>", s.config.FromName, s.config.FromEmail)
+		from = fmt.Sprintf("%s <%s>", sanitizeHeader(s.config.FromName), sanitizeHeader(s.config.FromEmail))
 	}
 
 	// Build email message with RFC 5322 compliant headers.
