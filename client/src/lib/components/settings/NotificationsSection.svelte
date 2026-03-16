@@ -198,7 +198,10 @@
 
 			<!-- Push subcategories -->
 			{#if preferences.push_notifications_enabled}
-				<div class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3">
+				<div
+					data-testid="push-subcategories"
+					class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3"
+				>
 					<ToggleSwitch
 						checked={preferences.push_reminders_enabled}
 						label={tr('settings.notifications.pushReminders')}
@@ -229,7 +232,10 @@
 
 			<!-- Email subcategories -->
 			{#if preferences.email_notifications_enabled}
-				<div class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3">
+				<div
+					data-testid="email-subcategories"
+					class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3"
+				>
 					<ToggleSwitch
 						checked={preferences.email_reminders_enabled}
 						label={tr('settings.notifications.emailReminders')}
