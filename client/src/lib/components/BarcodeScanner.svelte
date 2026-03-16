@@ -15,6 +15,8 @@
 	let { open = $bindable(false), onscan, onerror }: Props = $props();
 
 	let videoElement = $state<HTMLVideoElement>();
+	let canvasElement: HTMLCanvasElement | null = null;
+	let canvasCtx: CanvasRenderingContext2D | null = null;
 	let modalRef = $state<HTMLDivElement | null>(null);
 	let previousFocus = $state<HTMLElement | null>(null);
 
@@ -139,9 +141,19 @@
 					'upc_e'
 				]
 			});
+
+			// Create offscreen canvas for frame capture (required for iOS Safari
+			// where createImageBitmap from video elements is unsupported)
+			canvasElement = document.createElement('canvas');
+			canvasElement.width = videoElement.videoWidth || 1280;
+			canvasElement.height = videoElement.videoHeight || 720;
+			canvasCtx = canvasElement.getContext('2d', { willReadFrequently: true });
+
 			scannerReady = true;
 			componentLogger.info('Using BarcodeDetector polyfill');
-			addDebugLog('Using: BarcodeDetector (barcode-detector polyfill)');
+			addDebugLog(
+				`Using: BarcodeDetector (canvas ${canvasElement.width}x${canvasElement.height})`
+			);
 
 			isInitializing = false;
 			scanMessage = $t('common.scanPositionBarcode');
@@ -191,8 +203,17 @@
 
 				updateScanningFeedback();
 
-				if (barcodeDetector) {
-					const barcodes = await barcodeDetector.detect(videoElement);
+				if (barcodeDetector && canvasCtx && canvasElement) {
+					// Draw current video frame to canvas (required for iOS Safari
+					// where detect(videoElement) fails silently)
+					canvasCtx.drawImage(
+						videoElement,
+						0,
+						0,
+						canvasElement.width,
+						canvasElement.height
+					);
+					const barcodes = await barcodeDetector.detect(canvasElement);
 
 					if (barcodes.length > 0) {
 						const barcode = barcodes[0];
@@ -396,6 +417,8 @@
 		scanningFeedback = 'idle';
 		scanAttempts = 0;
 		barcodeDetector = null;
+		canvasElement = null;
+		canvasCtx = null;
 		scannerReady = false;
 
 		componentLogger.info('Scanner stopped and camera released');
