@@ -66,7 +66,7 @@ func NewPGStore(repo repository.SessionRepository, maxAge int) *PGStore {
 			Path:     "/",
 			MaxAge:   maxAge,
 			HttpOnly: true,
-			Secure:   false, // Set dynamically per-request in SaveSession
+			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 		},
 	}
@@ -128,8 +128,8 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 				slog.Error("Failed to delete session from DB", "error", err)
 			}
 		}
-		// Set cookie to expire (use dynamic Secure flag like other cookie paths)
-		setCookie(w, session.Name(), "", session.Options, r)
+		// Set cookie to expire
+		setCookie(w, session.Name(), "", session.Options)
 		return nil
 	}
 
@@ -191,7 +191,7 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 		session.IsNew = false
 
 		// Set cookie with raw token
-		setCookie(w, session.Name(), rawToken, session.Options, r)
+		setCookie(w, session.Name(), rawToken, session.Options)
 		return nil
 	}
 
@@ -231,9 +231,9 @@ func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions
 	// the old (deleted) token, so reading r.Cookie() would overwrite the new cookie
 	// with a stale value, causing a 401 on the next request.
 	if rawToken, ok := session.Values[sessionRawTokenKey].(string); ok && rawToken != "" {
-		setCookie(w, session.Name(), rawToken, session.Options, r)
+		setCookie(w, session.Name(), rawToken, session.Options)
 	} else if cookie, err := r.Cookie(session.Name()); err == nil && cookie.Value != "" {
-		setCookie(w, session.Name(), cookie.Value, session.Options, r)
+		setCookie(w, session.Name(), cookie.Value, session.Options)
 	} else {
 		slog.Debug("sliding session: no cookie present on request, skipping refresh", "session_name", session.Name())
 	}
@@ -312,12 +312,9 @@ func extractIP(r *http.Request) string {
 	return addr
 }
 
-// setCookie sets the session cookie on the response with dynamic Secure flag.
-func setCookie(w http.ResponseWriter, name, value string, options *sessions.Options, r *http.Request) {
-	opts := *options
-	// Dynamic Secure flag based on actual connection (same logic as SaveSession)
-	opts.Secure = r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
-	http.SetCookie(w, sessions.NewCookie(name, value, &opts))
+// setCookie sets the session cookie on the response.
+func setCookie(w http.ResponseWriter, name, value string, options *sessions.Options) {
+	http.SetCookie(w, sessions.NewCookie(name, value, options))
 }
 
 // GetCurrentSessionTokenHash extracts the current session's token hash from the echo context.

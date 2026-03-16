@@ -720,63 +720,22 @@ func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
 
 // --- setCookie Tests ---
 
-func TestSetCookie_Secure_WithXForwardedProtoHTTPS(t *testing.T) {
+func TestSetCookie_UsesOptionsSecureFlag(t *testing.T) {
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Forwarded-Proto", "https")
 
 	opts := &sessions.Options{
 		Path:     "/",
 		MaxAge:   3600,
 		HttpOnly: true,
-		Secure:   false, // will be overridden
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	setCookie(rec, "session", "test-token", opts, req)
+	setCookie(rec, "session", "test-token", opts)
 
 	cookies := rec.Result().Cookies()
 	require.Len(t, cookies, 1)
 	assert.True(t, cookies[0].Secure)
-}
-
-func TestSetCookie_NotSecure_PlainHTTP(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	// No X-Forwarded-Proto, no TLS
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true, // will be overridden to false
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	setCookie(rec, "session", "test-token", opts, req)
-
-	cookies := rec.Result().Cookies()
-	require.Len(t, cookies, 1)
-	assert.False(t, cookies[0].Secure)
-}
-
-func TestSetCookie_DoesNotMutateOriginalOptions(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Forwarded-Proto", "https")
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   false, // original is false
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	setCookie(rec, "session", "test-token", opts, req)
-
-	// Original options should NOT be mutated (setCookie copies the options)
-	assert.False(t, opts.Secure)
 }
 
 // --- GetMaxAge Test ---
@@ -949,18 +908,17 @@ func TestSave_DeleteSession_RepoError_StillSetsCookie(t *testing.T) {
 }
 
 func TestSetCookie_SetsCorrectAttributes(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder() //nolint:bodyclose // no request body
 
 	opts := &sessions.Options{
 		Path:     "/app",
 		MaxAge:   7200,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	setCookie(rec, "session", "my-token", opts, req)
+	setCookie(rec, "session", "my-token", opts)
 
 	cookies := rec.Result().Cookies()
 	require.Len(t, cookies, 1)
