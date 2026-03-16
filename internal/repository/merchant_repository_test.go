@@ -58,12 +58,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// Clean up test data in a single transaction to prevent deadlocks.
 	// Use targeted DELETEs with patterns (not TRUNCATE) to avoid wiping
 	// data from other packages running in parallel (e.g. services tests).
-	db.Exec(`DO $$
+	result := db.Exec(`DO $$
 	BEGIN
 		DELETE FROM user_favorites WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM voucher_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM gift_card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		DELETE FROM card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR card_id IN (SELECT id FROM cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'PRELOAD%');
+		DELETE FROM voucher_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR voucher_id IN (SELECT id FROM vouchers WHERE code LIKE 'TEST%');
+		DELETE FROM gift_card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR gift_card_id IN (SELECT id FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%');
 		DELETE FROM gift_card_transactions WHERE gift_card_id IN (SELECT id FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%');
 		DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
 		DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
@@ -71,15 +71,21 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		DELETE FROM vouchers WHERE code LIKE 'TEST%';
 		DELETE FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%';
 		DELETE FROM merchants WHERE name LIKE 'Test%';
+		DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		DELETE FROM user_totps WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		DELETE FROM email_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		DELETE FROM push_subscriptions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		DELETE FROM expiry_reminder_sents WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
 		DELETE FROM users WHERE email LIKE 'test-%@example.com';
 	END $$`)
+	if result.Error != nil {
+		t.Logf("Warning: test DB cleanup failed: %v", result.Error)
+	}
 
 	return db
 }
 
-// createTestUser creates a test
-//
-//	user for foreign key relationships
+// createTestUser creates a test user for foreign key relationships
 func createTestUser(t *testing.T, db *gorm.DB) uuid.UUID {
 	t.Helper()
 	userID := uuid.New()
