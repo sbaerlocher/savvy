@@ -1,15 +1,8 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
 	import { logger } from '$lib/utils/logger';
-	import type { scanImageData as ScanImageDataType } from '@undecaf/zbar-wasm';
+	import { BarcodeDetector } from 'barcode-detector/pure';
 	import { tick } from 'svelte';
-
-	// Typdefinition für BarcodeDetector, falls nicht global vorhanden
-	type BarcodeDetector = {
-		detect(
-			video: HTMLVideoElement
-		): Promise<Array<{ rawValue: string; format: string }>>;
-	};
 
 	const componentLogger = logger.child('BarcodeScanner');
 
@@ -22,7 +15,6 @@
 	let { open = $bindable(false), onscan, onerror }: Props = $props();
 
 	let videoElement = $state<HTMLVideoElement>();
-	let canvasElement = $state<HTMLCanvasElement>();
 	let modalRef = $state<HTMLDivElement | null>(null);
 	let previousFocus = $state<HTMLElement | null>(null);
 
@@ -30,11 +22,10 @@
 	let isInitializing = $state(false);
 	let scanMessage = $state('Barcode vor die Kamera halten');
 	let mediaStream: MediaStream | null = null;
-	let scanningMethod = $state<'native' | 'wasm' | null>(null);
+	let scannerReady = $state(false);
 	let animationFrameId: number | null = null;
 
 	let barcodeDetector: BarcodeDetector | null = null;
-	let zbarScanner: typeof ScanImageDataType | null = null;
 
 	let torchEnabled = $state(false);
 	let torchSupported = $state(false);
@@ -131,34 +122,26 @@
 				`Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight} (state: ${videoElement.readyState})`
 			);
 
-			if ('BarcodeDetector' in window) {
-				scanningMethod = 'native';
-				barcodeDetector = new (window as any).BarcodeDetector({
-					formats: [
-						'aztec',
-						'code_128',
-						'code_39',
-						'code_93',
-						'codabar',
-						'data_matrix',
-						'ean_13',
-						'ean_8',
-						'itf',
-						'pdf417',
-						'qr_code',
-						'upc_a',
-						'upc_e'
-					]
-				});
-				componentLogger.info('Using native BarcodeDetector API');
-				addDebugLog('Using: Native BarcodeDetector API');
-			} else {
-				scanningMethod = 'wasm';
-				const zbarModule = await import('@undecaf/zbar-wasm');
-				zbarScanner = zbarModule.scanImageData;
-				componentLogger.info('Using zbar-wasm fallback');
-				addDebugLog('Using: zbar-wasm (WASM Fallback)');
-			}
+			barcodeDetector = new BarcodeDetector({
+				formats: [
+					'aztec',
+					'code_128',
+					'code_39',
+					'code_93',
+					'codabar',
+					'data_matrix',
+					'ean_13',
+					'ean_8',
+					'itf',
+					'pdf417',
+					'qr_code',
+					'upc_a',
+					'upc_e'
+				]
+			});
+			scannerReady = true;
+			componentLogger.info('Using BarcodeDetector polyfill');
+			addDebugLog('Using: BarcodeDetector (barcode-detector polyfill)');
 
 			isInitializing = false;
 			scanMessage = $t('common.scanPositionBarcode');
@@ -188,19 +171,18 @@
 	}
 
 	function startScanningLoop() {
-		if (!isScanning || !videoElement || !canvasElement) {
+		if (!isScanning || !videoElement) {
 			return;
 		}
 
 		const scan = async () => {
-			if (!isScanning || !videoElement || !canvasElement) {
+			if (!isScanning || !videoElement) {
 				return;
 			}
 
 			try {
 				const now = Date.now();
-				const scanInterval = scanningMethod === 'wasm' ? 300 : 100;
-				if (now - lastScanTime < scanInterval) {
+				if (now - lastScanTime < 150) {
 					animationFrameId = requestAnimationFrame(scan);
 					return;
 				}
@@ -209,7 +191,7 @@
 
 				updateScanningFeedback();
 
-				if (scanningMethod === 'native' && barcodeDetector) {
+				if (barcodeDetector) {
 					const barcodes = await barcodeDetector.detect(videoElement);
 
 					if (barcodes.length > 0) {
@@ -217,90 +199,10 @@
 						handleBarcodeDetected(barcode.rawValue, barcode.format);
 						return;
 					}
-				} else if (scanningMethod === 'wasm' && zbarScanner) {
-					const context = canvasElement.getContext('2d');
-					if (!context) {
-						throw new Error('Canvas context not available');
-					}
+				}
 
-					if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-						animationFrameId = requestAnimationFrame(scan);
-						return;
-					}
-
-					const maxWidth = 640;
-					const scale =
-						videoElement.videoWidth > maxWidth
-							? maxWidth / videoElement.videoWidth
-							: 1;
-					canvasElement.width = videoElement.videoWidth * scale;
-					canvasElement.height = videoElement.videoHeight * scale;
-					context.drawImage(
-						videoElement,
-						0,
-						0,
-						videoElement.videoWidth,
-						videoElement.videoHeight,
-						0,
-						0,
-						canvasElement.width,
-						canvasElement.height
-					);
-
-					if (scanAttempts === 1) {
-						componentLogger.info('First scan attempt (WASM):', {
-							canvasWidth: canvasElement.width,
-							canvasHeight: canvasElement.height,
-							videoWidth: videoElement.videoWidth,
-							videoHeight: videoElement.videoHeight
-						});
-						addDebugLog(
-							`First scan: Canvas ${canvasElement.width}x${canvasElement.height}, Video ${videoElement.videoWidth}x${videoElement.videoHeight}`
-						);
-					}
-
-					if (scanAttempts % 50 === 0) {
-						addDebugLog(`Scan attempt #${scanAttempts} - still scanning...`);
-					}
-
-					const imageData = context.getImageData(
-						0,
-						0,
-						canvasElement.width,
-						canvasElement.height
-					);
-
-					if (scanAttempts === 1) {
-						addDebugLog(
-							`ImageData: ${imageData.width}x${imageData.height}, ${imageData.data.length} bytes`
-						);
-					}
-
-					try {
-						const symbols = await zbarScanner(imageData);
-
-						if (scanAttempts % 50 === 0) {
-							if (symbols.length === 0) {
-								addDebugLog(
-									`Scan #${scanAttempts}: No barcodes (canvas: ${canvasElement.width}x${canvasElement.height})`
-								);
-							} else {
-								addDebugLog(`Found ${symbols.length} symbols!`);
-							}
-						}
-
-						if (symbols.length > 0) {
-							const symbol = symbols[0];
-							addDebugLog(
-								`✨ Found: type=${symbol.typeName}, points=${symbol.points?.length || 0}`
-							);
-							handleBarcodeDetected(symbol.decode(), symbol.typeName);
-							return;
-						}
-					} catch (scanError) {
-						addDebugLog(`❌ WASM scan error: ${scanError}`);
-						componentLogger.error('zbar-wasm scan error:', scanError);
-					}
+				if (scanAttempts % 50 === 0) {
+					addDebugLog(`Scan attempt #${scanAttempts} - still scanning...`);
 				}
 			} catch (err) {
 				componentLogger.debug('Scan iteration error:', err);
@@ -410,10 +312,7 @@
 			return 'CODE128';
 		}
 
-		const normalized = format
-			.replace(/^ZBAR[-_]?/i, '')
-			.replace(/[-_/\s]/g, '')
-			.toUpperCase();
+		const normalized = format.replace(/[-_/\s]/g, '').toUpperCase();
 
 		const formatMap: Record<string, string> = {
 			QRCODE: 'QR',
@@ -422,37 +321,19 @@
 			CODE39: 'CODE39',
 			CODE93: 'CODE93',
 			CODABAR: 'CODABAR',
-			EAN2: 'EAN8',
-			EAN5: 'EAN8',
 			EAN8: 'EAN8',
 			EAN13: 'EAN13',
 			UPCA: 'UPCA',
 			UPCE: 'UPCE',
 			ITF: 'ITF',
-			ITF14: 'ITF14',
-			I25: 'ITF',
-			I2OF5: 'ITF',
-			INTERLEAVED25: 'ITF',
-			ISBN10: 'ISBN13',
-			ISBN13: 'ISBN13',
-			ISBN: 'ISBN13',
 			PDF417: 'PDF417',
 			DATAMATRIX: 'DATAMATRIX',
-			AZTEC: 'AZTEC',
-			MAXICODE: 'MAXICODE',
-			DATABAR: 'CODE128',
-			DATABAREXP: 'CODE128',
-			COMPOSITE: 'CODE128'
+			AZTEC: 'AZTEC'
 		};
 
 		const mapped = formatMap[normalized];
 
 		if (mapped) {
-			componentLogger.debug('Mapped barcode format:', {
-				original: format,
-				normalized,
-				mapped
-			});
 			return mapped;
 		}
 
@@ -467,15 +348,15 @@
 		barcode: string,
 		format: string
 	): { valid: boolean; warning?: string } {
-		if (format.includes('EAN-13') && !/^\d{13}$/.test(barcode)) {
+		if (format.includes('ean_13') && !/^\d{13}$/.test(barcode)) {
 			return { valid: false, warning: 'EAN-13 should have 13 digits' };
 		}
 
-		if (format.includes('EAN-8') && !/^\d{8}$/.test(barcode)) {
+		if (format.includes('ean_8') && !/^\d{8}$/.test(barcode)) {
 			return { valid: false, warning: 'EAN-8 should have 8 digits' };
 		}
 
-		if (format.includes('UPC-A') && !/^\d{12}$/.test(barcode)) {
+		if (format.includes('upc_a') && !/^\d{12}$/.test(barcode)) {
 			return { valid: false, warning: 'UPC-A should have 12 digits' };
 		}
 
@@ -515,8 +396,7 @@
 		scanningFeedback = 'idle';
 		scanAttempts = 0;
 		barcodeDetector = null;
-		zbarScanner = null;
-		scanningMethod = null;
+		scannerReady = false;
 
 		componentLogger.info('Scanner stopped and camera released');
 	}
@@ -589,16 +469,10 @@
 			</div>
 
 			<!-- Scanner Method Indicator -->
-			{#if scanningMethod}
+			{#if scannerReady}
 				<div class="text-xs text-gray-500 mb-2 flex items-center gap-2">
-					<div
-						class="w-2 h-2 rounded-full"
-						class:bg-green-500={scanningMethod === 'native'}
-						class:bg-cyan-500={scanningMethod === 'wasm'}
-					></div>
-					{scanningMethod === 'native'
-						? 'Native BarcodeDetector'
-						: 'zbar-wasm (Fallback)'}
+					<div class="w-2 h-2 rounded-full bg-green-500"></div>
+					BarcodeDetector
 				</div>
 			{/if}
 
@@ -610,9 +484,6 @@
 					playsinline
 					muted
 				></video>
-
-				<!-- Canvas for zbar-wasm processing (hidden) -->
-				<canvas bind:this={canvasElement} class="hidden"></canvas>
 
 				<!-- Scanner overlay with guide -->
 				<div class="scanner-overlay">
@@ -756,7 +627,9 @@
 					<div class="debug-stats">
 						<div class="debug-stat">
 							<span class="debug-label">Method:</span>
-							<span class="debug-value">{scanningMethod || 'Loading...'}</span>
+							<span class="debug-value"
+								>{scannerReady ? 'BarcodeDetector' : 'Loading...'}</span
+							>
 						</div>
 						<div class="debug-stat">
 							<span class="debug-label">Attempts:</span>

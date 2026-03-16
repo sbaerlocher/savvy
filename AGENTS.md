@@ -56,7 +56,7 @@ This file serves as **central navigation** for AI agents. All details are organi
 - ✅ **SvelteKit SPA** - Modern TypeScript frontend with JSON API backend
 - ✅ **Progressive Web App** - Offline-first with service worker and caching
 - ✅ **Layered Architecture** - Clean separation with Handler → Service → Repository pattern
-- ✅ **Barcode Features** - bwip-js for server-side generation, html5-qrcode for browser scanning
+- ✅ **Barcode Features** - bwip-js for server-side generation, barcode-detector polyfill for browser scanning
 - ✅ **Granular Sharing** - Resource-specific permissions with transfer capabilities
 - ✅ **Batch Operations** - Bulk delete, share, transfer, export (max 50 items per request)
 - ✅ **Two-Factor Authentication** - TOTP with backup codes, QR code setup, rate-limited
@@ -720,18 +720,15 @@ cards/[id]/+page.svelte   # Card Details
 
 ```typescript
 // client/src/lib/components/BarcodeScanner.svelte
-import { Html5Qrcode } from "html5-qrcode";
+import { BarcodeDetector } from 'barcode-detector/pure';
 
-let scanning = false;
-let qrScanner: Html5Qrcode;
+const detector = new BarcodeDetector({
+  formats: ['qr_code', 'ean_13', 'code_128', 'upc_a']
+});
 
-async function startScanning() {
-  scanning = true;
-  qrScanner = new Html5Qrcode("scanner");
-  await qrScanner.start({ facingMode: "environment" }, { fps: 10 }, (decodedText) => {
-    dispatch("scan", { barcode: decodedText });
-    stopScanning();
-  });
+const barcodes = await detector.detect(videoElement);
+if (barcodes.length > 0) {
+  onscan?.({ barcode: barcodes[0].rawValue, format: barcodes[0].format });
 }
 ```
 
@@ -1106,10 +1103,11 @@ type ResourcePermissions struct {
 
 **Two complementary technologies**:
 
-1. **Browser Scanning** (html5-qrcode):
-   - Browser-based (html5-qrcode library)
+1. **Browser Scanning** (barcode-detector polyfill):
+   - Spec-compliant `BarcodeDetector` API polyfill (ZXing-C++ WASM)
+   - Works in all browsers (Chrome, Firefox, Safari)
    - Camera access via MediaDevices API
-   - Supported formats: CODE128, QR, EAN13, EAN8, UPC
+   - Supported formats: CODE128, QR, EAN13, EAN8, UPC, CODE39, CODE93, CODABAR, ITF, PDF417, AZTEC, DATA_MATRIX
    - **HTTPS Required**: Browser camera access requires HTTPS (except localhost)
 
 2. **Server Generation** (bwip-js):
@@ -1121,23 +1119,19 @@ type ResourcePermissions struct {
 **SvelteKit Component** ([client/src/lib/components/BarcodeScanner.svelte](client/src/lib/components/BarcodeScanner.svelte)):
 
 ```typescript
-import { Html5Qrcode } from "html5-qrcode";
+import { BarcodeDetector } from 'barcode-detector/pure';
 
-let scanning = false;
-let scanner: Html5Qrcode;
+const detector = new BarcodeDetector({
+  formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'upc_a', 'upc_e']
+});
 
-async function startScanning() {
-  scanner = new Html5Qrcode("scanner");
-  await scanner.start({ facingMode: "environment" }, { fps: 10 }, (decodedText) =>
-    dispatch("scan", { barcode: decodedText })
-  );
-}
+const barcodes = await detector.detect(videoElement);
 ```
 
 **Usage in Forms**:
 
 ```svelte
-<BarcodeScanner on:scan={(e) => cardNumber = e.detail.barcode} />
+<BarcodeScanner onscan={(e) => cardNumber = e.barcode} />
 ```
 
 **Barcode Display Component** ([client/src/lib/components/Barcode.svelte](client/src/lib/components/Barcode.svelte)):
@@ -1652,7 +1646,7 @@ docker compose logs postgres
 ### "Barcode scanner not working"
 
 - HTTPS Required (Browser camera access)
-- html5-qrcode library must be loaded (SvelteKit component)
+- barcode-detector polyfill must be loaded (SvelteKit component)
 - User must grant Camera Permission
 
 ---

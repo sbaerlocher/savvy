@@ -71,7 +71,7 @@ func buildContentSecurityPolicy(cfg *config.Config) string {
 		// - Option 1: Switch to SvelteKit SSR mode (adapter-node) with CSP config
 		// - Option 2: Wait for Web Animations API (removes inline styles)
 		// See: https://github.com/sveltejs/kit/issues/11747
-		// Added 'wasm-unsafe-eval' for @undecaf/zbar-wasm barcode scanner
+		// Added 'wasm-unsafe-eval' for barcode-detector WASM polyfill
 		"script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
 		"style-src 'self' 'unsafe-inline'",
 		// Allow images from same origin and data URIs (for barcodes)

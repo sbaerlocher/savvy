@@ -24,7 +24,7 @@ barcode scanner, transaction history, and flexible sharing with other users.
 
 - Digital storage of loyalty cards and membership cards
 - Barcode support (CODE128, QR, EAN13, EAN8)
-- Barcode scanning via smartphone/webcam (html5-qrcode)
+- Barcode scanning via smartphone/webcam (barcode-detector polyfill)
 - Server-side barcode generation (bwip-js)
 - Status tracking (Active, Inactive)
 - Merchant management with colors and logos
@@ -372,7 +372,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed package structure and archit
 | ---------------------- | -------------------------- | ------------------------------ |
 | **Auth (Sessions)**    | Gorilla Sessions + PGStore | Server-side Session Management |
 | **Auth (OAuth/OIDC)**  | go-oidc                    | OpenID Connect Provider        |
-| **Barcode Scanning**   | @undecaf/zbar-wasm         | WebAssembly Barcode Scanner    |
+| **Barcode Scanning**   | barcode-detector           | BarcodeDetector Polyfill (WASM)|
 | **Barcode Generation** | bwip-js                    | Server-side Barcode Rendering  |
 | **Validation**         | go-playground/validator    | Input Validation               |
 | **i18n**               | go-i18n                    | Internationalization           |
