@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-03-16
+
+### Fixed
+
+- **Barcode Scanner iOS** - Use offscreen canvas frame capture for barcode detection
+  on iOS Safari (`createImageBitmap` from video elements unsupported in WebKit)
+- **CI test stability** - Prevent deadlocks and cross-package data conflicts in
+  repository tests by using targeted DELETEs in a PL/pgSQL transaction block,
+  connection pool limits (`MaxOpenConns=5`), and proper FK-dependent table cleanup
+
 ## [1.1.0] - 2026-03-16
 
 ### Added
@@ -152,5 +162,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[1.1.1]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.1
 [1.1.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.0
 [1.0.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.0.0
