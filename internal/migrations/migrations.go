@@ -1927,12 +1927,13 @@ func fixNotificationPreferenceDefaults() *gormigrate.Migration {
 			}
 
 			// Disable email preferences for users who have NOT verified their email
+			// Use IS NOT TRUE to also cover potential NULL values from legacy data
 			if err := tx.Exec(`
 				UPDATE users SET
 					email_notifications_enabled = false,
 					email_reminders_enabled = false,
 					email_sharing_enabled = false
-				WHERE email_verified = false;
+				WHERE email_verified IS NOT TRUE;
 			`).Error; err != nil {
 				return err
 			}

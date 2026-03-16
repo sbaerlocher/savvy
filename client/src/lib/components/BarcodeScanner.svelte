@@ -20,7 +20,7 @@
 
 	let isScanning = $state(false);
 	let isInitializing = $state(false);
-	let scanMessage = $state('Barcode vor die Kamera halten');
+	let scanMessage = $state($t('common.scanPositionBarcode'));
 	let mediaStream: MediaStream | null = null;
 	let scannerReady = $state(false);
 	let animationFrameId: number | null = null;

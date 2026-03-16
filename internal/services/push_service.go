@@ -77,6 +77,9 @@ func (s *PushService) Subscribe(ctx context.Context, userID uuid.UUID, endpoint,
 	if err != nil {
 		return fmt.Errorf("check existing subscriptions: %w", err)
 	}
+	// isFirstSubscription is checked before Create — in a concurrent scenario two
+	// goroutines could both pass this check and both enable preferences.
+	// This is intentionally best-effort: the update is idempotent (bool → true).
 	isFirstSubscription := len(existingSubs) == 0
 
 	sub := &models.PushSubscription{
@@ -87,7 +90,7 @@ func (s *PushService) Subscribe(ctx context.Context, userID uuid.UUID, endpoint,
 		UserAgent: userAgent,
 	}
 	if err := s.repo.Create(ctx, sub); err != nil {
-		return err
+		return fmt.Errorf("create push subscription: %w", err)
 	}
 
 	// Enable push notification preferences on first subscription
