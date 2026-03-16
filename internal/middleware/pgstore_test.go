@@ -140,7 +140,7 @@ func TestNewPGStore_DefaultOptions(t *testing.T) {
 	assert.Equal(t, "/", store.Options.Path)
 	assert.Equal(t, 7200, store.Options.MaxAge)
 	assert.True(t, store.Options.HttpOnly)
-	assert.False(t, store.Options.Secure)
+	assert.True(t, store.Options.Secure)
 	assert.Equal(t, http.SameSiteLaxMode, store.Options.SameSite)
 }
 
