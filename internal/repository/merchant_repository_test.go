@@ -27,6 +27,15 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
+	// Limit connection pool to prevent "too many clients" errors in CI
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("Failed to get underlying DB: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(2)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+
 	// Auto-migrate models
 	err = db.AutoMigrate(
 		&models.User{},
@@ -46,21 +55,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate: %v", err)
 	}
 
-	// Clean up test data in correct order (dependent records first)
-	db.Exec("DELETE FROM user_favorites")
-	db.Exec("DELETE FROM card_shares")
-	db.Exec("DELETE FROM voucher_shares")
-	db.Exec("DELETE FROM gift_card_shares")
-	db.Exec("DELETE FROM gift_card_transactions")
-	db.Exec("DELETE FROM audit_logs")
-	db.Exec("DELETE FROM notifications")
-	db.Exec("DELETE FROM cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'PRELOAD%'")
-	db.Exec("DELETE FROM vouchers WHERE code LIKE 'TEST%'")
-	db.Exec("DELETE FROM gift_cards WHERE card_number LIKE 'TEST%'")
-	db.Exec("DELETE FROM gift_cards WHERE card_number LIKE 'GIFT%'")
-	db.Exec("DELETE FROM gift_cards WHERE card_number LIKE 'GC%'")
-	db.Exec("DELETE FROM merchants WHERE name LIKE 'Test%'")
-	db.Exec("DELETE FROM users WHERE email LIKE 'test-%@example.com'")
+	// Clean up test data atomically to prevent deadlocks in parallel tests
+	db.Exec(`TRUNCATE user_favorites, card_shares, voucher_shares, gift_card_shares,
+		gift_card_transactions, audit_logs, notifications, cards, vouchers,
+		gift_cards, merchants, users CASCADE`)
 
 	return db
 }
