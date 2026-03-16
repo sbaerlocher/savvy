@@ -27,6 +27,15 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
+	// Limit connection pool to prevent "too many clients" errors in CI
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("Failed to get underlying DB: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(2)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+
 	// Auto-migrate models
 	err = db.AutoMigrate(
 		&models.User{},
