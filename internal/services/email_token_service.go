@@ -126,6 +126,14 @@ func (s *EmailTokenService) VerifyEmail(ctx context.Context, token string) error
 	now := time.Now()
 	user.EmailVerified = true
 	user.EmailVerifiedAt = &now
+
+	// Enable email notification preferences on first verification
+	if !user.EmailNotificationsEnabled {
+		user.EmailNotificationsEnabled = true
+		user.EmailRemindersEnabled = true
+		user.EmailSharingEnabled = true
+	}
+
 	if err := s.userRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}

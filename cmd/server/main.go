@@ -114,7 +114,8 @@ func run() int {
 	// Initialize push notification service (requires VAPID config from environment)
 	if cfg.IsPushEnabled() {
 		pushRepo := repository.NewPushSubscriptionRepository(database.DB)
-		pushService := services.NewPushService(pushRepo, cfg.VAPIDPublicKey, cfg.VAPIDPrivateKey, cfg.VAPIDSubject)
+		userRepo := repository.NewUserRepository(database.DB)
+		pushService := services.NewPushService(pushRepo, userRepo, cfg.VAPIDPublicKey, cfg.VAPIDPrivateKey, cfg.VAPIDSubject)
 		serviceContainer.PushService = pushService
 		serviceContainer.NotificationService.SetPushService(pushService)
 		slog.Info("Push notifications enabled")

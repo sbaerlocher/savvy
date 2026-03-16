@@ -37,13 +37,14 @@ type PushServiceInterface interface {
 // PushService implements PushServiceInterface.
 type PushService struct {
 	repo           repository.PushSubscriptionRepository
+	userRepo       repository.UserRepository
 	vapidPublicKey string
 	vapidPrivate   string
 	vapidSubject   string
 }
 
 // NewPushService creates a new push service.
-func NewPushService(repo repository.PushSubscriptionRepository, vapidPublicKey, vapidPrivate, vapidSubject string) PushServiceInterface {
+func NewPushService(repo repository.PushSubscriptionRepository, userRepo repository.UserRepository, vapidPublicKey, vapidPrivate, vapidSubject string) PushServiceInterface {
 	// Strip "mailto:" prefix — webpush-go adds it automatically.
 	// Passing "mailto:x@y" results in "mailto:mailto:x@y" in the JWT,
 	// which Apple Push rejects with BadJwtToken.
@@ -51,6 +52,7 @@ func NewPushService(repo repository.PushSubscriptionRepository, vapidPublicKey, 
 
 	return &PushService{
 		repo:           repo,
+		userRepo:       userRepo,
 		vapidPublicKey: vapidPublicKey,
 		vapidPrivate:   vapidPrivate,
 		vapidSubject:   vapidSubject,
@@ -68,7 +70,15 @@ func (s *PushService) GetVAPIDPublicKey() string {
 }
 
 // Subscribe registers a push subscription for a user.
+// On the first subscription, push notification preferences are automatically enabled.
 func (s *PushService) Subscribe(ctx context.Context, userID uuid.UUID, endpoint, p256dh, auth, userAgent string) error {
+	// Check if user already has existing subscriptions before creating new one
+	existingSubs, err := s.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("check existing subscriptions: %w", err)
+	}
+	isFirstSubscription := len(existingSubs) == 0
+
 	sub := &models.PushSubscription{
 		UserID:    userID,
 		Endpoint:  endpoint,
@@ -76,7 +86,28 @@ func (s *PushService) Subscribe(ctx context.Context, userID uuid.UUID, endpoint,
 		AuthKey:   auth,
 		UserAgent: userAgent,
 	}
-	return s.repo.Create(ctx, sub)
+	if err := s.repo.Create(ctx, sub); err != nil {
+		return err
+	}
+
+	// Enable push notification preferences on first subscription
+	if isFirstSubscription && s.userRepo != nil {
+		user, err := s.userRepo.GetByID(ctx, userID)
+		if err != nil {
+			slog.WarnContext(ctx, "failed to enable push preferences for user", "user_id", userID, "error", err)
+			return nil // subscription was created, preference update is best-effort
+		}
+		if !user.PushNotificationsEnabled {
+			user.PushNotificationsEnabled = true
+			user.PushRemindersEnabled = true
+			user.PushSharingEnabled = true
+			if err := s.userRepo.Update(ctx, user); err != nil {
+				slog.WarnContext(ctx, "failed to update push preferences", "user_id", userID, "error", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Unsubscribe removes a push subscription by endpoint.
