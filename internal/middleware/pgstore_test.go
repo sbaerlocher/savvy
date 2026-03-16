@@ -140,7 +140,7 @@ func TestNewPGStore_DefaultOptions(t *testing.T) {
 	assert.Equal(t, "/", store.Options.Path)
 	assert.Equal(t, 7200, store.Options.MaxAge)
 	assert.True(t, store.Options.HttpOnly)
-	assert.False(t, store.Options.Secure)
+	assert.True(t, store.Options.Secure)
 	assert.Equal(t, http.SameSiteLaxMode, store.Options.SameSite)
 }
 
@@ -720,63 +720,16 @@ func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
 
 // --- setCookie Tests ---
 
-func TestSetCookie_Secure_WithXForwardedProtoHTTPS(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Forwarded-Proto", "https")
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   false, // will be overridden
-		SameSite: http.SameSiteLaxMode,
+func TestSetCookie_AlwaysSetSecureTrue(t *testing.T) {
+	// setCookie enforces Secure=true regardless of options value
+	for _, secure := range []bool{true, false} {
+		rec := httptest.NewRecorder()
+		opts := &sessions.Options{Secure: secure}
+		setCookie(rec, "session", "tok", opts)
+		cookies := rec.Result().Cookies()
+		require.Len(t, cookies, 1)
+		assert.True(t, cookies[0].Secure, "cookie must always be Secure even if options.Secure=%v", secure)
 	}
-
-	setCookie(rec, "session", "test-token", opts, req)
-
-	cookies := rec.Result().Cookies()
-	require.Len(t, cookies, 1)
-	assert.True(t, cookies[0].Secure)
-}
-
-func TestSetCookie_NotSecure_PlainHTTP(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	// No X-Forwarded-Proto, no TLS
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true, // will be overridden to false
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	setCookie(rec, "session", "test-token", opts, req)
-
-	cookies := rec.Result().Cookies()
-	require.Len(t, cookies, 1)
-	assert.False(t, cookies[0].Secure)
-}
-
-func TestSetCookie_DoesNotMutateOriginalOptions(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("X-Forwarded-Proto", "https")
-
-	opts := &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   false, // original is false
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	setCookie(rec, "session", "test-token", opts, req)
-
-	// Original options should NOT be mutated (setCookie copies the options)
-	assert.False(t, opts.Secure)
 }
 
 // --- GetMaxAge Test ---
@@ -950,17 +903,16 @@ func TestSave_DeleteSession_RepoError_StillSetsCookie(t *testing.T) {
 
 func TestSetCookie_SetsCorrectAttributes(t *testing.T) {
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 	opts := &sessions.Options{
 		Path:     "/app",
 		MaxAge:   7200,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	setCookie(rec, "session", "my-token", opts, req)
+	setCookie(rec, "session", "my-token", opts)
 
 	cookies := rec.Result().Cookies()
 	require.Len(t, cookies, 1)
