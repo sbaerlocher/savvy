@@ -14,7 +14,7 @@ services:
   # ============================================================================
   postgres:
     profiles: ["", "e2e"] # Runs by default AND with --profile e2e
-    image: postgres:18-alpine@sha256:88f300be8635fe8a9ed4c18a68ba497fb6df1215fd2b074895afd027bd3e1006
+    image: postgres:18-alpine@sha256:4da1a4828be12604092fa55311276f08f9224a74a62dcb4708bd7439e2a03911
     container_name: savvy-postgres
     environment:
       POSTGRES_DB: savvy
