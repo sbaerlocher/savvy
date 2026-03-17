@@ -6,8 +6,10 @@
 package testutil
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -77,7 +79,7 @@ func initSharedDB() {
 	// One-time cleanup of stale test data from previous runs.
 	// With transaction isolation, each test rolls back its own data,
 	// but old data from non-transactional runs may linger.
-	db.Exec(`DO $$
+	result := db.Exec(`DO $$
 	BEGIN
 		DELETE FROM user_favorites WHERE user_id IN (SELECT id FROM users WHERE email NOT LIKE '%@production.%');
 		DELETE FROM card_shares WHERE card_id IN (SELECT id FROM cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'PRELOAD%' OR card_number LIKE 'DASH%' OR card_number LIKE 'SHARED%' OR card_number LIKE 'DELETE%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%' OR card_number LIKE 'ORIGINAL' OR card_number LIKE 'UPDATED' OR card_number LIKE 'COUNT%' OR card_number LIKE 'NOT%' OR card_number LIKE '12345%' OR card_number LIKE 'BAL%');
@@ -93,27 +95,20 @@ func initSharedDB() {
 		DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com' OR email LIKE '%@test.com' OR email LIKE '%@example.com');
 		DELETE FROM users WHERE email LIKE 'test-%@example.com' OR email LIKE '%@test.com' OR email LIKE '%@example.com';
 	END $$`)
+	if result.Error != nil {
+		initErr = fmt.Errorf("initial cleanup failed: %w", result.Error)
+		return
+	}
 
 	sharedDB = db
 }
 
-// NewTestDB returns a *gorm.DB that runs inside a transaction.
-// The transaction is automatically rolled back when the test ends,
-// so every test starts with a clean slate — no TRUNCATE or DELETE needed.
-//
-// Usage:
-//
-//	func TestSomething(t *testing.T) {
-//	    db := testutil.NewTestDB(t)
-//	    // use db normally — all changes are rolled back after test
-//	}
-//
 // NewTestDBDirect returns a non-transactional *gorm.DB with schema-based cleanup.
 // Use this ONLY for tests that are incompatible with transaction isolation:
 //   - Tests that use goroutines for parallel queries (e.g. dashboard service)
 //   - Tests with GORM hooks that use sqlDB.ExecContext (bypasses transaction)
 //
-// Data is cleaned up via TRUNCATE on test completion.
+// Data is cleaned up via DROP SCHEMA on test completion.
 func NewTestDBDirect(t *testing.T) *gorm.DB {
 	t.Helper()
 
@@ -135,7 +130,11 @@ func NewTestDBDirect(t *testing.T) *gorm.DB {
 	if dbURL == "" {
 		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential
 	}
-	dbURL += fmt.Sprintf("&search_path=%s,public", schemaName)
+	if strings.Contains(dbURL, "?") {
+		dbURL += fmt.Sprintf("&search_path=%s,public", schemaName)
+	} else {
+		dbURL += fmt.Sprintf("?search_path=%s,public", schemaName)
+	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -175,13 +174,25 @@ func sanitizeName(name string) string {
 			result = append(result, '_')
 		}
 	}
-	// Truncate to fit PostgreSQL identifier limit (63 chars)
-	if len(result) > 50 {
-		result = result[:50]
+	// Truncate to fit PostgreSQL identifier limit (63 chars).
+	// Use a hash suffix to avoid collisions between long, similar names.
+	if len(result) > 43 {
+		h := fmt.Sprintf("%x", sha256.Sum256([]byte(name)))[:7]
+		result = append(result[:43], []byte("_"+h)...)
 	}
 	return string(result)
 }
 
+// NewTestDB returns a *gorm.DB that runs inside a transaction.
+// The transaction is automatically rolled back when the test ends,
+// so every test starts with a clean slate — no TRUNCATE or DELETE needed.
+//
+// Usage:
+//
+//	func TestSomething(t *testing.T) {
+//	    db := testutil.NewTestDB(t)
+//	    // use db normally — all changes are rolled back after test
+//	}
 func NewTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
