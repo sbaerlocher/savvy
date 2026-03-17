@@ -59,8 +59,7 @@ export const de: TranslationKeys = {
 			'Keine Kamera gefunden. Bitte verbinden Sie eine Kamera.',
 		scanCameraNotAvailable:
 			'Kamera nicht verfügbar. Kamera wird möglicherweise von einer anderen App verwendet.',
-		scanCameraNotSupported:
-			'Kamera wird von diesem Browser nicht unterstützt.',
+		scanCameraNotSupported: 'Kamera wird von diesem Browser nicht unterstützt.',
 		scanCameraConstraintsError:
 			'Die angeforderte Kamera-Konfiguration wird nicht unterstützt. Bitte versuche es mit einem anderen Gerät.',
 		scanCameraSecurityBlocked:

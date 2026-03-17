@@ -616,7 +616,11 @@
 						<div class="debug-stat">
 							<span class="debug-label">Method:</span>
 							<span class="debug-value"
-								>{scannerReady ? (detector?.method === 'native' ? 'Native' : 'Polyfill') : 'Loading...'}</span
+								>{scannerReady
+									? detector?.method === 'native'
+										? 'Native'
+										: 'Polyfill'
+									: 'Loading...'}</span
 							>
 						</div>
 						<div class="debug-stat">

@@ -57,7 +57,7 @@ export const fr: TranslationKeys = {
 			"Permission de caméra refusée. Veuillez autoriser l'accès dans les paramètres de votre navigateur.",
 		scanNoCameraFound: 'Aucune caméra trouvée. Veuillez connecter une caméra.',
 		scanCameraNotAvailable:
-			"Caméra non disponible. Elle est peut-être utilisée par une autre application.",
+			'Caméra non disponible. Elle est peut-être utilisée par une autre application.',
 		scanCameraNotSupported:
 			"La caméra n'est pas prise en charge par ce navigateur.",
 		scanCameraConstraintsError:
