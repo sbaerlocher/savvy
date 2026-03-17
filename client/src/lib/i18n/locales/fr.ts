@@ -56,6 +56,18 @@ export const fr: TranslationKeys = {
 		scanCameraPermissionDenied:
 			"Permission de caméra refusée. Veuillez autoriser l'accès dans les paramètres de votre navigateur.",
 		scanNoCameraFound: 'Aucune caméra trouvée. Veuillez connecter une caméra.',
+		scanCameraNotAvailable:
+			"Caméra non disponible. Elle est peut-être utilisée par une autre application.",
+		scanCameraNotSupported:
+			"La caméra n'est pas prise en charge par ce navigateur.",
+		scanCameraConstraintsError:
+			"La configuration de caméra demandée n'est pas prise en charge. Veuillez essayer un autre appareil.",
+		scanCameraSecurityBlocked:
+			"L'accès à la caméra a été bloqué par les politiques de sécurité.",
+		scanCameraTimeout:
+			"L'initialisation de la caméra a pris trop de temps. Veuillez réessayer.",
+		scanHttpsRequired:
+			"L'accès à la caméra nécessite une connexion sécurisée (HTTPS).",
 		scanTorchUnavailable: 'Lampe torche non disponible',
 		scanTorchOn: 'Allumer la lampe torche',
 		scanTorchOff: 'Éteindre la lampe torche',

@@ -54,6 +54,12 @@ export type TranslationKeys = {
 		scanTipUseTorch: string;
 		scanCameraPermissionDenied: string;
 		scanNoCameraFound: string;
+		scanCameraNotAvailable: string;
+		scanCameraNotSupported: string;
+		scanCameraConstraintsError: string;
+		scanCameraSecurityBlocked: string;
+		scanCameraTimeout: string;
+		scanHttpsRequired: string;
 		scanTorchUnavailable: string;
 		scanTorchOn: string;
 		scanTorchOff: string;

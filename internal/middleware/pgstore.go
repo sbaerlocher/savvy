@@ -66,7 +66,7 @@ func NewPGStore(repo repository.SessionRepository, maxAge int) *PGStore {
 			Path:     "/",
 			MaxAge:   maxAge,
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   false, // Set dynamically by SaveSession based on TLS/X-Forwarded-Proto
 			SameSite: http.SameSiteLaxMode,
 		},
 	}
@@ -313,9 +313,9 @@ func extractIP(r *http.Request) string {
 }
 
 // setCookie sets the session cookie on the response.
+// The Secure flag is derived from session.Options (set dynamically by SaveSession).
 func setCookie(w http.ResponseWriter, name, value string, options *sessions.Options) {
 	cookie := sessions.NewCookie(name, value, options)
-	cookie.Secure = true
 	http.SetCookie(w, cookie)
 }
 
