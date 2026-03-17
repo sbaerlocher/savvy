@@ -30,12 +30,24 @@
 		| 'email_sharing_enabled';
 
 	let preferences = $state<Record<PreferenceKey, boolean>>({
-		push_notifications_enabled: profile.push_notifications_enabled ?? true,
-		email_notifications_enabled: profile.email_notifications_enabled ?? true,
-		push_reminders_enabled: profile.push_reminders_enabled ?? true,
-		push_sharing_enabled: profile.push_sharing_enabled ?? true,
-		email_reminders_enabled: profile.email_reminders_enabled ?? true,
-		email_sharing_enabled: profile.email_sharing_enabled ?? true
+		push_notifications_enabled: true,
+		email_notifications_enabled: true,
+		push_reminders_enabled: true,
+		push_sharing_enabled: true,
+		email_reminders_enabled: true,
+		email_sharing_enabled: true
+	});
+
+	// Sync preferences when profile prop changes
+	$effect(() => {
+		preferences = {
+			push_notifications_enabled: profile.push_notifications_enabled ?? true,
+			email_notifications_enabled: profile.email_notifications_enabled ?? true,
+			push_reminders_enabled: profile.push_reminders_enabled ?? true,
+			push_sharing_enabled: profile.push_sharing_enabled ?? true,
+			email_reminders_enabled: profile.email_reminders_enabled ?? true,
+			email_sharing_enabled: profile.email_sharing_enabled ?? true
+		};
 	});
 
 	let savingKeys = $state<Set<PreferenceKey>>(new Set());

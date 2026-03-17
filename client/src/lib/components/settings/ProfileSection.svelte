@@ -16,9 +16,14 @@
 
 	let { profile, onProfileUpdated }: Props = $props();
 
-	// Profile form state
-	let firstName = $state(profile.first_name || '');
-	let lastName = $state(profile.last_name || '');
+	// Profile form state — sync when profile prop changes
+	let firstName = $state('');
+	let lastName = $state('');
+
+	$effect(() => {
+		firstName = profile.first_name || '';
+		lastName = profile.last_name || '';
+	});
 	let isSavingProfile = $state(false);
 
 	async function handleSaveProfile(e: Event) {
