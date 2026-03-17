@@ -68,6 +68,10 @@ export const fr: TranslationKeys = {
 			"L'initialisation de la caméra a pris trop de temps. Veuillez réessayer.",
 		scanHttpsRequired:
 			"L'accès à la caméra nécessite une connexion sécurisée (HTTPS).",
+		scanRetry: 'Réessayer',
+		scanFormatWarningEan13: 'EAN-13 devrait avoir 13 chiffres',
+		scanFormatWarningEan8: 'EAN-8 devrait avoir 8 chiffres',
+		scanFormatWarningUpca: 'UPC-A devrait avoir 12 chiffres',
 		scanTorchUnavailable: 'Lampe torche non disponible',
 		scanTorchOn: 'Allumer la lampe torche',
 		scanTorchOff: 'Éteindre la lampe torche',

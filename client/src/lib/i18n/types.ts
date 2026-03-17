@@ -60,6 +60,10 @@ export type TranslationKeys = {
 		scanCameraSecurityBlocked: string;
 		scanCameraTimeout: string;
 		scanHttpsRequired: string;
+		scanRetry: string;
+		scanFormatWarningEan13: string;
+		scanFormatWarningEan8: string;
+		scanFormatWarningUpca: string;
 		scanTorchUnavailable: string;
 		scanTorchOn: string;
 		scanTorchOff: string;

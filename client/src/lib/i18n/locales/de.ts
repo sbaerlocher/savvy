@@ -68,6 +68,10 @@ export const de: TranslationKeys = {
 			'Kamera-Initialisierung hat zu lange gedauert. Bitte versuche es erneut.',
 		scanHttpsRequired:
 			'Kamera-Zugriff erfordert eine sichere Verbindung (HTTPS).',
+		scanRetry: 'Erneut versuchen',
+		scanFormatWarningEan13: 'EAN-13 sollte 13 Ziffern haben',
+		scanFormatWarningEan8: 'EAN-8 sollte 8 Ziffern haben',
+		scanFormatWarningUpca: 'UPC-A sollte 12 Ziffern haben',
 		scanTorchUnavailable: 'Taschenlampe nicht verfügbar',
 		scanTorchOn: 'Taschenlampe einschalten',
 		scanTorchOff: 'Taschenlampe ausschalten',

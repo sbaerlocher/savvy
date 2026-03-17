@@ -273,8 +273,8 @@
 		addDebugLog(`✅ Detected: ${sanitized} (${format})`);
 
 		const validation = validateBarcodeFormat(sanitized, format);
-		if (validation.warning) {
-			validationWarning = validation.warning;
+		if (validation.warningKey) {
+			validationWarning = $t(validation.warningKey);
 			componentLogger.warn('Format validation warning:', validation);
 		}
 
@@ -570,6 +570,20 @@
 				<p id="scanner-status" class="text-sm text-gray-600 text-center">
 					{scanMessage}
 				</p>
+				{#if hasError}
+					<div class="flex justify-center">
+						<button
+							type="button"
+							onclick={() => {
+								hasError = false;
+								tick().then(() => startScanning());
+							}}
+							class="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+						>
+							{$t('common.scanRetry')}
+						</button>
+					</div>
+				{/if}
 				{#if validationWarning}
 					<p
 						class="text-xs text-amber-600 text-center flex items-center justify-center gap-1"

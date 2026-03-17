@@ -39,19 +39,20 @@ export function mapBarcodeFormat(format: string): string {
 	return FORMAT_MAP[normalized] ?? normalized;
 }
 
-/** Validate barcode value against expected format constraints */
+/** Validate barcode value against expected format constraints.
+ *  Returns an i18n key (e.g. 'common.scanFormatWarningEan13') as warning. */
 export function validateBarcodeFormat(
 	barcode: string,
 	format: string
-): { valid: boolean; warning?: string } {
+): { valid: boolean; warningKey?: string } {
 	if (format.includes('ean_13') && !/^\d{13}$/.test(barcode)) {
-		return { valid: false, warning: 'EAN-13 should have 13 digits' };
+		return { valid: false, warningKey: 'common.scanFormatWarningEan13' };
 	}
 	if (format.includes('ean_8') && !/^\d{8}$/.test(barcode)) {
-		return { valid: false, warning: 'EAN-8 should have 8 digits' };
+		return { valid: false, warningKey: 'common.scanFormatWarningEan8' };
 	}
 	if (format.includes('upc_a') && !/^\d{12}$/.test(barcode)) {
-		return { valid: false, warning: 'UPC-A should have 12 digits' };
+		return { valid: false, warningKey: 'common.scanFormatWarningUpca' };
 	}
 	return { valid: true };
 }

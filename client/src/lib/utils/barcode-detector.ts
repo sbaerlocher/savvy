@@ -57,7 +57,12 @@ export function createBarcodeDetector(
 	const canvas = document.createElement('canvas');
 	canvas.width = videoWidth || 1280;
 	canvas.height = videoHeight || 720;
-	const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+	const ctx = canvas.getContext('2d', { willReadFrequently: true });
+	if (!ctx) {
+		throw Object.assign(new Error('Failed to get 2D canvas context'), {
+			name: 'NotSupportedError'
+		});
+	}
 
 	detectorLogger.info('Using polyfill BarcodeDetector with canvas capture', {
 		canvas: `${canvas.width}x${canvas.height}`
