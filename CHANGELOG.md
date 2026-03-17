@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-03-17
+
+### Fixed
+
+- **Barcode Scanner WASM route** - Add `/*.wasm` static asset route so the Go server serves
+  `zxing_reader.wasm` correctly; without it, requests fell through to the SPA fallback and
+  returned `index.html` instead of the WASM binary, causing "both async and sync fetching
+  of the wasm failed" runtime errors
+
 ## [1.1.3] - 2026-03-17
 
 ### Fixed
@@ -192,6 +201,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[1.1.4]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.4
+[1.1.3]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.3
+[1.1.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.2
 [1.1.1]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.1
 [1.1.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.0
 [1.0.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.0.0
