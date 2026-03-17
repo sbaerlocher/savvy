@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -13,38 +12,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"savvy/internal/models"
+	"savvy/internal/testutil"
 )
 
-// setupTestDB creates a test database connection
-func setupTestDB(t *testing.T) *gorm.DB {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credentials
-	}
-
-	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
-	if err != nil {
-		t.Skipf("Skipping test: PostgreSQL not available: %v", err)
-		return nil
-	}
-
-	// Auto-migrate audit logs
-	err = db.AutoMigrate(&models.User{}, &models.AuditLog{}, &models.Card{}, &models.Merchant{})
-	if err != nil {
-		t.Fatalf("Failed to migrate test database: %v", err)
-	}
-
-	// Clean up tables before each test
-	db.Exec("TRUNCATE audit_logs, users, cards, merchants CASCADE")
-
-	return db
-}
-
 func TestLogDeletion(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	// Create test user
 	user := &models.User{
@@ -87,7 +60,7 @@ func TestLogDeletion(t *testing.T) {
 }
 
 func TestLogDeletion_NilUserID(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	resourceID := uuid.New()
 	resourceData := map[string]interface{}{
@@ -108,7 +81,7 @@ func TestLogDeletion_NilUserID(t *testing.T) {
 }
 
 func TestLogDeletion_InvalidJSON(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	// Try to log with un-marshalable data
 	type InvalidStruct struct {
@@ -125,7 +98,7 @@ func TestLogDeletion_InvalidJSON(t *testing.T) {
 }
 
 func TestLogDeletionFromContext(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	// Create test user
 	user := &models.User{
@@ -166,7 +139,7 @@ func TestLogDeletionFromContext(t *testing.T) {
 }
 
 func TestLogDeletionFromContext_NoUser(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	// Create Echo context without user
 	e := echo.New()
@@ -189,7 +162,7 @@ func TestLogDeletionFromContext_NoUser(t *testing.T) {
 }
 
 func TestLogUpdate(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	user := &models.User{
 		Email:        "update@example.com",
@@ -217,7 +190,7 @@ func TestLogUpdate(t *testing.T) {
 }
 
 func TestLogUpdateFromContext(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	user := &models.User{
 		Email:        "updatectx@example.com",
@@ -247,7 +220,7 @@ func TestLogUpdateFromContext(t *testing.T) {
 }
 
 func TestLogTransfer(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDB(t)
 
 	user := &models.User{
 		Email:        "transfer@example.com",
@@ -355,7 +328,7 @@ func TestExtractAuditInfo(t *testing.T) {
 }
 
 func TestSetupAuditHooks(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDBDirect(t)
 
 	// Setup audit hooks
 	err := SetupAuditHooks(db)
@@ -410,7 +383,7 @@ func TestSetupAuditHooks(t *testing.T) {
 }
 
 func TestBeforeDeleteHook_SkipsAuditLogs(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDBDirect(t)
 
 	err := SetupAuditHooks(db)
 	require.NoError(t, err)
@@ -442,7 +415,7 @@ func TestBeforeDeleteHook_SkipsAuditLogs(t *testing.T) {
 }
 
 func TestBeforeDeleteHook_WithoutContext(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutil.NewTestDBDirect(t)
 
 	err := SetupAuditHooks(db)
 	require.NoError(t, err)

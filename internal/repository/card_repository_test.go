@@ -27,7 +27,6 @@ func TestCardRepository_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, uuid.Nil, card.ID)
 
-	db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 }
 
 func TestCardRepository_GetByID(t *testing.T) {
@@ -42,7 +41,6 @@ func TestCardRepository_GetByID(t *testing.T) {
 		MerchantName: "Test Merchant",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	found, err := repo.GetByID(ctx, card.ID)
 	assert.NoError(t, err)
@@ -62,7 +60,6 @@ func TestCardRepository_GetByUserID(t *testing.T) {
 	}
 	for i := range cards {
 		db.Create(&cards[i])
-		defer db.Exec("DELETE FROM cards WHERE id = ?", cards[i].ID)
 	}
 
 	found, err := repo.GetByUserID(ctx, userID)
@@ -82,7 +79,6 @@ func TestCardRepository_Update(t *testing.T) {
 		MerchantName: "Original",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	card.CardNumber = "UPDATED"
 	err := repo.Update(ctx, card)
@@ -125,7 +121,6 @@ func TestCardRepository_Count(t *testing.T) {
 		MerchantName: "Test",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	newCount, err := repo.Count(ctx, userID)
 	assert.NoError(t, err)
@@ -149,7 +144,6 @@ func TestCardRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range cards {
 		db.Create(&cards[i])
-		defer db.Exec("DELETE FROM cards WHERE id = ?", cards[i].ID)
 	}
 
 	// Share first two cards with sharedUserID
@@ -159,7 +153,6 @@ func TestCardRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range shares {
 		db.Create(&shares[i])
-		defer db.Exec("DELETE FROM card_shares WHERE id = ?", shares[i].ID)
 	}
 
 	// Get shared cards
@@ -192,7 +185,6 @@ func TestCardRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		MerchantName: "Test",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	// Create a share
 	share := &models.CardShare{
@@ -201,7 +193,6 @@ func TestCardRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		CanEdit:      true,
 	}
 	db.Create(share)
-	defer db.Exec("DELETE FROM card_shares WHERE id = ?", share.ID)
 
 	// Get shared cards (should include it)
 	found, err := repo.GetSharedWithUser(ctx, sharedUserID)
@@ -244,7 +235,6 @@ func TestCardRepository_GetByID_WithPreloads(t *testing.T) {
 		Color: "#FF0000",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
 
 	// Create a card with merchant
 	card := &models.Card{
@@ -255,7 +245,6 @@ func TestCardRepository_GetByID_WithPreloads(t *testing.T) {
 	}
 	err := db.Create(card).Error
 	require.NoError(t, err, "Failed to create test card")
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	// Get with preloads
 	found, err := repo.GetByID(ctx, card.ID, "Merchant", "User")

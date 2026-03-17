@@ -39,8 +39,6 @@ func TestNotificationRepository_Create(t *testing.T) {
 	assert.Equal(t, models.NotificationTypeShareReceived, found.Type)
 	assert.Equal(t, "card", found.ResourceType)
 
-	// Cleanup
-	db.Exec("DELETE FROM notifications WHERE id = ?", notification.ID)
 }
 
 func TestNotificationRepository_GetByID(t *testing.T) {
@@ -59,7 +57,6 @@ func TestNotificationRepository_GetByID(t *testing.T) {
 		},
 	}
 	db.Create(notification)
-	defer db.Exec("DELETE FROM notifications WHERE id = ?", notification.ID)
 
 	found, err := repo.GetByID(ctx, notification.ID)
 	assert.NoError(t, err)
@@ -102,7 +99,6 @@ func TestNotificationRepository_GetByUserID(t *testing.T) {
 	}
 	for i := range notifications {
 		db.Create(&notifications[i])
-		defer db.Exec("DELETE FROM notifications WHERE id = ?", notifications[i].ID)
 	}
 
 	// Test with limit and offset
@@ -157,7 +153,6 @@ func TestNotificationRepository_GetUnreadCount(t *testing.T) {
 	}
 	for i := range notifications {
 		db.Create(&notifications[i])
-		defer db.Exec("DELETE FROM notifications WHERE id = ?", notifications[i].ID)
 	}
 
 	// Count unread notifications
@@ -186,7 +181,6 @@ func TestNotificationRepository_MarkAsRead(t *testing.T) {
 		Metadata:     models.NotificationMetadata{},
 	}
 	db.Create(notification)
-	defer db.Exec("DELETE FROM notifications WHERE id = ?", notification.ID)
 
 	// Mark as read
 	err := repo.MarkAsRead(ctx, userID, notification.ID)
@@ -227,7 +221,6 @@ func TestNotificationRepository_MarkAllAsRead(t *testing.T) {
 	}
 	for i := range notifications {
 		db.Create(&notifications[i])
-		defer db.Exec("DELETE FROM notifications WHERE id = ?", notifications[i].ID)
 	}
 
 	// Mark all as read

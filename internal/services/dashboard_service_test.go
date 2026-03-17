@@ -12,7 +12,7 @@ import (
 )
 
 func TestDashboardService_GetDashboardData_EmptyUser(t *testing.T) {
-	db := setupTestDB(t)
+	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))
 	ctx := context.Background()
 
@@ -22,9 +22,10 @@ func TestDashboardService_GetDashboardData_EmptyUser(t *testing.T) {
 		ID:           userID,
 		Email:        "dashboard-test@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", userID)
 
 	// Get dashboard data
 	data, err := service.GetDashboardData(ctx, userID)
@@ -44,7 +45,7 @@ func TestDashboardService_GetDashboardData_EmptyUser(t *testing.T) {
 }
 
 func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
-	db := setupTestDB(t)
+	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))
 	ctx := context.Background()
 
@@ -54,9 +55,10 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 		ID:           userID,
 		Email:        "dashboard-owned@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", userID)
 
 	// Create owned items
 	card := &models.Card{
@@ -65,7 +67,6 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 		MerchantName: "Test Merchant",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	voucher := &models.Voucher{
 		UserID:         &userID,
@@ -76,7 +77,6 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	giftCard := &models.GiftCard{
 		UserID:         &userID,
@@ -87,7 +87,6 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Get dashboard data
 	data, err := service.GetDashboardData(ctx, userID)
@@ -107,7 +106,7 @@ func TestDashboardService_GetDashboardData_WithOwnedItems(t *testing.T) {
 }
 
 func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
-	db := setupTestDB(t)
+	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))
 	ctx := context.Background()
 
@@ -117,9 +116,10 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 		ID:           ownerID,
 		Email:        "dashboard-owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "Owner",
 	}
 	db.Create(owner)
-	defer db.Exec("DELETE FROM users WHERE id = ?", ownerID)
 
 	// Create shared user
 	userID := uuid.New()
@@ -127,9 +127,10 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 		ID:           userID,
 		Email:        "dashboard-shared@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", userID)
 
 	// Create owned items for owner
 	card := &models.Card{
@@ -138,7 +139,6 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 		MerchantName: "Test",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	// Share with user
 	share := &models.CardShare{
@@ -148,7 +148,6 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 		CanDelete:    false,
 	}
 	db.Create(share)
-	defer db.Exec("DELETE FROM card_shares WHERE id = ?", share.ID)
 
 	// Get dashboard data
 	data, err := service.GetDashboardData(ctx, userID)
@@ -162,7 +161,7 @@ func TestDashboardService_GetDashboardData_WithSharedItems(t *testing.T) {
 }
 
 func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
-	db := setupTestDB(t)
+	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))
 	ctx := context.Background()
 
@@ -172,9 +171,10 @@ func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
 		ID:           userID,
 		Email:        "dashboard-fav@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", userID)
 
 	// Create a card
 	card := &models.Card{
@@ -183,7 +183,6 @@ func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
 		MerchantName: "Test",
 	}
 	db.Create(card)
-	defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 
 	// Mark as favorite
 	favorite := &models.UserFavorite{
@@ -192,7 +191,6 @@ func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
 		ResourceID:   card.ID,
 	}
 	db.Create(favorite)
-	defer db.Exec("DELETE FROM user_favorites WHERE id = ?", favorite.ID)
 
 	// Get dashboard data
 	data, err := service.GetDashboardData(ctx, userID)
@@ -207,7 +205,7 @@ func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
 }
 
 func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
-	db := setupTestDB(t)
+	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))
 	ctx := context.Background()
 
@@ -217,9 +215,10 @@ func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
 		ID:           userID,
 		Email:        "dashboard-mixed@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", userID)
 
 	// Create multiple cards
 	for i := 0; i < 3; i++ {
@@ -229,7 +228,6 @@ func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
 			MerchantName: "Test",
 		}
 		db.Create(card)
-		defer db.Exec("DELETE FROM cards WHERE id = ?", card.ID)
 	}
 
 	// Create gift cards with balance
@@ -242,7 +240,6 @@ func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard1)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard1.ID)
 
 	giftCard2 := &models.GiftCard{
 		UserID:         &userID,
@@ -253,7 +250,6 @@ func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard2)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard2.ID)
 
 	// Get dashboard data
 	data, err := service.GetDashboardData(ctx, userID)

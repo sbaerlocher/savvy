@@ -2,57 +2,28 @@ package services
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"savvy/internal/models"
 	"savvy/internal/repository"
+	"savvy/internal/testutil"
 )
 
-// setupTestDB creates a test database connection.
-// Uses DATABASE_URL env var or falls back to local PostgreSQL from docker-compose.
+// setupTestDB returns a transaction-isolated test database.
+// Every test gets its own transaction that is rolled back automatically,
+// so no TRUNCATE or DELETE cleanup is needed.
 func setupTestDB(t *testing.T) *gorm.DB {
-	// Check if DATABASE_URL is set (Docker/CI environment)
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		// Fallback to local docker-compose PostgreSQL
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential, not real
-	}
+	return testutil.NewTestDB(t)
+}
 
-	// Use PostgreSQL from environment (production-like testing)
-	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
-	if err != nil {
-		t.Skipf("Skipping test: PostgreSQL not available: %v", err)
-		return nil
-	}
-
-	// Auto-migrate models
-	err = db.AutoMigrate(
-		&models.User{},
-		&models.Merchant{},
-		&models.Card{},
-		&models.CardShare{},
-		&models.Voucher{},
-		&models.VoucherShare{},
-		&models.GiftCard{},
-		&models.GiftCardShare{},
-		&models.GiftCardTransaction{},
-		&models.UserFavorite{},
-		&models.AuditLog{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to migrate test database: %v", err)
-	}
-
-	// Clean up tables before each test
-	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares, gift_card_transactions, user_favorites, audit_logs CASCADE")
-
-	return db
+// setupDirectTestDB returns a non-transactional test database with schema isolation.
+// Use for tests that are incompatible with transactions (goroutines, GORM hooks).
+func setupDirectTestDB(t *testing.T) *gorm.DB {
+	return testutil.NewTestDBDirect(t)
 }
 
 // setupAuthzService creates an AuthzService with real repositories backed by the test DB.
@@ -77,6 +48,8 @@ func TestAuthzService_CheckCardAccess_Owner(t *testing.T) {
 		ID:           userID,
 		Email:        "owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
 
@@ -107,6 +80,8 @@ func TestAuthzService_CheckCardAccess_SharedUser(t *testing.T) {
 	owner := &models.User{
 		Email:        "owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(owner)
 
@@ -114,6 +89,8 @@ func TestAuthzService_CheckCardAccess_SharedUser(t *testing.T) {
 	sharedUser := &models.User{
 		Email:        "shared@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(sharedUser)
 
@@ -153,6 +130,8 @@ func TestAuthzService_CheckCardAccess_NoAccess(t *testing.T) {
 	owner := &models.User{
 		Email:        "owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(owner)
 
@@ -160,6 +139,8 @@ func TestAuthzService_CheckCardAccess_NoAccess(t *testing.T) {
 	unauthorized := &models.User{
 		Email:        "unauthorized@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(unauthorized)
 
@@ -187,6 +168,8 @@ func TestAuthzService_CheckCardAccess_NonExistentCard(t *testing.T) {
 	user := &models.User{
 		Email:        "user@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(user)
 
@@ -207,6 +190,8 @@ func TestAuthzService_CheckGiftCardAccess_TransactionPermission(t *testing.T) {
 	owner := &models.User{
 		Email:        "owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(owner)
 
@@ -214,6 +199,8 @@ func TestAuthzService_CheckGiftCardAccess_TransactionPermission(t *testing.T) {
 	sharedUser := &models.User{
 		Email:        "shared@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(sharedUser)
 
@@ -257,6 +244,8 @@ func TestAuthzService_CheckVoucherAccess_Owner(t *testing.T) {
 	owner := &models.User{
 		Email:        "voucher-owner@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(owner)
 
@@ -290,6 +279,8 @@ func TestAuthzService_CheckVoucherAccess_SharedUser(t *testing.T) {
 	owner := &models.User{
 		Email:        "voucher-owner2@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(owner)
 
@@ -297,6 +288,8 @@ func TestAuthzService_CheckVoucherAccess_SharedUser(t *testing.T) {
 	sharedUser := &models.User{
 		Email:        "voucher-shared@example.com",
 		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
 	}
 	db.Create(sharedUser)
 

@@ -30,7 +30,6 @@ func TestGiftCardRepository_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, uuid.Nil, giftCard.ID)
 
-	db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 }
 
 func TestGiftCardRepository_GetByID(t *testing.T) {
@@ -48,7 +47,6 @@ func TestGiftCardRepository_GetByID(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	found, err := repo.GetByID(ctx, giftCard.ID)
 	assert.NoError(t, err)
@@ -69,7 +67,6 @@ func TestGiftCardRepository_GetByUserID(t *testing.T) {
 	}
 	for i := range giftCards {
 		db.Create(&giftCards[i])
-		defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCards[i].ID)
 	}
 
 	found, err := repo.GetByUserID(ctx, userID)
@@ -92,7 +89,6 @@ func TestGiftCardRepository_Update(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	giftCard.CurrentBalance = 75.5
 	err := repo.Update(ctx, giftCard)
@@ -141,7 +137,6 @@ func TestGiftCardRepository_Count(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	newCount, err := repo.Count(ctx, userID)
 	assert.NoError(t, err)
@@ -162,7 +157,6 @@ func TestGiftCardRepository_GetTotalBalance(t *testing.T) {
 	}
 	for i := range giftCards {
 		db.Create(&giftCards[i])
-		defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCards[i].ID)
 	}
 
 	totalBalance, err := repo.GetTotalBalance(ctx, userID)
@@ -188,7 +182,6 @@ func TestGiftCardRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range giftCards {
 		db.Create(&giftCards[i])
-		defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCards[i].ID)
 	}
 
 	// Share first two gift cards with sharedUserID
@@ -198,7 +191,6 @@ func TestGiftCardRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range shares {
 		db.Create(&shares[i])
-		defer db.Exec("DELETE FROM gift_card_shares WHERE id = ?", shares[i].ID)
 	}
 
 	// Get shared gift cards
@@ -234,7 +226,6 @@ func TestGiftCardRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Create a share
 	share := &models.GiftCardShare{
@@ -243,7 +234,6 @@ func TestGiftCardRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		CanEdit:      true,
 	}
 	db.Create(share)
-	defer db.Exec("DELETE FROM gift_card_shares WHERE id = ?", share.ID)
 
 	// Get shared gift cards (should include it)
 	found, err := repo.GetSharedWithUser(ctx, sharedUserID)
@@ -282,7 +272,6 @@ func TestGiftCardRepository_CreateTransaction(t *testing.T) {
 	err := db.Create(giftCard).Error
 	assert.NoError(t, err)
 	assert.NotEqual(t, uuid.Nil, giftCard.ID)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Create a transaction
 	transaction := &models.GiftCardTransaction{
@@ -303,8 +292,6 @@ func TestGiftCardRepository_CreateTransaction(t *testing.T) {
 	assert.Equal(t, giftCard.ID, found.GiftCardID)
 	assert.Equal(t, -25.50, found.Amount)
 
-	// Cleanup
-	db.Exec("DELETE FROM gift_card_transactions WHERE id = ?", transaction.ID)
 }
 
 func TestGiftCardRepository_GetTransaction(t *testing.T) {
@@ -324,7 +311,6 @@ func TestGiftCardRepository_GetTransaction(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Create a transaction
 	transaction := &models.GiftCardTransaction{
@@ -334,7 +320,6 @@ func TestGiftCardRepository_GetTransaction(t *testing.T) {
 		TransactionDate: time.Now(),
 	}
 	db.Create(transaction)
-	defer db.Exec("DELETE FROM gift_card_transactions WHERE id = ?", transaction.ID)
 
 	// Get the transaction
 	found, err := repo.GetTransaction(ctx, transaction.ID, giftCard.ID)
@@ -372,7 +357,6 @@ func TestGiftCardRepository_GetTransaction_WrongGiftCard(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard1)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard1.ID)
 
 	giftCard2 := &models.GiftCard{
 		UserID:         &userID,
@@ -383,7 +367,6 @@ func TestGiftCardRepository_GetTransaction_WrongGiftCard(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard2)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard2.ID)
 
 	// Create a transaction for giftCard1
 	transaction := &models.GiftCardTransaction{
@@ -393,7 +376,6 @@ func TestGiftCardRepository_GetTransaction_WrongGiftCard(t *testing.T) {
 		TransactionDate: time.Now(),
 	}
 	db.Create(transaction)
-	defer db.Exec("DELETE FROM gift_card_transactions WHERE id = ?", transaction.ID)
 
 	// Try to get transaction with wrong gift card ID
 	_, err := repo.GetTransaction(ctx, transaction.ID, giftCard2.ID)
@@ -418,7 +400,6 @@ func TestGiftCardRepository_DeleteTransaction(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Create a transaction
 	transaction := &models.GiftCardTransaction{
@@ -468,7 +449,6 @@ func TestGiftCardRepository_GetByID_WithPreloads(t *testing.T) {
 		Color: "#0000FF",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
 
 	// Create a gift card with merchant
 	giftCard := &models.GiftCard{
@@ -481,7 +461,6 @@ func TestGiftCardRepository_GetByID_WithPreloads(t *testing.T) {
 		Currency:       "CHF",
 	}
 	db.Create(giftCard)
-	defer db.Exec("DELETE FROM gift_cards WHERE id = ?", giftCard.ID)
 
 	// Create a transaction
 	transaction := &models.GiftCardTransaction{
@@ -491,7 +470,6 @@ func TestGiftCardRepository_GetByID_WithPreloads(t *testing.T) {
 		TransactionDate: time.Now(),
 	}
 	db.Create(transaction)
-	defer db.Exec("DELETE FROM gift_card_transactions WHERE id = ?", transaction.ID)
 
 	// Get with preloads
 	found, err := repo.GetByID(ctx, giftCard.ID, "Merchant", "User", "Transactions")

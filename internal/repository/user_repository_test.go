@@ -34,8 +34,6 @@ func TestUserRepository_Create(t *testing.T) {
 	assert.Equal(t, "Test", found.FirstName)
 	assert.Equal(t, "Create", found.LastName)
 
-	// Cleanup
-	db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 }
 
 func TestUserRepository_GetByID(t *testing.T) {
@@ -50,7 +48,6 @@ func TestUserRepository_GetByID(t *testing.T) {
 		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	found, err := repo.GetByID(ctx, user.ID)
 	assert.NoError(t, err)
@@ -82,7 +79,6 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	found, err := repo.GetByEmail(ctx, "test-getbyemail@example.com")
 	assert.NoError(t, err)
@@ -102,7 +98,6 @@ func TestUserRepository_GetByEmail_CaseInsensitive(t *testing.T) {
 		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	// Test uppercase
 	found, err := repo.GetByEmail(ctx, "TEST-CASE@EXAMPLE.COM")
@@ -127,7 +122,6 @@ func TestUserRepository_GetByEmail_WithWhitespace(t *testing.T) {
 		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	// Test with leading/trailing whitespace
 	found, err := repo.GetByEmail(ctx, "  test-whitespace@example.com  ")
@@ -157,7 +151,6 @@ func TestUserRepository_Update(t *testing.T) {
 		LastName:     "Name",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	// Update user
 	user.FirstName = "Updated"
@@ -187,7 +180,6 @@ func TestUserRepository_Update_EmailChange(t *testing.T) {
 		LastName:     "User",
 	}
 	db.Create(user)
-	defer db.Exec("DELETE FROM users WHERE id = ?", user.ID)
 
 	// Update email
 	user.Email = "test-updated@example.com"
