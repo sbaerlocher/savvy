@@ -132,3 +132,6 @@ client/test-results/
 client/playwright-report/
 client/playwright/.cache/
 screenshots/
+
+# WASM binaries copied by postinstall (served from same origin for CSP compliance)
+client/static/zxing_reader.wasm
