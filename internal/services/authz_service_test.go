@@ -31,14 +31,6 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
-	// Limit connection pool to prevent resource exhaustion with parallel test packages
-	sqlDB, err := db.DB()
-	if err != nil {
-		t.Fatalf("Failed to get underlying DB: %v", err)
-	}
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(2)
-
 	// Auto-migrate models
 	err = db.AutoMigrate(
 		&models.User{},
@@ -57,11 +49,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
-	// Use advisory lock to prevent deadlocks when parallel test packages
-	// run TRUNCATE concurrently on the same tables.
-	db.Exec(`SELECT pg_advisory_lock(42)`)
+	// Clean up tables before each test
 	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares, gift_card_transactions, user_favorites, audit_logs CASCADE")
-	db.Exec(`SELECT pg_advisory_unlock(42)`)
 
 	return db
 }
