@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-03-17
+
+### Fixed
+
+- **Barcode Scanner WASM loading** - Serve zxing-wasm binary from same origin instead of
+  jsDelivr CDN; fixes silent polyfill failure on iOS Safari and Firefox where CSP
+  `connect-src 'self'` blocked the CDN fetch
+
 ## [1.1.2] - 2026-03-17
 
 ### Fixed
@@ -26,9 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   constraints error, security blocked, timeout, HTTPS required, camera not available
 - **Camera initialization timeout** - 10-second timeout prevents scanner from hanging indefinitely
   when camera metadata never loads
-- **Barcode Scanner WASM loading** - Serve zxing-wasm binary from same origin instead of
-  jsDelivr CDN; fixes silent polyfill failure on iOS Safari and Firefox where CSP
-  `connect-src 'self'` blocked the CDN fetch
 
 ## [1.1.1] - 2026-03-16
 
