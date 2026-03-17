@@ -31,14 +31,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
-	// Limit connection pool to prevent deadlocks with parallel test packages
+	// Limit connection pool to prevent resource exhaustion with parallel test packages
 	sqlDB, err := db.DB()
 	if err != nil {
 		t.Fatalf("Failed to get underlying DB: %v", err)
 	}
 	sqlDB.SetMaxOpenConns(5)
 	sqlDB.SetMaxIdleConns(2)
-	t.Cleanup(func() { _ = sqlDB.Close() })
 
 	// Auto-migrate models
 	err = db.AutoMigrate(
@@ -58,22 +57,11 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
-	// Use targeted DELETEs (not TRUNCATE) to avoid deadlocks with
-	// parallel test packages that share the same database.
-	db.Exec(`DO $$
-	BEGIN
-		DELETE FROM user_favorites WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM voucher_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM gift_card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM gift_card_transactions WHERE gift_card_id IN (SELECT id FROM gift_cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com'));
-		DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM vouchers WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM gift_cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
-		DELETE FROM merchants WHERE name LIKE 'Test%';
-		DELETE FROM users WHERE email LIKE '%@example.com';
-	END $$`)
+	// Use advisory lock to prevent deadlocks when parallel test packages
+	// run TRUNCATE concurrently on the same tables.
+	db.Exec(`SELECT pg_advisory_lock(42)`)
+	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares, gift_card_transactions, user_favorites, audit_logs CASCADE")
+	db.Exec(`SELECT pg_advisory_unlock(42)`)
 
 	return db
 }
