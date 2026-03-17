@@ -140,7 +140,7 @@ func TestNewPGStore_DefaultOptions(t *testing.T) {
 	assert.Equal(t, "/", store.Options.Path)
 	assert.Equal(t, 7200, store.Options.MaxAge)
 	assert.True(t, store.Options.HttpOnly)
-	assert.True(t, store.Options.Secure)
+	assert.False(t, store.Options.Secure, "Secure defaults to false; set dynamically by SaveSession")
 	assert.Equal(t, http.SameSiteLaxMode, store.Options.SameSite)
 }
 
@@ -720,15 +720,15 @@ func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
 
 // --- setCookie Tests ---
 
-func TestSetCookie_AlwaysSetSecureTrue(t *testing.T) {
-	// setCookie enforces Secure=true regardless of options value
+func TestSetCookie_RespectsSecureOption(t *testing.T) {
+	// setCookie uses the Secure flag from options (set dynamically by SaveSession)
 	for _, secure := range []bool{true, false} {
 		rec := httptest.NewRecorder()
 		opts := &sessions.Options{Secure: secure}
 		setCookie(rec, "session", "tok", opts)
 		cookies := rec.Result().Cookies()
 		require.Len(t, cookies, 1)
-		assert.True(t, cookies[0].Secure, "cookie must always be Secure even if options.Secure=%v", secure)
+		assert.Equal(t, secure, cookies[0].Secure, "cookie Secure flag should match options.Secure=%v", secure)
 	}
 }
 
