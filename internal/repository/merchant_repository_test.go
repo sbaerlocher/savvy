@@ -50,6 +50,11 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		&models.UserFavorite{},
 		&models.AuditLog{},
 		&models.Notification{},
+		&models.Session{},
+		&models.UserTOTP{},
+		&models.EmailToken{},
+		&models.PushSubscription{},
+		&models.ExpiryReminderSent{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate: %v", err)
@@ -71,11 +76,21 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		DELETE FROM vouchers WHERE code LIKE 'TEST%';
 		DELETE FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%';
 		DELETE FROM merchants WHERE name LIKE 'Test%';
-		DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM user_totps WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM email_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM push_subscriptions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM expiry_reminder_sents WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sessions') THEN
+			DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		END IF;
+		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_totps') THEN
+			DELETE FROM user_totps WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		END IF;
+		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'email_tokens') THEN
+			DELETE FROM email_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		END IF;
+		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'push_subscriptions') THEN
+			DELETE FROM push_subscriptions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		END IF;
+		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'expiry_reminder_sents') THEN
+			DELETE FROM expiry_reminder_sents WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
+		END IF;
 		DELETE FROM users WHERE email LIKE 'test-%@example.com';
 	END $$`)
 	if result.Error != nil {
