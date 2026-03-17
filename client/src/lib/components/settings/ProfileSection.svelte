@@ -20,11 +20,14 @@
 	let firstName = $state('');
 	let lastName = $state('');
 
-	$effect(() => {
-		firstName = profile.first_name || '';
-		lastName = profile.last_name || '';
-	});
 	let isSavingProfile = $state(false);
+
+	$effect(() => {
+		if (!isSavingProfile) {
+			firstName = profile.first_name || '';
+			lastName = profile.last_name || '';
+		}
+	});
 
 	async function handleSaveProfile(e: Event) {
 		e.preventDefault();

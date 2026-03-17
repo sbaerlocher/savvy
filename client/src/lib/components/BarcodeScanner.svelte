@@ -576,7 +576,6 @@
 							type="button"
 							onclick={() => {
 								hasError = false;
-								tick().then(() => startScanning());
 							}}
 							class="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
 						>

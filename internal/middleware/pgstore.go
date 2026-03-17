@@ -121,6 +121,10 @@ func (s *PGStore) New(r *http.Request, name string) (*sessions.Session, error) {
 func (s *PGStore) Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error {
 	ctx := r.Context()
 
+	// Set Secure flag dynamically based on request context
+	isSecure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
+	session.Options.Secure = isSecure
+
 	// Handle session deletion (MaxAge < 0)
 	if session.Options.MaxAge < 0 {
 		if tokenHash, ok := session.Values[sessionTokenHashKey].(string); ok && tokenHash != "" {
