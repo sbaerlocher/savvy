@@ -337,6 +337,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="delete-modal-title"
+		tabindex="-1"
 		onclick={handleBackdropClick}
 		onkeydown={handleModalKeydown}
 	>

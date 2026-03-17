@@ -57,6 +57,21 @@ export const de: TranslationKeys = {
 			'Kamera-Berechtigung verweigert. Bitte erlauben Sie den Zugriff in den Browser-Einstellungen.',
 		scanNoCameraFound:
 			'Keine Kamera gefunden. Bitte verbinden Sie eine Kamera.',
+		scanCameraNotAvailable:
+			'Kamera nicht verfügbar. Kamera wird möglicherweise von einer anderen App verwendet.',
+		scanCameraNotSupported: 'Kamera wird von diesem Browser nicht unterstützt.',
+		scanCameraConstraintsError:
+			'Die angeforderte Kamera-Konfiguration wird nicht unterstützt. Bitte versuche es mit einem anderen Gerät.',
+		scanCameraSecurityBlocked:
+			'Kamera-Zugriff wurde durch Sicherheitsrichtlinien blockiert.',
+		scanCameraTimeout:
+			'Kamera-Initialisierung hat zu lange gedauert. Bitte versuche es erneut.',
+		scanHttpsRequired:
+			'Kamera-Zugriff erfordert eine sichere Verbindung (HTTPS).',
+		scanRetry: 'Erneut versuchen',
+		scanFormatWarningEan13: 'EAN-13 sollte 13 Ziffern haben',
+		scanFormatWarningEan8: 'EAN-8 sollte 8 Ziffern haben',
+		scanFormatWarningUpca: 'UPC-A sollte 12 Ziffern haben',
 		scanTorchUnavailable: 'Taschenlampe nicht verfügbar',
 		scanTorchOn: 'Taschenlampe einschalten',
 		scanTorchOff: 'Taschenlampe ausschalten',

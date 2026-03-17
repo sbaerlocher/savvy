@@ -55,6 +55,19 @@ export const en: TranslationKeys = {
 		scanCameraPermissionDenied:
 			'Camera permission denied. Please allow access in your browser settings.',
 		scanNoCameraFound: 'No camera found. Please connect a camera.',
+		scanCameraNotAvailable:
+			'Camera not available. It may be in use by another application.',
+		scanCameraNotSupported: 'Camera is not supported by this browser.',
+		scanCameraConstraintsError:
+			'The requested camera configuration is not supported. Please try a different device.',
+		scanCameraSecurityBlocked:
+			'Camera access was blocked by security policies.',
+		scanCameraTimeout: 'Camera initialization took too long. Please try again.',
+		scanHttpsRequired: 'Camera access requires a secure connection (HTTPS).',
+		scanRetry: 'Retry',
+		scanFormatWarningEan13: 'EAN-13 should have 13 digits',
+		scanFormatWarningEan8: 'EAN-8 should have 8 digits',
+		scanFormatWarningUpca: 'UPC-A should have 12 digits',
 		scanTorchUnavailable: 'Flashlight not available',
 		scanTorchOn: 'Turn on flashlight',
 		scanTorchOff: 'Turn off flashlight',

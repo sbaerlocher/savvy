@@ -1,3 +1,62 @@
+/** Barcode formats supported by the scanner */
+export const SCANNER_FORMATS = [
+	'aztec',
+	'code_128',
+	'code_39',
+	'code_93',
+	'codabar',
+	'data_matrix',
+	'ean_13',
+	'ean_8',
+	'itf',
+	'pdf417',
+	'qr_code',
+	'upc_a',
+	'upc_e'
+] as const;
+
+const FORMAT_MAP: Record<string, string> = {
+	QRCODE: 'QR',
+	QR: 'QR',
+	CODE128: 'CODE128',
+	CODE39: 'CODE39',
+	CODE93: 'CODE93',
+	CODABAR: 'CODABAR',
+	EAN8: 'EAN8',
+	EAN13: 'EAN13',
+	UPCA: 'UPCA',
+	UPCE: 'UPCE',
+	ITF: 'ITF',
+	PDF417: 'PDF417',
+	DATAMATRIX: 'DATAMATRIX',
+	AZTEC: 'AZTEC'
+};
+
+/** Normalize detector format string to application format (e.g. 'qr_code' → 'QR') */
+export function mapBarcodeFormat(format: string): string {
+	if (!format) return 'CODE128';
+	const normalized = format.replace(/[-_/\s]/g, '').toUpperCase();
+	return FORMAT_MAP[normalized] ?? normalized;
+}
+
+/** Validate barcode value against expected format constraints.
+ *  Returns an i18n key (e.g. 'common.scanFormatWarningEan13') as warning. */
+export function validateBarcodeFormat(
+	barcode: string,
+	format: string
+): { valid: boolean; warningKey?: string } {
+	if (format.includes('ean_13') && !/^\d{13}$/.test(barcode)) {
+		return { valid: false, warningKey: 'common.scanFormatWarningEan13' };
+	}
+	if (format.includes('ean_8') && !/^\d{8}$/.test(barcode)) {
+		return { valid: false, warningKey: 'common.scanFormatWarningEan8' };
+	}
+	if (format.includes('upc_a') && !/^\d{12}$/.test(barcode)) {
+		return { valid: false, warningKey: 'common.scanFormatWarningUpca' };
+	}
+	return { valid: true };
+}
+
 /**
  * Validates an EAN/UPC check digit using the standard algorithm.
  * Works for EAN-13, EAN-8, UPC-A, and ITF-14.

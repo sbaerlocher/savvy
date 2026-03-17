@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.1.2] - 2026-03-17
+
+### Fixed
+
+- **Barcode Scanner error handling** - Comprehensive error messages for all camera failure
+  scenarios (no camera, permission denied, HTTPS required, camera in use, unsupported browser,
+  security policy blocked, overconstrained config, initialization timeout)
+- **Barcode Scanner retry loop** - Fixed `$effect` re-triggering `startScanning()` endlessly
+  after camera error by introducing `hasError` guard state
+- **Session cookie Secure flag** - Removed hardcoded `Secure=true` from PGStore cookie helper
+  and default options; now set dynamically by `SaveSession` based on TLS/X-Forwarded-Proto
+  (fixes CSRF failures in HTTP development environments)
+
+### Added
+
+- **i18n scanner keys** - 6 new scanner error translation keys (DE/EN/FR): camera not supported,
+  constraints error, security blocked, timeout, HTTPS required, camera not available
+- **Camera initialization timeout** - 10-second timeout prevents scanner from hanging indefinitely
+  when camera metadata never loads
+
 ## [1.1.1] - 2026-03-16
 
 ### Fixed

@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
 	import { logger } from '$lib/utils/logger';
-	import { BarcodeDetector } from 'barcode-detector/pure';
+	import { mapBarcodeFormat, validateBarcodeFormat } from '$lib/utils/barcode';
+	import {
+		createBarcodeDetector,
+		type BarcodeDetectorWrapper
+	} from '$lib/utils/barcode-detector';
 	import { tick } from 'svelte';
 
 	const componentLogger = logger.child('BarcodeScanner');
@@ -15,8 +19,6 @@
 	let { open = $bindable(false), onscan, onerror }: Props = $props();
 
 	let videoElement = $state<HTMLVideoElement>();
-	let canvasElement: HTMLCanvasElement | null = null;
-	let canvasCtx: CanvasRenderingContext2D | null = null;
 	let modalRef = $state<HTMLDivElement | null>(null);
 	let previousFocus = $state<HTMLElement | null>(null);
 
@@ -27,13 +29,14 @@
 	let scannerReady = $state(false);
 	let animationFrameId: number | null = null;
 
-	let barcodeDetector: BarcodeDetector | null = null;
+	let detector = $state<BarcodeDetectorWrapper | null>(null);
 
 	let torchEnabled = $state(false);
 	let torchSupported = $state(false);
 
 	let showSuccess = $state(false);
 	let validationWarning = $state<string | null>(null);
+	let hasError = $state(false);
 
 	let scanAttempts = $state(0);
 	let lastScanTime = $state(0);
@@ -63,7 +66,7 @@
 	}
 
 	$effect(() => {
-		if (open && !isScanning) {
+		if (open && !isScanning && !hasError) {
 			tick().then(() => startScanning());
 		} else if (!open && isScanning) {
 			stopScanning();
@@ -82,9 +85,23 @@
 
 			await tick();
 
+			// Check if camera API is available (requires HTTPS except on localhost)
+			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+				const isSecure =
+					location.protocol === 'https:' || location.hostname === 'localhost';
+				if (!isSecure) {
+					throw Object.assign(new Error('HTTPS required'), {
+						name: 'HttpsRequiredError'
+					});
+				}
+				throw Object.assign(new Error('Camera API not available'), {
+					name: 'NotSupportedError'
+				});
+			}
+
 			mediaStream = await navigator.mediaDevices.getUserMedia({
 				video: {
-					facingMode: 'environment', // Use back camera
+					facingMode: 'environment',
 					width: { ideal: 1280 },
 					height: { ideal: 720 }
 				}
@@ -105,13 +122,25 @@
 					return;
 				}
 
+				const timeout = setTimeout(() => {
+					reject(
+						Object.assign(new Error('Camera initialization timeout'), {
+							name: 'TimeoutError'
+						})
+					);
+				}, 10000);
+
 				videoElement.onloadedmetadata = () => {
 					videoElement
 						?.play()
 						.then(() => {
+							clearTimeout(timeout);
 							setTimeout(() => resolve(), 500);
 						})
-						.catch(reject);
+						.catch((err) => {
+							clearTimeout(timeout);
+							reject(err);
+						});
 				};
 			});
 
@@ -124,36 +153,14 @@
 				`Video ready: ${videoElement.videoWidth}x${videoElement.videoHeight} (state: ${videoElement.readyState})`
 			);
 
-			barcodeDetector = new BarcodeDetector({
-				formats: [
-					'aztec',
-					'code_128',
-					'code_39',
-					'code_93',
-					'codabar',
-					'data_matrix',
-					'ean_13',
-					'ean_8',
-					'itf',
-					'pdf417',
-					'qr_code',
-					'upc_a',
-					'upc_e'
-				]
-			});
-
-			// Create offscreen canvas for frame capture (required for iOS Safari
-			// where createImageBitmap from video elements is unsupported)
-			canvasElement = document.createElement('canvas');
-			canvasElement.width = videoElement.videoWidth || 1280;
-			canvasElement.height = videoElement.videoHeight || 720;
-			canvasCtx = canvasElement.getContext('2d', { willReadFrequently: true });
+			detector = createBarcodeDetector(
+				videoElement.videoWidth,
+				videoElement.videoHeight
+			);
 
 			scannerReady = true;
-			componentLogger.info('Using BarcodeDetector polyfill');
-			addDebugLog(
-				`Using: BarcodeDetector (canvas ${canvasElement.width}x${canvasElement.height})`
-			);
+			componentLogger.info(`Using BarcodeDetector: ${detector.method}`);
+			addDebugLog(`Using: BarcodeDetector (${detector.method})`);
 
 			isInitializing = false;
 			scanMessage = $t('common.scanPositionBarcode');
@@ -163,20 +170,44 @@
 			checkTorchSupport();
 		} catch (err) {
 			componentLogger.error('Scanner error:', err);
+			const errorName = err instanceof Error ? err.name : '';
 			const errorMessage =
-				err instanceof Error ? err.message : 'Kamera-Zugriff fehlgeschlagen';
-			scanMessage = errorMessage;
-			onerror?.({ message: errorMessage });
+				err instanceof Error ? err.message : 'Camera access failed';
 
-			if (
-				errorMessage.includes('Permission') ||
-				errorMessage.includes('NotAllowedError')
+			// Map error to user-friendly message
+			if (errorName === 'HttpsRequiredError') {
+				scanMessage = $t('common.scanHttpsRequired');
+			} else if (
+				errorName === 'NotAllowedError' ||
+				errorName === 'PermissionDeniedError'
 			) {
 				scanMessage = $t('common.scanCameraPermissionDenied');
-			} else if (errorMessage.includes('NotFoundError')) {
+			} else if (errorName === 'NotFoundError') {
+				scanMessage = $t('common.scanNoCameraFound');
+			} else if (
+				errorName === 'NotReadableError' ||
+				errorName === 'AbortError'
+			) {
+				scanMessage = $t('common.scanCameraNotAvailable');
+			} else if (errorName === 'OverconstrainedError') {
+				scanMessage = $t('common.scanCameraConstraintsError');
+			} else if (errorName === 'SecurityError') {
+				scanMessage = $t('common.scanCameraSecurityBlocked');
+			} else if (
+				errorName === 'NotSupportedError' ||
+				errorName === 'TypeError'
+			) {
+				scanMessage = $t('common.scanCameraNotSupported');
+			} else if (errorName === 'TimeoutError') {
+				scanMessage = $t('common.scanCameraTimeout');
+			} else {
 				scanMessage = $t('common.scanNoCameraFound');
 			}
 
+			addDebugLog(`Error: ${errorName} - ${errorMessage}`);
+			onerror?.({ message: scanMessage });
+
+			hasError = true;
 			isScanning = false;
 			isInitializing = false;
 		}
@@ -203,17 +234,8 @@
 
 				updateScanningFeedback();
 
-				if (barcodeDetector && canvasCtx && canvasElement) {
-					// Draw current video frame to canvas (required for iOS Safari
-					// where detect(videoElement) fails silently)
-					canvasCtx.drawImage(
-						videoElement,
-						0,
-						0,
-						canvasElement.width,
-						canvasElement.height
-					);
-					const barcodes = await barcodeDetector.detect(canvasElement);
+				if (detector) {
+					const barcodes = await detector.detect(videoElement);
 
 					if (barcodes.length > 0) {
 						const barcode = barcodes[0];
@@ -236,7 +258,6 @@
 	}
 
 	function handleBarcodeDetected(barcode: string, format: string) {
-		// Sanitize: strip control characters
 		const sanitized = barcode.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 		if (sanitized.length === 0 || sanitized.length > 255) {
 			componentLogger.warn('Invalid barcode rejected:', {
@@ -251,9 +272,9 @@
 		componentLogger.info('Barcode detected:', { barcode: sanitized, format });
 		addDebugLog(`✅ Detected: ${sanitized} (${format})`);
 
-		const validation = validateFormat(sanitized, format);
-		if (validation.warning) {
-			validationWarning = validation.warning;
+		const validation = validateBarcodeFormat(sanitized, format);
+		if (validation.warningKey) {
+			validationWarning = $t(validation.warningKey);
 			componentLogger.warn('Format validation warning:', validation);
 		}
 
@@ -328,62 +349,6 @@
 		}
 	}
 
-	function mapBarcodeFormat(format: string): string {
-		if (!format) {
-			return 'CODE128';
-		}
-
-		const normalized = format.replace(/[-_/\s]/g, '').toUpperCase();
-
-		const formatMap: Record<string, string> = {
-			QRCODE: 'QR',
-			QR: 'QR',
-			CODE128: 'CODE128',
-			CODE39: 'CODE39',
-			CODE93: 'CODE93',
-			CODABAR: 'CODABAR',
-			EAN8: 'EAN8',
-			EAN13: 'EAN13',
-			UPCA: 'UPCA',
-			UPCE: 'UPCE',
-			ITF: 'ITF',
-			PDF417: 'PDF417',
-			DATAMATRIX: 'DATAMATRIX',
-			AZTEC: 'AZTEC'
-		};
-
-		const mapped = formatMap[normalized];
-
-		if (mapped) {
-			return mapped;
-		}
-
-		componentLogger.warn('Unknown barcode format:', {
-			original: format,
-			normalized
-		});
-		return normalized;
-	}
-
-	function validateFormat(
-		barcode: string,
-		format: string
-	): { valid: boolean; warning?: string } {
-		if (format.includes('ean_13') && !/^\d{13}$/.test(barcode)) {
-			return { valid: false, warning: 'EAN-13 should have 13 digits' };
-		}
-
-		if (format.includes('ean_8') && !/^\d{8}$/.test(barcode)) {
-			return { valid: false, warning: 'EAN-8 should have 8 digits' };
-		}
-
-		if (format.includes('upc_a') && !/^\d{12}$/.test(barcode)) {
-			return { valid: false, warning: 'UPC-A should have 12 digits' };
-		}
-
-		return { valid: true };
-	}
-
 	function stopScanning() {
 		if (!isScanning) return;
 
@@ -411,14 +376,14 @@
 
 		isScanning = false;
 		isInitializing = false;
+		hasError = false;
 		torchEnabled = false;
 		showSuccess = false;
 		validationWarning = null;
 		scanningFeedback = 'idle';
 		scanAttempts = 0;
-		barcodeDetector = null;
-		canvasElement = null;
-		canvasCtx = null;
+		detector?.destroy();
+		detector = null;
 		scannerReady = false;
 
 		componentLogger.info('Scanner stopped and camera released');
@@ -605,6 +570,19 @@
 				<p id="scanner-status" class="text-sm text-gray-600 text-center">
 					{scanMessage}
 				</p>
+				{#if hasError}
+					<div class="flex justify-center">
+						<button
+							type="button"
+							onclick={() => {
+								hasError = false;
+							}}
+							class="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+						>
+							{$t('common.scanRetry')}
+						</button>
+					</div>
+				{/if}
 				{#if validationWarning}
 					<p
 						class="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
@@ -651,7 +629,11 @@
 						<div class="debug-stat">
 							<span class="debug-label">Method:</span>
 							<span class="debug-value"
-								>{scannerReady ? 'BarcodeDetector' : 'Loading...'}</span
+								>{scannerReady
+									? detector?.method === 'native'
+										? 'Native'
+										: 'Polyfill'
+									: 'Loading...'}</span
 							>
 						</div>
 						<div class="debug-stat">
