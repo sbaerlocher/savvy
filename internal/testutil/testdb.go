@@ -107,6 +107,7 @@ func initSharedDB() {
 //	    db := testutil.NewTestDB(t)
 //	    // use db normally — all changes are rolled back after test
 //	}
+//
 // NewTestDBDirect returns a non-transactional *gorm.DB with schema-based cleanup.
 // Use this ONLY for tests that are incompatible with transaction isolation:
 //   - Tests that use goroutines for parallel queries (e.g. dashboard service)

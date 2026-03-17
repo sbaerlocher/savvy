@@ -71,7 +71,6 @@ func TestMerchantRepository_GetByID(t *testing.T) {
 	}
 	db.Create(merchant)
 
-
 	// Retrieve it
 	found, err := repo.GetByID(ctx, merchant.ID)
 	assert.NoError(t, err)
@@ -154,7 +153,6 @@ func TestMerchantRepository_Update(t *testing.T) {
 	}
 	db.Create(merchant)
 
-
 	// Update it
 	merchant.Name = "Test Merchant Update Modified"
 	merchant.Color = "#00FF00"
@@ -228,7 +226,6 @@ func TestMerchantRepository_GetByName(t *testing.T) {
 	}
 	db.Create(merchant)
 
-
 	// Retrieve by name
 	found, err := repo.GetByName(ctx, "Test GetByName Unique")
 	assert.NoError(t, err)
@@ -260,13 +257,11 @@ func TestMerchantRepository_GetByName_Exact(t *testing.T) {
 	}
 	db.Create(merchant1)
 
-
 	merchant2 := &models.Merchant{
 		Name:  "Test Exact Name 2",
 		Color: "#222222",
 	}
 	db.Create(merchant2)
-
 
 	// Get by exact name should return first one only
 	found, err := repo.GetByName(ctx, "Test Exact Name")
