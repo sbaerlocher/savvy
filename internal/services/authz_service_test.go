@@ -31,6 +31,15 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
+	// Limit connection pool to prevent deadlocks with parallel test packages
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("Failed to get underlying DB: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(2)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+
 	// Auto-migrate models
 	err = db.AutoMigrate(
 		&models.User{},
@@ -49,8 +58,22 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
-	// Clean up tables before each test
-	db.Exec("TRUNCATE users, merchants, cards, card_shares, vouchers, voucher_shares, gift_cards, gift_card_shares, gift_card_transactions, user_favorites, audit_logs CASCADE")
+	// Use targeted DELETEs (not TRUNCATE) to avoid deadlocks with
+	// parallel test packages that share the same database.
+	db.Exec(`DO $$
+	BEGIN
+		DELETE FROM user_favorites WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM voucher_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM gift_card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM gift_card_transactions WHERE gift_card_id IN (SELECT id FROM gift_cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com'));
+		DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM vouchers WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM gift_cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com');
+		DELETE FROM merchants WHERE name LIKE 'Test%';
+		DELETE FROM users WHERE email LIKE '%@example.com';
+	END $$`)
 
 	return db
 }

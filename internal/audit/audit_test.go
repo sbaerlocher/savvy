@@ -31,14 +31,30 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		return nil
 	}
 
+	// Limit connection pool to prevent deadlocks with parallel test packages
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("Failed to get underlying DB: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(2)
+	t.Cleanup(func() { _ = sqlDB.Close() })
+
 	// Auto-migrate audit logs
 	err = db.AutoMigrate(&models.User{}, &models.AuditLog{}, &models.Card{}, &models.Merchant{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
-	// Clean up tables before each test
-	db.Exec("TRUNCATE audit_logs, users, cards, merchants CASCADE")
+	// Use targeted DELETEs (not TRUNCATE) to avoid deadlocks with
+	// parallel test packages that share the same database.
+	db.Exec(`DO $$
+	BEGIN
+		DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com') OR user_id IS NULL;
+		DELETE FROM cards WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@example.com') OR user_id IS NULL;
+		DELETE FROM merchants WHERE name LIKE 'Test%';
+		DELETE FROM users WHERE email LIKE '%@example.com';
+	END $$`)
 
 	return db
 }
