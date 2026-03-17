@@ -18,8 +18,8 @@ func TestAdminService_GetAllUsers(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test users
-	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash1", Role: "user"}
-	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash2", Role: "admin"}
+	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash1", FirstName: "Test", LastName: "User", Role: "user"}
+	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash2", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user1)
 	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
 	db.Create(user2)
@@ -40,7 +40,7 @@ func TestAdminService_GetUserByID(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Test: Get user by ID
@@ -72,7 +72,7 @@ func TestAdminService_UpdateUserRole(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Test: Update role to admin
@@ -93,7 +93,7 @@ func TestAdminService_UpdateUserRole_InvalidRole(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Test: Invalid role
@@ -153,7 +153,7 @@ func TestAdminService_UpdateUser_InvalidRole(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Test: Invalid role
@@ -209,7 +209,7 @@ func TestAdminService_GetAuditLogs(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "admin"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user)
 
 	// Create test audit logs
@@ -251,8 +251,8 @@ func TestAdminService_GetAuditLogs_FilterByUser(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test users
-	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash", Role: "admin"}
-	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash", Role: "admin"}
+	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
+	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user1)
 	db.Create(user2)
 
@@ -285,7 +285,7 @@ func TestAdminService_GetAuditLogs_FilterByResourceType(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "admin"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user)
 
 	// Create audit logs for different resource types
@@ -317,7 +317,7 @@ func TestAdminService_GetAuditLogs_FilterByAction(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "admin"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user)
 
 	// Create audit logs with different actions
@@ -349,7 +349,7 @@ func TestAdminService_GetAuditLogs_Pagination(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "admin"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user)
 
 	// Create multiple audit logs
@@ -393,7 +393,7 @@ func TestAdminService_CreateAuditLog(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test user
-	user := &models.User{Email: "test@example.com", PasswordHash: "hash", Role: "admin"}
+	user := &models.User{Email: "test@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(user)
 
 	// Test: Create audit log
@@ -424,7 +424,7 @@ func TestAdminService_RestoreResource_Card(t *testing.T) {
 	ctx := context.Background()
 
 	// Create user first (required for foreign key)
-	user := &models.User{Email: "cardowner@test.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "cardowner@test.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Create and soft-delete a card
@@ -464,7 +464,7 @@ func TestAdminService_RestoreResource_NotDeleted(t *testing.T) {
 	ctx := context.Background()
 
 	// Create user first (required for foreign key)
-	user := &models.User{Email: "cardowner2@test.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "cardowner2@test.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Create active card (not deleted)
@@ -506,7 +506,7 @@ func TestAdminService_RestoreResource_Voucher(t *testing.T) {
 	ctx := context.Background()
 
 	// Create user first (required for foreign key)
-	user := &models.User{Email: "voucherowner@test.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "voucherowner@test.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Create and soft-delete a voucher
@@ -545,8 +545,8 @@ func TestAdminService_ValidateImpersonation(t *testing.T) {
 	ctx := context.Background()
 
 	// Create admin and regular user
-	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", Role: "admin"}
-	user := &models.User{Email: "user@example.com", PasswordHash: "hash", Role: "user"}
+	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
+	user := &models.User{Email: "user@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(admin)
 	db.Create(user)
 
@@ -563,8 +563,8 @@ func TestAdminService_ValidateImpersonation_NonAdmin(t *testing.T) {
 	ctx := context.Background()
 
 	// Create two regular users
-	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash", Role: "user"}
-	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash", Role: "user"}
+	user1 := &models.User{Email: "user1@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
+	user2 := &models.User{Email: "user2@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user1)
 	db.Create(user2)
 
@@ -582,7 +582,7 @@ func TestAdminService_ValidateImpersonation_SelfImpersonation(t *testing.T) {
 	ctx := context.Background()
 
 	// Create admin
-	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", Role: "admin"}
+	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(admin)
 
 	// Test: Admin trying to impersonate themselves
@@ -599,7 +599,7 @@ func TestAdminService_ValidateImpersonation_AdminNotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Create target user
-	user := &models.User{Email: "user@example.com", PasswordHash: "hash", Role: "user"}
+	user := &models.User{Email: "user@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(user)
 
 	// Test: Non-existent admin
@@ -617,7 +617,7 @@ func TestAdminService_ValidateImpersonation_TargetNotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Create admin
-	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", Role: "admin"}
+	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
 	db.Create(admin)
 
 	// Test: Non-existent target user
@@ -635,8 +635,8 @@ func TestAdminService_StartImpersonation(t *testing.T) {
 	ctx := context.Background()
 
 	// Create admin and target user
-	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", Role: "admin"}
-	user := &models.User{Email: "user@example.com", PasswordHash: "hash", Role: "user"}
+	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
+	user := &models.User{Email: "user@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(admin)
 	db.Create(user)
 
@@ -665,8 +665,8 @@ func TestAdminService_StopImpersonation(t *testing.T) {
 	ctx := context.Background()
 
 	// Create admin and target user
-	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", Role: "admin"}
-	user := &models.User{Email: "user@example.com", PasswordHash: "hash", Role: "user"}
+	admin := &models.User{Email: "admin@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "admin"}
+	user := &models.User{Email: "user@example.com", PasswordHash: "hash", FirstName: "Test", LastName: "User", Role: "user"}
 	db.Create(admin)
 	db.Create(user)
 

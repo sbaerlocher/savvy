@@ -30,7 +30,6 @@ func TestVoucherRepository_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, uuid.Nil, voucher.ID)
 
-	db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 }
 
 func TestVoucherRepository_GetByID(t *testing.T) {
@@ -48,7 +47,6 @@ func TestVoucherRepository_GetByID(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	found, err := repo.GetByID(ctx, voucher.ID)
 	assert.NoError(t, err)
@@ -71,7 +69,6 @@ func TestVoucherRepository_GetByUserID(t *testing.T) {
 	}
 	for i := range vouchers {
 		db.Create(&vouchers[i])
-		defer db.Exec("DELETE FROM vouchers WHERE id = ?", vouchers[i].ID)
 	}
 
 	found, err := repo.GetByUserID(ctx, userID)
@@ -94,7 +91,6 @@ func TestVoucherRepository_Update(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	voucher.Code = "UPDATED-CODE"
 	err := repo.Update(ctx, voucher)
@@ -143,7 +139,6 @@ func TestVoucherRepository_Count(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	newCount, err := repo.Count(ctx, userID)
 	assert.NoError(t, err)
@@ -170,7 +165,6 @@ func TestVoucherRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range vouchers {
 		db.Create(&vouchers[i])
-		defer db.Exec("DELETE FROM vouchers WHERE id = ?", vouchers[i].ID)
 	}
 
 	// Share first two vouchers with sharedUserID
@@ -180,7 +174,6 @@ func TestVoucherRepository_GetSharedWithUser(t *testing.T) {
 	}
 	for i := range shares {
 		db.Create(&shares[i])
-		defer db.Exec("DELETE FROM voucher_shares WHERE id = ?", shares[i].ID)
 	}
 
 	// Get shared vouchers
@@ -219,7 +212,6 @@ func TestVoucherRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	// Create a share
 	share := &models.VoucherShare{
@@ -227,7 +219,6 @@ func TestVoucherRepository_GetSharedWithUser_ExcludesDeleted(t *testing.T) {
 		SharedWithID: sharedUserID,
 	}
 	db.Create(share)
-	defer db.Exec("DELETE FROM voucher_shares WHERE id = ?", share.ID)
 
 	// Get shared vouchers (should include it)
 	found, err := repo.GetSharedWithUser(ctx, sharedUserID)
@@ -270,7 +261,6 @@ func TestVoucherRepository_GetByID_WithPreloads(t *testing.T) {
 		Color: "#00FF00",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
 
 	validFrom := time.Now()
 	validUntil := time.Now().Add(24 * time.Hour)
@@ -286,7 +276,6 @@ func TestVoucherRepository_GetByID_WithPreloads(t *testing.T) {
 		UsageLimitType: "single_use",
 	}
 	db.Create(voucher)
-	defer db.Exec("DELETE FROM vouchers WHERE id = ?", voucher.ID)
 
 	// Get with preloads
 	found, err := repo.GetByID(ctx, voucher.ID, "Merchant", "User")

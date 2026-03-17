@@ -2,105 +2,23 @@ package repository
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"savvy/internal/models"
+	"savvy/internal/testutil"
 )
 
-// setupTestDB creates a test database connection
+// setupTestDB returns a transaction-isolated test database.
+// Every test gets its own transaction that is rolled back automatically.
 func setupTestDB(t *testing.T) *gorm.DB {
-	t.Helper()
-
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential, not real
-	}
-
-	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
-	if err != nil {
-		t.Skipf("Skipping test: PostgreSQL not available: %v", err)
-		return nil
-	}
-
-	// Limit connection pool to prevent "too many clients" errors in CI
-	sqlDB, err := db.DB()
-	if err != nil {
-		t.Fatalf("Failed to get underlying DB: %v", err)
-	}
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(2)
-	t.Cleanup(func() { _ = sqlDB.Close() })
-
-	// Auto-migrate models
-	err = db.AutoMigrate(
-		&models.User{},
-		&models.Merchant{},
-		&models.Card{},
-		&models.CardShare{},
-		&models.Voucher{},
-		&models.VoucherShare{},
-		&models.GiftCard{},
-		&models.GiftCardShare{},
-		&models.GiftCardTransaction{},
-		&models.UserFavorite{},
-		&models.AuditLog{},
-		&models.Notification{},
-		&models.Session{},
-		&models.UserTOTP{},
-		&models.EmailToken{},
-		&models.PushSubscription{},
-		&models.ExpiryReminderSent{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to migrate: %v", err)
-	}
-
-	// Clean up test data in a single transaction to prevent deadlocks.
-	// Use targeted DELETEs with patterns (not TRUNCATE) to avoid wiping
-	// data from other packages running in parallel (e.g. services tests).
-	result := db.Exec(`DO $$
-	BEGIN
-		DELETE FROM user_favorites WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR card_id IN (SELECT id FROM cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'PRELOAD%');
-		DELETE FROM voucher_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR voucher_id IN (SELECT id FROM vouchers WHERE code LIKE 'TEST%');
-		DELETE FROM gift_card_shares WHERE shared_with_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com') OR gift_card_id IN (SELECT id FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%');
-		DELETE FROM gift_card_transactions WHERE gift_card_id IN (SELECT id FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%');
-		DELETE FROM audit_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		DELETE FROM cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'PRELOAD%';
-		DELETE FROM vouchers WHERE code LIKE 'TEST%';
-		DELETE FROM gift_cards WHERE card_number LIKE 'TEST%' OR card_number LIKE 'GIFT%' OR card_number LIKE 'GC%';
-		DELETE FROM merchants WHERE name LIKE 'Test%';
-		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sessions') THEN
-			DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		END IF;
-		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_totps') THEN
-			DELETE FROM user_totps WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		END IF;
-		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'email_tokens') THEN
-			DELETE FROM email_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		END IF;
-		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'push_subscriptions') THEN
-			DELETE FROM push_subscriptions WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		END IF;
-		IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'expiry_reminder_sents') THEN
-			DELETE FROM expiry_reminder_sents WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com');
-		END IF;
-		DELETE FROM users WHERE email LIKE 'test-%@example.com';
-	END $$`)
-	if result.Error != nil {
-		t.Logf("Warning: test DB cleanup failed: %v", result.Error)
-	}
-
-	return db
+	return testutil.NewTestDB(t)
 }
 
-// createTestUser creates a test user for foreign key relationships
+// createTestUser creates a test user for foreign key relationships.
+// No cleanup needed — the transaction rollback handles everything.
 func createTestUser(t *testing.T, db *gorm.DB) uuid.UUID {
 	t.Helper()
 	userID := uuid.New()
@@ -115,20 +33,6 @@ func createTestUser(t *testing.T, db *gorm.DB) uuid.UUID {
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
-	t.Cleanup(func() {
-		// Clean up dependent records first
-		db.Exec("DELETE FROM user_favorites WHERE user_id = ?", userID)
-		db.Exec("DELETE FROM card_shares WHERE shared_with_id = ?", userID)
-		db.Exec("DELETE FROM voucher_shares WHERE shared_with_id = ?", userID)
-		db.Exec("DELETE FROM gift_card_shares WHERE shared_with_id = ?", userID)
-		db.Exec("DELETE FROM notifications WHERE user_id = ?", userID)
-		db.Exec("DELETE FROM cards WHERE user_id = ?", userID)
-		db.Exec("DELETE FROM vouchers WHERE user_id = ?", userID)
-		db.Exec("DELETE FROM gift_cards WHERE user_id = ?", userID)
-		db.Exec("DELETE FROM audit_logs WHERE user_id = ?", userID)
-		// Now delete the user
-		db.Exec("DELETE FROM users WHERE id = ?", userID)
-	})
 	return userID
 }
 
@@ -153,8 +57,6 @@ func TestMerchantRepository_Create(t *testing.T) {
 	assert.Equal(t, "Test Merchant Create", found.Name)
 	assert.Equal(t, "#FF0000", found.Color)
 
-	// Cleanup
-	db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
 }
 
 func TestMerchantRepository_GetByID(t *testing.T) {
@@ -168,7 +70,7 @@ func TestMerchantRepository_GetByID(t *testing.T) {
 		Color: "#00FF00",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
+
 
 	// Retrieve it
 	found, err := repo.GetByID(ctx, merchant.ID)
@@ -200,7 +102,7 @@ func TestMerchantRepository_GetAll(t *testing.T) {
 	}
 	for i := range merchants {
 		db.Create(&merchants[i])
-		defer db.Exec("DELETE FROM merchants WHERE id = ?", merchants[i].ID)
+
 	}
 
 	// Get all
@@ -221,7 +123,7 @@ func TestMerchantRepository_Search(t *testing.T) {
 	}
 	for i := range merchants {
 		db.Create(&merchants[i])
-		defer db.Exec("DELETE FROM merchants WHERE id = ?", merchants[i].ID)
+
 	}
 
 	// Search for "Apple"
@@ -251,7 +153,7 @@ func TestMerchantRepository_Update(t *testing.T) {
 		Color: "#FF0000",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
+
 
 	// Update it
 	merchant.Name = "Test Merchant Update Modified"
@@ -305,7 +207,7 @@ func TestMerchantRepository_Count(t *testing.T) {
 	}
 	for i := range merchants {
 		db.Create(&merchants[i])
-		defer db.Exec("DELETE FROM merchants WHERE id = ?", merchants[i].ID)
+
 	}
 
 	// Count should increase by 2
@@ -325,7 +227,7 @@ func TestMerchantRepository_GetByName(t *testing.T) {
 		Color: "#AABBCC",
 	}
 	db.Create(merchant)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant.ID)
+
 
 	// Retrieve by name
 	found, err := repo.GetByName(ctx, "Test GetByName Unique")
@@ -357,14 +259,14 @@ func TestMerchantRepository_GetByName_Exact(t *testing.T) {
 		Color: "#111111",
 	}
 	db.Create(merchant1)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant1.ID)
+
 
 	merchant2 := &models.Merchant{
 		Name:  "Test Exact Name 2",
 		Color: "#222222",
 	}
 	db.Create(merchant2)
-	defer db.Exec("DELETE FROM merchants WHERE id = ?", merchant2.ID)
+
 
 	// Get by exact name should return first one only
 	found, err := repo.GetByName(ctx, "Test Exact Name")
