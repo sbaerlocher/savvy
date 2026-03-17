@@ -75,6 +75,8 @@ func RegisterRoutes(rc *RouteConfig) {
 		e.GET("/sw.js", spaHandler.ServeStatic)
 		e.GET("/workbox-*.js", spaHandler.ServeStatic)
 		e.GET("/registerSW.js", spaHandler.ServeStatic)
+		e.GET("/*.wasm", spaHandler.ServeStatic)
+		e.HEAD("/*.wasm", spaHandler.ServeStatic)
 
 		// ========================================
 		// Public SPA Routes (NO AUTH REQUIRED)
