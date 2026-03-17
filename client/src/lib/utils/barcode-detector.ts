@@ -1,6 +1,23 @@
-import { BarcodeDetector as PolyfillBarcodeDetector } from 'barcode-detector/ponyfill';
+import {
+	BarcodeDetector as PolyfillBarcodeDetector,
+	prepareZXingModule
+} from 'barcode-detector/ponyfill';
 import { logger } from '$lib/utils/logger';
 import { SCANNER_FORMATS } from '$lib/utils/barcode';
+
+// Override WASM location to serve from same origin instead of jsDelivr CDN.
+// Without this, CSP `connect-src 'self'` blocks the CDN fetch, causing
+// the polyfill to silently fail on iOS Safari and Firefox.
+prepareZXingModule({
+	overrides: {
+		locateFile: (path: string, prefix: string) => {
+			if (path.endsWith('.wasm')) {
+				return `/${path}`;
+			}
+			return prefix + path;
+		}
+	}
+});
 
 const detectorLogger = logger.child('BarcodeDetector');
 

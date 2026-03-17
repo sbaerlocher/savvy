@@ -65,6 +65,7 @@
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",
+		"postinstall": "cp node_modules/zxing-wasm/dist/reader/zxing_reader.wasm static/zxing_reader.wasm 2>/dev/null || true",
 		"format": "prettier --write './**/*.{svelte,ts,js}'",
 		"format:check": "prettier --check './**/*.{svelte,ts,js}'"
 	},
