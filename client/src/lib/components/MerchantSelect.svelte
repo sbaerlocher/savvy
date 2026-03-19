@@ -22,6 +22,13 @@
 	let open = $state(false);
 	let highlightedIndex = $state(-1);
 	let containerEl: HTMLDivElement;
+	let inputEl: HTMLInputElement;
+
+	$effect(() => {
+		if (required && inputEl) {
+			inputEl.setCustomValidity(value ? '' : 'Please select a merchant');
+		}
+	});
 
 	const selectedMerchant = $derived(merchants.find((m) => m.id === value));
 
@@ -74,12 +81,15 @@
 			highlightedIndex = Math.min(highlightedIndex + 1, filtered.length - 1);
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
+			open = true;
 			highlightedIndex = Math.max(highlightedIndex - 1, 0);
-		} else if (e.key === 'Enter') {
+		} else if (
+			e.key === 'Enter' &&
+			highlightedIndex >= 0 &&
+			filtered[highlightedIndex]
+		) {
 			e.preventDefault();
-			if (highlightedIndex >= 0 && filtered[highlightedIndex]) {
-				selectMerchant(filtered[highlightedIndex]);
-			}
+			selectMerchant(filtered[highlightedIndex]);
 		}
 	}
 
@@ -95,11 +105,6 @@
 </script>
 
 <div bind:this={containerEl} class="relative">
-	<!-- Hidden input for native form required validation -->
-	{#if required}
-		<input type="hidden" name={id} {value} required={required && !value} />
-	{/if}
-
 	<!-- Search / display input -->
 	<div class="relative">
 		<input
@@ -109,6 +114,7 @@
 			aria-expanded={open}
 			aria-controls="{id}-listbox"
 			aria-autocomplete="list"
+			aria-required={required}
 			class="input pr-10"
 			style="font-size: 16px;"
 			placeholder={$t('merchants.searchPlaceholder')}
@@ -118,6 +124,7 @@
 			onkeydown={onKeydown}
 			onblur={onBlur}
 			autocomplete="off"
+			bind:this={inputEl}
 		/>
 
 		<!-- Clear button or chevron -->
