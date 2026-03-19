@@ -37,6 +37,18 @@ func validateSQLIdentifiers(identifiers ...string) error {
 var validTriggerTimings = map[string]bool{"BEFORE": true, "AFTER": true, "INSTEAD OF": true}
 var validTriggerEvents = map[string]bool{"INSERT": true, "UPDATE": true, "DELETE": true, "TRUNCATE": true}
 
+// validateTriggerEvent validates a trigger event string, which may be a compound
+// expression like "INSERT OR UPDATE" or "INSERT OR UPDATE OR DELETE".
+func validateTriggerEvent(event string) error {
+	for _, part := range strings.Split(strings.ToUpper(event), " OR ") {
+		part = strings.TrimSpace(part)
+		if !validTriggerEvents[part] {
+			return fmt.Errorf("createTrigger: invalid event %q", event)
+		}
+	}
+	return nil
+}
+
 // createTrigger creates a database trigger
 func createTrigger(tx *gorm.DB, triggerName, tableName, timing, event, functionName string) error {
 	if err := validateSQLIdentifiers(triggerName, tableName, functionName); err != nil {
@@ -45,8 +57,8 @@ func createTrigger(tx *gorm.DB, triggerName, tableName, timing, event, functionN
 	if !validTriggerTimings[strings.ToUpper(timing)] {
 		return fmt.Errorf("createTrigger: invalid timing %q", timing)
 	}
-	if !validTriggerEvents[strings.ToUpper(event)] {
-		return fmt.Errorf("createTrigger: invalid event %q", event)
+	if err := validateTriggerEvent(event); err != nil {
+		return err
 	}
 	// Drop existing trigger first (separate statement)
 	if err := tx.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS %s ON %s", triggerName, tableName)).Error; err != nil {
