@@ -511,40 +511,34 @@
 								onstartEdit={startEdit}
 							>
 								{#snippet children()}
+									{@const gc = giftCard!}
 									<div class="flex items-baseline gap-3 flex-wrap mb-2">
 										<h1
 											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
 										>
-											{#if giftCard.merchant}
-												{giftCard.merchant.name}
+											{#if gc.merchant}
+												{gc.merchant.name}
 											{:else}
 												{tr('giftCards.title')}
 											{/if}
 										</h1>
 										<span
 											class="text-sm sm:text-base md:text-lg font-semibold"
-											style="color: {giftCard.merchant?.color || '#F59E0B'}"
+											style="color: {gc.merchant?.color || '#F59E0B'}"
 										>
-											{formatCurrency(
-												giftCard.current_balance,
-												giftCard.currency,
-												$locale
-											)}
+											{formatCurrency(gc.current_balance, gc.currency, $locale)}
 											<span class="text-sm text-gray-500 font-normal">
 												({tr('giftCards.balance.remaining', {
 													percent: Math.round(
-														(giftCard.current_balance /
-															giftCard.initial_balance) *
-															100
+														(gc.current_balance / gc.initial_balance) * 100
 													)
 												})})
 											</span>
 										</span>
-										{#if giftCard.owner && giftCard.owner.id !== $authStore.user?.id}
+										{#if gc.owner && gc.owner.id !== $authStore.user?.id}
 											<span class="text-xs text-gray-400">
 												{tr('giftCards.sharedBy', {
-													name:
-														giftCard.owner.first_name || giftCard.owner.email
+													name: gc.owner.first_name || gc.owner.email
 												})}
 											</span>
 										{/if}

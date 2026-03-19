@@ -417,26 +417,27 @@
 								onstartEdit={startEdit}
 							>
 								{#snippet children()}
+									{@const c = card!}
 									<div class="flex items-baseline gap-2 flex-wrap mb-1">
 										<h1
 											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
 										>
-											{#if card.merchant}
-												{card.merchant.name}
+											{#if c.merchant}
+												{c.merchant.name}
 											{:else}
 												{tr('common.card')}
 											{/if}
-											{#if card.program}
+											{#if c.program}
 												<span
 													class="text-sm sm:text-base md:text-lg font-normal text-gray-500 ml-1"
-													>{card.program}</span
+													>{c.program}</span
 												>
 											{/if}
 										</h1>
-										{#if card.owner && card.owner.id !== $authStore.user?.id}
+										{#if c.owner && c.owner.id !== $authStore.user?.id}
 											<span class="text-xs text-gray-400">
 												{tr('cards.sharedBy', {
-													name: card.owner.first_name || card.owner.email
+													name: c.owner.first_name || c.owner.email
 												})}
 											</span>
 										{/if}

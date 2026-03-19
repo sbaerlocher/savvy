@@ -425,25 +425,26 @@
 								onstartEdit={startEdit}
 							>
 								{#snippet children()}
+									{@const v = voucher!}
 									<div class="flex items-baseline gap-3 flex-wrap mb-2">
 										<h1
 											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
 										>
-											{#if voucher.merchant}
-												{voucher.merchant.name}
+											{#if v.merchant}
+												{v.merchant.name}
 											{:else}
 												{tr('vouchers.title')}
 											{/if}
 										</h1>
 										<span class="text-sm text-gray-600">
-											{voucher.usage_limit_type === 'single_use'
+											{v.usage_limit_type === 'single_use'
 												? tr('vouchers.singleUseOnly')
 												: tr('vouchers.multipleUse')}
 										</span>
-										{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
+										{#if v.owner && v.owner.id !== $authStore.user?.id}
 											<span class="text-xs text-gray-400">
 												{tr('vouchers.sharedBy', {
-													name: voucher.owner.first_name || voucher.owner.email
+													name: v.owner.first_name || v.owner.email
 												})}
 											</span>
 										{/if}
