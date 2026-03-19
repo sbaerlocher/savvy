@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **2FA brute-force lockout** - Per-session failed attempt counter (`SessionKey2FAFailedAttempts`);
+  pending session destroyed after 5 failed challenges to prevent enumeration
+- **Admin-flag in impersonation session** - `SessionKeyOriginalUserIsAdmin` propagates the
+  original user's admin status into the impersonation session, removing the extra DB lookup
+  on each request and closing a session-store-bug escalation vector
 - **`EmailAutocomplete` component** - Reusable email input with debounced user search
   and autocomplete dropdown (300ms debounce, min 2 chars)
 - **`MerchantSelect` component** - Accessible combobox for merchant selection with
@@ -27,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`EmailAutocomplete` — ARIA combobox pattern** - Input now carries `role="combobox"`,
+  `aria-expanded`, `aria-controls`, and `aria-activedescendant`; dropdown has `role="listbox"`;
+  each suggestion has `role="option"` + `id` so `aria-activedescendant` resolves correctly
+- **`EmailAutocomplete` — keyboard navigation** - ArrowUp/Down/Enter/Escape handling with
+  `highlightedIndex` state; `required` prop controls the asterisk in the label
+- **`cards/new` and `vouchers/new`** - Inline email autocomplete replaced with the shared
+  `EmailAutocomplete` component (~50 lines of duplicate code removed per page)
+- **`TransferBox`** - Transfer button disabled when email is empty (`!email.trim()`)
 - **Resource detail pages** - Cards, Vouchers, Gift Cards refactored to use new shared
   components; significant LOC reduction (`[id]/+page.svelte`: cards -650, gift cards -800,
   vouchers -730 lines)
@@ -35,6 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Voucher Transfer modal regression** - `oncancel` handler was missing; clicking Cancel
+  left the modal open permanently and required a page reload
+- **`ShareListItem` offline button** - Added `aria-label` using `common.offlineEditDisabled`
+  so screen readers announce the reason instead of silence
+- **E2E form-validation test** - Gift card initial balance selector corrected from
+  `input#original_balance` to `input#initialBalance` (test was silently skipped before)
+- **OTel SSRF protection** - `OTEL_EXPORTER_OTLP_ENDPOINT` now rejects raw RFC-1918 and
+  link-local IP literals; hostname-based endpoints remain permitted
+- **DDL injection in migrations** - `createTrigger`/`dropTrigger`/`dropFunction` validate
+  identifier characters (`[a-z0-9_]`) and trigger timing/event keywords before interpolation;
+  compound events (`INSERT OR UPDATE`) are supported
+- **Weak session secret warning** - `slog.Warn` emitted when the known-weak default
+  `SESSION_SECRET` is used outside the `development` environment
+- **`SaveSession` silent discard** - `destroy2FAPendingSession` and the 2FA attempt counter
+  increment now log a `slog.WarnContext` on persistence failure instead of discarding the error
 - **`MerchantSelect` keyboard handling** - Corrected ArrowDown/ArrowUp navigation and
   `required` validation via `setCustomValidity`
 - **TypeScript null narrowing in Svelte 5 snippet blocks** - Resolved TS errors when
