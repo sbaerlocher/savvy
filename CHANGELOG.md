@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-03-19
+
+### Added
+
+- **`EmailAutocomplete` component** - Reusable email input with debounced user search
+  and autocomplete dropdown (300ms debounce, min 2 chars)
+- **`MerchantSelect` component** - Accessible combobox for merchant selection with
+  keyboard navigation (Arrow keys, Enter, Escape), live filtering, and clear button
+- **`ResourceHeader` component** - Unified header for resource detail pages combining
+  favorite toggle and edit button with offline-aware disabled states
+- **`ShareListItem` component** - Reusable share list item with view/edit modes,
+  permission badges, and configurable delete/save actions
+- **`SharePermissions` component** - Permission checkbox group for sharing
+  (`can_edit`, `can_delete`, optional `can_edit_transactions`)
+- **`SharedInfoBox` component** - Info box for displaying permission summaries on shared items
+- **`TransferBox` component** - Transfer ownership UI with warning box, email autocomplete,
+  and expandable form
+
+### Changed
+
+- **Resource detail pages** - Cards, Vouchers, Gift Cards refactored to use new shared
+  components; significant LOC reduction (`[id]/+page.svelte`: cards -650, gift cards -800,
+  vouchers -730 lines)
+- **New/edit forms** - `CardForm`, `VoucherForm`, `GiftCardForm` migrated to
+  `MerchantSelect` component
+
+### Fixed
+
+- **`MerchantSelect` keyboard handling** - Corrected ArrowDown/ArrowUp navigation and
+  `required` validation via `setCustomValidity`
+- **TypeScript null narrowing in Svelte 5 snippet blocks** - Resolved TS errors when
+  narrowing nullable types inside `{#snippet}` / `{@render}` contexts
+
 ## [1.1.4] - 2026-03-17
 
 ### Fixed
