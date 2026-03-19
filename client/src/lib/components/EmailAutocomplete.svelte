@@ -112,7 +112,9 @@
 		role="combobox"
 		aria-expanded={showSuggestions}
 		aria-controls="{inputId}-listbox"
-		aria-activedescendant={highlightedIndex >= 0 ? `{inputId}-option-${highlightedIndex}` : undefined}
+		aria-activedescendant={highlightedIndex >= 0
+			? `{inputId}-option-${highlightedIndex}`
+			: undefined}
 		oninput={onInput}
 		onfocus={onFocus}
 		onblur={onBlur}
