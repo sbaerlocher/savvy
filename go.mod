@@ -1,6 +1,6 @@
 module savvy
 
-go 1.26
+go 1.26.1
 
 require (
 	github.com/gorilla/sessions v1.4.0
