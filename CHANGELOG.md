@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Admin-flag in impersonation session** - `SessionKeyOriginalUserIsAdmin` propagates the
   original user's admin status into the impersonation session, removing the extra DB lookup
   on each request and closing a session-store-bug escalation vector
-- **`EmailAutocomplete` component** - Reusable email input with debounced user search
-  and autocomplete dropdown (300ms debounce, min 2 chars)
+- **`EmailAutocomplete` component** - Reusable email input with debounced user search and
+  autocomplete dropdown (300ms debounce, min 2 chars); ARIA combobox pattern
+  (`role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`);
+  ArrowUp/Down/Enter/Escape keyboard navigation; `required` prop controls label asterisk
 - **`MerchantSelect` component** - Accessible combobox for merchant selection with
   keyboard navigation (Arrow keys, Enter, Escape), live filtering, and clear button
 - **`ResourceHeader` component** - Unified header for resource detail pages combining
@@ -32,11 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **`EmailAutocomplete` — ARIA combobox pattern** - Input now carries `role="combobox"`,
-  `aria-expanded`, `aria-controls`, and `aria-activedescendant`; dropdown has `role="listbox"`;
-  each suggestion has `role="option"` + `id` so `aria-activedescendant` resolves correctly
-- **`EmailAutocomplete` — keyboard navigation** - ArrowUp/Down/Enter/Escape handling with
-  `highlightedIndex` state; `required` prop controls the asterisk in the label
 - **`cards/new` and `vouchers/new`** - Inline email autocomplete replaced with the shared
   `EmailAutocomplete` component (~50 lines of duplicate code removed per page)
 - **`TransferBox`** - Transfer button disabled when email is empty (`!email.trim()`)
