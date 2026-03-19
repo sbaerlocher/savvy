@@ -193,7 +193,7 @@ func TestCreateImpersonationSession_SetsAllKeys(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	sess, err := CreateImpersonationSession(c, "target-user", "admin-user")
+	sess, err := CreateImpersonationSession(c, "target-user", "admin-user", true)
 	require.NoError(t, err)
 
 	assert.Equal(t, "target-user", GetSessionUserID(sess))

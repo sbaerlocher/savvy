@@ -241,10 +241,11 @@ func InitAllDependencies(cfg *config.Config) (func(context.Context) error, *oaut
 
 // RateLimiters holds all rate limiters used by the application.
 type RateLimiters struct {
-	Global        *middleware.IPRateLimiter
-	Auth          *middleware.IPRateLimiter
-	PasswordReset *middleware.IPRateLimiter
-	User          *middleware.UserRateLimiter
+	Global         *middleware.IPRateLimiter
+	Auth           *middleware.IPRateLimiter
+	PasswordReset  *middleware.IPRateLimiter
+	TwoFAChallenge *middleware.IPRateLimiter // Stricter limiter for 2FA challenge endpoint
+	User           *middleware.UserRateLimiter
 }
 
 // InitRateLimiters creates and returns rate limiters for global and auth endpoints.
@@ -258,12 +259,17 @@ func InitRateLimiters() *RateLimiters {
 	passwordResetRate := getEnvAsFloat("RATE_LIMIT_PASSWORD_RESET_RATE", 1.0/60.0) // 1 req per 60s
 	passwordResetBurst := getEnvAsInt("RATE_LIMIT_PASSWORD_RESET_BURST", 1)
 
+	// 2FA challenge: 1 req per 3s per IP (burst 2) — stricter than auth to slow brute-force
+	twoFAChallengeRate := getEnvAsFloat("RATE_LIMIT_2FA_CHALLENGE_RATE", 1.0/3.0)
+	twoFAChallengeB := getEnvAsInt("RATE_LIMIT_2FA_CHALLENGE_BURST", 2)
+
 	userRate := getEnvAsFloat("RATE_LIMIT_USER_RATE", 30)
 	userBurst := getEnvAsInt("RATE_LIMIT_USER_BURST", 20)
 
 	globalLimiter := middleware.NewIPRateLimiter(rate.Limit(globalRate), globalBurst)
 	authLimiter := middleware.NewIPRateLimiter(rate.Limit(authRate), authBurst)
 	passwordResetLimiter := middleware.NewIPRateLimiter(rate.Limit(passwordResetRate), passwordResetBurst)
+	twoFAChallengeLimiter := middleware.NewIPRateLimiter(rate.Limit(twoFAChallengeRate), twoFAChallengeB)
 	userLimiter := middleware.NewUserRateLimiter(rate.Limit(userRate), userBurst)
 
 	slog.Info("Rate limiters initialized",
@@ -273,14 +279,17 @@ func InitRateLimiters() *RateLimiters {
 		"auth_burst", authBurst,
 		"password_reset_rate", fmt.Sprintf("%.4f req/s (1 per %.0fs)", passwordResetRate, 1.0/passwordResetRate),
 		"password_reset_burst", passwordResetBurst,
+		"2fa_challenge_rate", fmt.Sprintf("%.4f req/s (1 per %.0fs)", twoFAChallengeRate, 1.0/twoFAChallengeRate),
+		"2fa_challenge_burst", twoFAChallengeB,
 		"user_rate", fmt.Sprintf("%.0f req/s", userRate),
 		"user_burst", userBurst)
 
 	return &RateLimiters{
-		Global:        globalLimiter,
-		Auth:          authLimiter,
-		PasswordReset: passwordResetLimiter,
-		User:          userLimiter,
+		Global:         globalLimiter,
+		Auth:           authLimiter,
+		PasswordReset:  passwordResetLimiter,
+		TwoFAChallenge: twoFAChallengeLimiter,
+		User:           userLimiter,
 	}
 }
 
@@ -335,6 +344,7 @@ func Shutdown(shutdownFn func(context.Context) error, rateLimiters *RateLimiters
 		rateLimiters.Global.Shutdown()
 		rateLimiters.Auth.Shutdown()
 		rateLimiters.PasswordReset.Shutdown()
+		rateLimiters.TwoFAChallenge.Shutdown()
 		rateLimiters.User.Shutdown()
 		slog.Info("Rate limiters stopped")
 	}

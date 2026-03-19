@@ -91,6 +91,7 @@ func TestRequireImpersonationOrAdmin_RegularUserImpersonating(t *testing.T) {
 	// Create session with impersonation flag
 	session, _ := Store.Get(req, "session")
 	session.Values["original_user_id"] = uuid.New().String()
+	session.Values["original_user_is_admin"] = true
 	_ = session.Save(req, rec)
 
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
@@ -265,6 +266,7 @@ func TestRequireImpersonationOrAdmin_MultipleScenarios(t *testing.T) {
 			if tt.hasImpersonation {
 				session, _ := Store.Get(req, "session")
 				session.Values["original_user_id"] = uuid.New().String()
+				session.Values["original_user_is_admin"] = true
 				_ = session.Save(req, rec)
 				req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 			}

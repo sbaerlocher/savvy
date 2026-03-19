@@ -105,8 +105,8 @@
 			<div class="flex gap-2">
 				<button
 					onclick={ontransfer}
-					disabled={isOffline}
-					class="btn btn-purple flex-1 {isOffline
+					disabled={isOffline || !email.trim()}
+					class="btn btn-purple flex-1 {isOffline || !email.trim()
 						? 'opacity-50 cursor-not-allowed'
 						: ''}"
 				>

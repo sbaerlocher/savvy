@@ -118,7 +118,7 @@ test.describe('Form Validation', () => {
 		const giftCardForm = new ResourceFormPage(page, 'gift-cards');
 		await giftCardForm.selectMerchant(testGiftCards.appleStore.merchant_name);
 
-		const balanceInput = page.locator('input#original_balance');
+		const balanceInput = page.locator('input#initialBalance');
 		if (await balanceInput.isVisible()) {
 			await balanceInput.fill('-50');
 

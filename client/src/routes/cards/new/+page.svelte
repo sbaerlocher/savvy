@@ -2,13 +2,13 @@
 	import { goto } from '$app/navigation';
 	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
-	import { cardsApi, sharedUsersApi } from '$lib/api';
+	import { cardsApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
-	import type { UserDTO } from '$lib/types/api';
 
 	import { logger } from '$lib/utils/logger';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
+	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -26,60 +26,6 @@
 	let shareEmail = $state('');
 	let canEdit = $state(false);
 	let canDelete = $state(false);
-
-	// Email autocomplete state
-	let suggestions = $state<UserDTO[]>([]);
-	let showSuggestions = $state(false);
-	let selectedIndex = $state(-1);
-
-	async function fetchSuggestions() {
-		if (shareEmail.length < 2) {
-			suggestions = [];
-			showSuggestions = false;
-			return;
-		}
-
-		try {
-			const response = await sharedUsersApi.search(shareEmail);
-			suggestions = response.users || [];
-			showSuggestions = suggestions.length > 0;
-			selectedIndex = -1;
-		} catch (err) {
-			pageLogger.error('Failed to fetch user suggestions:', err);
-			suggestions = [];
-			showSuggestions = false;
-		}
-	}
-
-	function selectSuggestion(user: UserDTO) {
-		shareEmail = user.email;
-		showSuggestions = false;
-		selectedIndex = -1;
-	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (!showSuggestions) return;
-
-		if (event.key === 'ArrowDown') {
-			event.preventDefault();
-			selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
-		} else if (event.key === 'ArrowUp') {
-			event.preventDefault();
-			selectedIndex = Math.max(selectedIndex - 1, -1);
-		} else if (event.key === 'Enter' && selectedIndex >= 0) {
-			event.preventDefault();
-			selectSuggestion(suggestions[selectedIndex]);
-		} else if (event.key === 'Escape') {
-			showSuggestions = false;
-			selectedIndex = -1;
-		}
-	}
-
-	function hideSuggestions() {
-		setTimeout(() => {
-			showSuggestions = false;
-		}, 200);
-	}
 
 	async function handleSubmit() {
 		isLoading = true;
@@ -152,56 +98,12 @@
 
 			<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4">
 				<!-- Email Input with Autocomplete -->
-				<div class="relative">
-					<label
-						for="share_email"
-						class="block text-sm font-medium text-gray-700 mb-1"
-					>
-						{tr('cards.sharing.userEmail')} *
-					</label>
-					<input
-						type="email"
-						id="share_email"
-						bind:value={shareEmail}
-						oninput={() => fetchSuggestions()}
-						onkeydown={handleKeydown}
-						onblur={hideSuggestions}
-						required
-						class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
-						placeholder="benutzer@example.com"
-						autocomplete="off"
-					/>
-					<p class="text-xs text-gray-500 mt-1">
-						{tr('forms.userMustBeRegistered')}
-					</p>
-
-					<!-- Autocomplete Dropdown -->
-					{#if showSuggestions}
-						<div
-							class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-						>
-							{#each suggestions as suggestion, index}
-								<button
-									type="button"
-									onclick={() => selectSuggestion(suggestion)}
-									class="w-full text-left px-4 py-2 hover:bg-cyan-50 border-b border-gray-100 last:border-b-0 {index ===
-									selectedIndex
-										? 'bg-cyan-50'
-										: ''}"
-								>
-									<div class="flex flex-col">
-										<span class="text-sm font-medium text-gray-900"
-											>{suggestion.first_name}
-											{suggestion.last_name}</span
-										>
-										<span class="text-xs text-gray-500">{suggestion.email}</span
-										>
-									</div>
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
+				<EmailAutocomplete
+					bind:value={shareEmail}
+					label={tr('cards.sharing.userEmail')}
+					hint={tr('forms.userMustBeRegistered')}
+					inputId="share_email"
+				/>
 
 				<!-- Permissions -->
 				<div class="space-y-2">

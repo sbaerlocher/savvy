@@ -39,6 +39,14 @@ const (
 
 	// SessionKeyImpersonatedBy stores who initiated the impersonation (string UUID).
 	SessionKeyImpersonatedBy = "impersonated_by"
+
+	// SessionKeyOriginalUserIsAdmin records that the original user is an admin (bool).
+	// Set when creating an impersonation session to allow verification without a DB lookup.
+	SessionKeyOriginalUserIsAdmin = "original_user_is_admin"
+
+	// SessionKey2FAFailedAttempts counts failed 2FA challenge attempts for the pending session (int).
+	// The pending session is destroyed after exceeding max2FAFailedAttempts.
+	SessionKey2FAFailedAttempts = "2fa_failed_attempts"
 )
 
 // --- Typed Getters ---
@@ -99,6 +107,22 @@ func GetSessionImpersonatedBy(session *sessions.Session) string {
 	return ""
 }
 
+// GetSessionOriginalUserIsAdmin returns whether the original (pre-impersonation) user is an admin.
+func GetSessionOriginalUserIsAdmin(session *sessions.Session) bool {
+	if b, ok := session.Values[SessionKeyOriginalUserIsAdmin].(bool); ok {
+		return b
+	}
+	return false
+}
+
+// GetSession2FAFailedAttempts returns the number of failed 2FA challenge attempts.
+func GetSession2FAFailedAttempts(session *sessions.Session) int {
+	if n, ok := session.Values[SessionKey2FAFailedAttempts].(int); ok {
+		return n
+	}
+	return 0
+}
+
 // --- Composite Helpers ---
 
 // CreateUserSession regenerates the session (for session fixation prevention),
@@ -152,7 +176,8 @@ func DestroySession(c echo.Context) error {
 
 // CreateImpersonationSession regenerates the session and sets up impersonation state.
 // The target user becomes the active user, the admin's ID is preserved for restoration.
-func CreateImpersonationSession(c echo.Context, targetUserID, adminUserID string) (*sessions.Session, error) {
+// adminIsAdmin must be true — callers must verify the original user is actually an admin before calling this.
+func CreateImpersonationSession(c echo.Context, targetUserID, adminUserID string, adminIsAdmin bool) (*sessions.Session, error) {
 	newSession, err := RegenerateSession(c)
 	if err != nil {
 		return nil, fmt.Errorf("regenerate session: %w", err)
@@ -160,6 +185,7 @@ func CreateImpersonationSession(c echo.Context, targetUserID, adminUserID string
 	newSession.Values[SessionKeyUserID] = targetUserID
 	newSession.Values[SessionKeyOriginalUserID] = adminUserID
 	newSession.Values[SessionKeyImpersonatedBy] = adminUserID
+	newSession.Values[SessionKeyOriginalUserIsAdmin] = adminIsAdmin
 	if err := SaveSession(c, newSession); err != nil {
 		return nil, fmt.Errorf("save session: %w", err)
 	}

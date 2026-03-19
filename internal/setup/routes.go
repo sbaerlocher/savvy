@@ -306,8 +306,14 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 	passwordResetGroup.POST("/reset-password", authAPIHandler.ResetPassword)
 
 	// 2FA challenge (public - used during login before full auth)
+	// Uses a dedicated stricter rate limiter (1 req/3s per IP, burst 2) separate from the
+	// general auth limiter to slow brute-force attempts against the 6-digit TOTP window.
 	if totpAPIHandler != nil {
-		authGroup.POST("/2fa/challenge", totpAPIHandler.Challenge)
+		twoFAChallengeGroup := apiV1.Group("/auth")
+		if rateLimiters != nil && rateLimiters.TwoFAChallenge != nil {
+			twoFAChallengeGroup.Use(middleware.RateLimitMiddleware(rateLimiters.TwoFAChallenge))
+		}
+		twoFAChallengeGroup.POST("/2fa/challenge", totpAPIHandler.Challenge)
 	}
 
 	// ========================================
