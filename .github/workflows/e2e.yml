@@ -15,7 +15,7 @@ permissions:
 jobs:
   e2e-tests:
     name: Playwright E2E Tests
-    uses: sbaerlocher/.github/.github/workflows/e2e-docker.yml@2026-03-16
+    uses: sbaerlocher/.github/.github/workflows/e2e-docker.yml@2026-03-19
     permissions:
       contents: read
       pull-requests: write
