@@ -24,8 +24,8 @@ import (
 //
 // How it works:
 //   - If user is admin (user.IsAdmin == true), allow access
-//   - If user is NOT admin, check session for "original_user_id" key
-//   - If "original_user_id" exists, user is impersonating → allow access
+//   - If user is NOT admin, check session for "original_user_id" AND "original_user_is_admin" keys
+//   - Both must be set and the admin flag must be true → user is legitimately impersonating → allow access
 //   - Otherwise, deny access with 403 Forbidden
 func RequireImpersonationOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -46,8 +46,10 @@ func RequireImpersonationOrAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get session")
 		}
 
-		// If original_user_id exists in session, user is impersonating
-		if GetSessionOriginalUserID(sess) != "" {
+		// Both original_user_id and original_user_is_admin must be present and the flag
+		// must be true. This prevents a session-store bug from granting access to a
+		// non-admin who has only the ID key set without the verified admin flag.
+		if GetSessionOriginalUserID(sess) != "" && GetSessionOriginalUserIsAdmin(sess) {
 			return next(c)
 		}
 

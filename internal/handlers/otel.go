@@ -78,8 +78,16 @@ func (h *OTelProxyHandler) proxyOTLP(c echo.Context, signalType string) error {
 		})
 	}
 
-	// Copy headers from original request
-	req.Header.Set("Content-Type", c.Request().Header.Get("Content-Type"))
+	// Set a whitelisted Content-Type rather than forwarding the user-supplied value.
+	// OTLP collectors accept "application/x-protobuf" (binary) and "application/json".
+	ct := c.Request().Header.Get("Content-Type")
+	switch ct {
+	case "application/x-protobuf", "application/json":
+		// accepted OTLP content types
+	default:
+		ct = "application/x-protobuf"
+	}
+	req.Header.Set("Content-Type", ct)
 
 	// Send request to OTEL Collector
 	client := &http.Client{}

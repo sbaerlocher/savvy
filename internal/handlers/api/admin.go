@@ -390,7 +390,7 @@ func (h *AdminHandler) StartImpersonation(c echo.Context) error {
 	}
 
 	// 5. Create impersonation session (regenerates to prevent session fixation)
-	if _, err := middleware.CreateImpersonationSession(c, targetUser.ID.String(), admin.ID.String()); err != nil {
+	if _, err := middleware.CreateImpersonationSession(c, targetUser.ID.String(), admin.ID.String(), admin.IsAdmin()); err != nil {
 		slog.ErrorContext(c.Request().Context(), "failed to create impersonation session", "admin_id", admin.ID, "target_user_id", targetUserID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "session_error",

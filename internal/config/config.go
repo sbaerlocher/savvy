@@ -4,6 +4,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
@@ -192,6 +194,13 @@ func (c *Config) Validate() error {
 	if len(c.SessionSecret) < 32 {
 		return errors.New("SESSION_SECRET must be at least 32 characters")
 	}
+	// Warn loudly when the known-weak default secret is used outside local development.
+	// Production enforcement is handled separately in ValidateProduction(), but staging
+	// environments must also not run with the default because they often use real credentials.
+	if c.SessionSecret == "dev-secret-change-in-production-not-for-use" && c.Environment != "development" {
+		slog.Warn("SESSION_SECRET is set to the default development value — sessions can be forged; set a strong secret via SESSION_SECRET",
+			"environment", c.Environment)
+	}
 
 	if err := c.validateURLs(); err != nil {
 		return err
@@ -280,8 +289,53 @@ func (c *Config) validateURLs() error {
 		if strings.ContainsAny(endpoint, "?#@") || strings.Contains(endpoint, "..") {
 			return errors.New("OTEL_EXPORTER_OTLP_ENDPOINT must be a valid host:port or URL without query parameters")
 		}
+		// Block SSRF: reject RFC-1918 and link-local IP literals as OTel endpoint hosts.
+		// Hostname-based targets (e.g., "otel-collector:4318") are permitted as they are
+		// intentionally internal services, whereas raw IP literals should never point to
+		// cloud metadata endpoints (169.254.x.x) or unexpected internal ranges.
+		host := endpoint
+		if h, _, err := net.SplitHostPort(endpoint); err == nil {
+			host = h
+		}
+		if ip := net.ParseIP(host); ip != nil {
+			if isInternalIP(ip) {
+				return errors.New("OTEL_EXPORTER_OTLP_ENDPOINT must not be an internal or link-local IP address")
+			}
+		}
 	}
 	return nil
+}
+
+// internalCIDRs lists RFC-1918 private ranges and link-local addresses.
+var internalCIDRs = func() []*net.IPNet {
+	cidrs := []string{
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+		"169.254.0.0/16", // link-local (AWS metadata: 169.254.169.254)
+		"127.0.0.0/8",    // loopback
+		"::1/128",        // IPv6 loopback
+		"fc00::/7",       // IPv6 unique-local
+		"fe80::/10",      // IPv6 link-local
+	}
+	nets := make([]*net.IPNet, 0, len(cidrs))
+	for _, cidr := range cidrs {
+		_, n, _ := net.ParseCIDR(cidr)
+		if n != nil {
+			nets = append(nets, n)
+		}
+	}
+	return nets
+}()
+
+// isInternalIP returns true if ip falls within any private/link-local/loopback range.
+func isInternalIP(ip net.IP) bool {
+	for _, cidr := range internalCIDRs {
+		if cidr.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 // validateSMTP checks that SMTP fields are consistently configured.

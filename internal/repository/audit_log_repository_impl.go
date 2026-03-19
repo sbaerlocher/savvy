@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"savvy/internal/models"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -43,9 +44,15 @@ func (r *GormAuditLogRepository) GetFiltered(ctx context.Context, filters AuditL
 		query = query.Where("action = ?", filters.Action)
 	}
 	if filters.DateFrom != "" {
+		if _, err := time.Parse("2006-01-02", filters.DateFrom); err != nil {
+			return nil, 0, fmt.Errorf("invalid DateFrom format (expected YYYY-MM-DD): %w", err)
+		}
 		query = query.Where("created_at >= ?", filters.DateFrom)
 	}
 	if filters.DateTo != "" {
+		if _, err := time.Parse("2006-01-02", filters.DateTo); err != nil {
+			return nil, 0, fmt.Errorf("invalid DateTo format (expected YYYY-MM-DD): %w", err)
+		}
 		query = query.Where("created_at <= ?", filters.DateTo+" 23:59:59")
 	}
 	if filters.SearchQuery != "" {

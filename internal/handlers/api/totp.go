@@ -121,6 +121,22 @@ func (h *TOTPHandler) Verify(c echo.Context) error {
 	})
 }
 
+// max2FAFailedAttempts is the number of consecutive failed 2FA attempts allowed before the
+// pending session is destroyed and the user must restart the login flow.
+const max2FAFailedAttempts = 5
+
+// destroy2FAPendingSession clears the pending 2FA state from the session.
+func destroy2FAPendingSession(c echo.Context) {
+	session, err := middleware.GetSession(c)
+	if err != nil {
+		return
+	}
+	delete(session.Values, middleware.SessionKey2FAPendingUserID)
+	delete(session.Values, middleware.SessionKey2FAPendingCreatedAt)
+	delete(session.Values, middleware.SessionKey2FAFailedAttempts)
+	_ = middleware.SaveSession(c, session)
+}
+
 // Challenge verifies a TOTP code during login (step 2 of 2FA login).
 // POST /api/v1/auth/2fa/challenge
 func (h *TOTPHandler) Challenge(c echo.Context) error {
@@ -145,12 +161,20 @@ func (h *TOTPHandler) Challenge(c echo.Context) error {
 	const twoFATimeout = 5 * time.Minute
 	createdAt := middleware.GetSession2FAPendingCreatedAt(session)
 	if createdAt == 0 || time.Since(time.Unix(createdAt, 0)) > twoFATimeout {
-		delete(session.Values, middleware.SessionKey2FAPendingUserID)
-		delete(session.Values, middleware.SessionKey2FAPendingCreatedAt)
-		_ = middleware.SaveSession(c, session)
+		destroy2FAPendingSession(c)
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "session_expired",
 			Message: "2FA session has expired, please log in again",
+		})
+	}
+
+	// Enforce per-session failed attempt lockout
+	failedAttempts := middleware.GetSession2FAFailedAttempts(session)
+	if failedAttempts >= max2FAFailedAttempts {
+		destroy2FAPendingSession(c)
+		return c.JSON(http.StatusTooManyRequests, ErrorResponse{
+			Error:   "too_many_attempts",
+			Message: "Too many failed attempts, please log in again",
 		})
 	}
 
@@ -196,6 +220,13 @@ func (h *TOTPHandler) Challenge(c echo.Context) error {
 	}
 
 	if !valid {
+		// Increment per-session failure counter; re-fetch session to avoid stale state
+		sess, sErr := middleware.GetSession(c)
+		if sErr == nil {
+			current := middleware.GetSession2FAFailedAttempts(sess)
+			sess.Values[middleware.SessionKey2FAFailedAttempts] = current + 1
+			_ = middleware.SaveSession(c, sess)
+		}
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "invalid_code",
 			Message: "Invalid verification code",

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"mime"
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/models"
@@ -230,7 +231,9 @@ func (h *BatchHandler) batchExport(
 	}
 
 	filename := fmt.Sprintf("savvy-export-%s-%s.json", resourceType, time.Now().Format("2006-01-02"))
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	// Use mime.FormatMediaType to safely encode the filename and prevent header injection.
+	contentDisposition := mime.FormatMediaType("attachment", map[string]string{"filename": filename})
+	c.Response().Header().Set("Content-Disposition", contentDisposition)
 	return c.JSON(http.StatusOK, data)
 }
 
