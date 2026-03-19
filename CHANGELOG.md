@@ -234,6 +234,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[1.2.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.2.0
 [1.1.4]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.4
 [1.1.3]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.3
 [1.1.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.2
