@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { sharedUsersApi } from '$lib/api';
-	import { t } from '$lib/stores/i18n';
 	import type { UserDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
 
@@ -113,7 +112,7 @@
 		aria-expanded={showSuggestions}
 		aria-controls="{inputId}-listbox"
 		aria-activedescendant={highlightedIndex >= 0
-			? `{inputId}-option-${highlightedIndex}`
+			? `${inputId}-option-${highlightedIndex}`
 			: undefined}
 		oninput={onInput}
 		onfocus={onFocus}

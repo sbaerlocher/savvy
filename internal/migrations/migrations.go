@@ -5,6 +5,7 @@ package migrations
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -33,10 +34,19 @@ func validateSQLIdentifiers(identifiers ...string) error {
 
 // Helper functions to reduce code duplication
 
+var validTriggerTimings = map[string]bool{"BEFORE": true, "AFTER": true, "INSTEAD OF": true}
+var validTriggerEvents = map[string]bool{"INSERT": true, "UPDATE": true, "DELETE": true, "TRUNCATE": true}
+
 // createTrigger creates a database trigger
 func createTrigger(tx *gorm.DB, triggerName, tableName, timing, event, functionName string) error {
 	if err := validateSQLIdentifiers(triggerName, tableName, functionName); err != nil {
 		return fmt.Errorf("createTrigger: %w", err)
+	}
+	if !validTriggerTimings[strings.ToUpper(timing)] {
+		return fmt.Errorf("createTrigger: invalid timing %q", timing)
+	}
+	if !validTriggerEvents[strings.ToUpper(event)] {
+		return fmt.Errorf("createTrigger: invalid event %q", event)
 	}
 	// Drop existing trigger first (separate statement)
 	if err := tx.Exec(fmt.Sprintf("DROP TRIGGER IF EXISTS %s ON %s", triggerName, tableName)).Error; err != nil {

@@ -222,12 +222,11 @@ func (h *TOTPHandler) Challenge(c echo.Context) error {
 	}
 
 	if !valid {
-		// Increment per-session failure counter; re-fetch session to avoid stale state
-		sess, sErr := middleware.GetSession(c)
-		if sErr == nil {
-			current := middleware.GetSession2FAFailedAttempts(sess)
-			sess.Values[middleware.SessionKey2FAFailedAttempts] = current + 1
-			_ = middleware.SaveSession(c, sess)
+		// Increment per-session failure counter
+		current := middleware.GetSession2FAFailedAttempts(session)
+		session.Values[middleware.SessionKey2FAFailedAttempts] = current + 1
+		if err := middleware.SaveSession(c, session); err != nil {
+			slog.WarnContext(c.Request().Context(), "failed to persist 2FA attempt counter", "error", err)
 		}
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "invalid_code",
