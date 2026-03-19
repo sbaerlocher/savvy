@@ -717,5 +717,6 @@
 		cancelText={tr('common.cancel')}
 		variant="transfer"
 		onconfirm={confirmTransfer}
+		oncancel={() => (showTransferModal = false)}
 	/>
 {/if}

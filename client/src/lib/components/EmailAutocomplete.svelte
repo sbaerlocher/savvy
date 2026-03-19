@@ -11,6 +11,7 @@
 		hint?: string;
 		inputId?: string;
 		disabled?: boolean;
+		required?: boolean;
 	}
 
 	let {
@@ -18,12 +19,14 @@
 		label,
 		hint,
 		inputId = 'email-autocomplete',
-		disabled = false
+		disabled = false,
+		required = true
 	}: Props = $props();
 
 	const componentLogger = logger.child('EmailAutocomplete');
 	let suggestedUsers = $state<UserDTO[]>([]);
 	let showSuggestions = $state(false);
+	let highlightedIndex = $state(-1);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	onDestroy(() => {
@@ -41,7 +44,8 @@
 			try {
 				const response = await sharedUsersApi.search(query);
 				suggestedUsers = response.users;
-				showSuggestions = true;
+				showSuggestions = suggestedUsers.length > 0;
+				highlightedIndex = -1;
 			} catch (err) {
 				componentLogger.error('Failed to search users:', err);
 				suggestedUsers = [];
@@ -53,6 +57,7 @@
 		value = user.email;
 		showSuggestions = false;
 		suggestedUsers = [];
+		highlightedIndex = -1;
 	}
 
 	function onInput(event: Event) {
@@ -70,13 +75,31 @@
 	function onBlur() {
 		setTimeout(() => {
 			showSuggestions = false;
+			highlightedIndex = -1;
 		}, 200);
+	}
+
+	function onKeydown(event: KeyboardEvent) {
+		if (!showSuggestions || suggestedUsers.length === 0) return;
+		if (event.key === 'ArrowDown') {
+			event.preventDefault();
+			highlightedIndex = Math.min(highlightedIndex + 1, suggestedUsers.length - 1);
+		} else if (event.key === 'ArrowUp') {
+			event.preventDefault();
+			highlightedIndex = Math.max(highlightedIndex - 1, -1);
+		} else if (event.key === 'Enter' && highlightedIndex >= 0) {
+			event.preventDefault();
+			selectUser(suggestedUsers[highlightedIndex]);
+		} else if (event.key === 'Escape') {
+			showSuggestions = false;
+			highlightedIndex = -1;
+		}
 	}
 </script>
 
 <div class="relative">
 	<label for={inputId} class="block text-sm font-medium text-gray-700 mb-1">
-		{label} *
+		{label}{#if required} *{/if}
 	</label>
 	<input
 		id={inputId}
@@ -85,7 +108,8 @@
 		oninput={onInput}
 		onfocus={onFocus}
 		onblur={onBlur}
-		required
+		onkeydown={onKeydown}
+		{required}
 		placeholder="benutzer@example.com"
 		autocomplete="off"
 		{disabled}
@@ -96,11 +120,12 @@
 		<div
 			class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
 		>
-			{#each suggestedUsers as user}
+			{#each suggestedUsers as user, index}
 				<button
 					type="button"
 					onclick={() => selectUser(user)}
-					class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+					aria-selected={index === highlightedIndex}
+					class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none {index === highlightedIndex ? 'bg-gray-100' : ''}"
 				>
 					<div class="font-medium text-sm text-gray-900">
 						{#if user.first_name && user.last_name}
