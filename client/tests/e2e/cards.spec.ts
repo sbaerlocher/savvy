@@ -132,7 +132,7 @@ test.describe('Cards Management', () => {
 		await page.click('button[type="submit"]');
 		await expect(page).toHaveURL(/\/cards\/new/);
 
-		const cardNumberField = page.locator('input#card_number');
+		const cardNumberField = page.locator('input#cardNumber');
 		const isInvalid = await cardNumberField.evaluate(
 			(el: HTMLInputElement) => !el.validity.valid
 		);

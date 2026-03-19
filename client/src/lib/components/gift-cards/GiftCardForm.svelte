@@ -2,10 +2,11 @@
 	import { merchantsApi } from '$lib/api';
 	import { onMount } from 'svelte';
 	import { toastStore } from '$lib/stores/toast';
-	import { t } from '$lib/stores/i18n';
+	import { locale, t } from '$lib/stores/i18n';
 
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('GiftCardForm');
 
@@ -14,7 +15,9 @@
 		merchantId?: string;
 		initialBalance?: number;
 		currency?: string;
+		pin?: string;
 		barcodeType?: string;
+		expiresAt?: string;
 		notes?: string;
 		onSubmit: () => void;
 		onCancel: () => void;
@@ -27,12 +30,14 @@
 		merchantId = $bindable(''),
 		initialBalance = $bindable(0),
 		currency = $bindable('EUR'),
+		pin = $bindable(''),
 		barcodeType = $bindable('CODE128'),
+		expiresAt = $bindable(''),
 		notes = $bindable(''),
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel = 'Speichern'
+		submitLabel
 	}: Props = $props();
 
 	let merchants = $state<MerchantDTO[]>([]);
@@ -73,25 +78,12 @@
 	class="space-y-4"
 >
 	<div>
-		<label for="merchant" class="label">Händler</label>
-		<select
-			id="merchant"
-			bind:value={merchantId}
-			class="input"
-			style="font-size: 16px; line-height: 2.5;"
-		>
-			<option value="">-- Händler auswählen --</option>
-			{#each merchants as merchant}
-				<option value={merchant.id}>{merchant.name}</option>
-			{/each}
-		</select>
-		<p class="text-sm text-gray-500 mt-1">
-			Optional: Wählen Sie einen Händler aus
-		</p>
+		<label for="merchant" class="label">{$t('giftCards.merchant')}</label>
+		<MerchantSelect {merchants} bind:value={merchantId} id="merchant" />
 	</div>
 
 	<div>
-		<label for="cardNumber" class="label">Kartennummer *</label>
+		<label for="cardNumber" class="label">{$t('giftCards.cardNumber')} *</label>
 		<div class="flex gap-2">
 			<input
 				id="cardNumber"
@@ -105,7 +97,7 @@
 				type="button"
 				onclick={() => (scanning = true)}
 				class="btn btn-primary"
-				title="Barcode mit Kamera scannen"
+				title={$t('common.scanBarcode')}
 			>
 				<svg
 					class="w-5 h-5"
@@ -126,7 +118,7 @@
 						d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
 					></path>
 				</svg>
-				<span class="hidden sm:inline">Scannen</span>
+				<span class="hidden sm:inline">{$t('common.scan')}</span>
 			</button>
 		</div>
 	</div>
@@ -144,44 +136,12 @@
 	{/if}
 
 	<div>
-		<label for="initialBalance" class="label">Anfangsguthaben *</label>
-		<input
-			id="initialBalance"
-			type="number"
-			step="0.01"
-			required
-			bind:value={initialBalance}
-			placeholder="50.00"
-			class="input"
-		/>
-		<p class="text-sm text-gray-500 mt-1">
-			Der ursprüngliche Wert der Geschenkkarte
-		</p>
-	</div>
-
-	<div>
-		<label for="currency" class="label">Währung *</label>
-		<select
-			id="currency"
-			bind:value={currency}
-			required
-			class="input"
-			style="font-size: 16px; line-height: 2.5;"
-		>
-			<option value="EUR">EUR (€)</option>
-			<option value="USD">USD ($)</option>
-			<option value="CHF">CHF (Fr.)</option>
-			<option value="GBP">GBP (£)</option>
-		</select>
-	</div>
-
-	<div>
-		<label for="barcodeType" class="label">Barcode-Typ</label>
+		<label for="barcodeType" class="label">{$t('giftCards.barcodeType')}</label>
 		<select
 			id="barcodeType"
 			bind:value={barcodeType}
 			class="input"
-			style="font-size: 16px; line-height: 2.5;"
+			style="font-size: 16px;"
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
@@ -205,22 +165,84 @@
 	</div>
 
 	<div>
-		<label for="notes" class="label">Notizen</label>
+		<label for="initialBalance" class="label"
+			>{$t('giftCards.initialBalance')} *</label
+		>
+		<div
+			class="flex gap-2 {$locale?.startsWith('en')
+				? 'flex-row-reverse'
+				: 'flex-row'}"
+		>
+			<input
+				id="initialBalance"
+				type="number"
+				step="0.01"
+				min="0"
+				required
+				bind:value={initialBalance}
+				placeholder="50.00"
+				class="input flex-1"
+			/>
+			<select
+				id="currency"
+				bind:value={currency}
+				required
+				class="w-28 input"
+				style="font-size: 16px;"
+			>
+				<option value="CHF">CHF</option>
+				<option value="EUR">EUR</option>
+				<option value="USD">USD</option>
+				<option value="GBP">GBP</option>
+			</select>
+		</div>
+		<p class="text-sm text-gray-500 mt-1">
+			{$t('giftCards.initialBalanceDesc')}
+		</p>
+	</div>
+
+	<div>
+		<label for="pin" class="label">{$t('giftCards.pin')}</label>
+		<input
+			id="pin"
+			type="text"
+			bind:value={pin}
+			class="input"
+			placeholder="1234"
+		/>
+		<p class="text-sm text-gray-500 mt-1">{$t('giftCards.pinDesc')}</p>
+	</div>
+
+	<div>
+		<label for="expiresAt" class="label">{$t('giftCards.expiresAt')}</label>
+		<input
+			id="expiresAt"
+			type="date"
+			bind:value={expiresAt}
+			class="input w-full text-base"
+		/>
+		<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+			{$t('giftCards.expiresAtDesc')}
+		</p>
+	</div>
+
+	<div>
+		<label for="notes" class="label">{$t('giftCards.notes')}</label>
 		<textarea
 			id="notes"
 			bind:value={notes}
 			rows="3"
 			class="input"
-			placeholder="Weitere Details zur Geschenkkarte..."
+			placeholder={$t('giftCards.notesPlaceholder')}
 		></textarea>
 	</div>
 
 	<div class="flex gap-2">
-		<button type="submit" class="btn btn-primary" disabled={isLoading}>
-			{isLoading ? 'Speichere...' : submitLabel}
+		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-secondary"
-			>Abbrechen</button
+		<button type="button" onclick={onCancel} class="btn btn-ghost"
+			>{$t('common.cancel')}</button
 		>
 	</div>
 </form>

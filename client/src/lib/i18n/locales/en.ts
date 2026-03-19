@@ -973,6 +973,8 @@ export const en: TranslationKeys = {
 	merchants: {
 		selectMerchant: 'Select Merchant',
 		selectPlaceholder: '-- Select merchant --',
+		searchPlaceholder: 'Search merchants...',
+		noResults: 'No merchants found',
 		createNew: 'Select a merchant or create a new one',
 		merchantOptional: 'Optional: Select a merchant'
 	},

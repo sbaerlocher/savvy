@@ -159,7 +159,9 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = filename;
+			document.body.appendChild(a);
 			a.click();
+			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 			toastStore.success(
 				$t('batch.exportSuccess', { count: selectedIds.size })
@@ -499,9 +501,9 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+					class="btn btn-ghost {selectMode
 						? 'ring-2 ring-cyan-500 border-cyan-500'
-						: 'border-gray-300'}"
+						: ''}"
 					title={tr('batch.selectMode')}
 					aria-label={tr('batch.selectMode')}
 					aria-pressed={selectMode}
@@ -527,7 +529,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="relative flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+					class="relative btn btn-ghost"
 					title={tr('common.filter')}
 					aria-label={tr('common.filterVouchers')}
 					aria-expanded={showFilterMenu}
@@ -614,7 +616,7 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+					class="flex-1 btn btn-ghost {selectMode
 						? 'ring-2 ring-cyan-500 border-cyan-500'
 						: ''}"
 					aria-label={tr('batch.selectMode')}
@@ -640,7 +642,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+					class="relative flex-1 btn btn-ghost"
 					aria-label={tr('common.filterVouchers')}
 					aria-expanded={showFilterMenu}
 				>

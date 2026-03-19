@@ -344,10 +344,10 @@ test.describe('Vouchers Management', () => {
 		await editButton.waitFor({ state: 'visible', timeout: 5000 });
 		await editButton.click();
 
-		const validUntilInput = page.locator('input#valid_until');
+		const validUntilInput = page.locator('input#validUntil');
 		await expect(validUntilInput).toBeVisible({ timeout: 5000 });
 
-		expect(await page.locator('input#valid_from').inputValue()).toBe(
+		expect(await page.locator('input#validFrom').inputValue()).toBe(
 			testStartDate
 		);
 		expect(await validUntilInput.inputValue()).toBe(testExpiryDate);

@@ -1003,6 +1003,8 @@ export const fr: TranslationKeys = {
 	merchants: {
 		selectMerchant: 'Sélectionner un commerçant',
 		selectPlaceholder: '-- Sélectionner un commerçant --',
+		searchPlaceholder: 'Rechercher un commerçant...',
+		noResults: 'Aucun commerçant trouvé',
 		createNew: 'Sélectionnez un commerçant ou créez-en un nouveau',
 		merchantOptional: 'Optionnel: Sélectionnez un commerçant'
 	},

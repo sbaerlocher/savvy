@@ -6,6 +6,7 @@
 
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('CardForm');
 
@@ -15,6 +16,7 @@
 		program?: string;
 		barcodeType?: string;
 		notes?: string;
+		status?: string;
 		onSubmit: () => void;
 		onCancel: () => void;
 		isLoading: boolean;
@@ -27,6 +29,7 @@
 		program = $bindable(''),
 		barcodeType = $bindable('CODE128'),
 		notes = $bindable(''),
+		status = $bindable(undefined),
 		onSubmit,
 		onCancel,
 		isLoading,
@@ -72,19 +75,12 @@
 >
 	<div>
 		<label for="merchant" class="label">{$t('cards.merchant')} *</label>
-		<select
-			id="merchant"
+		<MerchantSelect
+			{merchants}
 			bind:value={merchantId}
 			required
-			class="input"
-			style="font-size: 16px; line-height: 2.5;"
-		>
-			<option value="">{$t('merchants.selectPlaceholder')}</option>
-			{#each merchants as merchant}
-				<option value={merchant.id}>{merchant.name}</option>
-			{/each}
-		</select>
-		<p class="text-sm text-gray-500 mt-1">{$t('cards.merchantSelectHint')}</p>
+			id="merchant"
+		/>
 	</div>
 
 	<div>
@@ -157,7 +153,7 @@
 			id="barcodeType"
 			bind:value={barcodeType}
 			class="input"
-			style="font-size: 16px; line-height: 2.5;"
+			style="font-size: 16px;"
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
@@ -180,16 +176,34 @@
 		</select>
 	</div>
 
+	{#if status !== undefined}
+		<div>
+			<label for="status" class="label">{$t('cards.statusLabel')}</label>
+			<select
+				id="status"
+				bind:value={status}
+				class="input"
+				style="font-size: 16px;"
+			>
+				<option value="active">{$t('giftCards.status.active')}</option>
+				<option value="inactive">{$t('cards.status.inactive')}</option>
+				<option value="expired">{$t('cards.status.expired')}</option>
+				<option value="lost">{$t('cards.status.lost')}</option>
+				<option value="blocked">{$t('cards.status.blocked')}</option>
+			</select>
+		</div>
+	{/if}
+
 	<div>
 		<label for="notes" class="label">{$t('cards.notes')}</label>
 		<textarea id="notes" bind:value={notes} rows="3" class="input"></textarea>
 	</div>
 
 	<div class="flex gap-2">
-		<button type="submit" class="btn btn-primary" disabled={isLoading}>
+		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-secondary"
+		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
 	</div>

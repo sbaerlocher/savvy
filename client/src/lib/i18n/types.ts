@@ -919,6 +919,8 @@ export type TranslationKeys = {
 	merchants: {
 		selectMerchant: string;
 		selectPlaceholder: string;
+		searchPlaceholder: string;
+		noResults: string;
 		createNew: string;
 		merchantOptional: string;
 	};

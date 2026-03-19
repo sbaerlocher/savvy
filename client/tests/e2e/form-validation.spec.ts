@@ -73,7 +73,7 @@ test.describe('Form Validation', () => {
 
 		await cardFormPage.selectMerchant(testCards.ikea.merchant_name);
 
-		const cardNumberInput = page.locator('input#card_number');
+		const cardNumberInput = page.locator('input#cardNumber');
 		await cardNumberInput.fill('');
 
 		const submitButton = page.locator('button[type="submit"]');
@@ -145,8 +145,8 @@ test.describe('Form Validation', () => {
 		const voucherForm = new ResourceFormPage(page, 'vouchers');
 		await voucherForm.selectMerchant(testVouchers.amazon.merchant_name);
 
-		const validFromInput = page.locator('input#valid_from');
-		const validUntilInput = page.locator('input#valid_until');
+		const validFromInput = page.locator('input#validFrom');
+		const validUntilInput = page.locator('input#validUntil');
 
 		if (
 			(await validFromInput.isVisible()) &&
