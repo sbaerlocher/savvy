@@ -19,7 +19,7 @@ export class ResourceFormPage extends BasePage {
 	}
 
 	get merchantSelect() {
-		return this.page.locator('select#merchant-select');
+		return this.page.locator('input#merchant[role="combobox"]');
 	}
 	get submitButton() {
 		return this.page.locator('button[type="submit"]');
@@ -28,10 +28,10 @@ export class ResourceFormPage extends BasePage {
 		return this.page.locator('input#program');
 	}
 	get cardNumberInput() {
-		return this.page.locator('input#card_number');
+		return this.page.locator('input#cardNumber');
 	}
 	get barcodeTypeSelect() {
-		return this.page.locator('select#barcode-type');
+		return this.page.locator('select#barcodeType');
 	}
 	get notesField() {
 		return this.page.locator('textarea#notes');
@@ -49,36 +49,31 @@ export class ResourceFormPage extends BasePage {
 		return this.page.locator('select#currency');
 	}
 	get validFromInput() {
-		return this.page.locator('input#valid_from');
+		return this.page.locator('input#validFrom');
 	}
 	get validUntilInput() {
-		return this.page.locator('input#valid_until');
+		return this.page.locator('input#validUntil');
 	}
 	get usageLimitSelect() {
-		return this.page.locator('select#usage_limit_type');
+		return this.page.locator('select#usageLimitType');
 	}
 	get expiresAtInput() {
-		return this.page.locator('input#expires_at');
+		return this.page.locator('input#expiresAt');
 	}
 	get initialBalanceInput() {
-		return this.page.locator('input#initial_balance');
+		return this.page.locator('input#initialBalance');
 	}
 
 	async selectMerchant(merchantName: string) {
 		await this.merchantSelect.waitFor({ state: 'visible' });
-		await this.page.waitForFunction(
-			(name) => {
-				const select = document.querySelector(
-					'select#merchant-select'
-				) as HTMLSelectElement;
-				if (!select) return false;
-				const options = Array.from(select.options).map((o) => o.text);
-				return options.length > 1 && options.includes(name);
-			},
-			merchantName,
-			{ timeout: 5000 }
-		);
-		await this.merchantSelect.selectOption({ label: merchantName });
+		await this.merchantSelect.click();
+		await this.merchantSelect.fill(merchantName);
+		const option = this.page.locator('[role="listbox"] [role="option"]', {
+			hasText: merchantName
+		});
+		await option.waitFor({ state: 'visible', timeout: 5000 });
+		await option.click();
+		await this.page.locator('[role="listbox"]').waitFor({ state: 'hidden', timeout: 3000 });
 	}
 
 	async fillNotes(text: string) {

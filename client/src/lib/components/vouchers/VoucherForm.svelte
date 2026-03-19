@@ -5,7 +5,8 @@
 
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
-	import { t } from '$lib/stores/i18n';
+	import { locale, t } from '$lib/stores/i18n';
+	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('VoucherForm');
 
@@ -16,8 +17,11 @@
 		value?: number;
 		currency?: string;
 		barcodeType?: string;
-		expirationDate?: string;
+		validFrom?: string;
+		validUntil?: string;
+		usageLimitType?: string;
 		description?: string;
+		errors?: { merchant?: string; value?: string; validUntil?: string };
 		onSubmit: () => void;
 		onCancel: () => void;
 		isLoading: boolean;
@@ -27,16 +31,19 @@
 	let {
 		code = $bindable(''),
 		merchantId = $bindable(''),
-		type = $bindable('fixed'),
+		type = $bindable('percentage'),
 		value = $bindable(0),
 		currency = $bindable('CHF'),
 		barcodeType = $bindable('CODE128'),
-		expirationDate = $bindable(''),
+		validFrom = $bindable(''),
+		validUntil = $bindable(''),
+		usageLimitType = $bindable('single_use'),
 		description = $bindable(''),
+		errors = $bindable({}),
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel = 'Speichern'
+		submitLabel
 	}: Props = $props();
 
 	let merchants = $state<MerchantDTO[]>([]);
@@ -67,6 +74,12 @@
 	function handleScanError(event: { message: string }) {
 		toastStore.error(event.message);
 	}
+
+	function setExpiryOffset(days: number) {
+		const date = new Date();
+		date.setDate(date.getDate() + days);
+		validUntil = date.toISOString().split('T')[0];
+	}
 </script>
 
 <form
@@ -77,19 +90,18 @@
 	class="space-y-4"
 >
 	<div>
-		<label for="merchant" class="label">{$t('vouchers.merchant')}</label>
-		<select
-			id="merchant"
+		<label for="merchant" class="label">{$t('vouchers.merchant')} *</label>
+		<MerchantSelect
+			{merchants}
 			bind:value={merchantId}
-			class="input"
-			style="font-size: 16px; line-height: 2.5;"
-		>
-			<option value="">{$t('vouchers.merchantSelect')}</option>
-			{#each merchants as merchant}
-				<option value={merchant.id}>{merchant.name}</option>
-			{/each}
-		</select>
-		<p class="text-sm text-gray-500 mt-1">{$t('vouchers.merchantOptional')}</p>
+			id="merchant"
+			onchange={() => {
+				if (errors) errors = { ...errors, merchant: undefined };
+			}}
+		/>
+		{#if errors?.merchant}
+			<p class="text-red-600 text-sm mt-1">{errors.merchant}</p>
+		{/if}
 	</div>
 
 	<div>
@@ -146,73 +158,12 @@
 	{/if}
 
 	<div>
-		<label for="type" class="label">{$t('vouchers.type')} *</label>
-		<select
-			id="type"
-			bind:value={type}
-			required
-			class="input"
-			style="font-size: 16px; line-height: 2.5;"
-		>
-			<option value="fixed">{$t('vouchers.types.fixedAmount')}</option>
-			<option value="percent">{$t('vouchers.types.percentage')}</option>
-		</select>
-	</div>
-
-	<div>
-		<label for="value" class="label">{$t('vouchers.value')} *</label>
-		<input
-			id="value"
-			type="number"
-			step="0.01"
-			required
-			bind:value
-			placeholder={$t('vouchers.valuePlaceholder')}
-			class="input"
-		/>
-		<p class="text-sm text-gray-500 mt-1">
-			{type === 'percent'
-				? $t('vouchers.types.percentageHint')
-				: $t('vouchers.types.fixedAmountHint')}
-		</p>
-	</div>
-
-	{#if type === 'fixed'}
-		<div>
-			<label for="currency" class="label">{$t('vouchers.currency')} *</label>
-			<select
-				id="currency"
-				bind:value={currency}
-				required
-				class="input"
-				style="font-size: 16px; line-height: 2.5;"
-			>
-				<option value="CHF">CHF (Fr.)</option>
-				<option value="EUR">EUR (€)</option>
-				<option value="USD">USD ($)</option>
-				<option value="GBP">GBP (£)</option>
-			</select>
-		</div>
-	{/if}
-
-	<div>
-		<label for="expiration" class="label">{$t('vouchers.validUntil')}</label>
-		<input
-			id="expiration"
-			type="date"
-			bind:value={expirationDate}
-			class="input"
-		/>
-		<p class="text-sm text-gray-500 mt-1">{$t('vouchers.validUntilHint')}</p>
-	</div>
-
-	<div>
 		<label for="barcodeType" class="label">{$t('vouchers.barcodeType')}</label>
 		<select
 			id="barcodeType"
 			bind:value={barcodeType}
 			class="input"
-			style="font-size: 16px; line-height: 2.5;"
+			style="font-size: 16px;"
 		>
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
@@ -246,11 +197,172 @@
 		></textarea>
 	</div>
 
+	<!-- Typ / Wert -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div>
+			<label for="type" class="label">{$t('vouchers.type')} *</label>
+			<select
+				id="type"
+				bind:value={type}
+				required
+				class="input"
+				style="font-size: 16px;"
+			>
+				<option value="percentage">{$t('vouchers.typePercentage')}</option>
+				<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
+				<option value="points_multiplier"
+					>{$t('vouchers.typePointsMultiplier')}</option
+				>
+			</select>
+		</div>
+
+		<div>
+			<label for="value" class="label">{$t('vouchers.value')} *</label>
+			<div
+				class="flex gap-2 {$locale?.startsWith('en')
+					? 'flex-row-reverse'
+					: 'flex-row'}"
+			>
+				<input
+					id="value"
+					type="number"
+					step="0.01"
+					min="0"
+					required
+					bind:value
+					oninput={() => {
+						if (errors) errors = { ...errors, value: undefined };
+					}}
+					class="flex-1 input {errors?.value
+						? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+						: ''}"
+					placeholder="10.00"
+				/>
+				{#if type === 'fixed_amount'}
+					<select
+						id="currency"
+						bind:value={currency}
+						required
+						class="w-28 input"
+						style="font-size: 16px;"
+					>
+						<option value="CHF">CHF</option>
+						<option value="EUR">EUR</option>
+						<option value="USD">USD</option>
+						<option value="GBP">GBP</option>
+					</select>
+				{/if}
+			</div>
+			{#if errors?.value}
+				<p class="text-red-600 text-sm mt-1">{errors.value}</p>
+			{:else}
+				<p class="text-sm text-gray-500 mt-1">
+					{type === 'percentage'
+						? $t('vouchers.valueHintPercentage')
+						: type === 'points_multiplier'
+							? $t('vouchers.valueHintMultiplier')
+							: $t('vouchers.valueHintAmount')}
+				</p>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Verwendungsart -->
+	<div>
+		<label for="usageLimitType" class="label"
+			>{$t('vouchers.usageLimitType')}</label
+		>
+		<select
+			id="usageLimitType"
+			bind:value={usageLimitType}
+			class="input"
+			style="font-size: 16px;"
+		>
+			<option value="single_use"
+				>{$t('vouchers.usageLimitTypes.single_use')}</option
+			>
+			<option value="one_per_customer"
+				>{$t('vouchers.usageLimitTypes.one_per_customer')}</option
+			>
+			<option value="multiple_use_with_card"
+				>{$t('vouchers.usageLimitTypes.multiple_use_with_card')}</option
+			>
+			<option value="multiple_use_without_card"
+				>{$t('vouchers.usageLimitTypes.multiple_use_without_card')}</option
+			>
+		</select>
+		<p class="text-sm text-gray-500 mt-1">
+			{$t('vouchers.usageLimitTypeHint')}
+		</p>
+	</div>
+
+	<!-- Gültig von / Gültig bis -->
+	<div class="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+		<div>
+			<label for="validFrom" class="label">{$t('vouchers.validFrom')}</label>
+			<input
+				type="date"
+				id="validFrom"
+				bind:value={validFrom}
+				class="input w-full text-base"
+				style="min-width: 0;"
+			/>
+			<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+				{$t('vouchers.validFromHint')}
+			</p>
+		</div>
+
+		<div>
+			<div class="flex items-center justify-between mb-1">
+				<label for="validUntil" class="text-sm font-medium text-gray-700">
+					{$t('vouchers.validUntil')} *
+				</label>
+				<!-- Quick-Select Buttons (inline with label) -->
+				<div class="flex gap-1.5">
+					<button
+						type="button"
+						onclick={() => setExpiryOffset(30)}
+						class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+					>
+						{$t('vouchers.quickSelect.oneMonth')}
+					</button>
+					<button
+						type="button"
+						onclick={() => setExpiryOffset(90)}
+						class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+					>
+						{$t('vouchers.quickSelect.threeMonths')}
+					</button>
+				</div>
+			</div>
+			<input
+				type="date"
+				id="validUntil"
+				bind:value={validUntil}
+				oninput={() => {
+					if (errors) errors = { ...errors, validUntil: undefined };
+				}}
+				required
+				class="input w-full text-base {errors?.validUntil
+					? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+					: ''}"
+				style="min-width: 0;"
+			/>
+			{#if errors?.validUntil}
+				<p class="text-red-600 text-sm mt-1">{errors.validUntil}</p>
+			{:else}
+				<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+					{$t('vouchers.validUntilHint')}
+				</p>
+			{/if}
+		</div>
+	</div>
+
 	<div class="flex gap-2">
-		<button type="submit" class="btn btn-primary" disabled={isLoading}>
-			{isLoading ? $t('common.saving') : submitLabel}
+		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-secondary"
+		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
 	</div>

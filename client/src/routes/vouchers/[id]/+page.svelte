@@ -1,17 +1,12 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
 	import { locale, t } from '$lib/stores/i18n';
-	import {
-		vouchersApi,
-		sharedUsersApi,
-		merchantsApi,
-		ApiError
-	} from '$lib/api';
+	import { vouchersApi, merchantsApi, ApiError } from '$lib/api';
 	import { offlineDB } from '$lib/stores/offline-db';
 	import { toastStore } from '$lib/stores/toast';
 	import { formatCurrency } from '$lib/utils/currency';
@@ -21,13 +16,13 @@
 	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import type {
-		VoucherDTO,
-		ShareDTO,
-		MerchantDTO,
-		UserDTO
-	} from '$lib/types/api';
+	import VoucherForm from '$lib/components/vouchers/VoucherForm.svelte';
+	import type { VoucherDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
+	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
+	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import { detectBarcodeType } from '$lib/utils/barcode';
+	import TransferBox from '$lib/components/TransferBox.svelte';
+	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -41,7 +36,6 @@
 	let isLoading = $state(true);
 	let isRefreshing = $state(false);
 	let showShareForm = $state(false);
-	let showTransferForm = $state(false);
 	let shareEmail = $state('');
 	let transferEmail = $state('');
 	let isEditing = $state(false);
@@ -72,26 +66,10 @@
 	let showTransferModal = $state(false);
 	let shareToDelete: string | null = null;
 
-	// Autocomplete state (for share form)
-	let suggestedUsers = $state<UserDTO[]>([]);
-	let showSuggestions = $state(false);
-	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
-	// Autocomplete state (for transfer form)
-	let transferSuggestedUsers = $state<UserDTO[]>([]);
-	let showTransferSuggestions = $state(false);
-	let transferSearchTimeout: ReturnType<typeof setTimeout> | null = null;
-
 	const isOffline = $derived(!$isOnline);
 
 	onMount(async () => {
 		await Promise.all([loadVoucher(), loadMerchants()]);
-	});
-
-	// Cleanup debounced search timeouts on unmount (SVL-PERF-003)
-	onDestroy(() => {
-		if (searchTimeout) clearTimeout(searchTimeout);
-		if (transferSearchTimeout) clearTimeout(transferSearchTimeout);
 	});
 
 	async function loadVoucher() {
@@ -364,95 +342,6 @@
 		}
 	}
 
-	async function searchSharedUsers(query: string) {
-		if (searchTimeout) clearTimeout(searchTimeout);
-		if (query.length < 2) {
-			suggestedUsers = [];
-			showSuggestions = false;
-			return;
-		}
-		searchTimeout = setTimeout(async () => {
-			try {
-				const response = await sharedUsersApi.search(query);
-				suggestedUsers = response.users;
-				showSuggestions = true;
-			} catch (err) {
-				pageLogger.error('Failed to search users', { error: err });
-				suggestedUsers = [];
-			}
-		}, 300);
-	}
-
-	function selectUser(user: UserDTO) {
-		shareEmail = user.email;
-		showSuggestions = false;
-		suggestedUsers = [];
-	}
-
-	function onEmailInput(e: Event) {
-		const input = e.target as HTMLInputElement;
-		shareEmail = input.value;
-		searchSharedUsers(input.value);
-	}
-
-	function onEmailFocus(e: Event) {
-		const input = e.target as HTMLInputElement;
-		if (input.value.length >= 2) {
-			searchSharedUsers(input.value);
-		}
-	}
-
-	function onEmailBlur() {
-		setTimeout(() => {
-			showSuggestions = false;
-		}, 200);
-	}
-
-	// Transfer autocomplete functions
-	async function searchTransferUsers(query: string) {
-		if (transferSearchTimeout) clearTimeout(transferSearchTimeout);
-		if (query.length < 2) {
-			transferSuggestedUsers = [];
-			showTransferSuggestions = false;
-			return;
-		}
-		transferSearchTimeout = setTimeout(async () => {
-			try {
-				const response = await sharedUsersApi.search(query);
-				transferSuggestedUsers = response.users;
-				showTransferSuggestions = true;
-			} catch (err) {
-				pageLogger.error('Failed to search users', { error: err });
-				transferSuggestedUsers = [];
-			}
-		}, 300);
-	}
-
-	function selectTransferUser(user: UserDTO) {
-		transferEmail = user.email;
-		showTransferSuggestions = false;
-		transferSuggestedUsers = [];
-	}
-
-	function onTransferEmailInput(e: Event) {
-		const input = e.target as HTMLInputElement;
-		transferEmail = input.value;
-		searchTransferUsers(input.value);
-	}
-
-	function onTransferEmailFocus(e: Event) {
-		const input = e.target as HTMLInputElement;
-		if (input.value.length >= 2) {
-			searchTransferUsers(input.value);
-		}
-	}
-
-	function onTransferEmailBlur() {
-		setTimeout(() => {
-			showTransferSuggestions = false;
-		}, 200);
-	}
-
 	function getStatusBadge(status: string): { class: string; text: string } {
 		switch (status) {
 			case 'inactive':
@@ -525,80 +414,43 @@
 					>
 						<!-- Header -->
 						<div class="mb-6">
-							<div class="flex items-start justify-between gap-4 mb-3">
-								<div class="flex-1 min-w-0">
+							<ResourceHeader
+								{isOffline}
+								isFavorite={voucher.is_favorite}
+								{isTogglingFavorite}
+								canEdit={voucher.permissions?.can_edit}
+								favoriteTitleAdd={tr('common.addToFavorites')}
+								favoriteTitleRemove={tr('common.removeFromFavorites')}
+								ontoggleFavorite={toggleFavorite}
+								onstartEdit={startEdit}
+							>
+								{#snippet children()}
+									{@const v = voucher!}
 									<div class="flex items-baseline gap-3 flex-wrap mb-2">
 										<h1
 											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
 										>
-											{#if voucher.merchant}
-												{voucher.merchant.name}
+											{#if v.merchant}
+												{v.merchant.name}
 											{:else}
 												{tr('vouchers.title')}
 											{/if}
 										</h1>
 										<span class="text-sm text-gray-600">
-											{voucher.usage_limit_type === 'single_use'
+											{v.usage_limit_type === 'single_use'
 												? tr('vouchers.singleUseOnly')
 												: tr('vouchers.multipleUse')}
 										</span>
-										{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
+										{#if v.owner && v.owner.id !== $authStore.user?.id}
 											<span class="text-xs text-gray-400">
 												{tr('vouchers.sharedBy', {
-													name: voucher.owner.first_name || voucher.owner.email
+													name: v.owner.first_name || v.owner.email
 												})}
 											</span>
 										{/if}
 									</div>
-								</div>
-								<div class="flex gap-2 flex-shrink-0">
-									<!-- Favorite Button -->
-									<button
-										data-testid="favorite-button"
-										onclick={() => toggleFavorite()}
-										disabled={isOffline || isTogglingFavorite}
-										class="btn btn-xs {voucher.is_favorite
-											? 'btn-favorite'
-											: 'bg-gray-200 hover:bg-gray-300 text-gray-700'} {isOffline ||
-										isTogglingFavorite
-											? 'opacity-50 cursor-not-allowed'
-											: ''}"
-										title={voucher.is_favorite
-											? tr('common.removeFromFavorites')
-											: tr('common.addToFavorites')}
-									>
-										<span class="inline-block w-4 text-center leading-none"
-											>{voucher.is_favorite ? '★' : '☆'}</span
-										>
-									</button>
-									{#if voucher.permissions?.can_edit}
-										<button
-											onclick={() => startEdit()}
-											disabled={isOffline}
-											class="btn btn-xs btn-gray whitespace-nowrap flex items-center gap-1.5 {isOffline
-												? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-												: ''}"
-										>
-											{#if isOffline}
-												<svg
-													class="w-3.5 h-3.5"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-													></path>
-												</svg>
-											{/if}
-											{tr('common.edit')}
-										</button>
-									{/if}
-								</div>
-							</div>
+								{/snippet}
+							</ResourceHeader>
 
 							<!-- Duplicate Warning -->
 							{#if voucher.duplicate_warning}
@@ -636,56 +488,35 @@
 					style="border-top: 4px solid #3B82F6"
 				>
 					<div class="p-6">
-						<form
-							class="space-y-6"
-							onsubmit={(e) => {
-								e.preventDefault();
-								saveEdit();
-							}}
-						>
-							<div>
-								<label
-									for="merchant-select"
-									class="block text-sm font-medium text-gray-700 mb-1"
+						<VoucherForm
+							bind:code={editCode}
+							bind:merchantId={editMerchantId}
+							bind:type={editType}
+							bind:value={editValue}
+							bind:currency={editCurrency}
+							bind:barcodeType={editBarcodeType}
+							bind:validFrom={editValidFrom}
+							bind:validUntil={editValidUntil}
+							bind:usageLimitType={editUsageLimitType}
+							bind:description={editDescription}
+							onSubmit={saveEdit}
+							onCancel={cancelEdit}
+							isLoading={false}
+							submitLabel={tr('common.save')}
+						/>
+						{#if voucher.permissions?.can_delete}
+							<div class="pt-4 mt-4 border-t border-gray-200">
+								<button
+									type="button"
+									onclick={promptDelete}
+									disabled={isOffline}
+									class="btn btn-text-danger w-full flex items-center justify-center gap-1.5 {isOffline
+										? 'pointer-events-none blur-[0.5px]'
+										: ''}"
 								>
-									{tr('vouchers.merchant')}
-								</label>
-								<select
-									id="merchant-select"
-									bind:value={editMerchantId}
-									class="input"
-								>
-									<option value="">{tr('vouchers.merchantSelect')}</option>
-									{#each merchants as merchant}
-										<option value={merchant.id}>{merchant.name}</option>
-									{/each}
-								</select>
-							</div>
-
-							<div>
-								<label
-									for="code"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.code')} *
-								</label>
-								<div class="flex gap-2">
-									<input
-										type="text"
-										id="code"
-										bind:value={editCode}
-										oninput={handleCodeInput}
-										required
-										class="input font-mono flex-1"
-									/>
-									<button
-										type="button"
-										onclick={() => (scannerOpen = true)}
-										class="btn btn-primary flex-shrink-0"
-										title="Barcode mit Kamera scannen"
-									>
+									{#if isOffline}
 										<svg
-											class="w-5 h-5"
+											class="w-3.5 h-3.5"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -694,293 +525,14 @@
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-											></path>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+												d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
 											></path>
 										</svg>
-										<span class="hidden sm:inline">{tr('common.scan')}</span>
-									</button>
-								</div>
-							</div>
-
-							<!-- Scanner Modal (lazy loaded) -->
-							{#if scannerOpen}
-								{#await import('$lib/components/BarcodeScanner.svelte') then module}
-									{@const BarcodeScanner = module.default}
-									<BarcodeScanner bind:open={scannerOpen} onscan={handleScan} />
-								{/await}
-							{/if}
-
-							<!-- Barcode Type -->
-							<div>
-								<label
-									for="barcode_type_edit"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.barcodeType')} *
-								</label>
-								<select
-									id="barcode_type_edit"
-									bind:value={editBarcodeType}
-									class="input"
-									required
-								>
-									<option value="CODE128">CODE128</option>
-									<option value="CODE39">CODE39</option>
-									<option value="CODE93">CODE93</option>
-									<option value="CODABAR">CODABAR</option>
-									<option value="QR">QR Code</option>
-									<option value="EAN13">EAN-13</option>
-									<option value="EAN8">EAN-8</option>
-									<option value="UPCA">UPC-A</option>
-									<option value="UPCE">UPC-E</option>
-									<option value="ITF">ITF</option>
-									<option value="ITF14">ITF-14</option>
-									<option value="ISBN13">ISBN-13</option>
-									<option value="PDF417">PDF417</option>
-									<option value="DATAMATRIX">Data Matrix</option>
-									<option value="AZTEC">Aztec</option>
-									<option value="MAXICODE">MaxiCode</option>
-								</select>
-							</div>
-
-							<div>
-								<label
-									for="description"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.description')}
-								</label>
-								<textarea
-									id="description"
-									bind:value={editDescription}
-									rows="3"
-									class="input"
-								></textarea>
-							</div>
-
-							<!-- Typ / Wert -->
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label
-										for="type"
-										class="block text-sm font-medium text-gray-700 mb-1"
-									>
-										{tr('vouchers.type')} *
-									</label>
-									<select
-										id="type"
-										bind:value={editType}
-										required
-										class="input"
-									>
-										<option value="percentage"
-											>{tr('vouchers.types.percentage')}</option
-										>
-										<option value="fixed_amount"
-											>{tr('vouchers.types.fixedAmount')}</option
-										>
-										<option value="points_multiplier"
-											>{tr('vouchers.types.pointsMultiplier')}</option
-										>
-									</select>
-								</div>
-
-								<div>
-									<label
-										for="value"
-										class="block text-sm font-medium text-gray-700 mb-1"
-									>
-										Wert *
-									</label>
-									<div
-										class="flex gap-2 {$locale?.startsWith('en')
-											? 'flex-row-reverse'
-											: 'flex-row'}"
-									>
-										<input
-											type="number"
-											step="0.01"
-											id="value"
-											bind:value={editValue}
-											required
-											class="input flex-1"
-										/>
-										{#if editType === 'fixed_amount'}
-											<select
-												id="currency"
-												bind:value={editCurrency}
-												required
-												class="input w-28"
-											>
-												<option value="CHF">CHF</option>
-												<option value="EUR">EUR</option>
-												<option value="USD">USD</option>
-												<option value="GBP">GBP</option>
-											</select>
-										{/if}
-									</div>
-									<p class="text-sm text-gray-500 mt-1">
-										{editType === 'percentage'
-											? tr('vouchers.types.percentageHint')
-											: editType === 'points_multiplier'
-												? tr('vouchers.types.pointsMultiplierHint')
-												: tr('vouchers.types.fixedAmountHint')}
-									</p>
-								</div>
-							</div>
-
-							<!-- Gültig von / Gültig bis -->
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div class="min-w-0">
-									<label
-										for="valid_from"
-										class="block text-sm font-medium text-gray-700 mb-1"
-									>
-										{tr('vouchers.validFrom')}
-									</label>
-									<input
-										type="date"
-										id="valid_from"
-										bind:value={editValidFrom}
-										class="input w-full max-w-full"
-										style="min-width: 0;"
-									/>
-									<p class="text-xs text-gray-500 mt-1 hidden sm:block">
-										{tr('vouchers.validFromHint')}
-									</p>
-								</div>
-
-								<div class="min-w-0">
-									<div class="flex items-center justify-between mb-1">
-										<label
-											for="valid_until"
-											class="text-sm font-medium text-gray-700"
-										>
-											{tr('vouchers.validUntil')} *
-										</label>
-										<!-- Quick-Select Buttons (inline with label) -->
-										<div class="flex gap-1.5">
-											<button
-												type="button"
-												onclick={() => setEditExpiryOffset(30)}
-												class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
-											>
-												{tr('vouchers.quickSelect.oneMonth')}
-											</button>
-											<button
-												type="button"
-												onclick={() => setEditExpiryOffset(90)}
-												class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
-											>
-												{tr('vouchers.quickSelect.threeMonths')}
-											</button>
-										</div>
-									</div>
-
-									<input
-										type="date"
-										id="valid_until"
-										bind:value={editValidUntil}
-										required
-										class="input w-full max-w-full"
-										style="min-width: 0;"
-									/>
-									<p class="text-xs text-gray-500 mt-1 hidden sm:block">
-										{tr('vouchers.validUntilHint')}
-									</p>
-								</div>
-							</div>
-
-							<!-- Verwendungsart -->
-							<div>
-								<label
-									for="usage_limit_type"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.usageLimitType')}
-								</label>
-								<select
-									id="usage_limit_type"
-									bind:value={editUsageLimitType}
-									class="input"
-								>
-									<option value="single_use"
-										>{tr('vouchers.usageLimitTypes.single_use')}</option
-									>
-									<option value="one_per_customer"
-										>{tr('vouchers.usageLimitTypes.one_per_customer')}</option
-									>
-									<option value="multiple_use_with_card"
-										>{tr(
-											'vouchers.usageLimitTypes.multiple_use_with_card'
-										)}</option
-									>
-									<option value="multiple_use_without_card"
-										>{tr(
-											'vouchers.usageLimitTypes.multiple_use_without_card'
-										)}</option
-									>
-								</select>
-								<p class="text-sm text-gray-500 mt-1">
-									{tr('vouchers.usageLimitTypeHint')}
-								</p>
-							</div>
-
-							<div class="flex gap-2">
-								<button
-									type="submit"
-									disabled={isOffline}
-									class="btn btn-primary flex-1 {isOffline
-										? 'opacity-50 cursor-not-allowed'
-										: ''}"
-								>
-									{tr('common.save')}
-								</button>
-								<button
-									type="button"
-									onclick={cancelEdit}
-									class="btn btn-ghost"
-								>
-									{tr('common.cancel')}
+									{/if}
+									{tr('vouchers.deleteButton')}
 								</button>
 							</div>
-
-							{#if voucher.permissions?.can_delete}
-								<div class="pt-4 border-t border-gray-200">
-									<button
-										type="button"
-										onclick={promptDelete}
-										disabled={isOffline}
-										class="btn-text-danger w-full flex items-center justify-center gap-1.5 {isOffline
-											? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-											: ''}"
-									>
-										{#if isOffline}
-											<svg
-												class="w-3.5 h-3.5"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-												></path>
-											</svg>
-										{/if}
-										{tr('vouchers.deleteButton')}
-									</button>
-								</div>
-							{/if}
-						</form>
+						{/if}
 					</div>
 				</div>
 			{/if}
@@ -990,136 +542,24 @@
 		<div class="lg:col-span-1 space-y-4">
 			{#if voucher.permissions?.is_owner}
 				<!-- Transfer Box -->
-				<div
-					class="bg-white rounded-lg shadow-lg p-6 border-2 border-purple-200"
-				>
-					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-purple-900">
-							{tr('common.transferOwnership')}
-						</h3>
-						{#if !showTransferForm}
-							<button
-								onclick={() => (showTransferForm = true)}
-								disabled={isOffline}
-								class="btn btn-xs btn-purple whitespace-nowrap flex items-center gap-1.5 {isOffline
-									? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-									: ''}"
-							>
-								{#if isOffline}
-									<svg
-										class="w-3.5 h-3.5"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-										></path>
-									</svg>
-									{tr('vouchers.transfer.transferButton')}
-								{:else}
-									{tr('vouchers.transfer.button')}
-								{/if}
-							</button>
-						{/if}
-					</div>
-
-					{#if showTransferForm}
-						<div
-							class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
-						>
-							<div
-								class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4"
-							>
-								<p class="text-sm font-medium text-yellow-800">
-									<strong>{tr('vouchers.transfer.warning')}</strong>
-								</p>
-								<p class="text-xs text-yellow-700 mt-1">
-									{tr('vouchers.transfer.warningDetail')}
-								</p>
-							</div>
-							<div class="relative">
-								<label
-									for="transfer-email-input"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.transfer.newOwner')} *
-								</label>
-								<input
-									id="transfer-email-input"
-									type="email"
-									value={transferEmail}
-									oninput={onTransferEmailInput}
-									onfocus={onTransferEmailFocus}
-									onblur={onTransferEmailBlur}
-									required
-									placeholder="benutzer@example.com"
-									autocomplete="off"
-									class="input bg-white"
-								/>
-								<p class="text-xs text-gray-500 mt-1">
-									{tr('giftCards.sharing.userMustBeRegistered')}
-								</p>
-
-								{#if showTransferSuggestions && transferSuggestedUsers.length > 0}
-									<div
-										class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
-									>
-										{#each transferSuggestedUsers as user}
-											<button
-												type="button"
-												onclick={() => selectTransferUser(user)}
-												class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-											>
-												<div class="font-medium text-sm text-gray-900">
-													{#if user.first_name && user.last_name}
-														{user.first_name} {user.last_name}
-													{:else if user.first_name}
-														{user.first_name}
-													{:else}
-														{user.email}
-													{/if}
-												</div>
-												<div class="text-xs text-gray-500">{user.email}</div>
-											</button>
-										{/each}
-									</div>
-								{/if}
-							</div>
-							<div>
-								<p class="text-sm font-medium text-gray-700 mb-2">
-									{tr('vouchers.transfer.whatHappens')}
-								</p>
-								<ul class="text-xs text-gray-600 space-y-1">
-									<li>{tr('vouchers.transfer.newOwnerGetsRights')}</li>
-									<li>{tr('vouchers.transfer.allSharesDeleted')}</li>
-									<li>{tr('vouchers.transfer.youLoseAccess')}</li>
-									<li>{tr('vouchers.transfer.transferLogged')}</li>
-								</ul>
-							</div>
-							<div class="flex gap-2">
-								<button
-									onclick={promptTransfer}
-									disabled={isOffline}
-									class="btn btn-purple flex-1 {isOffline
-										? 'opacity-50 cursor-not-allowed'
-										: ''}"
-								>
-									{tr('vouchers.transfer.transferNow')}
-								</button>
-								<button
-									onclick={() => (showTransferForm = false)}
-									class="btn btn-ghost"
-								>
-									{tr('common.cancel')}
-								</button>
-							</div>
-						</div>
-					{/if}
-				</div>
+				<TransferBox
+					{isOffline}
+					openButtonLabel={tr('vouchers.transfer.button')}
+					transferButtonLabel={tr('vouchers.transfer.transferButton')}
+					warningTitle={tr('vouchers.transfer.warning')}
+					warningDetails={tr('vouchers.transfer.warningDetail')}
+					emailLabel={tr('vouchers.transfer.newOwner')}
+					emailHint={tr('giftCards.sharing.userMustBeRegistered')}
+					whatHappensLabel={tr('vouchers.transfer.whatHappens')}
+					details={[
+						tr('vouchers.transfer.newOwnerGetsRights'),
+						tr('vouchers.transfer.allSharesDeleted'),
+						tr('vouchers.transfer.youLoseAccess'),
+						tr('vouchers.transfer.transferLogged')
+					]}
+					bind:email={transferEmail}
+					ontransfer={promptTransfer}
+				/>
 
 				<!-- Sharing Box -->
 				<div class="bg-white rounded-lg shadow-lg p-6">
@@ -1161,54 +601,13 @@
 						<div
 							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
 						>
-							<div class="relative">
-								<label
-									for="share-email-input"
-									class="block text-sm font-medium text-gray-700 mb-1"
-								>
-									{tr('vouchers.sharing.userEmail')} *
-								</label>
-								<input
-									id="share-email-input"
-									type="email"
-									value={shareEmail}
-									oninput={onEmailInput}
-									onfocus={onEmailFocus}
-									onblur={onEmailBlur}
-									required
-									placeholder="benutzer@example.com"
-									autocomplete="off"
-									class="input bg-white"
-								/>
-								<p class="text-xs text-gray-500 mt-1">
-									{tr('vouchers.sharing.hint')}
-								</p>
-
-								{#if showSuggestions && suggestedUsers.length > 0}
-									<div
-										class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
-									>
-										{#each suggestedUsers as user}
-											<button
-												type="button"
-												onclick={() => selectUser(user)}
-												class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-											>
-												<div class="font-medium text-sm text-gray-900">
-													{#if user.first_name && user.last_name}
-														{user.first_name} {user.last_name}
-													{:else if user.first_name}
-														{user.first_name}
-													{:else}
-														{user.email}
-													{/if}
-												</div>
-												<div class="text-xs text-gray-500">{user.email}</div>
-											</button>
-										{/each}
-									</div>
-								{/if}
-							</div>
+							<EmailAutocomplete
+								bind:value={shareEmail}
+								label={tr('vouchers.sharing.userEmail')}
+								hint={tr('vouchers.sharing.hint')}
+								inputId="share-email-input"
+								disabled={isOffline}
+							/>
 
 							<div class="bg-white border border-cyan-200 rounded-lg p-3">
 								<h4 class="font-medium text-cyan-900 text-sm mb-2">
@@ -1250,27 +649,19 @@
 					{#if shares.length > 0}
 						<div class="space-y-3">
 							{#each shares as share}
-								{#if managingShareId === share.shared_with_user.id}
-									<!-- Manage Mode (Delete only for vouchers) -->
-									<div
-										class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
-									>
-										<div>
-											<p class="font-medium text-gray-900 text-sm">
-												{#if share.shared_with_user?.first_name && share.shared_with_user?.last_name}
-													{share.shared_with_user.first_name}
-													{share.shared_with_user.last_name}
-												{:else if share.shared_with_user?.first_name}
-													{share.shared_with_user.first_name}
-												{:else}
-													{share.shared_with_user?.email || 'Unknown User'}
-												{/if}
-											</p>
-											<p class="text-xs text-gray-500">
-												{share.shared_with_user?.email || ''}
-											</p>
-										</div>
-
+								<ShareListItem
+									{share}
+									isEditing={managingShareId === share.shared_with_user.id}
+									{isOffline}
+									editButtonLabel={tr('common.manage')}
+									deleteButtonLabel={tr('vouchers.sharing.removeShare')}
+									alwaysViewOnly={true}
+									onstartEdit={() =>
+										startManageShare(share.shared_with_user.id)}
+									oncancel={cancelManageShare}
+									ondelete={() => promptDeleteShare(share.shared_with_user.id)}
+								>
+									{#snippet children()}
 										<div
 											class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
 										>
@@ -1281,100 +672,8 @@
 												{tr('vouchers.sharing.canOnlyRemove')}
 											</p>
 										</div>
-
-										<div class="flex gap-2">
-											<button
-												onclick={cancelManageShare}
-												class="btn btn-ghost flex-1"
-											>
-												{tr('common.cancel')}
-											</button>
-										</div>
-
-										<div class="pt-2 border-t border-cyan-200">
-											<button
-												type="button"
-												onclick={() =>
-													promptDeleteShare(share.shared_with_user.id)}
-												disabled={isOffline}
-												class="btn-text-danger w-full flex items-center justify-center gap-1.5 {isOffline
-													? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-													: ''}"
-											>
-												{#if isOffline}
-													<svg
-														class="w-3.5 h-3.5"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-														></path>
-													</svg>
-												{/if}
-												{tr('vouchers.sharing.removeShare')}
-											</button>
-										</div>
-									</div>
-								{:else}
-									<!-- View Mode -->
-									<div class="border border-gray-200 rounded-lg p-3">
-										<div class="flex justify-between items-start mb-2">
-											<div class="flex-1">
-												<p class="font-medium text-gray-900 text-sm">
-													{#if share.shared_with_user?.first_name && share.shared_with_user?.last_name}
-														{share.shared_with_user.first_name}
-														{share.shared_with_user.last_name}
-													{:else if share.shared_with_user?.first_name}
-														{share.shared_with_user.first_name}
-													{:else}
-														{share.shared_with_user?.email || 'Unknown User'}
-													{/if}
-												</p>
-												<p class="text-xs text-gray-500">
-													{share.shared_with_user?.email || ''}
-												</p>
-											</div>
-											<button
-												onclick={() =>
-													startManageShare(share.shared_with_user.id)}
-												disabled={isOffline}
-												class="btn-text text-xs flex items-center gap-1 {isOffline
-													? 'opacity-50 cursor-not-allowed'
-													: ''}"
-											>
-												{#if isOffline}
-													<svg
-														class="w-3 h-3"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-														></path>
-													</svg>
-												{:else}
-													{tr('common.manage')}
-												{/if}
-											</button>
-										</div>
-										<div class="flex flex-wrap gap-1">
-											<span
-												class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
-											>
-												{tr('common.viewOnly')}
-											</span>
-										</div>
-									</div>
-								{/if}
+									{/snippet}
+								</ShareListItem>
 							{/each}
 						</div>
 					{:else}
