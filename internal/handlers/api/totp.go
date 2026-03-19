@@ -134,7 +134,9 @@ func destroy2FAPendingSession(c echo.Context) {
 	delete(session.Values, middleware.SessionKey2FAPendingUserID)
 	delete(session.Values, middleware.SessionKey2FAPendingCreatedAt)
 	delete(session.Values, middleware.SessionKey2FAFailedAttempts)
-	_ = middleware.SaveSession(c, session)
+	if err := middleware.SaveSession(c, session); err != nil {
+		slog.WarnContext(c.Request().Context(), "failed to persist 2FA session cleanup", "error", err)
+	}
 }
 
 // Challenge verifies a TOTP code during login (step 2 of 2FA login).

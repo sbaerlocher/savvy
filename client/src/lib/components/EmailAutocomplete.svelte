@@ -109,6 +109,10 @@
 		id={inputId}
 		type="email"
 		{value}
+		role="combobox"
+		aria-expanded={showSuggestions}
+		aria-controls="{inputId}-listbox"
+		aria-activedescendant={highlightedIndex >= 0 ? `{inputId}-option-${highlightedIndex}` : undefined}
 		oninput={onInput}
 		onfocus={onFocus}
 		onblur={onBlur}
@@ -122,11 +126,15 @@
 
 	{#if showSuggestions && suggestedUsers.length > 0}
 		<div
+			id="{inputId}-listbox"
+			role="listbox"
 			class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
 		>
 			{#each suggestedUsers as user, index}
 				<button
+					id="{inputId}-option-{index}"
 					type="button"
+					role="option"
 					onclick={() => selectUser(user)}
 					aria-selected={index === highlightedIndex}
 					class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none {index ===
