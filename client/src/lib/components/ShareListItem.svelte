@@ -120,7 +120,9 @@
 			<button
 				onclick={onstartEdit}
 				disabled={isOffline}
-				aria-label={isOffline ? $t('common.offlineEditDisabled') : (editButtonLabel ?? $t('common.edit'))}
+				aria-label={isOffline
+					? $t('common.offlineEditDisabled')
+					: (editButtonLabel ?? $t('common.edit'))}
 				class="btn-text text-xs flex items-center gap-1"
 			>
 				{#if isOffline}

@@ -241,11 +241,11 @@ func InitAllDependencies(cfg *config.Config) (func(context.Context) error, *oaut
 
 // RateLimiters holds all rate limiters used by the application.
 type RateLimiters struct {
-	Global        *middleware.IPRateLimiter
-	Auth          *middleware.IPRateLimiter
-	PasswordReset *middleware.IPRateLimiter
+	Global         *middleware.IPRateLimiter
+	Auth           *middleware.IPRateLimiter
+	PasswordReset  *middleware.IPRateLimiter
 	TwoFAChallenge *middleware.IPRateLimiter // Stricter limiter for 2FA challenge endpoint
-	User          *middleware.UserRateLimiter
+	User           *middleware.UserRateLimiter
 }
 
 // InitRateLimiters creates and returns rate limiters for global and auth endpoints.

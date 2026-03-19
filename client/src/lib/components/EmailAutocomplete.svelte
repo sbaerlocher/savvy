@@ -83,7 +83,10 @@
 		if (!showSuggestions || suggestedUsers.length === 0) return;
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
-			highlightedIndex = Math.min(highlightedIndex + 1, suggestedUsers.length - 1);
+			highlightedIndex = Math.min(
+				highlightedIndex + 1,
+				suggestedUsers.length - 1
+			);
 		} else if (event.key === 'ArrowUp') {
 			event.preventDefault();
 			highlightedIndex = Math.max(highlightedIndex - 1, -1);
@@ -99,7 +102,8 @@
 
 <div class="relative">
 	<label for={inputId} class="block text-sm font-medium text-gray-700 mb-1">
-		{label}{#if required} *{/if}
+		{label}{#if required}
+			*{/if}
 	</label>
 	<input
 		id={inputId}
@@ -125,7 +129,10 @@
 					type="button"
 					onclick={() => selectUser(user)}
 					aria-selected={index === highlightedIndex}
-					class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none {index === highlightedIndex ? 'bg-gray-100' : ''}"
+					class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none {index ===
+					highlightedIndex
+						? 'bg-gray-100'
+						: ''}"
 				>
 					<div class="font-medium text-sm text-gray-900">
 						{#if user.first_name && user.last_name}
