@@ -14,7 +14,7 @@ permissions:
 jobs:
   api-ci:
     name: Go CI Pipeline
-    uses: sbaerlocher/.github/.github/workflows/ci-go.yml@2026-03-20
+    uses: sbaerlocher/.github/.github/workflows/ci-go.yml@2026-03-22
     with:
       # renovate: datasource=golang-version depName=golang
       go-version: "1.26"
@@ -35,7 +35,7 @@ jobs:
 
   client-ci:
     name: Client CI Pipeline
-    uses: sbaerlocher/.github/.github/workflows/ci-js.yml@2026-03-20
+    uses: sbaerlocher/.github/.github/workflows/ci-js.yml@2026-03-22
     with:
       package-manager: "npm"
       working-directory: "./client"
@@ -57,7 +57,7 @@ jobs:
 
   helm-test:
     name: Helm Chart Test
-    uses: sbaerlocher/.github/.github/workflows/helm-test.yml@2026-03-20
+    uses: sbaerlocher/.github/.github/workflows/helm-test.yml@2026-03-22
     with:
       chart-path: "deploy/helm"
       enable-kind-tests: true
