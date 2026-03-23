@@ -236,7 +236,7 @@ services:
   # ============================================================================
   mailpit:
     profiles: ["dev", ""]
-    image: axllent/mailpit:latest@sha256:fdaf09bd71dc0829ce8b62e4bfb5180bc5c0674c3e444283fc90681853f5a3c0
+    image: axllent/mailpit:latest@sha256:0530ab1c658a0f225f148e617522db84053bd1e4879e664c23de5fee44ad6819
     container_name: savvy-mailpit
     restart: unless-stopped
     ports:
@@ -253,7 +253,7 @@ services:
   # OpenTelemetry Collector - receives OTLP from apps, exports to backends
   otel-collector:
     profiles: ["observability"]
-    image: otel/opentelemetry-collector-contrib:0.147.0@sha256:e7c92c715f28ff142f3bcaccd4fc5603cf4c71276ef09954a38eb4038500a5a5
+    image: otel/opentelemetry-collector-contrib:0.148.0@sha256:8164eab2e6bca9c9b0837a8d2f118a6618489008a839db7f9d6510e66be3923c
     container_name: savvy-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otel-collector-config.yaml"]
