@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/models"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
+	"gorm.io/gorm"
 )
 
 // VouchersHandler handles voucher API endpoints.
@@ -165,14 +167,10 @@ func (h *VouchersHandler) Show(c *echo.Context) error {
 		shares = ToVoucherShareDTOs(voucherShares)
 	}
 
-	// No duplicate check for Show
-	var duplicateWarning *DuplicateWarning
-
 	return c.JSON(http.StatusOK, VoucherDetailResponse{
-		Voucher:          voucherDTO,
-		Permissions:      *voucherDTO.Permissions,
-		Shares:           shares,
-		DuplicateWarning: duplicateWarning,
+		Voucher:     voucherDTO,
+		Permissions: *voucherDTO.Permissions,
+		Shares:      shares,
 	})
 }
 
@@ -265,7 +263,8 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
 	if err != nil {
-		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		// Don't fail the request, just log — worst case the DB constraint catches it
 	}
 	if duplicate != nil {
 		slog.InfoContext(c.Request().Context(), "duplicate voucher blocked", "existing_id", duplicate.ID)
@@ -299,6 +298,21 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), voucher); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			// TOCTOU race: re-fetch to return details
+			if existing, _ := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil); existing != nil {
+				return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+					Error:   "duplicate_barcode",
+					Message: "A voucher with this code already exists",
+					Duplicate: &DuplicateWarning{
+						HasDuplicate:   true,
+						MerchantName:   existing.MerchantName,
+						ResourceNumber: existing.Code,
+						ExistingID:     existing.ID.String(),
+					},
+				})
+			}
+		}
 		slog.ErrorContext(c.Request().Context(), "failed to create voucher", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",

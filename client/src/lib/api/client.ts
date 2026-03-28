@@ -23,7 +23,7 @@ export class ApiError extends Error {
 		public error: string,
 		message: string,
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		public data?: Record<string, any>
+		public data?: Record<string, any> // Full error response body (e.g. { duplicate: DuplicateWarning } for 409)
 	) {
 		super(message);
 		this.name = 'ApiError';

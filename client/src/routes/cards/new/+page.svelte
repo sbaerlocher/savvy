@@ -5,6 +5,7 @@
 	import { cardsApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
 	import type { DuplicateWarning } from '$lib/types/api';
+	import { extractDuplicate } from '$lib/utils/api-errors';
 
 	import { logger } from '$lib/utils/logger';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
@@ -48,8 +49,9 @@
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/cards/${response.card.id}`;
 		} catch (err: any) {
-			if (err.error === 'duplicate_barcode' && err.data?.duplicate) {
-				duplicateWarning = err.data.duplicate as DuplicateWarning;
+			const duplicate = extractDuplicate(err);
+			if (duplicate) {
+				duplicateWarning = duplicate;
 			} else {
 				toastStore.error(err.message || tr('cards.createError'));
 			}

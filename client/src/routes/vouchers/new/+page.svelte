@@ -7,6 +7,7 @@
 	import { logger } from '$lib/utils/logger';
 
 	import type { DuplicateWarning } from '$lib/types/api';
+	import { extractDuplicate } from '$lib/utils/api-errors';
 	import VoucherForm from '$lib/components/vouchers/VoucherForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
@@ -91,8 +92,9 @@
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/vouchers/${response.voucher.id}`;
 		} catch (err: any) {
-			if (err.error === 'duplicate_barcode' && err.data?.duplicate) {
-				duplicateWarning = err.data.duplicate as DuplicateWarning;
+			const duplicate = extractDuplicate(err);
+			if (duplicate) {
+				duplicateWarning = duplicate;
 			} else {
 				toastStore.error(err.message || tr('vouchers.createError'));
 			}

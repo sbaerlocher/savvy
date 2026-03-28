@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
+	"gorm.io/gorm"
 )
 
 // GiftCardsHandler handles gift card API endpoints.
@@ -194,15 +196,11 @@ func (h *GiftCardsHandler) Show(c *echo.Context) error {
 		shares = ToGiftCardShareDTOs(giftCardShares)
 	}
 
-	// No duplicate check for Show
-	var duplicateWarning *DuplicateWarning
-
 	return c.JSON(http.StatusOK, GiftCardDetailResponse{
-		GiftCard:         giftCardDTO,
-		Permissions:      *giftCardDTO.Permissions,
-		Transactions:     transactions,
-		Shares:           shares,
-		DuplicateWarning: duplicateWarning,
+		GiftCard:     giftCardDTO,
+		Permissions:  *giftCardDTO.Permissions,
+		Transactions: transactions,
+		Shares:       shares,
 	})
 }
 
@@ -273,7 +271,8 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
-		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		// Don't fail the request, just log — worst case the DB constraint catches it
 	}
 	if duplicate != nil {
 		slog.InfoContext(c.Request().Context(), "duplicate gift card blocked", "existing_id", duplicate.ID)
@@ -304,6 +303,22 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.giftCardService.CreateGiftCard(c.Request().Context(), giftCard); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			// TOCTOU race: re-fetch to return details
+			if existing, _ := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil); existing != nil {
+				return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+					Error:   "duplicate_barcode",
+					Message: "A gift card with this number already exists",
+					Duplicate: &DuplicateWarning{
+						HasDuplicate:   true,
+						MerchantName:   existing.MerchantName,
+						ResourceNumber: existing.CardNumber,
+						ExistingID:     existing.ID.String(),
+					},
+				})
+			}
+		}
+		slog.ErrorContext(c.Request().Context(), "failed to create gift card", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to create gift card",
