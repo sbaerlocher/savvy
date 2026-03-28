@@ -4,11 +4,14 @@
 	import { t } from '$lib/stores/i18n';
 	import { cardsApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
+	import type { DuplicateWarning } from '$lib/types/api';
+	import { extractDuplicate } from '$lib/utils/api-errors';
 
 	import { logger } from '$lib/utils/logger';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
+	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -21,6 +24,7 @@
 	let barcodeType = $state('CODE128');
 	let notes = $state('');
 	let isLoading = $state(false);
+	let duplicateWarning = $state<DuplicateWarning | null>(null);
 
 	// Sharing state
 	let shareEmail = $state('');
@@ -29,6 +33,7 @@
 
 	async function handleSubmit() {
 		isLoading = true;
+		duplicateWarning = null;
 		try {
 			const response = await cardsApi.create({
 				card_number: cardNumber,
@@ -44,7 +49,12 @@
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/cards/${response.card.id}`;
 		} catch (err: any) {
-			toastStore.error(err.message || tr('cards.createError'));
+			const duplicate = extractDuplicate(err);
+			if (duplicate) {
+				duplicateWarning = duplicate;
+			} else {
+				toastStore.error(err.message || tr('cards.createError'));
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -72,6 +82,11 @@
 			<h1 class="text-3xl font-bold text-gray-900 mb-6">
 				{tr('cards.newCard')}
 			</h1>
+			<DuplicateWarningBanner
+				warning={duplicateWarning}
+				resourceType="card"
+				onNavigate={(id) => goto(`/cards/${id}`)}
+			/>
 			<CardForm
 				bind:cardNumber
 				bind:merchantId

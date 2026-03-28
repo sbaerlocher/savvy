@@ -5,6 +5,7 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
+	"gorm.io/gorm"
 )
 
 // CardsHandler handles card API endpoints.
@@ -169,14 +171,10 @@ func (h *CardsHandler) Show(c *echo.Context) error {
 		shares = ToCardShareDTOs(cardShares)
 	}
 
-	// No duplicate check for Show (only for Create/Update)
-	var duplicateWarning *DuplicateWarning
-
 	return c.JSON(http.StatusOK, CardDetailResponse{
-		Card:             cardDTO,
-		Permissions:      permDTO,
-		Shares:           shares,
-		DuplicateWarning: duplicateWarning,
+		Card:        cardDTO,
+		Permissions: permDTO,
+		Shares:      shares,
 	})
 }
 
@@ -270,21 +268,24 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Check for duplicates (warning only, doesn't block creation)
-	var duplicateWarning *DuplicateWarning
+	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
-		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
-		// Don't fail the request, just log
+		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		// Don't fail the request, just log — worst case the DB constraint catches it
 	}
 	if duplicate != nil {
-		duplicateWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   duplicate.MerchantName,
-			ResourceNumber: duplicate.CardNumber,
-			ExistingID:     duplicate.ID.String(),
-		}
-		slog.InfoContext(c.Request().Context(), "duplicate card detected", "existing_id", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate card blocked", "existing_id", duplicate.ID)
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A card with this number already exists",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   duplicate.MerchantName,
+				ResourceNumber: duplicate.CardNumber,
+				ExistingID:     duplicate.ID.String(),
+			},
+		})
 	}
 
 	// Create card
@@ -300,6 +301,21 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.cardService.CreateCard(c.Request().Context(), card); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			// TOCTOU race: two concurrent requests with the same barcode — re-fetch to return details
+			if existing, _ := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil); existing != nil {
+				return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+					Error:   "duplicate_barcode",
+					Message: "A card with this number already exists",
+					Duplicate: &DuplicateWarning{
+						HasDuplicate:   true,
+						MerchantName:   existing.MerchantName,
+						ResourceNumber: existing.CardNumber,
+						ExistingID:     existing.ID.String(),
+					},
+				})
+			}
+		}
 		slog.ErrorContext(c.Request().Context(), "failed to create card", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
@@ -346,9 +362,8 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	cardDTO.Permissions = &permDTO
 
 	return c.JSON(http.StatusCreated, CardDetailResponse{
-		Card:             cardDTO,
-		Permissions:      permDTO,
-		DuplicateWarning: duplicateWarning,
+		Card:        cardDTO,
+		Permissions: permDTO,
 	})
 }
 

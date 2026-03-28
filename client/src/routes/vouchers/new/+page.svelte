@@ -6,9 +6,12 @@
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 
+	import type { DuplicateWarning } from '$lib/types/api';
+	import { extractDuplicate } from '$lib/utils/api-errors';
 	import VoucherForm from '$lib/components/vouchers/VoucherForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
+	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -36,9 +39,11 @@
 
 	// Sharing state
 	let shareEmail = $state('');
+	let duplicateWarning = $state<DuplicateWarning | null>(null);
 
 	async function handleSubmit() {
 		isLoading = true;
+		duplicateWarning = null;
 
 		// Reset errors
 		errors = {};
@@ -87,7 +92,12 @@
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/vouchers/${response.voucher.id}`;
 		} catch (err: any) {
-			toastStore.error(err.message || tr('vouchers.createError'));
+			const duplicate = extractDuplicate(err);
+			if (duplicate) {
+				duplicateWarning = duplicate;
+			} else {
+				toastStore.error(err.message || tr('vouchers.createError'));
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -115,6 +125,11 @@
 			<h1 class="text-3xl font-bold text-gray-900 mb-6">
 				{tr('vouchers.newVoucher')}
 			</h1>
+			<DuplicateWarningBanner
+				warning={duplicateWarning}
+				resourceType="voucher"
+				onNavigate={(id) => goto(`/vouchers/${id}`)}
+			/>
 			<VoucherForm
 				bind:code
 				bind:merchantId
