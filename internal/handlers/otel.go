@@ -9,7 +9,7 @@ import (
 	"savvy/internal/config"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // maxOTelBodySize limits the request body size for OTel proxy requests (1 MB).

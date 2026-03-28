@@ -6,7 +6,7 @@ import (
 	"savvy/internal/repository"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Store is the global session store (PGStore backed by PostgreSQL)

@@ -11,7 +11,7 @@ import (
 	"savvy/internal/services"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // TOTPHandler handles TOTP 2FA API endpoints.

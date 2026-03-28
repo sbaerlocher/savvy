@@ -12,7 +12,7 @@ import (
 	"savvy/internal/services"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ImportHandler handles data import API endpoints.

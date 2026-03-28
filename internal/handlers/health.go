@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // HealthHandler handles health check endpoints

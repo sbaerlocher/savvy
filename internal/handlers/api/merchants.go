@@ -11,7 +11,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // MerchantsHandler handles merchant API endpoints.

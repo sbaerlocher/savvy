@@ -4,7 +4,7 @@ package metrics //nolint:revive // "metrics" does not conflict with any Go stand
 import (
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )

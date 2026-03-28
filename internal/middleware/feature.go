@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"savvy/internal/config"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RequireCardsEnabled middleware requires cards feature to be enabled

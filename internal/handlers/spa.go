@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"savvy/internal/assets"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SPAHandler serves the SvelteKit SPA

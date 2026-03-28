@@ -9,7 +9,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // PushHandler handles Web Push API endpoints.

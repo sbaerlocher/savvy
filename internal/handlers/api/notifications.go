@@ -10,7 +10,7 @@ import (
 	"savvy/internal/services"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // NotificationsHandler handles notification-related API requests
