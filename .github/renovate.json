@@ -4,12 +4,25 @@
     "github>sbaerlocher/.github:renovate-go#2026-03-22",
     "github>sbaerlocher/.github:renovate-docker#2026-03-22"
   ],
+  "customManagers": [
+    {
+      "description": "Track Savvy appVersion in Helm Chart.yaml",
+      "customType": "regex",
+      "fileMatch": ["^deploy/helm/Chart\\.yaml$"],
+      "matchStrings": ["appVersion: \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "ghcr.io/sbaerlocher/container/savvy",
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
-      "description": "Disable digest pinning for Savvy image (version managed via Chart.appVersion)",
+      "description": "Savvy image: disable digest pinning, auto-merge version updates after CI",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
-      "pinDigests": false
+      "pinDigests": false,
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
     }
   ]
 }
