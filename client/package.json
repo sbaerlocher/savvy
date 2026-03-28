@@ -44,7 +44,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite dev --port 5173",
-		"build": "vite build",
+		"build": "svelte-kit sync && vite build",
 		"build:embed": "npm run build && npm run copy:assets",
 		"copy:assets": "rm -rf ../internal/assets/client && cp -r build ../internal/assets/client && echo '✅ Assets copied to internal/assets/client/'",
 		"preview": "vite preview",

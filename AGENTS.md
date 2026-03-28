@@ -1,6 +1,6 @@
 # Savvy - AI Agent Documentation
 
-**Last Updated**: 2026-03-04
+**Last Updated**: 2026-03-20
 **Version**: 2.0.0
 **Project Type**: Full-Stack Web Application
 **Tech Stack**: Go + Echo + SvelteKit + TypeScript + GORM + PostgreSQL
@@ -155,7 +155,7 @@ internal/handlers/                    # Other Handlers
   ├── oauth.go                       # OAuth/OIDC
   └── spa.go                         # SvelteKit SPA Fallback
 
-internal/services/                    # Business Logic (22+ files)
+internal/services/                    # Business Logic (23 files)
   ├── card_service.go                # Card business logic
   ├── voucher_service.go             # Voucher business logic
   ├── gift_card_service.go           # Gift Card business logic
@@ -176,6 +176,8 @@ internal/services/                    # Business Logic (22+ files)
   ├── push_service.go                # Web Push Notifications (VAPID)
   ├── reminder_service.go            # Expiry Reminders (multi-channel)
   ├── account_service.go             # Account Deletion (GDPR)
+  ├── health_service.go              # Health checks (DB, SMTP, OAuth, VAPID, 2FA)
+  ├── i18n_helpers.go                # Internationalization helpers
   └── container.go                   # Dependency injection
 
 internal/email/                       # Email Templates & Service
@@ -183,7 +185,7 @@ internal/email/                       # Email Templates & Service
   └── templates/                     # HTML Email Templates
       └── expiry_reminder.html       # Expiry Reminder Template
 
-internal/repository/                  # Data Access (29 files, interface + impl pattern)
+internal/repository/                  # Data Access (32 files, interface + impl pattern)
   ├── base_repository.go             # Base repository helpers
   ├── pagination.go                  # Pagination utilities
   ├── card_repository.go             # Card interface
@@ -200,9 +202,12 @@ internal/repository/                  # Data Access (29 files, interface + impl 
   ├── gift_card_share_repository_impl.go
   ├── merchant_repository.go         # Merchant interface
   ├── merchant_repository_impl.go    # Merchant queries
-  ├── notification_repository.go     # Notification interface
-  ├── notification_repository_impl.go
+  ├── notification_repository.go     # Notification interface + impl
   ├── session_repository.go          # Session CRUD + bulk revocation
+  ├── email_token_repository.go      # Email token interface + impl
+  ├── push_subscription_repository.go # Push subscription interface + impl
+  ├── reminder_repository.go         # Expiry reminder interface + impl
+  ├── totp_repository.go             # TOTP interface + impl
   ├── user_repository.go             # User interface
   ├── user_repository_impl.go        # User queries
   ├── favorite_repository.go         # Favorites interface
@@ -228,9 +233,8 @@ internal/models/                      # GORM Models (22+ files)
   ├── card.go + voucher.go + gift_card.go
   └── *_share.go                     # Sharing models
 
-internal/middleware/                  # Echo Middleware (16 files)
+internal/middleware/                  # Echo Middleware (14 files)
   ├── auth.go                        # Authentication + stale session detection
-  ├── bodylimit.go                   # Request body size limiting
   ├── cors.go                        # CORS Configuration
   ├── csrf_api.go                    # CSRF for API
   ├── feature.go                     # Feature toggles
@@ -264,7 +268,12 @@ client/                               # SvelteKit Frontend
   │   ├── settings/                  # Settings Hub (redirects)
   │   ├── login/2fa/                 # 2FA Challenge Page
   │   ├── verify-email/              # Email Verification
-  │   ├── forgot-password/           # Password Reset
+  │   ├── forgot-password/           # Forgot Password
+  │   ├── reset-password/            # Password Reset (token flow)
+  │   ├── register/                  # User Registration
+  │   ├── dashboard/                 # Dashboard (alternate route)
+  │   ├── offline/                   # Offline fallback page
+  │   ├── unsubscribe/               # Email unsubscribe
   │   └── admin/                     # Admin Panel
   │       ├── users/                 # User Management
   │       ├── merchants/             # Merchant Management
