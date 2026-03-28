@@ -30,7 +30,7 @@ images:
     # Example: digest: sha256:abc123...
     # CI/CD: IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE | cut -d'@' -f2)
     #        kustomize edit set image ghcr.io/sbaerlocher/container/savvy@$IMAGE_DIGEST
-    newTag: 1.1.0
+    newTag: 1.2.0
 
 replicas:
   - name: savvy
