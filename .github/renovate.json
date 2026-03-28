@@ -11,7 +11,8 @@
       "fileMatch": ["^deploy/helm/Chart\\.yaml$"],
       "matchStrings": ["appVersion: \"(?<currentValue>[^\"]+)\""],
       "depNameTemplate": "ghcr.io/sbaerlocher/container/savvy",
-      "datasourceTemplate": "docker"
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
@@ -23,6 +24,13 @@
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
+    },
+    {
+      "description": "Savvy image: disable Renovate for dev overlay (uses rolling 'dev' tag)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
+      "matchFileNames": ["deploy/kustomize/overlays/development/**"],
+      "enabled": false
     }
   ]
 }
