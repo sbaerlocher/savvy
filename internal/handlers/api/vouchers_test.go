@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -111,8 +111,7 @@ func TestVouchersHandler_Show_Success(t *testing.T) {
 	user := createTestUser()
 	voucher := createTestVoucher()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucher.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucher.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -146,8 +145,7 @@ func TestVouchersHandler_Show_InvalidID(t *testing.T) {
 	c, rec := createTestContext(http.MethodGet, "/api/v1/vouchers/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
 
 	err := handler.Show(c)
 
@@ -162,8 +160,7 @@ func TestVouchersHandler_Show_Forbidden(t *testing.T) {
 	user := createTestUser()
 	voucherID := uuid.New()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return((*services.ResourcePermissions)(nil), errors.New("forbidden"))
 
@@ -180,8 +177,7 @@ func TestVouchersHandler_Show_NotFound(t *testing.T) {
 	user := createTestUser()
 	voucherID := uuid.New()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -290,8 +286,7 @@ func TestVouchersHandler_Update_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/vouchers/:id", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucher.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucher.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -323,8 +318,7 @@ func TestVouchersHandler_Update_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/vouchers/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanEdit: false}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -342,8 +336,7 @@ func TestVouchersHandler_Update_NotFound(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/vouchers/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{CanEdit: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -365,8 +358,7 @@ func TestVouchersHandler_Delete_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/vouchers/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -392,8 +384,7 @@ func TestVouchersHandler_ToggleFavorite_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/favorite", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -422,8 +413,7 @@ func TestVouchersHandler_CreateShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}
@@ -449,8 +439,7 @@ func TestVouchersHandler_CreateShare_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -469,8 +458,7 @@ func TestVouchersHandler_CreateShare_SelfShare(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -493,8 +481,7 @@ func TestVouchersHandler_DeleteShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/vouchers/:id/share/:sharedWithID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(voucherID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -518,8 +505,7 @@ func TestVouchersHandler_Transfer_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/transfer", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	newOwner := &models.User{ID: newOwnerID, Email: "newowner@example.com"}
@@ -543,8 +529,7 @@ func TestVouchersHandler_Transfer_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/transfer", `{"new_owner_email":"test@example.com"}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
@@ -566,8 +551,7 @@ func TestVouchersHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(voucherID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}

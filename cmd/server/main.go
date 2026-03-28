@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"flag"
 	"log"
 	"log/slog"
@@ -17,6 +18,8 @@ import (
 	"savvy/internal/services"
 	"savvy/internal/setup"
 	"time"
+
+	"github.com/labstack/echo/v5"
 )
 
 var (
@@ -233,29 +236,22 @@ func run() int {
 	// Start server with graceful shutdown
 	slog.Info("Server starting", "port", cfg.ServerPort, "metrics_port", cfg.MetricsPort)
 
-	// Start server in a goroutine
-	go func() {
-		if err := e.Start(":" + cfg.ServerPort); err != nil {
-			slog.Info("Server shutdown", "error", err)
-		}
-	}()
+	// Create signal context: server shuts down when SIGINT is received
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
-	// Wait for interrupt signal to gracefully shutdown the server
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
+	sc := echo.StartConfig{
+		Address:         ":" + cfg.ServerPort,
+		GracefulTimeout: time.Duration(cfg.ShutdownTimeoutSeconds) * time.Second,
+		OnShutdownError: func(err error) {
+			log.Printf("Error during graceful shutdown: %v", err)
+		},
+	}
 
-	log.Println("Shutting down server...")
-
-	// Cancel the application context to stop background goroutines
-	appCancel()
-
-	// Shutdown the HTTP server with configurable timeout
-	shutdownTimeout := time.Duration(cfg.ShutdownTimeoutSeconds) * time.Second
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
-	defer shutdownCancel()
-	if err := e.Shutdown(shutdownCtx); err != nil {
+	// Start server (blocking – returns after graceful shutdown completes)
+	if err := sc.Start(signalCtx, e); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Printf("Error shutting down server: %v", err)
+		appCancel()
 		return 1
 	}
 

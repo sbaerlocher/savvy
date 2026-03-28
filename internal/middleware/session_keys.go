@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Session key constants for user-facing session values.
@@ -131,7 +131,7 @@ func GetSession2FAFailedAttempts(session *sessions.Session) int {
 //
 // Used after: successful login, successful registration, successful 2FA challenge,
 // successful OAuth callback.
-func CreateUserSession(c echo.Context, userID string) (*sessions.Session, error) {
+func CreateUserSession(c *echo.Context, userID string) (*sessions.Session, error) {
 	newSession, err := RegenerateSession(c)
 	if err != nil {
 		return nil, fmt.Errorf("regenerate session: %w", err)
@@ -146,7 +146,7 @@ func CreateUserSession(c echo.Context, userID string) (*sessions.Session, error)
 
 // Create2FAPendingSession regenerates the session and sets the 2FA pending state.
 // Used when login succeeds but 2FA verification is still required.
-func Create2FAPendingSession(c echo.Context, userID string) (*sessions.Session, error) {
+func Create2FAPendingSession(c *echo.Context, userID string) (*sessions.Session, error) {
 	newSession, err := RegenerateSession(c)
 	if err != nil {
 		return nil, fmt.Errorf("regenerate session: %w", err)
@@ -164,7 +164,7 @@ func Create2FAPendingSession(c echo.Context, userID string) (*sessions.Session, 
 // then sets MaxAge = -1 to expire the cookie and trigger DB deletion.
 //
 // This replaces the unsafe pattern: session.Values = make(map[interface{}]interface{})
-func DestroySession(c echo.Context) error {
+func DestroySession(c *echo.Context) error {
 	session, err := GetSession(c)
 	if err != nil {
 		return nil // No session to destroy
@@ -177,7 +177,7 @@ func DestroySession(c echo.Context) error {
 // CreateImpersonationSession regenerates the session and sets up impersonation state.
 // The target user becomes the active user, the admin's ID is preserved for restoration.
 // adminIsAdmin must be true — callers must verify the original user is actually an admin before calling this.
-func CreateImpersonationSession(c echo.Context, targetUserID, adminUserID string, adminIsAdmin bool) (*sessions.Session, error) {
+func CreateImpersonationSession(c *echo.Context, targetUserID, adminUserID string, adminIsAdmin bool) (*sessions.Session, error) {
 	newSession, err := RegenerateSession(c)
 	if err != nil {
 		return nil, fmt.Errorf("regenerate session: %w", err)
@@ -193,7 +193,7 @@ func CreateImpersonationSession(c echo.Context, targetUserID, adminUserID string
 }
 
 // StopImpersonationSession regenerates the session and restores the admin's own session.
-func StopImpersonationSession(c echo.Context, adminUserID string) (*sessions.Session, error) {
+func StopImpersonationSession(c *echo.Context, adminUserID string) (*sessions.Session, error) {
 	newSession, err := RegenerateSession(c)
 	if err != nil {
 		return nil, fmt.Errorf("regenerate session: %w", err)

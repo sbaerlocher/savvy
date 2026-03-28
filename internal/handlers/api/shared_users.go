@@ -8,7 +8,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SharedUsersHandler handles shared users API endpoints.
@@ -25,7 +25,7 @@ func NewSharedUsersHandler(shareService services.ShareServiceInterface) *SharedU
 
 // Search returns users that the current user has shared resources with
 // GET /api/v1/shared-users?q=search
-func (h *SharedUsersHandler) Search(c echo.Context) error {
+func (h *SharedUsersHandler) Search(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	searchQuery := c.QueryParam("q")
 

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // GiftCardsHandler handles gift card API endpoints.
@@ -53,7 +53,7 @@ func NewGiftCardsHandler(
 // List returns all gift cards (owned + shared)
 // GET /api/v1/gift-cards
 // Optional query params: ?page=1&per_page=25 for pagination
-func (h *GiftCardsHandler) List(c echo.Context) error {
+func (h *GiftCardsHandler) List(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	page, perPage, isPaginated := parsePaginationParams(c)
@@ -138,7 +138,7 @@ func (h *GiftCardsHandler) List(c echo.Context) error {
 
 // Show returns a single gift card with permissions and transactions
 // GET /api/v1/gift-cards/:id
-func (h *GiftCardsHandler) Show(c echo.Context) error {
+func (h *GiftCardsHandler) Show(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -208,7 +208,7 @@ func (h *GiftCardsHandler) Show(c echo.Context) error {
 
 // Create creates a new gift card
 // POST /api/v1/gift-cards
-func (h *GiftCardsHandler) Create(c echo.Context) error {
+func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	var req GiftCardCreateRequest
@@ -333,7 +333,7 @@ func (h *GiftCardsHandler) Create(c echo.Context) error {
 
 // Update updates a gift card
 // PUT /api/v1/gift-cards/:id
-func (h *GiftCardsHandler) Update(c echo.Context) error {
+func (h *GiftCardsHandler) Update(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -440,19 +440,19 @@ func (h *GiftCardsHandler) Update(c echo.Context) error {
 
 // Delete deletes a gift card
 // DELETE /api/v1/gift-cards/:id
-func (h *GiftCardsHandler) Delete(c echo.Context) error {
+func (h *GiftCardsHandler) Delete(c *echo.Context) error {
 	return handleResourceDelete(c, "gift card", h.authzService.CheckGiftCardAccess, h.giftCardService.DeleteGiftCard)
 }
 
 // ToggleFavorite toggles favorite status
 // POST /api/v1/gift-cards/:id/favorite
-func (h *GiftCardsHandler) ToggleFavorite(c echo.Context) error {
+func (h *GiftCardsHandler) ToggleFavorite(c *echo.Context) error {
 	return handleResourceToggleFavorite(c, "gift_card", h.authzService.CheckGiftCardAccess, h.favoriteService)
 }
 
 // CreateShare creates a new share
 // POST /api/v1/gift-cards/:id/share
-func (h *GiftCardsHandler) CreateShare(c echo.Context) error {
+func (h *GiftCardsHandler) CreateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -522,7 +522,7 @@ func (h *GiftCardsHandler) CreateShare(c echo.Context) error {
 
 // UpdateShare updates share permissions
 // PATCH /api/v1/gift-cards/:id/share/:sharedWithID
-func (h *GiftCardsHandler) UpdateShare(c echo.Context) error {
+func (h *GiftCardsHandler) UpdateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -582,18 +582,18 @@ func (h *GiftCardsHandler) UpdateShare(c echo.Context) error {
 
 // DeleteShare removes a share
 // DELETE /api/v1/gift-cards/:id/share/:sharedWithID
-func (h *GiftCardsHandler) DeleteShare(c echo.Context) error {
+func (h *GiftCardsHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "gift card", h.authzService.CheckGiftCardAccess, h.shareService.DeleteGiftCardShare)
 }
 
 // Transfer transfers ownership
 // POST /api/v1/gift-cards/:id/transfer
-func (h *GiftCardsHandler) Transfer(c echo.Context) error {
+func (h *GiftCardsHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "gift card", h.authzService.CheckGiftCardAccess, h.transferService.TransferGiftCardOwnership, h.userService)
 }
 
 // applyGiftCardUpdates applies partial update fields from the request to the gift card model.
-func (h *GiftCardsHandler) applyGiftCardUpdates(c echo.Context, giftCard *models.GiftCard, req *GiftCardUpdateRequest) error {
+func (h *GiftCardsHandler) applyGiftCardUpdates(c *echo.Context, giftCard *models.GiftCard, req *GiftCardUpdateRequest) error {
 	if req.InitialBalance != nil {
 		if err := validation.ValidateMonetaryAmount(*req.InitialBalance, "initial_balance"); err != nil {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid_amount", Message: err.Error()})
@@ -652,7 +652,7 @@ func (h *GiftCardsHandler) applyGiftCardUpdates(c echo.Context, giftCard *models
 }
 
 // checkGiftCardDuplicate checks for duplicate gift cards and returns a warning if found.
-func checkGiftCardDuplicate(c echo.Context, svc services.GiftCardServiceInterface, cardNumber *string, userID uuid.UUID, excludeID *uuid.UUID) *DuplicateWarning {
+func checkGiftCardDuplicate(c *echo.Context, svc services.GiftCardServiceInterface, cardNumber *string, userID uuid.UUID, excludeID *uuid.UUID) *DuplicateWarning {
 	if cardNumber == nil || *cardNumber == "" {
 		return nil
 	}
@@ -676,7 +676,7 @@ func checkGiftCardDuplicate(c echo.Context, svc services.GiftCardServiceInterfac
 
 // ListTransactions returns all transactions for a gift card
 // GET /api/v1/gift-cards/:id/transactions
-func (h *GiftCardsHandler) ListTransactions(c echo.Context) error {
+func (h *GiftCardsHandler) ListTransactions(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -717,7 +717,7 @@ func (h *GiftCardsHandler) ListTransactions(c echo.Context) error {
 
 // CreateTransaction creates a new transaction (updates balance via DB trigger)
 // POST /api/v1/gift-cards/:id/transactions
-func (h *GiftCardsHandler) CreateTransaction(c echo.Context) error {
+func (h *GiftCardsHandler) CreateTransaction(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")
@@ -797,7 +797,7 @@ func (h *GiftCardsHandler) CreateTransaction(c echo.Context) error {
 
 // DeleteTransaction deletes a transaction (balance recalculated via DB trigger)
 // DELETE /api/v1/gift-cards/:id/transactions/:transactionID
-func (h *GiftCardsHandler) DeleteTransaction(c echo.Context) error {
+func (h *GiftCardsHandler) DeleteTransaction(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	giftCardID, err := parseResourceID(c, "gift card")

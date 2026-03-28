@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -128,8 +128,7 @@ func TestGiftCardsHandler_Show_Success(t *testing.T) {
 	giftCard := createTestGiftCard()
 	giftCard.Transactions = []models.GiftCardTransaction{*createTestTransaction()}
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCard.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCard.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:             true,
@@ -167,8 +166,7 @@ func TestGiftCardsHandler_Show_Forbidden(t *testing.T) {
 	user := createTestUser()
 	giftCardID := uuid.New()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return((*services.ResourcePermissions)(nil), errors.New("forbidden"))
 
@@ -244,8 +242,7 @@ func TestGiftCardsHandler_Update_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/gift-cards/:id", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCard.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCard.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:             true,
@@ -278,8 +275,7 @@ func TestGiftCardsHandler_Update_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/gift-cards/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanEdit: false}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -299,8 +295,7 @@ func TestGiftCardsHandler_Delete_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/gift-cards/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -326,8 +321,7 @@ func TestGiftCardsHandler_ToggleFavorite_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/favorite", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -352,8 +346,7 @@ func TestGiftCardsHandler_CreateShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}
@@ -379,8 +372,7 @@ func TestGiftCardsHandler_CreateShare_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -402,8 +394,7 @@ func TestGiftCardsHandler_UpdateShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/gift-cards/:id/share/:sharedWithID", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(giftCardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -427,8 +418,7 @@ func TestGiftCardsHandler_DeleteShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/gift-cards/:id/share/:sharedWithID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(giftCardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -452,8 +442,7 @@ func TestGiftCardsHandler_Transfer_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/transfer", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	newOwner := &models.User{ID: newOwnerID, Email: "newowner@example.com"}
@@ -480,8 +469,7 @@ func TestGiftCardsHandler_ListTransactions_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodGet, "/api/v1/gift-cards/:id/transactions", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCard.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCard.ID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCard.ID).Return(perms, nil)
@@ -505,8 +493,7 @@ func TestGiftCardsHandler_ListTransactions_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodGet, "/api/v1/gift-cards/:id/transactions", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return((*services.ResourcePermissions)(nil), errors.New("forbidden"))
 
@@ -524,8 +511,7 @@ func TestGiftCardsHandler_CreateTransaction_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/transactions", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEditTransactions: true}
 	giftCard := createTestGiftCard()
@@ -548,8 +534,7 @@ func TestGiftCardsHandler_CreateTransaction_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/transactions", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanEditTransactions: false}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -568,8 +553,7 @@ func TestGiftCardsHandler_CreateTransaction_ZeroAmount(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/transactions", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEditTransactions: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -588,8 +572,7 @@ func TestGiftCardsHandler_DeleteTransaction_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/gift-cards/:id/transactions/:transactionID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "transactionID")
-	c.SetParamValues(giftCardID.String(), transactionID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "transactionID", Value: transactionID.String()}})
 
 	perms := &services.ResourcePermissions{CanEditTransactions: true}
 	transaction := &models.GiftCardTransaction{ID: transactionID, GiftCardID: giftCardID}
@@ -615,8 +598,7 @@ func TestGiftCardsHandler_DeleteTransaction_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/gift-cards/:id/transactions/:transactionID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "transactionID")
-	c.SetParamValues(giftCardID.String(), transactionID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "transactionID", Value: transactionID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanEditTransactions: false}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -636,8 +618,7 @@ func TestGiftCardsHandler_DeleteTransaction_WrongGiftCard(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/gift-cards/:id/transactions/:transactionID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "transactionID")
-	c.SetParamValues(giftCardID.String(), transactionID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "transactionID", Value: transactionID.String()}})
 
 	perms := &services.ResourcePermissions{CanEditTransactions: true}
 	transaction := &models.GiftCardTransaction{ID: transactionID, GiftCardID: wrongGiftCardID}
@@ -660,8 +641,7 @@ func TestGiftCardsHandler_Update_InvalidID(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/gift-cards/invalid", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid"}})
 
 	err := handler.Update(c)
 
@@ -680,8 +660,7 @@ func TestGiftCardsHandler_Update_NotFound(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/gift-cards/"+giftCardID.String(), `{"card_number":"123"}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEdit: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -705,8 +684,7 @@ func TestGiftCardsHandler_Update_InvalidRequestBody(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/gift-cards/"+giftCardID.String(), `invalid json`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEdit: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)
@@ -732,8 +710,7 @@ func TestGiftCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T)
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(giftCardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}
@@ -767,8 +744,7 @@ func TestGiftCardsHandler_UpdateShare_ServiceError_NoLeakedDetails(t *testing.T)
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/gift-cards/:id/share/:sharedWithID", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(giftCardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckGiftCardAccess", mock.Anything, user.ID, giftCardID).Return(perms, nil)

@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -85,7 +85,7 @@ func (h *AuthHandler) SetSessionService(sessionService services.SessionServiceIn
 
 // Login handles login via JSON API
 // POST /api/v1/auth/login
-func (h *AuthHandler) Login(c echo.Context) error {
+func (h *AuthHandler) Login(c *echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -211,7 +211,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 
 // Register handles user registration via JSON API
 // POST /api/v1/auth/register
-func (h *AuthHandler) Register(c echo.Context) error {
+func (h *AuthHandler) Register(c *echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -317,7 +317,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 // Logout handles logout via JSON API
 // POST /api/v1/auth/logout
-func (h *AuthHandler) Logout(c echo.Context) error {
+func (h *AuthHandler) Logout(c *echo.Context) error {
 	if err := middleware.DestroySession(c); err != nil {
 		slog.Error("Failed to destroy session", "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -331,7 +331,7 @@ func (h *AuthHandler) Logout(c echo.Context) error {
 
 // Me returns the current authenticated user
 // GET /api/v1/auth/me
-func (h *AuthHandler) Me(c echo.Context) error {
+func (h *AuthHandler) Me(c *echo.Context) error {
 	// RequireAuth middleware sets current_user in context
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
@@ -399,7 +399,7 @@ func validatePassword(password string) (string, error) {
 
 // RequestVerification sends a new verification email to the authenticated user
 // POST /api/v1/auth/request-verification
-func (h *AuthHandler) RequestVerification(c echo.Context) error {
+func (h *AuthHandler) RequestVerification(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -447,7 +447,7 @@ func (h *AuthHandler) RequestVerification(c echo.Context) error {
 
 // VerifyEmail verifies a user's email address using a token
 // POST /api/v1/auth/verify-email
-func (h *AuthHandler) VerifyEmail(c echo.Context) error {
+func (h *AuthHandler) VerifyEmail(c *echo.Context) error {
 	var req struct {
 		Token string `json:"token"`
 	}
@@ -500,7 +500,7 @@ func (h *AuthHandler) VerifyEmail(c echo.Context) error {
 
 // UnsubscribeNotifications handles one-click email unsubscribe via token
 // POST /api/v1/auth/unsubscribe-notifications
-func (h *AuthHandler) UnsubscribeNotifications(c echo.Context) error {
+func (h *AuthHandler) UnsubscribeNotifications(c *echo.Context) error {
 	var req struct {
 		Token string `json:"token"`
 	}
@@ -553,7 +553,7 @@ func (h *AuthHandler) UnsubscribeNotifications(c echo.Context) error {
 
 // UnsubscribeReminders handles one-click unsubscribe from expiry reminder emails
 // POST /api/v1/auth/unsubscribe-reminders
-func (h *AuthHandler) UnsubscribeReminders(c echo.Context) error {
+func (h *AuthHandler) UnsubscribeReminders(c *echo.Context) error {
 	var req struct {
 		Token string `json:"token"`
 	}
@@ -606,7 +606,7 @@ func (h *AuthHandler) UnsubscribeReminders(c echo.Context) error {
 
 // RequestPasswordReset handles password reset requests
 // POST /api/v1/auth/forgot-password
-func (h *AuthHandler) RequestPasswordReset(c echo.Context) error {
+func (h *AuthHandler) RequestPasswordReset(c *echo.Context) error {
 	var req struct {
 		Email string `json:"email"`
 	}
@@ -664,7 +664,7 @@ func (h *AuthHandler) RequestPasswordReset(c echo.Context) error {
 
 // ResetPassword handles setting a new password with a reset token
 // POST /api/v1/auth/reset-password
-func (h *AuthHandler) ResetPassword(c echo.Context) error {
+func (h *AuthHandler) ResetPassword(c *echo.Context) error {
 	var req struct {
 		Token    string `json:"token"`
 		Password string `json:"password"` // #nosec G117 -- struct field name, not a hardcoded secret

@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -48,7 +48,7 @@ const (
 
 // Login redirects to OAuth provider login page.
 // GET /auth/oauth/login
-func (h *OAuthHandler) Login(c echo.Context) error {
+func (h *OAuthHandler) Login(c *echo.Context) error {
 	if h.provider == nil {
 		return c.Redirect(http.StatusSeeOther, "/login?error=oauth_not_configured")
 	}
@@ -79,7 +79,7 @@ func (h *OAuthHandler) Login(c echo.Context) error {
 
 // Callback handles the OAuth callback from the provider.
 // GET /auth/oauth/callback
-func (h *OAuthHandler) Callback(c echo.Context) error {
+func (h *OAuthHandler) Callback(c *echo.Context) error {
 	if h.provider == nil {
 		return c.Redirect(http.StatusSeeOther, "/login?error=oauth_not_configured")
 	}
@@ -120,7 +120,7 @@ func (h *OAuthHandler) Callback(c echo.Context) error {
 }
 
 // validateOAuthState validates the OAuth state parameter and returns the authorization code
-func (h *OAuthHandler) validateOAuthState(c echo.Context) (string, error) {
+func (h *OAuthHandler) validateOAuthState(c *echo.Context) (string, error) {
 	sess, _ := middleware.GetSession(c)
 	savedState := middleware.GetSessionOAuthState(sess)
 	if savedState == "" {
@@ -153,7 +153,7 @@ func (h *OAuthHandler) validateOAuthState(c echo.Context) (string, error) {
 }
 
 // exchangeCodeForToken exchanges the authorization code for tokens and returns user info
-func (h *OAuthHandler) exchangeCodeForToken(c echo.Context, code string) (*oauth.UserInfo, error) {
+func (h *OAuthHandler) exchangeCodeForToken(c *echo.Context, code string) (*oauth.UserInfo, error) {
 	// Use request context for proper timeout and trace propagation
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
 	defer cancel()
@@ -205,7 +205,7 @@ func maskEmail(email string) string {
 }
 
 // extractUserInfo extracts and validates user information from OAuth claims
-func (h *OAuthHandler) extractUserInfo(c echo.Context, userInfo *oauth.UserInfo) (email, firstName, lastName string, err error) {
+func (h *OAuthHandler) extractUserInfo(c *echo.Context, userInfo *oauth.UserInfo) (email, firstName, lastName string, err error) {
 	email = strings.ToLower(strings.TrimSpace(userInfo.Email))
 	if email == "" {
 		slog.Error("Email not found in OAuth claims")
@@ -268,7 +268,7 @@ func (h *OAuthHandler) shouldBeAdmin(email string, groups []string) bool {
 }
 
 // createOrUpdateUser creates a new user or updates an existing one
-func (h *OAuthHandler) createOrUpdateUser(c echo.Context, email, firstName, lastName string, groups []string) (*models.User, error) {
+func (h *OAuthHandler) createOrUpdateUser(c *echo.Context, email, firstName, lastName string, groups []string) (*models.User, error) {
 	user, err := h.userService.GetUserByEmail(c.Request().Context(), email)
 	if err != nil {
 		// Create new user
@@ -280,7 +280,7 @@ func (h *OAuthHandler) createOrUpdateUser(c echo.Context, email, firstName, last
 }
 
 // createNewOAuthUser creates a new user from OAuth login
-func (h *OAuthHandler) createNewOAuthUser(c echo.Context, email, firstName, lastName string, groups []string) (*models.User, error) {
+func (h *OAuthHandler) createNewOAuthUser(c *echo.Context, email, firstName, lastName string, groups []string) (*models.User, error) {
 	slog.Info("Creating new user from OAuth", "email", maskEmail(email))
 
 	randomPassword, err := generateRandomString(32)
@@ -327,7 +327,7 @@ func (h *OAuthHandler) createNewOAuthUser(c echo.Context, email, firstName, last
 }
 
 // updateExistingOAuthUser updates an existing user with OAuth data
-func (h *OAuthHandler) updateExistingOAuthUser(c echo.Context, user *models.User, firstName, lastName string, groups []string) (*models.User, error) {
+func (h *OAuthHandler) updateExistingOAuthUser(c *echo.Context, user *models.User, firstName, lastName string, groups []string) (*models.User, error) {
 	slog.Info("OAuth login for existing user", "email", maskEmail(user.Email))
 	slog.Debug("Checking admin status", "groups_count", len(groups))
 
@@ -371,7 +371,7 @@ func (h *OAuthHandler) updateExistingOAuthUser(c echo.Context, user *models.User
 }
 
 // saveUserSession regenerates the session and saves user information
-func (h *OAuthHandler) saveUserSession(c echo.Context, user *models.User) error {
+func (h *OAuthHandler) saveUserSession(c *echo.Context, user *models.User) error {
 	// Create authenticated session (regenerates to prevent session fixation)
 	newSess, err := middleware.CreateUserSession(c, user.ID.String())
 	if err != nil {
@@ -391,7 +391,7 @@ func (h *OAuthHandler) saveUserSession(c echo.Context, user *models.User) error 
 }
 
 // redirectToFrontend redirects to the frontend URL after successful OAuth login
-func (h *OAuthHandler) redirectToFrontend(c echo.Context) error {
+func (h *OAuthHandler) redirectToFrontend(c *echo.Context) error {
 	redirectURL := "/"
 	if h.cfg != nil && h.cfg.FrontendURL != "" {
 		redirectURL = h.cfg.FrontendURL + "/"

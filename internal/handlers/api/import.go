@@ -12,7 +12,7 @@ import (
 	"savvy/internal/services"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ImportHandler handles data import API endpoints.
@@ -33,7 +33,7 @@ const maxImportItems = 500
 
 // ImportJSON imports data from the Savvy export JSON format.
 // POST /api/v1/import/json
-func (h *ImportHandler) ImportJSON(c echo.Context) error {
+func (h *ImportHandler) ImportJSON(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -71,7 +71,7 @@ func (h *ImportHandler) ImportJSON(c echo.Context) error {
 
 // PreviewJSON previews what would be imported from JSON without executing.
 // POST /api/v1/import/json/preview
-func (h *ImportHandler) PreviewJSON(c echo.Context) error {
+func (h *ImportHandler) PreviewJSON(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -109,23 +109,23 @@ func (h *ImportHandler) PreviewJSON(c echo.Context) error {
 
 // ImportCardsCSV imports cards from a CSV file.
 // POST /api/v1/import/csv/cards
-func (h *ImportHandler) ImportCardsCSV(c echo.Context) error {
+func (h *ImportHandler) ImportCardsCSV(c *echo.Context) error {
 	return h.handleCSVImport(c, "cards")
 }
 
 // ImportVouchersCSV imports vouchers from a CSV file.
 // POST /api/v1/import/csv/vouchers
-func (h *ImportHandler) ImportVouchersCSV(c echo.Context) error {
+func (h *ImportHandler) ImportVouchersCSV(c *echo.Context) error {
 	return h.handleCSVImport(c, "vouchers")
 }
 
 // ImportGiftCardsCSV imports gift cards from a CSV file.
 // POST /api/v1/import/csv/gift-cards
-func (h *ImportHandler) ImportGiftCardsCSV(c echo.Context) error {
+func (h *ImportHandler) ImportGiftCardsCSV(c *echo.Context) error {
 	return h.handleCSVImport(c, "gift-cards")
 }
 
-func (h *ImportHandler) handleCSVImport(c echo.Context, resourceType string) error {
+func (h *ImportHandler) handleCSVImport(c *echo.Context, resourceType string) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -189,7 +189,7 @@ func (h *ImportHandler) handleCSVImport(c echo.Context, resourceType string) err
 	return c.JSON(http.StatusOK, result)
 }
 
-func (h *ImportHandler) parseJSONBody(c echo.Context) (*services.ExportData, error) {
+func (h *ImportHandler) parseJSONBody(c *echo.Context) (*services.ExportData, error) {
 	// Limit body size
 	c.Request().Body = http.MaxBytesReader(c.Response(), c.Request().Body, maxImportSize)
 

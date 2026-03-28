@@ -9,7 +9,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // PushHandler handles Web Push API endpoints.
@@ -33,7 +33,7 @@ type SubscribeRequest struct {
 
 // Subscribe registers a push subscription.
 // POST /api/v1/push/subscribe
-func (h *PushHandler) Subscribe(c echo.Context) error {
+func (h *PushHandler) Subscribe(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -76,7 +76,7 @@ func (h *PushHandler) Subscribe(c echo.Context) error {
 
 // Unsubscribe removes a push subscription.
 // POST /api/v1/push/unsubscribe
-func (h *PushHandler) Unsubscribe(c echo.Context) error {
+func (h *PushHandler) Unsubscribe(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -107,7 +107,7 @@ func (h *PushHandler) Unsubscribe(c echo.Context) error {
 
 // GetVAPIDKey returns the VAPID public key for client subscription.
 // GET /api/v1/push/vapid-key
-func (h *PushHandler) GetVAPIDKey(c echo.Context) error {
+func (h *PushHandler) GetVAPIDKey(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"public_key": h.pushService.GetVAPIDPublicKey(),
 	})

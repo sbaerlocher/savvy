@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // CSRFCookieName is the name of the CSRF cookie
@@ -28,7 +28,7 @@ const csrfSessionKey = "csrf_token"
 // using constant-time comparison.
 // Token rotates automatically when the session is regenerated (login/logout).
 func CSRFApiMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// Get or generate CSRF token from session (server-side source of truth)
 		token, err := getOrGenerateSessionCSRFToken(c)
 		if err != nil {
@@ -73,7 +73,7 @@ func CSRFApiMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // getOrGenerateSessionCSRFToken retrieves the CSRF token from the session or generates a new one.
 // The session is the server-side source of truth — not the cookie.
-func getOrGenerateSessionCSRFToken(c echo.Context) (string, error) {
+func getOrGenerateSessionCSRFToken(c *echo.Context) (string, error) {
 	sess, err := GetSession(c)
 	if err != nil {
 		// gorilla/sessions returns a valid empty session even on decode errors

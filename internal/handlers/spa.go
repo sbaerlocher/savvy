@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"savvy/internal/assets"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SPAHandler serves the SvelteKit SPA
@@ -28,7 +28,7 @@ func NewSPAHandler() *SPAHandler {
 }
 
 // ServeStatic serves static files (JS, CSS, images, etc.)
-func (h *SPAHandler) ServeStatic(c echo.Context) error {
+func (h *SPAHandler) ServeStatic(c *echo.Context) error {
 	path := c.Request().URL.Path
 
 	// Try to serve the file
@@ -62,7 +62,7 @@ func (h *SPAHandler) ServeStatic(c echo.Context) error {
 }
 
 // ServeSPA serves the index.html for all SPA routes (fallback)
-func (h *SPAHandler) ServeSPA(c echo.Context) error {
+func (h *SPAHandler) ServeSPA(c *echo.Context) error {
 	// Serve index.html
 	file, err := h.fileSystem.Open("index.html")
 	if err != nil {

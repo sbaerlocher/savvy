@@ -7,7 +7,7 @@ import (
 	"savvy/internal/i18n"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/text/language"
 )
 
@@ -20,7 +20,7 @@ const (
 
 // LanguageDetection middleware detects the user's preferred language and sets up the localizer
 func LanguageDetection(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		var lang string
 
 		// 1. Check if language preference is stored in cookie
@@ -97,7 +97,7 @@ func isLanguageSupported(lang string) bool {
 }
 
 // SetLanguage sets the user's language preference
-func SetLanguage(c echo.Context) error {
+func SetLanguage(c *echo.Context) error {
 	lang := c.QueryParam("lang")
 
 	// Validate language

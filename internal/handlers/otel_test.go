@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"savvy/internal/config"
 )
@@ -19,7 +19,7 @@ func (errorReader) Read(_ []byte) (int, error) {
 	return 0, errors.New("read error")
 }
 
-func createOTelTestContext(path, body string) (echo.Context, *httptest.ResponseRecorder) {
+func createOTelTestContext(path, body string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, "application/x-protobuf")

@@ -4,7 +4,7 @@ package metrics //nolint:revive // "metrics" does not conflict with any Go stand
 import (
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -172,15 +172,15 @@ var (
 // Middleware records HTTP request metrics
 func Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			start := time.Now()
 
 			// Call the next handler
-			err := next(c)
+			handlerErr := next(c)
 
 			// Record metrics
 			duration := time.Since(start).Seconds()
-			status := c.Response().Status
+			_, status := echo.ResolveResponseStatus(c.Response(), handlerErr)
 			method := c.Request().Method
 			path := c.Path()
 
@@ -205,7 +205,7 @@ func Middleware() echo.MiddlewareFunc {
 			httpDuration.WithLabelValues(method, path, statusClass).Observe(duration)
 			httpRequestsTotal.WithLabelValues(method, path, statusClass).Inc()
 
-			return err
+			return handlerErr
 		}
 	}
 }

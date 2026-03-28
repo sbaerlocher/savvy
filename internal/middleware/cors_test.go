@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +35,7 @@ func TestCORSMiddleware_AllowedOrigin(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -60,7 +60,7 @@ func TestCORSMiddleware_DisallowedOrigin(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -86,7 +86,7 @@ func TestCORSMiddleware_WildcardOrigin(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -110,7 +110,7 @@ func TestCORSMiddleware_PreflightRequest(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.OPTIONS("/test", func(c echo.Context) error {
+	e.OPTIONS("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -141,7 +141,7 @@ func TestCORSMiddleware_PreflightDisallowedOrigin(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.OPTIONS("/test", func(c echo.Context) error {
+	e.OPTIONS("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -161,7 +161,7 @@ func TestCORSMiddleware_NoOriginHeader(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -185,7 +185,7 @@ func TestCORSMiddleware_CredentialsDisabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -251,7 +251,7 @@ func TestCORSMiddleware_WildcardWithCredentials(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -277,7 +277,7 @@ func TestCORSMiddleware_MultipleOrigins(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CORSMiddleware(config))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 

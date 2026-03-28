@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // VouchersHandler handles voucher API endpoints.
@@ -51,7 +51,7 @@ func NewVouchersHandler(
 // List returns all vouchers (owned + shared)
 // GET /api/v1/vouchers
 // Optional query params: ?page=1&per_page=25 for pagination
-func (h *VouchersHandler) List(c echo.Context) error {
+func (h *VouchersHandler) List(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	page, perPage, isPaginated := parsePaginationParams(c)
@@ -116,7 +116,7 @@ func (h *VouchersHandler) List(c echo.Context) error {
 
 // Show returns a single voucher with permissions
 // GET /api/v1/vouchers/:id
-func (h *VouchersHandler) Show(c echo.Context) error {
+func (h *VouchersHandler) Show(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	voucherID, err := parseResourceID(c, "voucher")
@@ -178,7 +178,7 @@ func (h *VouchersHandler) Show(c echo.Context) error {
 
 // Create creates a new voucher
 // POST /api/v1/vouchers
-func (h *VouchersHandler) Create(c echo.Context) error {
+func (h *VouchersHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	var req VoucherCreateRequest
@@ -341,7 +341,7 @@ func (h *VouchersHandler) Create(c echo.Context) error {
 
 // Update updates a voucher
 // PUT /api/v1/vouchers/:id
-func (h *VouchersHandler) Update(c echo.Context) error {
+func (h *VouchersHandler) Update(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	voucherID, err := parseResourceID(c, "voucher")
@@ -497,19 +497,19 @@ func (h *VouchersHandler) Update(c echo.Context) error {
 
 // Delete deletes a voucher
 // DELETE /api/v1/vouchers/:id
-func (h *VouchersHandler) Delete(c echo.Context) error {
+func (h *VouchersHandler) Delete(c *echo.Context) error {
 	return handleResourceDelete(c, "voucher", h.authzService.CheckVoucherAccess, h.voucherService.DeleteVoucher)
 }
 
 // ToggleFavorite toggles favorite status
 // POST /api/v1/vouchers/:id/favorite
-func (h *VouchersHandler) ToggleFavorite(c echo.Context) error {
+func (h *VouchersHandler) ToggleFavorite(c *echo.Context) error {
 	return handleResourceToggleFavorite(c, "voucher", h.authzService.CheckVoucherAccess, h.favoriteService)
 }
 
 // CreateShare creates a new share (read-only for vouchers)
 // POST /api/v1/vouchers/:id/share
-func (h *VouchersHandler) CreateShare(c echo.Context) error {
+func (h *VouchersHandler) CreateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	voucherID, err := parseResourceID(c, "voucher")
@@ -575,18 +575,18 @@ func (h *VouchersHandler) CreateShare(c echo.Context) error {
 
 // DeleteShare removes a share
 // DELETE /api/v1/vouchers/:id/share/:sharedWithID
-func (h *VouchersHandler) DeleteShare(c echo.Context) error {
+func (h *VouchersHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "voucher", h.authzService.CheckVoucherAccess, h.shareService.DeleteVoucherShare)
 }
 
 // Transfer transfers ownership
 // POST /api/v1/vouchers/:id/transfer
-func (h *VouchersHandler) Transfer(c echo.Context) error {
+func (h *VouchersHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "voucher", h.authzService.CheckVoucherAccess, h.transferService.TransferVoucherOwnership, h.userService)
 }
 
 // checkVoucherDuplicate checks for duplicate vouchers by code (warning only, does not block)
-func checkVoucherDuplicate(c echo.Context, svc services.VoucherServiceInterface, code *string, userID uuid.UUID, excludeID *uuid.UUID) *DuplicateWarning {
+func checkVoucherDuplicate(c *echo.Context, svc services.VoucherServiceInterface, code *string, userID uuid.UUID, excludeID *uuid.UUID) *DuplicateWarning {
 	if code == nil || *code == "" {
 		return nil
 	}

@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -14,7 +14,7 @@ import (
 func TestOTelLogger_NoTrace(t *testing.T) {
 	e := echo.New()
 	e.Use(OTelLogger())
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -42,7 +42,7 @@ func TestOTelLogger_WithValidTrace(t *testing.T) {
 
 	e := echo.New()
 	e.Use(OTelLogger())
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		// Logger should have trace context
 		return c.String(http.StatusOK, "OK")
 	})
@@ -61,7 +61,7 @@ func TestOTelLogger_PassesRequest(t *testing.T) {
 	e.Use(OTelLogger())
 
 	called := false
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		called = true
 		return c.String(http.StatusOK, "OK")
 	})
@@ -78,7 +78,7 @@ func TestOTelLogger_PassesRequest(t *testing.T) {
 func TestOTelLogger_HandlesErrors(t *testing.T) {
 	e := echo.New()
 	e.Use(OTelLogger())
-	e.GET("/test", func(_ echo.Context) error {
+	e.GET("/test", func(_ *echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error")
 	})
 

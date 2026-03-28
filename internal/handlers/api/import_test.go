@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -145,7 +145,7 @@ func TestImportHandler_PreviewJSON_ServiceError(t *testing.T) {
 
 // ==================== CSV Import Helper ====================
 
-func createCSVTestContext(url, filename, csvContent string) (echo.Context, *httptest.ResponseRecorder) {
+func createCSVTestContext(url, filename, csvContent string) (*echo.Context, *httptest.ResponseRecorder) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	part, _ := writer.CreateFormFile("file", filename)

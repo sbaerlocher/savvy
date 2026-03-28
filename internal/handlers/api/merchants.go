@@ -11,7 +11,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // MerchantsHandler handles merchant API endpoints.
@@ -28,7 +28,7 @@ func NewMerchantsHandler(merchantService services.MerchantServiceInterface) *Mer
 
 // List returns all merchants
 // GET /api/v1/merchants
-func (h *MerchantsHandler) List(c echo.Context) error {
+func (h *MerchantsHandler) List(c *echo.Context) error {
 	merchants, err := h.merchantService.GetAllMerchants(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -44,7 +44,7 @@ func (h *MerchantsHandler) List(c echo.Context) error {
 
 // Search searches merchants by query (autocomplete)
 // GET /api/v1/merchants/search?q=...
-func (h *MerchantsHandler) Search(c echo.Context) error {
+func (h *MerchantsHandler) Search(c *echo.Context) error {
 	query := c.QueryParam("q")
 	if query == "" {
 		// Return all merchants if no query
@@ -66,7 +66,7 @@ func (h *MerchantsHandler) Search(c echo.Context) error {
 
 // Show returns a single merchant
 // GET /api/v1/merchants/:id
-func (h *MerchantsHandler) Show(c echo.Context) error {
+func (h *MerchantsHandler) Show(c *echo.Context) error {
 	merchantID, err := parseResourceID(c, "merchant")
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (h *MerchantsHandler) Show(c echo.Context) error {
 
 // Create creates a new merchant (Admin only)
 // POST /api/v1/admin/merchants
-func (h *MerchantsHandler) Create(c echo.Context) error {
+func (h *MerchantsHandler) Create(c *echo.Context) error {
 	var req MerchantCreateRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -146,7 +146,7 @@ func (h *MerchantsHandler) Create(c echo.Context) error {
 
 // Update updates a merchant (Admin only)
 // PATCH /api/v1/admin/merchants/:id
-func (h *MerchantsHandler) Update(c echo.Context) error {
+func (h *MerchantsHandler) Update(c *echo.Context) error {
 	merchantID, err := parseResourceID(c, "merchant")
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (h *MerchantsHandler) Update(c echo.Context) error {
 
 // Delete deletes a merchant (Admin only)
 // DELETE /api/v1/admin/merchants/:id
-func (h *MerchantsHandler) Delete(c echo.Context) error {
+func (h *MerchantsHandler) Delete(c *echo.Context) error {
 	merchantID, err := parseResourceID(c, "merchant")
 	if err != nil {
 		return err

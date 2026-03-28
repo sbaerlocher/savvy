@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -32,8 +32,7 @@ func TestNotificationsHandler_MarkAsRead_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/notifications/:id/read", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	mockService.On("MarkAsRead", mock.Anything, user.ID, notificationID).Return(nil)
 
@@ -54,8 +53,7 @@ func TestNotificationsHandler_MarkAsRead_NotFound_IDOR(t *testing.T) {
 	c, _ := createTestContext(http.MethodPost, "/api/v1/notifications/:id/read", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	// Service returns error because notification doesn't belong to this user
 	mockService.On("MarkAsRead", mock.Anything, user.ID, notificationID).Return(errors.New("record not found"))
@@ -74,8 +72,7 @@ func TestNotificationsHandler_MarkAsRead_InvalidID(t *testing.T) {
 	c, _ := createTestContext(http.MethodPost, "/api/v1/notifications/:id/read", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("not-a-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
 
 	err := handler.MarkAsRead(c)
 
@@ -93,8 +90,7 @@ func TestNotificationsHandler_MarkAsRead_PassesAuthenticatedUserID(t *testing.T)
 		Email: "attacker@example.com",
 	}
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	// Only expect call with THIS user's ID (not any other)
 	mockService.On("MarkAsRead", mock.Anything, user.ID, notificationID).Return(nil)
@@ -115,8 +111,7 @@ func TestNotificationsHandler_Delete_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/notifications/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	mockService.On("DeleteNotification", mock.Anything, user.ID, notificationID).Return(nil)
 
@@ -137,8 +132,7 @@ func TestNotificationsHandler_Delete_NotFound_IDOR(t *testing.T) {
 	c, _ := createTestContext(http.MethodDelete, "/api/v1/notifications/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	// Service returns error because notification doesn't belong to this user
 	mockService.On("DeleteNotification", mock.Anything, user.ID, notificationID).Return(errors.New("record not found"))
@@ -157,8 +151,7 @@ func TestNotificationsHandler_Delete_InvalidID(t *testing.T) {
 	c, _ := createTestContext(http.MethodDelete, "/api/v1/notifications/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("not-a-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
 
 	err := handler.Delete(c)
 
@@ -176,8 +169,7 @@ func TestNotificationsHandler_Delete_PassesAuthenticatedUserID(t *testing.T) {
 		Email: "attacker@example.com",
 	}
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(notificationID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: notificationID.String()}})
 
 	mockService.On("DeleteNotification", mock.Anything, user.ID, notificationID).Return(nil)
 

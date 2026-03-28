@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // maxBatchSize is the maximum number of items allowed in a single batch request.
@@ -70,7 +70,7 @@ func NewBatchHandler(
 
 // DeleteCards batch-deletes cards (all-or-nothing: all checks must pass before any deletion).
 // POST /api/v1/cards/batch/delete
-func (h *BatchHandler) DeleteCards(c echo.Context) error {
+func (h *BatchHandler) DeleteCards(c *echo.Context) error {
 	return h.batchDelete(c, "card", h.authzService.CheckCardAccess, func(ctx context.Context, id uuid.UUID) error {
 		return h.cardService.DeleteCard(ctx, id)
 	})
@@ -78,7 +78,7 @@ func (h *BatchHandler) DeleteCards(c echo.Context) error {
 
 // DeleteVouchers batch-deletes vouchers.
 // POST /api/v1/vouchers/batch/delete
-func (h *BatchHandler) DeleteVouchers(c echo.Context) error {
+func (h *BatchHandler) DeleteVouchers(c *echo.Context) error {
 	return h.batchDelete(c, "voucher", h.authzService.CheckVoucherAccess, func(ctx context.Context, id uuid.UUID) error {
 		return h.voucherService.DeleteVoucher(ctx, id)
 	})
@@ -86,7 +86,7 @@ func (h *BatchHandler) DeleteVouchers(c echo.Context) error {
 
 // DeleteGiftCards batch-deletes gift cards.
 // POST /api/v1/gift-cards/batch/delete
-func (h *BatchHandler) DeleteGiftCards(c echo.Context) error {
+func (h *BatchHandler) DeleteGiftCards(c *echo.Context) error {
 	return h.batchDelete(c, "gift_card", h.authzService.CheckGiftCardAccess, func(ctx context.Context, id uuid.UUID) error {
 		return h.giftCardService.DeleteGiftCard(ctx, id)
 	})
@@ -96,7 +96,7 @@ func (h *BatchHandler) DeleteGiftCards(c echo.Context) error {
 
 // ShareCards batch-shares cards (partial success).
 // POST /api/v1/cards/batch/share
-func (h *BatchHandler) ShareCards(c echo.Context) error {
+func (h *BatchHandler) ShareCards(c *echo.Context) error {
 	return h.batchShare(c, "card", h.authzService.CheckCardAccess,
 		func(ctx context.Context, resourceID, callerID, sharedWithID uuid.UUID, req BatchShareRequest) error {
 			canEdit := req.CanEdit != nil && *req.CanEdit
@@ -107,7 +107,7 @@ func (h *BatchHandler) ShareCards(c echo.Context) error {
 
 // ShareVouchers batch-shares vouchers (partial success, always read-only).
 // POST /api/v1/vouchers/batch/share
-func (h *BatchHandler) ShareVouchers(c echo.Context) error {
+func (h *BatchHandler) ShareVouchers(c *echo.Context) error {
 	return h.batchShare(c, "voucher", h.authzService.CheckVoucherAccess,
 		func(ctx context.Context, resourceID, callerID, sharedWithID uuid.UUID, _ BatchShareRequest) error {
 			return h.shareService.CreateVoucherShare(ctx, callerID, resourceID, sharedWithID)
@@ -116,7 +116,7 @@ func (h *BatchHandler) ShareVouchers(c echo.Context) error {
 
 // ShareGiftCards batch-shares gift cards (partial success).
 // POST /api/v1/gift-cards/batch/share
-func (h *BatchHandler) ShareGiftCards(c echo.Context) error {
+func (h *BatchHandler) ShareGiftCards(c *echo.Context) error {
 	return h.batchShare(c, "gift_card", h.authzService.CheckGiftCardAccess,
 		func(ctx context.Context, resourceID, callerID, sharedWithID uuid.UUID, req BatchShareRequest) error {
 			canEdit := req.CanEdit != nil && *req.CanEdit
@@ -130,7 +130,7 @@ func (h *BatchHandler) ShareGiftCards(c echo.Context) error {
 
 // TransferCards batch-transfers card ownership (partial success).
 // POST /api/v1/cards/batch/transfer
-func (h *BatchHandler) TransferCards(c echo.Context) error {
+func (h *BatchHandler) TransferCards(c *echo.Context) error {
 	return h.batchTransfer(c, "card", h.authzService.CheckCardAccess,
 		func(ctx context.Context, resourceID, newOwnerID, currentOwnerID uuid.UUID) error {
 			return h.transferService.TransferCardOwnership(ctx, resourceID, newOwnerID, currentOwnerID)
@@ -139,7 +139,7 @@ func (h *BatchHandler) TransferCards(c echo.Context) error {
 
 // TransferVouchers batch-transfers voucher ownership (partial success).
 // POST /api/v1/vouchers/batch/transfer
-func (h *BatchHandler) TransferVouchers(c echo.Context) error {
+func (h *BatchHandler) TransferVouchers(c *echo.Context) error {
 	return h.batchTransfer(c, "voucher", h.authzService.CheckVoucherAccess,
 		func(ctx context.Context, resourceID, newOwnerID, currentOwnerID uuid.UUID) error {
 			return h.transferService.TransferVoucherOwnership(ctx, resourceID, newOwnerID, currentOwnerID)
@@ -148,7 +148,7 @@ func (h *BatchHandler) TransferVouchers(c echo.Context) error {
 
 // TransferGiftCards batch-transfers gift card ownership (partial success).
 // POST /api/v1/gift-cards/batch/transfer
-func (h *BatchHandler) TransferGiftCards(c echo.Context) error {
+func (h *BatchHandler) TransferGiftCards(c *echo.Context) error {
 	return h.batchTransfer(c, "gift_card", h.authzService.CheckGiftCardAccess,
 		func(ctx context.Context, resourceID, newOwnerID, currentOwnerID uuid.UUID) error {
 			return h.transferService.TransferGiftCardOwnership(ctx, resourceID, newOwnerID, currentOwnerID)
@@ -159,7 +159,7 @@ func (h *BatchHandler) TransferGiftCards(c echo.Context) error {
 
 // ExportCards batch-exports selected cards as JSON download.
 // POST /api/v1/cards/batch/export
-func (h *BatchHandler) ExportCards(c echo.Context) error {
+func (h *BatchHandler) ExportCards(c *echo.Context) error {
 	return h.batchExport(c, "cards", h.authzService.CheckCardAccess,
 		func(ctx context.Context, userID uuid.UUID, ids []uuid.UUID) (*services.BatchExportData, error) {
 			return h.exportService.ExportCardsByIDs(ctx, userID, ids)
@@ -168,7 +168,7 @@ func (h *BatchHandler) ExportCards(c echo.Context) error {
 
 // ExportVouchers batch-exports selected vouchers as JSON download.
 // POST /api/v1/vouchers/batch/export
-func (h *BatchHandler) ExportVouchers(c echo.Context) error {
+func (h *BatchHandler) ExportVouchers(c *echo.Context) error {
 	return h.batchExport(c, "vouchers", h.authzService.CheckVoucherAccess,
 		func(ctx context.Context, userID uuid.UUID, ids []uuid.UUID) (*services.BatchExportData, error) {
 			return h.exportService.ExportVouchersByIDs(ctx, userID, ids)
@@ -177,7 +177,7 @@ func (h *BatchHandler) ExportVouchers(c echo.Context) error {
 
 // ExportGiftCards batch-exports selected gift cards as JSON download.
 // POST /api/v1/gift-cards/batch/export
-func (h *BatchHandler) ExportGiftCards(c echo.Context) error {
+func (h *BatchHandler) ExportGiftCards(c *echo.Context) error {
 	return h.batchExport(c, "gift-cards", h.authzService.CheckGiftCardAccess,
 		func(ctx context.Context, userID uuid.UUID, ids []uuid.UUID) (*services.BatchExportData, error) {
 			return h.exportService.ExportGiftCardsByIDs(ctx, userID, ids)
@@ -186,7 +186,7 @@ func (h *BatchHandler) ExportGiftCards(c echo.Context) error {
 
 // batchExport performs a batch export with access checks.
 func (h *BatchHandler) batchExport(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	exportFn func(context.Context, uuid.UUID, []uuid.UUID) (*services.BatchExportData, error),
@@ -242,7 +242,7 @@ func (h *BatchHandler) batchExport(
 // batchDelete performs a batch delete with all-or-nothing semantics.
 // First validates all permissions, then deletes all resources.
 func (h *BatchHandler) batchDelete(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	deleteResource func(context.Context, uuid.UUID) error,
@@ -303,7 +303,7 @@ func (h *BatchHandler) batchDelete(
 
 // batchShare performs a batch share with partial success semantics.
 func (h *BatchHandler) batchShare(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	createShare func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, BatchShareRequest) error,
@@ -383,7 +383,7 @@ func (h *BatchHandler) batchShare(
 
 // batchTransfer performs a batch transfer with partial success semantics.
 func (h *BatchHandler) batchTransfer(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	transferOwnership func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) error,

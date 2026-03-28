@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestSessionTracking_NoSession(t *testing.T) {
 
 	e := echo.New()
 	e.Use(SessionTracking)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -48,7 +48,7 @@ func TestSessionTracking_WithUserID(t *testing.T) {
 	// Create new recorder for actual test
 	rec2 := httptest.NewRecorder()
 	e.Use(SessionTracking)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -77,7 +77,7 @@ func TestSessionTracking_EmptyUserID(t *testing.T) {
 	// Create new recorder for actual test
 	rec2 := httptest.NewRecorder()
 	e.Use(SessionTracking)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -106,7 +106,7 @@ func TestSessionTracking_InvalidUserIDType(t *testing.T) {
 	// Create new recorder for actual test
 	rec2 := httptest.NewRecorder()
 	e.Use(SessionTracking)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -159,7 +159,7 @@ func TestSessionTracking_ConcurrentAccess(_ *testing.T) {
 
 	e := echo.New()
 	e.Use(SessionTracking)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -189,7 +189,7 @@ func TestSessionTracking_PassesRequest(t *testing.T) {
 	e.Use(SessionTracking)
 
 	called := false
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		called = true
 		return c.String(http.StatusOK, "OK")
 	})

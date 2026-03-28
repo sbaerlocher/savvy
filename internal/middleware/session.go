@@ -6,7 +6,7 @@ import (
 	"savvy/internal/repository"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // Store is the global session store (PGStore backed by PostgreSQL)
@@ -19,7 +19,7 @@ func InitSessionStore(repo repository.SessionRepository, maxAge int) {
 
 // GetSession retrieves the session for the current request.
 // Returns an error if the session store has not been initialized.
-func GetSession(c echo.Context) (*sessions.Session, error) {
+func GetSession(c *echo.Context) (*sessions.Session, error) {
 	if Store == nil {
 		return nil, errors.New("session store not initialized")
 	}
@@ -28,7 +28,7 @@ func GetSession(c echo.Context) (*sessions.Session, error) {
 
 // SaveSession saves a session with the Secure flag set dynamically based on actual HTTPS status
 // This allows the same code to work in both HTTP (E2E/dev) and HTTPS (production) environments
-func SaveSession(c echo.Context, session *sessions.Session) error {
+func SaveSession(c *echo.Context, session *sessions.Session) error {
 	// Set Secure flag based on actual connection (same logic as CSRF middleware)
 	// - True if direct TLS connection OR behind HTTPS reverse proxy
 	// - False for plain HTTP (localhost, E2E tests)
@@ -61,7 +61,7 @@ func ClearSessionUserValues(session *sessions.Session) {
 // RegenerateSession invalidates the old session and creates a new one with a new ID.
 // This prevents session fixation attacks by ensuring a fresh session ID after authentication.
 // Returns the new session.
-func RegenerateSession(c echo.Context) (*sessions.Session, error) {
+func RegenerateSession(c *echo.Context) (*sessions.Session, error) {
 	// Get the old session
 	oldSession, err := Store.Get(c.Request(), "session")
 	if err != nil {

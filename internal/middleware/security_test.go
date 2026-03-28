@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,7 +87,7 @@ func TestSecurityHeaders(t *testing.T) {
 			e.Use(SecurityHeaders(tt.config))
 
 			// Create test handler
-			e.GET("/test", func(c echo.Context) error {
+			e.GET("/test", func(c *echo.Context) error {
 				return c.String(http.StatusOK, "OK")
 			})
 
@@ -259,7 +259,7 @@ func TestSecurityHeadersIntegration(t *testing.T) {
 
 	e := echo.New()
 	e.Use(SecurityHeaders(cfg))
-	e.GET("/", func(c echo.Context) error {
+	e.GET("/", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -289,7 +289,7 @@ func TestSecurityHeadersWithMultipleRequests(t *testing.T) {
 
 	e := echo.New()
 	e.Use(SecurityHeaders(cfg))
-	e.GET("/", func(c echo.Context) error {
+	e.GET("/", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 

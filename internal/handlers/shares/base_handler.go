@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"savvy/internal/audit"
 	"savvy/internal/i18n"
 	"savvy/internal/models"
@@ -36,7 +36,7 @@ func NewBaseShareHandler(adapter ShareAdapter, userService services.UserServiceI
 // Create handles share creation for any resource type.
 // This method consolidates duplicate logic from CardSharesHandler.Create,
 // VoucherSharesHandler.Create, and GiftCardSharesHandler.Create.
-func (h *BaseShareHandler) Create(c echo.Context) error {
+func (h *BaseShareHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	resourceID := c.Param("id")
 	resourceUUID, err := uuid.Parse(resourceID)
@@ -108,7 +108,7 @@ func (h *BaseShareHandler) Create(c echo.Context) error {
 
 // Update handles share permission updates.
 // Only supported for Cards and Gift Cards (not Vouchers - they're read-only).
-func (h *BaseShareHandler) Update(c echo.Context) error {
+func (h *BaseShareHandler) Update(c *echo.Context) error {
 	if !h.adapter.SupportsEdit() {
 		msg := i18n.T(c.Request().Context(), "error.updates_not_supported")
 		return c.String(http.StatusMethodNotAllowed, msg)
@@ -171,7 +171,7 @@ func (h *BaseShareHandler) Update(c echo.Context) error {
 }
 
 // Delete handles share deletion for any resource type.
-func (h *BaseShareHandler) Delete(c echo.Context) error {
+func (h *BaseShareHandler) Delete(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 	resourceID := c.Param("id")
 	sharedWithID := c.Param("shared_with_id")
@@ -216,20 +216,20 @@ func (h *BaseShareHandler) Delete(c echo.Context) error {
 
 // NewInline renders the inline share creation form.
 // This is a simple method that returns an empty response to close the form.
-func (h *BaseShareHandler) NewInline(c echo.Context) error {
+func (h *BaseShareHandler) NewInline(c *echo.Context) error {
 	// This method is typically handled by templates directly
 	// For now, return empty response (form is rendered by template)
 	return c.String(http.StatusOK, "")
 }
 
 // Cancel closes the inline share form without saving.
-func (h *BaseShareHandler) Cancel(c echo.Context) error {
+func (h *BaseShareHandler) Cancel(c *echo.Context) error {
 	// HTMX: return empty string to remove the form
 	return c.String(http.StatusOK, "")
 }
 
 // EditInline renders the inline share edit form (Cards & Gift Cards only).
-func (h *BaseShareHandler) EditInline(c echo.Context) error {
+func (h *BaseShareHandler) EditInline(c *echo.Context) error {
 	if !h.adapter.SupportsEdit() {
 		msg := i18n.T(c.Request().Context(), "error.editing_not_supported")
 		return c.String(http.StatusMethodNotAllowed, msg)
@@ -239,7 +239,7 @@ func (h *BaseShareHandler) EditInline(c echo.Context) error {
 }
 
 // CancelEdit closes the inline edit form without saving (Cards & Gift Cards only).
-func (h *BaseShareHandler) CancelEdit(c echo.Context) error {
+func (h *BaseShareHandler) CancelEdit(c *echo.Context) error {
 	if !h.adapter.SupportsEdit() {
 		msg := i18n.T(c.Request().Context(), "error.editing_not_supported")
 		return c.String(http.StatusMethodNotAllowed, msg)

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +29,7 @@ func TestRequireImpersonationOrAdmin_AdminUser(t *testing.T) {
 	}
 	c.Set("current_user", admin)
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -57,7 +57,7 @@ func TestRequireImpersonationOrAdmin_RegularUserNotImpersonating(t *testing.T) {
 	}
 	c.Set("current_user", user)
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -96,7 +96,7 @@ func TestRequireImpersonationOrAdmin_RegularUserImpersonating(t *testing.T) {
 
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -116,7 +116,7 @@ func TestRequireImpersonationOrAdmin_NoUser(t *testing.T) {
 
 	// No user set in context
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -140,7 +140,7 @@ func TestRequireImpersonationOrAdmin_InvalidUserType(t *testing.T) {
 	// Set invalid user type
 	c.Set("current_user", "not-a-user-object")
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -179,7 +179,7 @@ func TestRequireImpersonationOrAdmin_SessionError(t *testing.T) {
 	}
 	c.Set("current_user", user)
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 
@@ -271,7 +271,7 @@ func TestRequireImpersonationOrAdmin_MultipleScenarios(t *testing.T) {
 				req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 			}
 
-			handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+			handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 				return c.String(http.StatusOK, "Access granted")
 			})
 
@@ -313,7 +313,7 @@ func TestRequireImpersonationOrAdmin_NilOriginalUserID(t *testing.T) {
 	_ = session.Save(req, rec)
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
-	handler := RequireImpersonationOrAdmin(func(c echo.Context) error {
+	handler := RequireImpersonationOrAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Access granted")
 	})
 

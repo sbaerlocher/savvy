@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -117,8 +118,7 @@ func TestMerchantsHandler_Show_Success(t *testing.T) {
 	handler, mockMerchantService := setupMerchantsTest()
 	merchantID := uuid.New()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/merchants/:id", "")
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	merchant := &models.Merchant{ID: merchantID, Name: "IKEA", Color: "#0051BA"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
@@ -133,8 +133,7 @@ func TestMerchantsHandler_Show_Success(t *testing.T) {
 func TestMerchantsHandler_Show_InvalidID(t *testing.T) {
 	handler, _ := setupMerchantsTest()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/merchants/:id", "")
-	c.SetParamNames("id")
-	c.SetParamValues("invalid-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
 
 	err := handler.Show(c)
 
@@ -146,8 +145,7 @@ func TestMerchantsHandler_Show_NotFound(t *testing.T) {
 	handler, mockMerchantService := setupMerchantsTest()
 	merchantID := uuid.New()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/merchants/:id", "")
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return((*models.Merchant)(nil), errors.New("not found"))
 
@@ -248,8 +246,7 @@ func TestMerchantsHandler_Update_Success(t *testing.T) {
 	merchantID := uuid.New()
 	body := `{"name":"Updated Merchant"}`
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/merchants/:id", body)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	merchant := &models.Merchant{ID: merchantID, Name: "Old Merchant", Color: "#3B82F6"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
@@ -267,8 +264,7 @@ func TestMerchantsHandler_Update_NotFound(t *testing.T) {
 	merchantID := uuid.New()
 	body := `{"name":"Updated"}`
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/merchants/:id", body)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return((*models.Merchant)(nil), errors.New("not found"))
 
@@ -284,8 +280,7 @@ func TestMerchantsHandler_Update_DuplicateName(t *testing.T) {
 	merchantID := uuid.New()
 	body := `{"name":"Existing Name"}`
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/merchants/:id", body)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	merchant := &models.Merchant{ID: merchantID, Name: "Old Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
@@ -307,8 +302,7 @@ func TestMerchantsHandler_Delete_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/admin/merchants/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
@@ -327,8 +321,7 @@ func TestMerchantsHandler_Delete_NotFound(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/admin/merchants/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return((*models.Merchant)(nil), errors.New("not found"))
 
@@ -345,8 +338,7 @@ func TestMerchantsHandler_Delete_ServiceError(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/admin/merchants/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(merchantID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: merchantID.String()}})
 
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)

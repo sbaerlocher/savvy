@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -91,8 +92,7 @@ func TestAdminHandler_GetUser_Success(t *testing.T) {
 	handler, mockAdminService, _, _, _, _ := setupAdminTest()
 	userID := uuid.New()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/admin/users/"+userID.String(), "")
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	user := &models.User{
 		ID:           userID,
@@ -119,8 +119,7 @@ func TestAdminHandler_GetUser_Success(t *testing.T) {
 func TestAdminHandler_GetUser_InvalidID(t *testing.T) {
 	handler, _, _, _, _, _ := setupAdminTest()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/admin/users/invalid", "")
-	c.SetParamNames("id")
-	c.SetParamValues("invalid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid"}})
 
 	err := handler.GetUser(c)
 
@@ -137,8 +136,7 @@ func TestAdminHandler_GetUser_NotFound(t *testing.T) {
 	handler, mockAdminService, _, _, _, _ := setupAdminTest()
 	userID := uuid.New()
 	c, rec := createTestContext(http.MethodGet, "/api/v1/admin/users/"+userID.String(), "")
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	mockAdminService.On("GetUserByID", mock.Anything, userID).Return((*models.User)(nil), errors.New("not found"))
 
@@ -257,8 +255,7 @@ func TestAdminHandler_StartImpersonation_UnknownError_NoLeakedDetails(t *testing
 		Role:  "admin",
 	}
 	c.Set("current_user", admin)
-	c.SetParamNames("id")
-	c.SetParamValues(targetUserID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: targetUserID.String()}})
 
 	// Simulate a GORM/DB error leaking through the service layer
 	mockAdminService.On("ValidateImpersonation", mock.Anything, admin.ID, targetUserID).
@@ -318,8 +315,7 @@ func TestAdminHandler_StartImpersonation_KnownErrors_SafeMessages(t *testing.T) 
 				Role:  "admin",
 			}
 			c.Set("current_user", admin)
-			c.SetParamNames("id")
-			c.SetParamValues(targetUserID.String())
+			c.SetPathValues(echo.PathValues{{Name: "id", Value: targetUserID.String()}})
 
 			mockAdminService.On("ValidateImpersonation", mock.Anything, admin.ID, targetUserID).
 				Return(errors.New(tt.serviceError))
@@ -352,8 +348,7 @@ func TestAdminHandler_UpdateUser_Success(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -390,8 +385,7 @@ func TestAdminHandler_UpdateUser_PartialUpdate_OnlyEmail(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -426,8 +420,7 @@ func TestAdminHandler_UpdateUser_PartialUpdate_OnlyName(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -452,8 +445,7 @@ func TestAdminHandler_UpdateUser_PartialUpdate_OnlyName(t *testing.T) {
 func TestAdminHandler_UpdateUser_InvalidID(t *testing.T) {
 	handler, _, _, _, _, _ := setupAdminTest()
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/invalid", `{"first_name":"Test"}`)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid"}})
 
 	err := handler.UpdateUser(c)
 
@@ -470,8 +462,7 @@ func TestAdminHandler_UpdateUser_UserNotFound(t *testing.T) {
 	userID := uuid.New()
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), `{"first_name":"Test"}`)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	mockAdminService.On("GetUserByID", mock.Anything, userID).Return((*models.User)(nil), errors.New("not found"))
 
@@ -495,8 +486,7 @@ func TestAdminHandler_UpdateUser_InvalidRole(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -531,8 +521,7 @@ func TestAdminHandler_UpdateUser_EmailConflict(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -574,8 +563,7 @@ func TestAdminHandler_UpdateUser_EmailChangedToSameUser(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -613,8 +601,7 @@ func TestAdminHandler_UpdateUser_ServiceError(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -650,8 +637,7 @@ func TestAdminHandler_UpdateUser_EmptyFieldsAfterUpdate(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -684,8 +670,7 @@ func TestAdminHandler_UpdateUser_EmailNormalization(t *testing.T) {
 	}`
 
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/admin/users/"+userID.String(), requestBody)
-	c.SetParamNames("id")
-	c.SetParamValues(userID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: userID.String()}})
 
 	existingUser := &models.User{
 		ID:           userID,
@@ -932,8 +917,7 @@ func TestAdminHandler_RestoreResource_Success(t *testing.T) {
 	resourceID := uuid.New()
 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/cards/"+resourceID.String(), "")
-	c.SetParamNames("resource_type", "resource_id")
-	c.SetParamValues("cards", resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "cards"}, {Name: "resource_id", Value: resourceID.String()}})
 
 	mockAdminService.On("RestoreResource", mock.Anything, "cards", resourceID).Return(nil)
 
@@ -960,8 +944,7 @@ func TestAdminHandler_RestoreResource_AllValidTypes(t *testing.T) {
 			resourceID := uuid.New()
 
 			c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/"+resourceType+"/"+resourceID.String(), "")
-			c.SetParamNames("resource_type", "resource_id")
-			c.SetParamValues(resourceType, resourceID.String())
+			c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: resourceType}, {Name: "resource_id", Value: resourceID.String()}})
 
 			mockAdminService.On("RestoreResource", mock.Anything, resourceType, resourceID).Return(nil)
 
@@ -979,8 +962,7 @@ func TestAdminHandler_RestoreResource_InvalidResourceType(t *testing.T) {
 	resourceID := uuid.New()
 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/users/"+resourceID.String(), "")
-	c.SetParamNames("resource_type", "resource_id")
-	c.SetParamValues("users", resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "users"}, {Name: "resource_id", Value: resourceID.String()}})
 
 	err := handler.RestoreResource(c)
 
@@ -997,8 +979,7 @@ func TestAdminHandler_RestoreResource_InvalidResourceID(t *testing.T) {
 	handler, _, _, _, _, _ := setupAdminTest()
 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/cards/not-a-uuid", "")
-	c.SetParamNames("resource_type", "resource_id")
-	c.SetParamValues("cards", "not-a-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "cards"}, {Name: "resource_id", Value: "not-a-uuid"}})
 
 	err := handler.RestoreResource(c)
 
@@ -1016,8 +997,7 @@ func TestAdminHandler_RestoreResource_ResourceNotDeleted(t *testing.T) {
 	resourceID := uuid.New()
 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/vouchers/"+resourceID.String(), "")
-	c.SetParamNames("resource_type", "resource_id")
-	c.SetParamValues("vouchers", resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "vouchers"}, {Name: "resource_id", Value: resourceID.String()}})
 
 	mockAdminService.On("RestoreResource", mock.Anything, "vouchers", resourceID).Return(errors.New("resource is not deleted"))
 
@@ -1038,8 +1018,7 @@ func TestAdminHandler_RestoreResource_ServiceError(t *testing.T) {
 	resourceID := uuid.New()
 
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/gift_cards/"+resourceID.String(), "")
-	c.SetParamNames("resource_type", "resource_id")
-	c.SetParamValues("gift_cards", resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "gift_cards"}, {Name: "resource_id", Value: resourceID.String()}})
 
 	mockAdminService.On("RestoreResource", mock.Anything, "gift_cards", resourceID).Return(errors.New("database error"))
 

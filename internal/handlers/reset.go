@@ -4,7 +4,7 @@ import (
 	"embed"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 //go:embed templates/reset.html
@@ -28,6 +28,6 @@ func NewResetHandler() *ResetHandler {
 // ServeResetPage serves a self-contained HTML page that unregisters service workers,
 // clears all caches, and redirects to login.
 // GET /reset
-func (h *ResetHandler) ServeResetPage(c echo.Context) error {
+func (h *ResetHandler) ServeResetPage(c *echo.Context) error {
 	return c.HTMLBlob(http.StatusOK, h.html)
 }
