@@ -6,7 +6,11 @@ import type { DuplicateWarning } from '$lib/types/api';
  * Returns null for any other error type.
  */
 export function extractDuplicate(err: unknown): DuplicateWarning | null {
-	if (err instanceof ApiError && err.error === 'duplicate_barcode' && err.data?.duplicate) {
+	if (
+		err instanceof ApiError &&
+		err.error === 'duplicate_barcode' &&
+		err.data?.duplicate
+	) {
 		return err.data.duplicate as DuplicateWarning;
 	}
 	return null;
