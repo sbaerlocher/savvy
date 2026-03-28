@@ -255,6 +255,9 @@ func run() int {
 		return 1
 	}
 
+	// Cancel application context to stop background goroutines (reminders, session cleanup)
+	appCancel()
+
 	log.Println("Server gracefully stopped")
 	return 0
 }

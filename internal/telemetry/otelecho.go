@@ -2,12 +2,14 @@
 package telemetry
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/labstack/echo/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -61,9 +63,7 @@ func OTelMiddleware(serverName string, cfg OTelMiddlewareConfig) echo.Middleware
 				semconv.HTTPRequestMethodKey.String(method),
 				semconv.ServerAddress(serverName),
 				semconv.URLPath(request.URL.Path),
-			}
-			if request.URL.RawQuery != "" {
-				attrs = append(attrs, semconv.URLQuery(request.URL.RawQuery))
+				// URLQuery is intentionally omitted to avoid capturing PII/tokens in traces
 			}
 
 			ctx, span := tracer.Start(ctx, spanName,
@@ -75,12 +75,16 @@ func OTelMiddleware(serverName string, cfg OTelMiddlewareConfig) echo.Middleware
 			c.SetRequest(request.WithContext(ctx))
 
 			err := next(c)
-			if err != nil {
-				span.SetAttributes(attribute.String("echo.error", err.Error()))
-			}
 
 			_, status := echo.ResolveResponseStatus(c.Response(), err)
 			span.SetAttributes(semconv.HTTPResponseStatusCode(status))
+
+			if err != nil {
+				span.SetAttributes(attribute.String("echo.error", err.Error()))
+				span.SetStatus(codes.Error, err.Error())
+			} else if status >= 500 {
+				span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", status))
+			}
 
 			return err
 		}
