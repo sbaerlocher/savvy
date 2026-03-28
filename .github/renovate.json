@@ -8,7 +8,7 @@
     {
       "description": "Track Savvy appVersion in Helm Chart.yaml",
       "customType": "regex",
-      "fileMatch": ["^deploy/helm/Chart\\.yaml$"],
+      "managerFilePatterns": ["/^deploy/helm/Chart\.yaml$/"],
       "matchStrings": ["appVersion: \"(?<currentValue>[^\"]+)\""],
       "depNameTemplate": "ghcr.io/sbaerlocher/container/savvy",
       "datasourceTemplate": "docker",
