@@ -57,7 +57,12 @@ jobs:
 
   helm-test:
     name: Helm Chart Test
-    uses: sbaerlocher/.github/.github/workflows/helm-test.yml@2026-03-22
+    uses: sbaerlocher/.github/.github/workflows/ci-gitops.yml@2026-03-22
     with:
-      chart-path: "deploy/helm"
-      enable-kind-tests: true
+      fleet-paths: "deploy"
+      enable-yaml-lint: false
+      enable-fleet-validation: false
+      enable-gitrepo-validation: false
+      enable-helm-lint: true
+      enable-k8s-validation: false
+      enable-docs-check: false
