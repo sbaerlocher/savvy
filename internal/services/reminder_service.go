@@ -103,18 +103,23 @@ func (s *ReminderService) CheckAndSendReminders(ctx context.Context) error {
 // calculateDaysLeft calculates the number of days until expiry in the configured timezone.
 // It uses calendar days (start of day) instead of exact hours to avoid timezone issues.
 func (s *ReminderService) calculateDaysLeft(expiryTime time.Time) int {
-	// Get start of today in configured timezone
+	// Get today's calendar date in configured timezone
 	now := time.Now().In(s.location)
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, s.location)
+	ty, tm, td := now.Date()
 
 	// Extract date components from UTC since dates are stored as end-of-day UTC
 	// (T23:59:59Z). Converting to local timezone first can shift the date forward
 	// by one day (e.g., 23:59:59 UTC → 00:59:59+01:00 = next day in Europe/Zurich).
 	utc := expiryTime.UTC()
-	expiryDay := time.Date(utc.Year(), utc.Month(), utc.Day(), 0, 0, 0, 0, s.location)
+	ey, em, ed := utc.Date()
 
-	// Calculate difference in days
-	daysLeft := int(expiryDay.Sub(today).Hours() / 24)
+	// Compare as pure UTC dates to avoid DST hour-shift issues.
+	// Constructing both dates in UTC with the same time component ensures
+	// the Sub() result is always an exact multiple of 24 hours.
+	todayUTC := time.Date(ty, tm, td, 0, 0, 0, 0, time.UTC)
+	expiryUTC := time.Date(ey, em, ed, 0, 0, 0, 0, time.UTC)
+
+	daysLeft := int(expiryUTC.Sub(todayUTC).Hours() / 24)
 
 	// Ensure we return at least 0 (for items expiring today)
 	if daysLeft < 0 {
