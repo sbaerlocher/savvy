@@ -4,11 +4,12 @@
 	import { giftCardsApi, sharedUsersApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
 	import { t } from '$lib/stores/i18n';
-	import type { UserDTO } from '$lib/types/api';
+	import type { UserDTO, DuplicateWarning } from '$lib/types/api';
 
 	import { logger } from '$lib/utils/logger';
 	import GiftCardForm from '$lib/components/gift-cards/GiftCardForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
+	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -24,6 +25,7 @@
 	let expiresAt = $state('');
 	let notes = $state('');
 	let isLoading = $state(false);
+	let duplicateWarning = $state<DuplicateWarning | null>(null);
 
 	// Sharing state
 	let shareEmail = $state('');
@@ -87,6 +89,7 @@
 
 	async function handleSubmit() {
 		isLoading = true;
+		duplicateWarning = null;
 		try {
 			const response = await giftCardsApi.create({
 				card_number: cardNumber,
@@ -108,7 +111,11 @@
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/gift-cards/${response.gift_card.id}`;
 		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.createError'));
+			if (err.error === 'duplicate_barcode' && err.data?.duplicate) {
+				duplicateWarning = err.data.duplicate as DuplicateWarning;
+			} else {
+				toastStore.error(err.message || tr('giftCards.createError'));
+			}
 		} finally {
 			isLoading = false;
 		}
@@ -136,6 +143,11 @@
 			<h1 class="text-3xl font-bold text-gray-900 mb-6">
 				{tr('giftCards.newGiftCard')}
 			</h1>
+			<DuplicateWarningBanner
+				warning={duplicateWarning}
+				resourceType="gift_card"
+				onNavigate={(id) => goto(`/gift-cards/${id}`)}
+			/>
 			<GiftCardForm
 				bind:cardNumber
 				bind:merchantId

@@ -21,7 +21,9 @@ export class ApiError extends Error {
 	constructor(
 		public status: number,
 		public error: string,
-		message: string
+		message: string,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		public data?: Record<string, any>
 	) {
 		super(message);
 		this.name = 'ApiError';
@@ -149,7 +151,7 @@ async function apiRequest<T>(
 		}
 
 		const error = data as ErrorResponse;
-		throw new ApiError(response.status, error.error, error.message);
+		throw new ApiError(response.status, error.error, error.message, data);
 	}
 
 	return data as T;

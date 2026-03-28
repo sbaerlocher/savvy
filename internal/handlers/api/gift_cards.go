@@ -270,20 +270,23 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		expiresAt = &expTime
 	}
 
-	// Check for duplicates (warning only)
-	var duplicateWarning *DuplicateWarning
+	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
 		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 	}
 	if duplicate != nil {
-		duplicateWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   duplicate.MerchantName,
-			ResourceNumber: duplicate.CardNumber,
-			ExistingID:     duplicate.ID.String(),
-		}
-		slog.InfoContext(c.Request().Context(), "duplicate gift card detected", "existing_id", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate gift card blocked", "existing_id", duplicate.ID)
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A gift card with this number already exists",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   duplicate.MerchantName,
+				ResourceNumber: duplicate.CardNumber,
+				ExistingID:     duplicate.ID.String(),
+			},
+		})
 	}
 
 	// Create gift card
@@ -326,8 +329,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 			CanEditTransactions: true,
 			IsOwner:             true,
 		},
-		Transactions:     []GiftCardTransactionDTO{}, // Empty initially
-		DuplicateWarning: duplicateWarning,
+		Transactions: []GiftCardTransactionDTO{}, // Empty initially
 	})
 }
 

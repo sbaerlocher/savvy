@@ -262,20 +262,23 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Check for duplicates (warning only)
-	var duplicateWarning *DuplicateWarning
+	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
 	if err != nil {
 		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 	}
 	if duplicate != nil {
-		duplicateWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   duplicate.MerchantName,
-			ResourceNumber: duplicate.Code,
-			ExistingID:     duplicate.ID.String(),
-		}
-		slog.InfoContext(c.Request().Context(), "duplicate voucher detected", "existing_id", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate voucher blocked", "existing_id", duplicate.ID)
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A voucher with this code already exists",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   duplicate.MerchantName,
+				ResourceNumber: duplicate.Code,
+				ExistingID:     duplicate.ID.String(),
+			},
+		})
 	}
 
 	// Create voucher
@@ -335,7 +338,6 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 			CanDelete: true,
 			IsOwner:   true,
 		},
-		DuplicateWarning: duplicateWarning,
 	})
 }
 

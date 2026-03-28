@@ -21,6 +21,13 @@ type ErrorResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
+// DuplicateErrorResponse represents an error response when a duplicate resource is detected
+type DuplicateErrorResponse struct {
+	Error     string            `json:"error"`
+	Message   string            `json:"message,omitempty"`
+	Duplicate *DuplicateWarning `json:"duplicate"`
+}
+
 // ==================== Permission DTOs ====================
 
 // PermissionDTO represents resource access permissions

@@ -270,21 +270,24 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Check for duplicates (warning only, doesn't block creation)
-	var duplicateWarning *DuplicateWarning
+	// Check for duplicates — blocks creation to prevent DB unique constraint violation
 	duplicate, err := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
 	if err != nil {
 		slog.WarnContext(c.Request().Context(), "failed to check duplicate", "error", err)
 		// Don't fail the request, just log
 	}
 	if duplicate != nil {
-		duplicateWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   duplicate.MerchantName,
-			ResourceNumber: duplicate.CardNumber,
-			ExistingID:     duplicate.ID.String(),
-		}
-		slog.InfoContext(c.Request().Context(), "duplicate card detected", "existing_id", duplicate.ID)
+		slog.InfoContext(c.Request().Context(), "duplicate card blocked", "existing_id", duplicate.ID)
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A card with this number already exists",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   duplicate.MerchantName,
+				ResourceNumber: duplicate.CardNumber,
+				ExistingID:     duplicate.ID.String(),
+			},
+		})
 	}
 
 	// Create card
@@ -346,9 +349,8 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	cardDTO.Permissions = &permDTO
 
 	return c.JSON(http.StatusCreated, CardDetailResponse{
-		Card:             cardDTO,
-		Permissions:      permDTO,
-		DuplicateWarning: duplicateWarning,
+		Card:        cardDTO,
+		Permissions: permDTO,
 	})
 }
 
