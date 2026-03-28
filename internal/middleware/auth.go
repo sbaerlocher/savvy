@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // UserService defines the interface needed by auth middleware
@@ -28,7 +28,7 @@ const (
 // SetCurrentUserWithService creates a middleware that loads the current user using UserService
 func SetCurrentUserWithService(userService UserService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			session, err := GetSession(c)
 			if err != nil {
 				return next(c)
@@ -98,7 +98,7 @@ func SetCurrentUserWithService(userService UserService) echo.MiddlewareFunc {
 
 // RequireAuth middleware requires authentication
 func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		currentUser := c.Get("current_user")
 		if currentUser == nil {
 			// Check if this is an API request
@@ -126,7 +126,7 @@ func RequireAuth(next echo.HandlerFunc) echo.HandlerFunc {
 
 // RequireAdmin middleware requires admin role
 func RequireAdmin(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// Check if this is an API request
 		isAPI := len(c.Request().URL.Path) >= 4 && c.Request().URL.Path[:4] == "/api"
 

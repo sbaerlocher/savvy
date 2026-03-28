@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/time/rate"
 )
 
@@ -108,7 +108,7 @@ func (i *IPRateLimiter) Shutdown() {
 // r is the rate (requests per second), b is the burst size
 func RateLimitMiddleware(limiter *IPRateLimiter) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			ip := c.RealIP()
 			l := limiter.GetLimiter(ip)
 

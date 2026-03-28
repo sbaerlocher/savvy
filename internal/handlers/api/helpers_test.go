@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -125,9 +125,8 @@ func TestParseResourceID_Valid(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
-	c.SetParamValues(expectedID)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: expectedID}})
 
 	id, err := parseResourceID(c, "card")
 
@@ -140,8 +139,7 @@ func TestParseResourceID_Invalid(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues("not-a-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
 
 	_, err := parseResourceID(c, "card")
 
@@ -156,9 +154,8 @@ func TestParseUUIDParam_Valid(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("sharedWithID")
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
-	c.SetParamValues(expectedID)
+	c.SetPathValues(echo.PathValues{{Name: "sharedWithID", Value: expectedID}})
 
 	id, err := parseUUIDParam(c, "sharedWithID", "invalid_user_id", "Invalid user ID")
 
@@ -171,8 +168,7 @@ func TestParseUUIDParam_Invalid(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetParamNames("sharedWithID")
-	c.SetParamValues("invalid")
+	c.SetPathValues(echo.PathValues{{Name: "sharedWithID", Value: "invalid"}})
 
 	_, err := parseUUIDParam(c, "sharedWithID", "invalid_user_id", "Invalid user ID")
 

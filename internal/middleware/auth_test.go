@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -71,7 +71,7 @@ func TestSetCurrentUserWithService_ValidSession(t *testing.T) {
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
 	// Create middleware
-	handler := SetCurrentUserWithService(mockUserService)(func(c echo.Context) error {
+	handler := SetCurrentUserWithService(mockUserService)(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -101,7 +101,7 @@ func TestSetCurrentUserWithService_NoSession(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	handler := SetCurrentUserWithService(mockUserService)(func(c echo.Context) error {
+	handler := SetCurrentUserWithService(mockUserService)(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -133,7 +133,7 @@ func TestSetCurrentUserWithService_InvalidUserID(t *testing.T) {
 
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
-	handler := SetCurrentUserWithService(mockUserService)(func(c echo.Context) error {
+	handler := SetCurrentUserWithService(mockUserService)(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -166,7 +166,7 @@ func TestSetCurrentUserWithService_UserNotFound(t *testing.T) {
 
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
-	handler := SetCurrentUserWithService(mockUserService)(func(c echo.Context) error {
+	handler := SetCurrentUserWithService(mockUserService)(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -210,7 +210,7 @@ func TestSetCurrentUserWithService_Impersonation(t *testing.T) {
 
 	req.Header.Set("Cookie", rec.Header().Get("Set-Cookie"))
 
-	handler := SetCurrentUserWithService(mockUserService)(func(c echo.Context) error {
+	handler := SetCurrentUserWithService(mockUserService)(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -240,7 +240,7 @@ func TestRequireAuth_Authenticated(t *testing.T) {
 	}
 	c.Set("current_user", user)
 
-	handler := RequireAuth(func(c echo.Context) error {
+	handler := RequireAuth(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Protected content")
 	})
 
@@ -257,7 +257,7 @@ func TestRequireAuth_NotAuthenticatedHTMLRoute(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	handler := RequireAuth(func(c echo.Context) error {
+	handler := RequireAuth(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Protected content")
 	})
 
@@ -275,7 +275,7 @@ func TestRequireAuth_NotAuthenticatedAPIRoute(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	handler := RequireAuth(func(c echo.Context) error {
+	handler := RequireAuth(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Protected content")
 	})
 
@@ -306,7 +306,7 @@ func TestRequireAdmin_AdminUser(t *testing.T) {
 	}
 	c.Set("current_user", admin)
 
-	handler := RequireAdmin(func(c echo.Context) error {
+	handler := RequireAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Admin content")
 	})
 
@@ -333,7 +333,7 @@ func TestRequireAdmin_RegularUser(t *testing.T) {
 	}
 	c.Set("current_user", user)
 
-	handler := RequireAdmin(func(c echo.Context) error {
+	handler := RequireAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Admin content")
 	})
 
@@ -353,7 +353,7 @@ func TestRequireAdmin_NotAuthenticated(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	handler := RequireAdmin(func(c echo.Context) error {
+	handler := RequireAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Admin content")
 	})
 
@@ -376,7 +376,7 @@ func TestRequireAdmin_InvalidUserType(t *testing.T) {
 	// Set invalid user type
 	c.Set("current_user", "not-a-user")
 
-	handler := RequireAdmin(func(c echo.Context) error {
+	handler := RequireAdmin(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Admin content")
 	})
 
@@ -397,7 +397,7 @@ func TestRequireAuth_SessionSaveError(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	// No user set, should redirect
-	handler := RequireAuth(func(c echo.Context) error {
+	handler := RequireAuth(func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Protected")
 	})
 
@@ -448,7 +448,7 @@ func TestRequireAuth_APIRouteVariations(t *testing.T) {
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
-			handler := RequireAuth(func(c echo.Context) error {
+			handler := RequireAuth(func(c *echo.Context) error {
 				return c.String(http.StatusOK, "OK")
 			})
 

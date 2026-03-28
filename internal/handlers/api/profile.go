@@ -12,7 +12,7 @@ import (
 	"savvy/internal/services"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,7 +38,7 @@ func (h *ProfileHandler) SetSessionService(sessionService services.SessionServic
 
 // GetProfile returns the authenticated user's profile
 // GET /api/v1/profile
-func (h *ProfileHandler) GetProfile(c echo.Context) error {
+func (h *ProfileHandler) GetProfile(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -71,7 +71,7 @@ func (h *ProfileHandler) GetProfile(c echo.Context) error {
 
 // UpdateProfile updates the authenticated user's name and language
 // PATCH /api/v1/profile
-func (h *ProfileHandler) UpdateProfile(c echo.Context) error {
+func (h *ProfileHandler) UpdateProfile(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -164,7 +164,7 @@ func (h *ProfileHandler) UpdateProfile(c echo.Context) error {
 
 // ChangePassword changes the authenticated user's password
 // POST /api/v1/profile/change-password
-func (h *ProfileHandler) ChangePassword(c echo.Context) error {
+func (h *ProfileHandler) ChangePassword(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -262,7 +262,7 @@ func (h *ProfileHandler) ChangePassword(c echo.Context) error {
 
 // DeleteAccount permanently deletes the authenticated user's account.
 // POST /api/v1/profile/delete-account
-func (h *ProfileHandler) DeleteAccount(c echo.Context) error {
+func (h *ProfileHandler) DeleteAccount(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{

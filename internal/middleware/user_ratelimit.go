@@ -11,7 +11,7 @@ import (
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/time/rate"
 )
 
@@ -113,7 +113,7 @@ func (u *UserRateLimiter) Shutdown() {
 // Must be placed AFTER authentication middleware (SetCurrentUserWithService + RequireAuth).
 func UserRateLimitMiddleware(limiter *UserRateLimiter) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			user, ok := c.Get("current_user").(*models.User)
 			if !ok || user == nil {
 				// Anonymous request — skip user rate limiting (IP limiter handles this).

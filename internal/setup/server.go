@@ -10,9 +10,10 @@ import (
 	"savvy/internal/middleware"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	echomiddleware "github.com/labstack/echo/v4/middleware"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	"savvy/internal/telemetry"
+
+	"github.com/labstack/echo/v5"
+	echomiddleware "github.com/labstack/echo/v5/middleware"
 	"gorm.io/gorm"
 )
 
@@ -48,7 +49,7 @@ func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 		e.IPExtractor = echo.ExtractIPFromXFFHeader()
 
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
+			return func(c *echo.Context) error {
 				if proto := c.Request().Header.Get("X-Forwarded-Proto"); proto == "https" {
 					c.Request().URL.Scheme = "https"
 				}
@@ -59,14 +60,13 @@ func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 
 	// OpenTelemetry Middleware (must be first for proper tracing)
 	if cfg.OTelEnabled {
-		e.Use(otelecho.Middleware(
-			cfg.ServiceName,
-			otelecho.WithSkipper(func(c echo.Context) bool {
+		e.Use(telemetry.OTelMiddleware(cfg.ServiceName, telemetry.OTelMiddlewareConfig{
+			Skipper: func(c *echo.Context) bool {
 				// Skip tracing for health checks and metrics endpoints
 				path := c.Request().URL.Path
 				return path == "/health" || path == "/ready" || path == "/metrics"
-			}),
-		))
+			},
+		}))
 		e.Use(middleware.OTelLogger()) // Add trace IDs to logs
 	}
 
@@ -74,11 +74,10 @@ func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 	e.Use(echomiddleware.RequestLoggerWithConfig(echomiddleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
-		LogError:    true,
 		LogMethod:   true,
 		LogLatency:  true,
 		HandleError: true,
-		LogValuesFunc: func(_ echo.Context, v echomiddleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ *echo.Context, v echomiddleware.RequestLoggerValues) error {
 			attrs := []any{
 				"uri", v.URI,
 				"method", v.Method,
@@ -102,7 +101,7 @@ func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 	}))
 
 	// Body size limit to prevent memory exhaustion (4 MB)
-	e.Use(echomiddleware.BodyLimit("4M"))
+	e.Use(echomiddleware.BodyLimit(4 * 1024 * 1024))
 
 	// Recovery middleware
 	e.Use(echomiddleware.Recover())
@@ -134,7 +133,7 @@ func configureAuthMiddleware(e *echo.Echo, sc *ServerConfig) {
 
 	// Set service version and config in context
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("service_version", cfg.ServiceVersion)
 			c.Set("config", cfg) // Make config available in Echo context
 

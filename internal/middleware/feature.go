@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"savvy/internal/config"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // RequireCardsEnabled middleware requires cards feature to be enabled
 func RequireCardsEnabled(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if !cfg.EnableCards {
 				return echo.NewHTTPError(http.StatusForbidden, "Cards feature is disabled")
 			}
@@ -23,7 +23,7 @@ func RequireCardsEnabled(cfg *config.Config) echo.MiddlewareFunc {
 // RequireVouchersEnabled middleware requires vouchers feature to be enabled
 func RequireVouchersEnabled(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if !cfg.EnableVouchers {
 				return echo.NewHTTPError(http.StatusForbidden, "Vouchers feature is disabled")
 			}
@@ -35,7 +35,7 @@ func RequireVouchersEnabled(cfg *config.Config) echo.MiddlewareFunc {
 // RequireGiftCardsEnabled middleware requires gift cards feature to be enabled
 func RequireGiftCardsEnabled(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if !cfg.EnableGiftCards {
 				return echo.NewHTTPError(http.StatusForbidden, "Gift cards feature is disabled")
 			}
@@ -47,7 +47,7 @@ func RequireGiftCardsEnabled(cfg *config.Config) echo.MiddlewareFunc {
 // RequireLocalLoginEnabled middleware requires local login to be enabled
 func RequireLocalLoginEnabled(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if !cfg.EnableLocalLogin {
 				return echo.NewHTTPError(http.StatusForbidden, "Local login is disabled")
 			}
@@ -59,7 +59,7 @@ func RequireLocalLoginEnabled(cfg *config.Config) echo.MiddlewareFunc {
 // RequireRegistrationEnabled middleware requires registration to be enabled
 func RequireRegistrationEnabled(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if !cfg.EnableRegistration {
 				return echo.NewHTTPError(http.StatusForbidden, "Registration is disabled")
 			}

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/time/rate"
 )
@@ -112,7 +112,7 @@ func TestRateLimitMiddleware_AllowedRequests(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -138,7 +138,7 @@ func TestRateLimitMiddleware_RateLimitExceeded(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -168,7 +168,7 @@ func TestRateLimitMiddleware_DifferentIPs(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -194,7 +194,7 @@ func TestRateLimitMiddleware_BurstSize(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -222,7 +222,7 @@ func TestRateLimitMiddleware_Recovery(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -257,7 +257,7 @@ func TestRateLimitMiddleware_RealIP(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RateLimitMiddleware(limiter))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 

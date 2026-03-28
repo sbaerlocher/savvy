@@ -13,13 +13,13 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // parsePaginationParams extracts optional page and per_page query parameters.
 // Returns (page, perPage, isPaginated). If neither param is provided, isPaginated is false
 // and the caller should use the non-paginated code path (backward-compatible).
-func parsePaginationParams(c echo.Context) (int, int, bool) {
+func parsePaginationParams(c *echo.Context) (int, int, bool) {
 	pageStr := c.QueryParam("page")
 	perPageStr := c.QueryParam("per_page")
 
@@ -72,7 +72,7 @@ func getFavoriteIDsForResources(
 // Either uses existing merchant_id or creates a new merchant from new_merchant_name
 // Returns merchantID, merchantName, and error (which is already an echo.HTTPError for direct return)
 func resolveMerchant(
-	c echo.Context,
+	c *echo.Context,
 	merchantService services.MerchantServiceInterface,
 	merchantID *string,
 	newMerchantName *string,
@@ -122,7 +122,7 @@ func resolveMerchant(
 // An empty string removes the merchant association. A valid UUID looks up the merchant.
 // Returns (merchantID, merchantName, error). If error is non-nil, the response has been sent.
 func resolveMerchantUpdate(
-	c echo.Context,
+	c *echo.Context,
 	merchantService services.MerchantServiceInterface,
 	merchantIDStr string,
 ) (*uuid.UUID, string, error) {
@@ -152,7 +152,7 @@ func resolveMerchantUpdate(
 // handleResourceDelete provides generic delete handler logic for resources
 // This eliminates code duplication in Delete handlers for cards, vouchers, and gift cards
 func handleResourceDelete(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	deleteResource func(context.Context, uuid.UUID) error,
@@ -189,7 +189,7 @@ func handleResourceDelete(
 // handleResourceToggleFavorite provides generic toggle favorite handler logic
 // This eliminates code duplication in ToggleFavorite handlers for cards, vouchers, and gift cards
 func handleResourceToggleFavorite(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	favoriteService services.FavoriteServiceInterface,
@@ -228,7 +228,7 @@ func handleResourceToggleFavorite(
 // handleResourceDeleteShare provides generic delete share handler logic
 // This eliminates code duplication in DeleteShare handlers for cards, vouchers, and gift cards
 func handleResourceDeleteShare(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	deleteShare func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) error,
@@ -271,7 +271,7 @@ func handleResourceDeleteShare(
 // handleResourceTransfer provides generic transfer handler logic for resources
 // This eliminates code duplication in Transfer handlers for cards, vouchers, and gift cards
 func handleResourceTransfer(
-	c echo.Context,
+	c *echo.Context,
 	resourceType string,
 	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
 	transferOwnership func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) error,
@@ -346,14 +346,14 @@ func handleResourceTransfer(
 // parseResourceID extracts the "id" path parameter as a UUID.
 // On failure, sends a 400 JSON error response and returns a non-nil error.
 // Callers should return the error directly (response is already sent).
-func parseResourceID(c echo.Context, resourceType string) (uuid.UUID, error) {
+func parseResourceID(c *echo.Context, resourceType string) (uuid.UUID, error) {
 	return parseUUIDParam(c, "id", "invalid_id", "Invalid "+resourceType+" ID")
 }
 
 // parseUUIDParam extracts and parses a UUID from an Echo path parameter.
 // On failure, sends a 400 JSON error response and returns a non-nil error.
 // Callers should return the error directly (response is already sent).
-func parseUUIDParam(c echo.Context, param string, errorCode string, errorMessage string) (uuid.UUID, error) {
+func parseUUIDParam(c *echo.Context, param string, errorCode string, errorMessage string) (uuid.UUID, error) {
 	id, err := uuid.Parse(c.Param(param))
 	if err != nil {
 		_ = c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -378,7 +378,7 @@ var (
 
 // validateEnum checks if a value is in the allowed set.
 // Returns a 400 error response if invalid, nil if valid.
-func validateEnum(c echo.Context, value string, allowed map[string]bool, fieldName string) error {
+func validateEnum(c *echo.Context, value string, allowed map[string]bool, fieldName string) error {
 	if err := validation.ValidateEnum(value, allowed, fieldName); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_" + fieldName,

@@ -6,7 +6,7 @@ import (
 	"savvy/internal/config"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ func TestRequireCardsEnabled_Enabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireCardsEnabled(cfg))
-	e.GET("/cards", func(c echo.Context) error {
+	e.GET("/cards", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Cards page")
 	})
 
@@ -37,7 +37,7 @@ func TestRequireCardsEnabled_Disabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireCardsEnabled(cfg))
-	e.GET("/cards", func(c echo.Context) error {
+	e.GET("/cards", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Cards page")
 	})
 
@@ -57,7 +57,7 @@ func TestRequireVouchersEnabled_Enabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireVouchersEnabled(cfg))
-	e.GET("/vouchers", func(c echo.Context) error {
+	e.GET("/vouchers", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Vouchers page")
 	})
 
@@ -77,7 +77,7 @@ func TestRequireVouchersEnabled_Disabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireVouchersEnabled(cfg))
-	e.GET("/vouchers", func(c echo.Context) error {
+	e.GET("/vouchers", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Vouchers page")
 	})
 
@@ -97,7 +97,7 @@ func TestRequireGiftCardsEnabled_Enabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireGiftCardsEnabled(cfg))
-	e.GET("/gift-cards", func(c echo.Context) error {
+	e.GET("/gift-cards", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Gift cards page")
 	})
 
@@ -117,7 +117,7 @@ func TestRequireGiftCardsEnabled_Disabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireGiftCardsEnabled(cfg))
-	e.GET("/gift-cards", func(c echo.Context) error {
+	e.GET("/gift-cards", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Gift cards page")
 	})
 
@@ -137,7 +137,7 @@ func TestRequireLocalLoginEnabled_Enabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireLocalLoginEnabled(cfg))
-	e.GET("/login", func(c echo.Context) error {
+	e.GET("/login", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Login page")
 	})
 
@@ -157,7 +157,7 @@ func TestRequireLocalLoginEnabled_Disabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireLocalLoginEnabled(cfg))
-	e.GET("/login", func(c echo.Context) error {
+	e.GET("/login", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Login page")
 	})
 
@@ -177,7 +177,7 @@ func TestRequireRegistrationEnabled_Enabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireRegistrationEnabled(cfg))
-	e.GET("/register", func(c echo.Context) error {
+	e.GET("/register", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Registration page")
 	})
 
@@ -197,7 +197,7 @@ func TestRequireRegistrationEnabled_Disabled(t *testing.T) {
 
 	e := echo.New()
 	e.Use(RequireRegistrationEnabled(cfg))
-	e.GET("/register", func(c echo.Context) error {
+	e.GET("/register", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Registration page")
 	})
 
@@ -221,19 +221,19 @@ func TestMultipleFeatureToggles(t *testing.T) {
 
 	// Cards route (enabled)
 	cardsGroup := e.Group("/cards", RequireCardsEnabled(cfg))
-	cardsGroup.GET("", func(c echo.Context) error {
+	cardsGroup.GET("", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Cards")
 	})
 
 	// Vouchers route (disabled)
 	vouchersGroup := e.Group("/vouchers", RequireVouchersEnabled(cfg))
-	vouchersGroup.GET("", func(c echo.Context) error {
+	vouchersGroup.GET("", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Vouchers")
 	})
 
 	// Gift cards route (enabled)
 	giftCardsGroup := e.Group("/gift-cards", RequireGiftCardsEnabled(cfg))
-	giftCardsGroup.GET("", func(c echo.Context) error {
+	giftCardsGroup.GET("", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Gift Cards")
 	})
 
@@ -279,7 +279,7 @@ func TestFeatureToggle_AllDisabled(t *testing.T) {
 	}
 
 	for _, route := range routes {
-		e.GET(route.path, func(c echo.Context) error {
+		e.GET(route.path, func(c *echo.Context) error {
 			return c.String(http.StatusOK, "OK")
 		}, route.middleware)
 
@@ -314,7 +314,7 @@ func TestFeatureToggle_AllEnabled(t *testing.T) {
 	}
 
 	for _, route := range routes {
-		e.GET(route.path, func(c echo.Context) error {
+		e.GET(route.path, func(c *echo.Context) error {
 			return c.String(http.StatusOK, "OK")
 		}, route.middleware)
 

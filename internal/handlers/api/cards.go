@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // CardsHandler handles card API endpoints.
@@ -54,7 +54,7 @@ func NewCardsHandler(
 // List returns all cards (owned + shared)
 // GET /api/v1/cards
 // Optional query params: ?page=1&per_page=25 for pagination
-func (h *CardsHandler) List(c echo.Context) error {
+func (h *CardsHandler) List(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	page, perPage, isPaginated := parsePaginationParams(c)
@@ -119,7 +119,7 @@ func (h *CardsHandler) List(c echo.Context) error {
 
 // Show returns a single card with permissions
 // GET /api/v1/cards/:id
-func (h *CardsHandler) Show(c echo.Context) error {
+func (h *CardsHandler) Show(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	cardID, err := parseResourceID(c, "card")
@@ -182,7 +182,7 @@ func (h *CardsHandler) Show(c echo.Context) error {
 
 // Create creates a new card
 // POST /api/v1/cards
-func (h *CardsHandler) Create(c echo.Context) error {
+func (h *CardsHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	var req CardCreateRequest
@@ -354,7 +354,7 @@ func (h *CardsHandler) Create(c echo.Context) error {
 
 // Update updates a card
 // PUT /api/v1/cards/:id
-func (h *CardsHandler) Update(c echo.Context) error {
+func (h *CardsHandler) Update(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	cardID, err := parseResourceID(c, "card")
@@ -506,19 +506,19 @@ func (h *CardsHandler) Update(c echo.Context) error {
 
 // Delete deletes a card
 // DELETE /api/v1/cards/:id
-func (h *CardsHandler) Delete(c echo.Context) error {
+func (h *CardsHandler) Delete(c *echo.Context) error {
 	return handleResourceDelete(c, "card", h.authzService.CheckCardAccess, h.cardService.DeleteCard)
 }
 
 // ToggleFavorite toggles favorite status
 // POST /api/v1/cards/:id/favorite
-func (h *CardsHandler) ToggleFavorite(c echo.Context) error {
+func (h *CardsHandler) ToggleFavorite(c *echo.Context) error {
 	return handleResourceToggleFavorite(c, "card", h.authzService.CheckCardAccess, h.favoriteService)
 }
 
 // CreateShare creates a new share
 // POST /api/v1/cards/:id/share
-func (h *CardsHandler) CreateShare(c echo.Context) error {
+func (h *CardsHandler) CreateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	cardID, err := parseResourceID(c, "card")
@@ -587,7 +587,7 @@ func (h *CardsHandler) CreateShare(c echo.Context) error {
 
 // UpdateShare updates share permissions
 // PATCH /api/v1/cards/:id/share/:sharedWithID
-func (h *CardsHandler) UpdateShare(c echo.Context) error {
+func (h *CardsHandler) UpdateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	cardID, err := parseResourceID(c, "card")
@@ -664,13 +664,13 @@ func (h *CardsHandler) UpdateShare(c echo.Context) error {
 
 // DeleteShare removes a share
 // DELETE /api/v1/cards/:id/share/:sharedWithID
-func (h *CardsHandler) DeleteShare(c echo.Context) error {
+func (h *CardsHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "card", h.authzService.CheckCardAccess, h.shareService.DeleteCardShare)
 }
 
 // Transfer transfers ownership
 // POST /api/v1/cards/:id/transfer
-func (h *CardsHandler) Transfer(c echo.Context) error {
+func (h *CardsHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "card", h.authzService.CheckCardAccess, h.transferService.TransferCardOwnership, h.userService)
 }
 

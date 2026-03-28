@@ -11,7 +11,7 @@ import (
 	"savvy/internal/services"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // TOTPHandler handles TOTP 2FA API endpoints.
@@ -26,7 +26,7 @@ func NewTOTPHandler(totpService services.TOTPServiceInterface) *TOTPHandler {
 
 // Setup initiates TOTP setup for the authenticated user.
 // POST /api/v1/auth/2fa/setup
-func (h *TOTPHandler) Setup(c echo.Context) error {
+func (h *TOTPHandler) Setup(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -63,7 +63,7 @@ func (h *TOTPHandler) Setup(c echo.Context) error {
 
 // Verify verifies a TOTP code and enables 2FA.
 // POST /api/v1/auth/2fa/verify
-func (h *TOTPHandler) Verify(c echo.Context) error {
+func (h *TOTPHandler) Verify(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -126,7 +126,7 @@ func (h *TOTPHandler) Verify(c echo.Context) error {
 const max2FAFailedAttempts = 5
 
 // destroy2FAPendingSession clears the pending 2FA state from the session.
-func destroy2FAPendingSession(c echo.Context) {
+func destroy2FAPendingSession(c *echo.Context) {
 	session, err := middleware.GetSession(c)
 	if err != nil {
 		return
@@ -141,7 +141,7 @@ func destroy2FAPendingSession(c echo.Context) {
 
 // Challenge verifies a TOTP code during login (step 2 of 2FA login).
 // POST /api/v1/auth/2fa/challenge
-func (h *TOTPHandler) Challenge(c echo.Context) error {
+func (h *TOTPHandler) Challenge(c *echo.Context) error {
 	// Get the pending user ID from session
 	session, err := middleware.GetSession(c)
 	if err != nil {
@@ -251,7 +251,7 @@ func (h *TOTPHandler) Challenge(c echo.Context) error {
 
 // Disable disables 2FA for the authenticated user.
 // POST /api/v1/auth/2fa/disable
-func (h *TOTPHandler) Disable(c echo.Context) error {
+func (h *TOTPHandler) Disable(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -306,7 +306,7 @@ func (h *TOTPHandler) Disable(c echo.Context) error {
 
 // RegenerateBackupCodes generates new backup codes.
 // POST /api/v1/auth/2fa/backup-codes
-func (h *TOTPHandler) RegenerateBackupCodes(c echo.Context) error {
+func (h *TOTPHandler) RegenerateBackupCodes(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -361,7 +361,7 @@ func (h *TOTPHandler) RegenerateBackupCodes(c echo.Context) error {
 
 // Status returns the 2FA status for the authenticated user.
 // GET /api/v1/auth/2fa/status
-func (h *TOTPHandler) Status(c echo.Context) error {
+func (h *TOTPHandler) Status(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{

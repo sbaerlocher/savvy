@@ -9,7 +9,7 @@ import (
 	"savvy/internal/config"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SecurityHeaders returns Echo middleware that sets security-related HTTP headers.
@@ -17,7 +17,7 @@ import (
 // because nonces cause browsers to ignore 'unsafe-inline', breaking Svelte.
 func SecurityHeaders(cfg *config.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Build CSP for SvelteKit SPA (uses unsafe-inline)
 			csp := buildContentSecurityPolicy(cfg)
 

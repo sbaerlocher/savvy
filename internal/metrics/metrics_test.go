@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_golang/prometheus/testutil"
@@ -19,7 +19,7 @@ func TestMiddleware(t *testing.T) {
 	e := echo.New()
 	e.Use(Middleware())
 
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "test")
 	})
 
@@ -51,7 +51,7 @@ func TestMiddleware_DifferentStatusCodes(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		e.GET(tt.path, func(c echo.Context) error {
+		e.GET(tt.path, func(c *echo.Context) error {
 			return c.String(tt.statusCode, "response")
 		})
 	}
@@ -71,7 +71,7 @@ func TestMiddleware_RecordsDuration(t *testing.T) {
 	e := echo.New()
 	e.Use(Middleware())
 
-	e.GET("/slow", func(c echo.Context) error {
+	e.GET("/slow", func(c *echo.Context) error {
 		time.Sleep(50 * time.Millisecond)
 		return c.String(http.StatusOK, "slow")
 	})
@@ -90,7 +90,7 @@ func TestMiddleware_NormalizedPaths(t *testing.T) {
 	e.Use(Middleware())
 
 	// Register a route with a path parameter
-	e.GET("/users/:id", func(c echo.Context) error {
+	e.GET("/users/:id", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "user")
 	})
 
@@ -339,7 +339,7 @@ func TestMiddleware_ErrorHandling(t *testing.T) {
 	e := echo.New()
 	e.Use(Middleware())
 
-	e.GET("/error", func(_ echo.Context) error {
+	e.GET("/error", func(_ *echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "test error")
 	})
 
@@ -356,7 +356,7 @@ func TestMiddleware_PathNormalization(t *testing.T) {
 	e := echo.New()
 	e.Use(Middleware())
 
-	e.GET("/api/users/:id", func(c echo.Context) error {
+	e.GET("/api/users/:id", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "user")
 	})
 
@@ -445,7 +445,7 @@ func TestStatusClassification(t *testing.T) {
 
 	for _, tt := range tests {
 		path := "/status-" + strconv.Itoa(tt.status)
-		e.GET(path, func(c echo.Context) error {
+		e.GET(path, func(c *echo.Context) error {
 			return c.String(tt.status, "response")
 		})
 
@@ -464,7 +464,7 @@ func TestMiddleware_ChainedHandlers(t *testing.T) {
 
 	// Custom middleware that runs before metrics
 	preMetrics := func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("test", "value")
 			return next(c)
 		}
@@ -472,7 +472,7 @@ func TestMiddleware_ChainedHandlers(t *testing.T) {
 
 	// Custom middleware that runs after metrics
 	postMetrics := func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			err := next(c)
 			// Verify metrics context is available
 			assert.NotNil(t, c.Get("test"))
@@ -484,7 +484,7 @@ func TestMiddleware_ChainedHandlers(t *testing.T) {
 	e.Use(Middleware())
 	e.Use(postMetrics)
 
-	e.GET("/chained", func(c echo.Context) error {
+	e.GET("/chained", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "chained")
 	})
 

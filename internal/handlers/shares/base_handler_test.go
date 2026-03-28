@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	goI18n "github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
@@ -126,7 +126,7 @@ func newTestUser() *models.User {
 	}
 }
 
-func newEchoContext(method, path string) (echo.Context, *httptest.ResponseRecorder) {
+func newEchoContext(method, path string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(method, path, strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
@@ -135,7 +135,7 @@ func newEchoContext(method, path string) (echo.Context, *httptest.ResponseRecord
 	return c, rec
 }
 
-func newFormContext(method string, formData string) (echo.Context, *httptest.ResponseRecorder) {
+func newFormContext(method string, formData string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(method, "/shares", strings.NewReader(formData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
@@ -144,7 +144,7 @@ func newFormContext(method string, formData string) (echo.Context, *httptest.Res
 	return c, rec
 }
 
-func newHTMXContext(method, path string, formData string) (echo.Context, *httptest.ResponseRecorder) {
+func newHTMXContext(method, path string, formData string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(method, path, strings.NewReader(formData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
@@ -179,8 +179,7 @@ func TestCreate_Success(t *testing.T) {
 	c, rec := newFormContext(http.MethodPost, formData)
 	user := newTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -205,8 +204,7 @@ func TestCreate_Success_HTMX(t *testing.T) {
 	c, rec := newHTMXContext(http.MethodPost, "/shares", "shared_with_email=shared@example.com")
 	user := newTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -227,8 +225,7 @@ func TestCreate_WithTransactionPermission(t *testing.T) {
 	c, rec := newFormContext(http.MethodPost, formData)
 	user := newTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -244,8 +241,7 @@ func TestCreate_InvalidResourceID(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPost, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues("not-a-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
 
 	err := h.Create(c)
 
@@ -261,8 +257,7 @@ func TestCreate_NotOwner(t *testing.T) {
 	resourceID := uuid.New()
 	c, rec := newFormContext(http.MethodPost, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -278,8 +273,7 @@ func TestCreate_OwnershipCheckError(t *testing.T) {
 	resourceID := uuid.New()
 	c, rec := newFormContext(http.MethodPost, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -296,8 +290,7 @@ func TestCreate_UserNotFound(t *testing.T) {
 	formData := "shared_with_email=nonexistent@example.com"
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -315,8 +308,7 @@ func TestCreate_CreateShareError_UserNotFound(t *testing.T) {
 	formData := "shared_with_email=shared@example.com"
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -334,8 +326,7 @@ func TestCreate_CreateShareError_AlreadyShared(t *testing.T) {
 	formData := "shared_with_email=shared@example.com"
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -353,8 +344,7 @@ func TestCreate_CreateShareError_ServerError(t *testing.T) {
 	formData := "shared_with_email=shared@example.com"
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -372,8 +362,7 @@ func TestCreate_EmailTrimmedAndLowercased(t *testing.T) {
 	formData := "shared_with_email=  Shared@Example.COM  "
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -392,8 +381,7 @@ func TestCreate_NoTransactionPermForCards(t *testing.T) {
 	formData := "shared_with_email=shared@example.com&can_edit_transactions=on"
 	c, rec := newFormContext(http.MethodPost, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id")
-	c.SetParamValues(resourceID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}})
 
 	err := h.Create(c)
 
@@ -414,8 +402,7 @@ func TestUpdate_Success(t *testing.T) {
 	c, rec := newFormContext(http.MethodPut, formData)
 	user := newTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(resourceID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}, {Name: "shared_with_id", Value: sharedWithID.String()}})
 
 	err := h.Update(c)
 
@@ -437,8 +424,7 @@ func TestUpdate_Success_HTMX(t *testing.T) {
 	sharedWithID := uuid.New()
 	c, rec := newHTMXContext(http.MethodPut, "/shares", "can_edit=on")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(resourceID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}, {Name: "shared_with_id", Value: sharedWithID.String()}})
 
 	err := h.Update(c)
 
@@ -457,8 +443,7 @@ func TestUpdate_WithTransactionPermission(t *testing.T) {
 	formData := "can_edit_transactions=on"
 	c, rec := newFormContext(http.MethodPut, formData)
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(resourceID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}, {Name: "shared_with_id", Value: sharedWithID.String()}})
 
 	err := h.Update(c)
 
@@ -486,8 +471,7 @@ func TestUpdate_InvalidResourceID(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPut, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues("bad-uuid", uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "bad-uuid"}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Update(c)
 
@@ -501,8 +485,7 @@ func TestUpdate_InvalidShareID(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPut, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), "bad-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: "bad-uuid"}})
 
 	err := h.Update(c)
 
@@ -516,8 +499,7 @@ func TestUpdate_NotOwner(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPut, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Update(c)
 
@@ -531,8 +513,7 @@ func TestUpdate_OwnershipCheckError(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPut, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Update(c)
 
@@ -546,8 +527,7 @@ func TestUpdate_AdapterError(t *testing.T) {
 
 	c, rec := newFormContext(http.MethodPut, "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Update(c)
 
@@ -566,8 +546,7 @@ func TestDelete_Success(t *testing.T) {
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	user := newTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(resourceID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}, {Name: "shared_with_id", Value: sharedWithID.String()}})
 
 	err := h.Delete(c)
 
@@ -586,8 +565,7 @@ func TestDelete_Success_HTMX(t *testing.T) {
 	sharedWithID := uuid.New()
 	c, rec := newHTMXContext(http.MethodDelete, "/shares", "")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(resourceID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: resourceID.String()}, {Name: "shared_with_id", Value: sharedWithID.String()}})
 
 	err := h.Delete(c)
 
@@ -603,8 +581,7 @@ func TestDelete_InvalidResourceID(t *testing.T) {
 
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues("bad-uuid", uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "bad-uuid"}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Delete(c)
 
@@ -618,8 +595,7 @@ func TestDelete_InvalidShareID(t *testing.T) {
 
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), "bad-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: "bad-uuid"}})
 
 	err := h.Delete(c)
 
@@ -633,8 +609,7 @@ func TestDelete_NotOwner(t *testing.T) {
 
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Delete(c)
 
@@ -648,8 +623,7 @@ func TestDelete_OwnershipCheckError(t *testing.T) {
 
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Delete(c)
 
@@ -663,8 +637,7 @@ func TestDelete_AdapterError(t *testing.T) {
 
 	c, rec := newEchoContext(http.MethodDelete, "/shares")
 	c.Set("current_user", newTestUser())
-	c.SetParamNames("id", "shared_with_id")
-	c.SetParamValues(uuid.New().String(), uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}, {Name: "shared_with_id", Value: uuid.New().String()}})
 
 	err := h.Delete(c)
 

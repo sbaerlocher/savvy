@@ -9,7 +9,7 @@ import (
 	"savvy/internal/config"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // maxOTelBodySize limits the request body size for OTel proxy requests (1 MB).
@@ -28,22 +28,22 @@ func NewOTelProxyHandler(cfg *config.Config) *OTelProxyHandler {
 }
 
 // ProxyTraces proxies OTLP trace requests to the OTEL Collector
-func (h *OTelProxyHandler) ProxyTraces(c echo.Context) error {
+func (h *OTelProxyHandler) ProxyTraces(c *echo.Context) error {
 	return h.proxyOTLP(c, "traces")
 }
 
 // ProxyLogs proxies OTLP log requests to the OTEL Collector
-func (h *OTelProxyHandler) ProxyLogs(c echo.Context) error {
+func (h *OTelProxyHandler) ProxyLogs(c *echo.Context) error {
 	return h.proxyOTLP(c, "logs")
 }
 
 // ProxyMetrics proxies OTLP metric requests to the OTEL Collector
-func (h *OTelProxyHandler) ProxyMetrics(c echo.Context) error {
+func (h *OTelProxyHandler) ProxyMetrics(c *echo.Context) error {
 	return h.proxyOTLP(c, "metrics")
 }
 
 // proxyOTLP forwards OTLP requests to the OTEL Collector
-func (h *OTelProxyHandler) proxyOTLP(c echo.Context, signalType string) error {
+func (h *OTelProxyHandler) proxyOTLP(c *echo.Context, signalType string) error {
 	// Skip if OTEL is disabled
 	if !h.config.OTelEnabled {
 		return c.JSON(http.StatusServiceUnavailable, map[string]string{

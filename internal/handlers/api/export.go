@@ -11,7 +11,7 @@ import (
 	"savvy/internal/services"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ExportHandler handles data export API endpoints.
@@ -26,7 +26,7 @@ func NewExportHandler(exportService services.ExportServiceInterface) *ExportHand
 
 // ExportData exports all user data as a JSON download.
 // GET /api/v1/export
-func (h *ExportHandler) ExportData(c echo.Context) error {
+func (h *ExportHandler) ExportData(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{

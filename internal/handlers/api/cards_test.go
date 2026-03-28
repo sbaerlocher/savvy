@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -44,7 +44,7 @@ func setupCardsTest() (*CardsHandler, *mocks.MockCardServiceInterface, *mocks.Mo
 	return handler, mockCardService, mockAuthzService, mockMerchantService, mockUserService, mockFavoriteService, mockShareService, mockTransferService, mockAdminService
 }
 
-func createTestContext(method, path string, body string) (echo.Context, *httptest.ResponseRecorder) {
+func createTestContext(method, path string, body string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -128,8 +128,7 @@ func TestCardsHandler_Show_Success(t *testing.T) {
 	user := createTestUser()
 	card := createTestCard()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(card.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: card.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -163,8 +162,7 @@ func TestCardsHandler_Show_InvalidID(t *testing.T) {
 	c, rec := createTestContext(http.MethodGet, "/api/v1/cards/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
 
 	err := handler.Show(c)
 
@@ -179,8 +177,7 @@ func TestCardsHandler_Show_Forbidden(t *testing.T) {
 	user := createTestUser()
 	cardID := uuid.New()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return((*services.ResourcePermissions)(nil), errors.New("forbidden"))
 
@@ -197,8 +194,7 @@ func TestCardsHandler_Show_NotFound(t *testing.T) {
 	user := createTestUser()
 	cardID := uuid.New()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -334,8 +330,7 @@ func TestCardsHandler_Update_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(card.ID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: card.ID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -366,8 +361,7 @@ func TestCardsHandler_Update_InvalidID(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
 
 	err := handler.Update(c)
 
@@ -382,8 +376,7 @@ func TestCardsHandler_Update_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanEdit: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -401,8 +394,7 @@ func TestCardsHandler_Update_InvalidRequest(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", "invalid-json")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEdit: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -420,8 +412,7 @@ func TestCardsHandler_Update_NotFound(t *testing.T) {
 	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanEdit: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -443,8 +434,7 @@ func TestCardsHandler_Delete_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{
 		CanView:   true,
@@ -468,8 +458,7 @@ func TestCardsHandler_Delete_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true, CanDelete: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -489,8 +478,7 @@ func TestCardsHandler_ToggleFavorite_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/favorite", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{CanView: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -515,8 +503,7 @@ func TestCardsHandler_ToggleFavorite_Forbidden(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/favorite", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return((*services.ResourcePermissions)(nil), errors.New("forbidden"))
 
@@ -537,8 +524,7 @@ func TestCardsHandler_CreateShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}
@@ -564,8 +550,7 @@ func TestCardsHandler_CreateShare_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -584,8 +569,7 @@ func TestCardsHandler_CreateShare_UserNotFound(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -609,8 +593,7 @@ func TestCardsHandler_CreateShare_SelfShare(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -634,8 +617,7 @@ func TestCardsHandler_UpdateShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/cards/:id/share/:sharedWithID", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(cardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -659,8 +641,7 @@ func TestCardsHandler_UpdateShare_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/cards/:id/share/:sharedWithID", `{}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(cardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -681,8 +662,7 @@ func TestCardsHandler_DeleteShare_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id/share/:sharedWithID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(cardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -703,8 +683,7 @@ func TestCardsHandler_DeleteShare_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id/share/:sharedWithID", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(cardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -726,8 +705,7 @@ func TestCardsHandler_Transfer_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/transfer", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	newOwner := &models.User{ID: newOwnerID, Email: "newowner@example.com"}
@@ -751,8 +729,7 @@ func TestCardsHandler_Transfer_NotOwner(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/transfer", `{"new_owner_email":"test@example.com"}`)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: false}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -771,8 +748,7 @@ func TestCardsHandler_Transfer_SelfTransfer(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/transfer", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
@@ -796,8 +772,7 @@ func TestCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(cardID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	sharedUser := &models.User{ID: sharedUserID, Email: "shared@example.com"}
@@ -831,8 +806,7 @@ func TestCardsHandler_UpdateShare_ServiceError_NoLeakedDetails(t *testing.T) {
 	c, rec := createTestContext(http.MethodPatch, "/api/v1/cards/:id/share/:sharedWithID", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id", "sharedWithID")
-	c.SetParamValues(cardID.String(), sharedWithID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}, {Name: "sharedWithID", Value: sharedWithID.String()}})
 
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)

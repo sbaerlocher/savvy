@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"savvy/internal/config"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // ConfigHandler handles configuration API endpoints.
@@ -48,7 +48,7 @@ type Features struct {
 
 // GetConfig returns public app configuration
 // GET /api/v1/config
-func (h *ConfigHandler) GetConfig(c echo.Context) error {
+func (h *ConfigHandler) GetConfig(c *echo.Context) error {
 	response := ConfigResponse{
 		OAuth: OAuthConfig{
 			Enabled: h.config.IsOAuthEnabled(),

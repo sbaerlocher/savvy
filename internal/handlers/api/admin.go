@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -53,7 +53,7 @@ func NewAdminHandler(
 
 // ListUsers returns all users
 // GET /api/v1/admin/users
-func (h *AdminHandler) ListUsers(c echo.Context) error {
+func (h *AdminHandler) ListUsers(c *echo.Context) error {
 	users, err := h.adminService.GetAllUsers(c.Request().Context())
 	if err != nil {
 		slog.ErrorContext(c.Request().Context(), "failed to load users", "error", err)
@@ -70,7 +70,7 @@ func (h *AdminHandler) ListUsers(c echo.Context) error {
 
 // GetUser returns a single user by ID
 // GET /api/v1/admin/users/:id
-func (h *AdminHandler) GetUser(c echo.Context) error {
+func (h *AdminHandler) GetUser(c *echo.Context) error {
 	userID, err := parseResourceID(c, "user")
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (h *AdminHandler) GetUser(c echo.Context) error {
 
 // CreateUser creates a new local auth user
 // POST /api/v1/admin/users
-func (h *AdminHandler) CreateUser(c echo.Context) error {
+func (h *AdminHandler) CreateUser(c *echo.Context) error {
 	var req AdminUserCreateRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -178,7 +178,7 @@ func (h *AdminHandler) CreateUser(c echo.Context) error {
 
 // UpdateUser updates a user (email, name, role)
 // PATCH /api/v1/admin/users/:id
-func (h *AdminHandler) UpdateUser(c echo.Context) error {
+func (h *AdminHandler) UpdateUser(c *echo.Context) error {
 	userID, err := parseResourceID(c, "user")
 	if err != nil {
 		return err
@@ -273,7 +273,7 @@ func (h *AdminHandler) UpdateUser(c echo.Context) error {
 
 // GetAuditLogs returns paginated audit logs with filters
 // GET /api/v1/admin/audit-log
-func (h *AdminHandler) GetAuditLogs(c echo.Context) error {
+func (h *AdminHandler) GetAuditLogs(c *echo.Context) error {
 	var req AuditLogFiltersRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -337,7 +337,7 @@ func (h *AdminHandler) GetAuditLogs(c echo.Context) error {
 
 // StartImpersonation starts user impersonation
 // POST /api/v1/admin/users/:id/impersonate
-func (h *AdminHandler) StartImpersonation(c echo.Context) error {
+func (h *AdminHandler) StartImpersonation(c *echo.Context) error {
 	// 1. Get current admin from context
 	currentUser := c.Get("current_user")
 	if currentUser == nil {
@@ -425,7 +425,7 @@ func (h *AdminHandler) StartImpersonation(c echo.Context) error {
 
 // StopImpersonation stops user impersonation
 // POST /api/v1/admin/impersonate/stop
-func (h *AdminHandler) StopImpersonation(c echo.Context) error {
+func (h *AdminHandler) StopImpersonation(c *echo.Context) error {
 	// 1. Get session
 	session, err := middleware.GetSession(c)
 	if err != nil {
@@ -502,7 +502,7 @@ func (h *AdminHandler) StopImpersonation(c echo.Context) error {
 
 // RestoreResource restores a soft-deleted resource
 // POST /api/v1/admin/restore/:resource_type/:resource_id
-func (h *AdminHandler) RestoreResource(c echo.Context) error {
+func (h *AdminHandler) RestoreResource(c *echo.Context) error {
 	resourceType := c.Param("resource_type")
 
 	// Parse resource ID
@@ -555,7 +555,7 @@ func (h *AdminHandler) RestoreResource(c echo.Context) error {
 
 // GetSystemHealth returns the current system health status
 // GET /api/v1/admin/system-health
-func (h *AdminHandler) GetSystemHealth(c echo.Context) error {
+func (h *AdminHandler) GetSystemHealth(c *echo.Context) error {
 	report, err := h.healthService.CheckReadiness(c.Request().Context())
 	if err != nil {
 		slog.ErrorContext(c.Request().Context(), "failed to check system health", "error", err)
@@ -570,7 +570,7 @@ func (h *AdminHandler) GetSystemHealth(c echo.Context) error {
 
 // SendTestEmail sends a test email to the requesting admin
 // POST /api/v1/admin/test-email
-func (h *AdminHandler) SendTestEmail(c echo.Context) error {
+func (h *AdminHandler) SendTestEmail(c *echo.Context) error {
 	// Get current user from context
 	currentUser := c.Get("current_user")
 	if currentUser == nil {
@@ -608,7 +608,7 @@ func (h *AdminHandler) SendTestEmail(c echo.Context) error {
 
 // SendTestPush sends a test push notification to the requesting admin
 // POST /api/v1/admin/test-push
-func (h *AdminHandler) SendTestPush(c echo.Context) error {
+func (h *AdminHandler) SendTestPush(c *echo.Context) error {
 	currentUser := c.Get("current_user")
 	if currentUser == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -651,7 +651,7 @@ func (h *AdminHandler) SendTestPush(c echo.Context) error {
 
 // SendPreviewEmail sends a preview of a specific email template to the requesting admin (dev only)
 // POST /api/v1/admin/preview-email
-func (h *AdminHandler) SendPreviewEmail(c echo.Context) error {
+func (h *AdminHandler) SendPreviewEmail(c *echo.Context) error {
 	currentUser := c.Get("current_user")
 	if currentUser == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/time/rate"
 
@@ -167,13 +167,13 @@ func TestUserRateLimitMiddleware_AllowedRequests(t *testing.T) {
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("current_user", user)
 			return next(c)
 		}
 	})
 	e.Use(UserRateLimitMiddleware(rl))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -195,13 +195,13 @@ func TestUserRateLimitMiddleware_RateLimitExceeded(t *testing.T) {
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("current_user", user)
 			return next(c)
 		}
 	})
 	e.Use(UserRateLimitMiddleware(rl))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -227,7 +227,7 @@ func TestUserRateLimitMiddleware_AnonymousUser(t *testing.T) {
 	e := echo.New()
 	// No user-setting middleware — anonymous request
 	e.Use(UserRateLimitMiddleware(rl))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -250,13 +250,13 @@ func TestUserRateLimitMiddleware_DifferentUsers(t *testing.T) {
 	makeRequest := func(user *models.User) int {
 		e := echo.New()
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
+			return func(c *echo.Context) error {
 				c.Set("current_user", user)
 				return next(c)
 			}
 		})
 		e.Use(UserRateLimitMiddleware(rl))
-		e.GET("/test", func(c echo.Context) error {
+		e.GET("/test", func(c *echo.Context) error {
 			return c.String(http.StatusOK, "OK")
 		})
 
@@ -282,13 +282,13 @@ func TestUserRateLimitMiddleware_BurstSize(t *testing.T) {
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("current_user", user)
 			return next(c)
 		}
 	})
 	e.Use(UserRateLimitMiddleware(rl))
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 

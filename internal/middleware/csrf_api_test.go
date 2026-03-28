@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +44,7 @@ func TestCSRFApiMiddleware_GET_SetsToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -77,10 +77,10 @@ func TestCSRFApiMiddleware_POST_ValidToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.POST("/test", func(c echo.Context) error {
+	e.POST("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Created")
 	})
 
@@ -110,7 +110,7 @@ func TestCSRFApiMiddleware_POST_MissingToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.POST("/test", func(c echo.Context) error {
+	e.POST("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Created")
 	})
 
@@ -129,10 +129,10 @@ func TestCSRFApiMiddleware_POST_InvalidToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.POST("/test", func(c echo.Context) error {
+	e.POST("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Created")
 	})
 
@@ -161,10 +161,10 @@ func TestCSRFApiMiddleware_PUT_ValidToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.PUT("/test", func(c echo.Context) error {
+	e.PUT("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Updated")
 	})
 
@@ -192,10 +192,10 @@ func TestCSRFApiMiddleware_PATCH_ValidToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.PATCH("/test", func(c echo.Context) error {
+	e.PATCH("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Patched")
 	})
 
@@ -223,10 +223,10 @@ func TestCSRFApiMiddleware_DELETE_ValidToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.DELETE("/test", func(c echo.Context) error {
+	e.DELETE("/test", func(c *echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	})
 
@@ -254,7 +254,7 @@ func TestCSRFApiMiddleware_DELETE_MissingToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.DELETE("/test", func(c echo.Context) error {
+	e.DELETE("/test", func(c *echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	})
 
@@ -272,7 +272,7 @@ func TestCSRFApiMiddleware_SecureCookie_HTTPS(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -299,7 +299,7 @@ func TestCSRFApiMiddleware_InsecureCookie_HTTP(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -325,7 +325,7 @@ func TestCSRFApiMiddleware_ReuseExistingToken(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
@@ -356,10 +356,10 @@ func TestCSRFApiMiddleware_CookieAloneNotSufficient(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.POST("/test", func(c echo.Context) error {
+	e.POST("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Created")
 	})
 
@@ -417,10 +417,10 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 
 	e := echo.New()
 	e.Use(CSRFApiMiddleware)
-	e.GET("/test", func(c echo.Context) error {
+	e.GET("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
-	e.POST("/test", func(c echo.Context) error {
+	e.POST("/test", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Created")
 	})
 

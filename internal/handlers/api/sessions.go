@@ -12,7 +12,7 @@ import (
 	"savvy/internal/services"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // SessionsHandler handles session management API endpoints.
@@ -29,7 +29,7 @@ func NewSessionsHandler(sessionService services.SessionServiceInterface) *Sessio
 
 // List returns all active sessions for the authenticated user.
 // GET /api/v1/profile/sessions
-func (h *SessionsHandler) List(c echo.Context) error {
+func (h *SessionsHandler) List(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -56,7 +56,7 @@ func (h *SessionsHandler) List(c echo.Context) error {
 
 // Revoke deletes a specific session.
 // DELETE /api/v1/profile/sessions/:id
-func (h *SessionsHandler) Revoke(c echo.Context) error {
+func (h *SessionsHandler) Revoke(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -88,7 +88,7 @@ func (h *SessionsHandler) Revoke(c echo.Context) error {
 
 // RevokeOthers revokes all sessions except the current one.
 // POST /api/v1/profile/sessions/revoke-others
-func (h *SessionsHandler) RevokeOthers(c echo.Context) error {
+func (h *SessionsHandler) RevokeOthers(c *echo.Context) error {
 	user, ok := c.Get("current_user").(*models.User)
 	if !ok || user == nil {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{

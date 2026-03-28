@@ -5,7 +5,7 @@ package middleware
 import (
 	"sync"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 
 // SessionTracking tracks active user sessions for metrics
 func SessionTracking(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		// Get session using the existing GetSession function (returns "session")
 		sess, err := GetSession(c)
 		if err != nil {

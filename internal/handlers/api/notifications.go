@@ -10,7 +10,7 @@ import (
 	"savvy/internal/services"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // NotificationsHandler handles notification-related API requests
@@ -59,7 +59,7 @@ func toNotificationDTO(n *models.Notification) NotificationDTO {
 
 // List retrieves all notifications for the current user
 // GET /api/v1/notifications
-func (h *NotificationsHandler) List(c echo.Context) error {
+func (h *NotificationsHandler) List(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	// Parse pagination parameters
@@ -96,7 +96,7 @@ func (h *NotificationsHandler) List(c echo.Context) error {
 
 // GetUnreadCount retrieves the count of unread notifications
 // GET /api/v1/notifications/unread-count
-func (h *NotificationsHandler) GetUnreadCount(c echo.Context) error {
+func (h *NotificationsHandler) GetUnreadCount(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	count, err := h.notificationService.GetUnreadCount(c.Request().Context(), user.ID)
@@ -111,7 +111,7 @@ func (h *NotificationsHandler) GetUnreadCount(c echo.Context) error {
 
 // MarkAsRead marks a notification as read
 // POST /api/v1/notifications/:id/read
-func (h *NotificationsHandler) MarkAsRead(c echo.Context) error {
+func (h *NotificationsHandler) MarkAsRead(c *echo.Context) error {
 	notificationID, err := parseResourceID(c, "notification")
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ func (h *NotificationsHandler) MarkAsRead(c echo.Context) error {
 
 // MarkAllAsRead marks all notifications as read for the current user
 // POST /api/v1/notifications/read-all
-func (h *NotificationsHandler) MarkAllAsRead(c echo.Context) error {
+func (h *NotificationsHandler) MarkAllAsRead(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	if err := h.notificationService.MarkAllAsRead(c.Request().Context(), user.ID); err != nil {
@@ -145,7 +145,7 @@ func (h *NotificationsHandler) MarkAllAsRead(c echo.Context) error {
 
 // Delete deletes a notification
 // DELETE /api/v1/notifications/:id
-func (h *NotificationsHandler) Delete(c echo.Context) error {
+func (h *NotificationsHandler) Delete(c *echo.Context) error {
 	notificationID, err := parseResourceID(c, "notification")
 	if err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 )
 
@@ -33,7 +33,7 @@ func LogDeletion(db *gorm.DB, userID *uuid.UUID, resourceType string, resourceID
 }
 
 // LogDeletionFromContext is a convenience function that extracts user info from Echo context
-func LogDeletionFromContext(c echo.Context, db *gorm.DB, resourceType string, resourceID uuid.UUID, resourceData interface{}) error {
+func LogDeletionFromContext(c *echo.Context, db *gorm.DB, resourceType string, resourceID uuid.UUID, resourceData interface{}) error {
 	var userID *uuid.UUID
 	if user, ok := c.Get("current_user").(*models.User); ok && user != nil {
 		userID = &user.ID
@@ -67,7 +67,7 @@ func LogUpdate(db *gorm.DB, userID *uuid.UUID, resourceType string, resourceID u
 }
 
 // LogUpdateFromContext is a convenience function that extracts user info from Echo context
-func LogUpdateFromContext(c echo.Context, db *gorm.DB, resourceType string, resourceID uuid.UUID, resourceData interface{}) error {
+func LogUpdateFromContext(c *echo.Context, db *gorm.DB, resourceType string, resourceID uuid.UUID, resourceData interface{}) error {
 	var userID *uuid.UUID
 	if user, ok := c.Get("current_user").(*models.User); ok && user != nil {
 		userID = &user.ID

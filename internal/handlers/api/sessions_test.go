@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -89,8 +90,7 @@ func TestSessionsHandler_Revoke_Success(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/profile/sessions/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(sessionID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: sessionID.String()}})
 
 	mockSessionService.On("RevokeSession", mock.Anything, user.ID, sessionID).Return(nil)
 
@@ -108,8 +108,7 @@ func TestSessionsHandler_Revoke_Success(t *testing.T) {
 func TestSessionsHandler_Revoke_Unauthorized(t *testing.T) {
 	handler, _ := setupSessionsTest()
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/profile/sessions/:id", "")
-	c.SetParamNames("id")
-	c.SetParamValues(uuid.New().String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: uuid.New().String()}})
 
 	err := handler.Revoke(c)
 
@@ -122,8 +121,7 @@ func TestSessionsHandler_Revoke_InvalidID(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/profile/sessions/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues("invalid-uuid")
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
 
 	err := handler.Revoke(c)
 
@@ -137,8 +135,7 @@ func TestSessionsHandler_Revoke_ServiceError(t *testing.T) {
 	c, rec := createTestContext(http.MethodDelete, "/api/v1/profile/sessions/:id", "")
 	user := createTestUser()
 	c.Set("current_user", user)
-	c.SetParamNames("id")
-	c.SetParamValues(sessionID.String())
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: sessionID.String()}})
 
 	mockSessionService.On("RevokeSession", mock.Anything, user.ID, sessionID).
 		Return(errors.New("not found"))

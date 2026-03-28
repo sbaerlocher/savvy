@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // HealthHandler handles health check endpoints
@@ -21,14 +21,14 @@ func NewHealthHandler(healthService services.HealthCheckServiceInterface) *Healt
 }
 
 // Health returns minimal health status (public endpoint - minimal information disclosure)
-func (h *HealthHandler) Health(c echo.Context) error {
+func (h *HealthHandler) Health(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status": "ok",
 	})
 }
 
 // Ready checks if the service is ready to accept requests
-func (h *HealthHandler) Ready(c echo.Context) error {
+func (h *HealthHandler) Ready(c *echo.Context) error {
 	ctx := c.Request().Context()
 
 	report, err := h.healthService.CheckReadiness(ctx)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // PrintRoutes prints all registered routes in a formatted table.
@@ -19,7 +19,7 @@ import (
 //
 // Routes are sorted alphabetically by path, then by method.
 func PrintRoutes(e *echo.Echo) {
-	routes := e.Routes()
+	routes := e.Router().Routes()
 
 	// Sort by path first, then by method
 	sort.Slice(routes, func(i, j int) bool {

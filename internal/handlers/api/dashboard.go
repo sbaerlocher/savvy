@@ -8,7 +8,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // DashboardHandler handles dashboard API endpoints.
@@ -30,7 +30,7 @@ func NewDashboardHandler(
 
 // Get returns dashboard data (stats, recent items, favorites)
 // GET /api/v1/dashboard
-func (h *DashboardHandler) Get(c echo.Context) error {
+func (h *DashboardHandler) Get(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
 	// Get dashboard data from service

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,19 +16,19 @@ func TestPrintRoutes(t *testing.T) {
 	e := echo.New()
 
 	// Register some test routes
-	e.GET("/", func(c echo.Context) error {
+	e.GET("/", func(c *echo.Context) error {
 		return c.String(200, "home")
 	})
-	e.POST("/cards", func(c echo.Context) error {
+	e.POST("/cards", func(c *echo.Context) error {
 		return c.String(201, "created")
 	})
-	e.GET("/cards/:id", func(c echo.Context) error {
+	e.GET("/cards/:id", func(c *echo.Context) error {
 		return c.String(200, "card")
 	})
-	e.PUT("/cards/:id", func(c echo.Context) error {
+	e.PUT("/cards/:id", func(c *echo.Context) error {
 		return c.String(200, "updated")
 	})
-	e.DELETE("/cards/:id", func(c echo.Context) error {
+	e.DELETE("/cards/:id", func(c *echo.Context) error {
 		return c.String(204, "deleted")
 	})
 
@@ -90,11 +90,11 @@ func TestPrintRoutes_Sorting(t *testing.T) {
 	e := echo.New()
 
 	// Register routes in random order
-	e.POST("/zebra", func(_ echo.Context) error { return nil })
-	e.GET("/apple", func(_ echo.Context) error { return nil })
-	e.PUT("/banana", func(_ echo.Context) error { return nil })
-	e.DELETE("/apple", func(_ echo.Context) error { return nil })
-	e.GET("/banana", func(_ echo.Context) error { return nil })
+	e.POST("/zebra", func(_ *echo.Context) error { return nil })
+	e.GET("/apple", func(_ *echo.Context) error { return nil })
+	e.PUT("/banana", func(_ *echo.Context) error { return nil })
+	e.DELETE("/apple", func(_ *echo.Context) error { return nil })
+	e.GET("/banana", func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
@@ -165,8 +165,8 @@ func TestPrintRoutes_WithParameters(t *testing.T) {
 	e := echo.New()
 
 	// Register routes with parameters
-	e.GET("/users/:id", func(_ echo.Context) error { return nil })
-	e.GET("/users/:id/posts/:postId", func(_ echo.Context) error { return nil })
+	e.GET("/users/:id", func(_ *echo.Context) error { return nil })
+	e.GET("/users/:id/posts/:postId", func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
@@ -191,10 +191,10 @@ func TestPrintRoutes_MultipleMethodsSamePath(t *testing.T) {
 	e := echo.New()
 
 	// Register multiple methods on same path
-	e.GET("/api/resource", func(_ echo.Context) error { return nil })
-	e.POST("/api/resource", func(_ echo.Context) error { return nil })
-	e.PUT("/api/resource", func(_ echo.Context) error { return nil })
-	e.DELETE("/api/resource", func(_ echo.Context) error { return nil })
+	e.GET("/api/resource", func(_ *echo.Context) error { return nil })
+	e.POST("/api/resource", func(_ *echo.Context) error { return nil })
+	e.PUT("/api/resource", func(_ *echo.Context) error { return nil })
+	e.DELETE("/api/resource", func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
@@ -227,7 +227,7 @@ func TestPrintRoutes_FormattingWidth(t *testing.T) {
 
 	// Register route with very long path
 	longPath := "/api/v1/very/long/path/that/might/exceed/formatting/width"
-	e.GET(longPath, func(_ echo.Context) error { return nil })
+	e.GET(longPath, func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
@@ -252,11 +252,11 @@ func TestPrintRoutes_GroupRoutes(t *testing.T) {
 
 	// Create a group
 	api := e.Group("/api")
-	api.GET("/users", func(_ echo.Context) error { return nil })
-	api.POST("/users", func(_ echo.Context) error { return nil })
+	api.GET("/users", func(_ *echo.Context) error { return nil })
+	api.POST("/users", func(_ *echo.Context) error { return nil })
 
 	v1 := api.Group("/v1")
-	v1.GET("/cards", func(_ echo.Context) error { return nil })
+	v1.GET("/cards", func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
@@ -279,7 +279,7 @@ func TestPrintRoutes_GroupRoutes(t *testing.T) {
 
 func TestPrintRoutes_OutputFormat(t *testing.T) {
 	e := echo.New()
-	e.GET("/test", func(_ echo.Context) error { return nil })
+	e.GET("/test", func(_ *echo.Context) error { return nil })
 
 	// Capture stdout
 	old := os.Stdout
