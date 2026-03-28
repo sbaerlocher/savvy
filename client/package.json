@@ -21,7 +21,7 @@
 		"@vitest/coverage-v8": "4.1.1",
 		"@vitest/ui": "4.1.1",
 		"autoprefixer": "10.4.27",
-		"happy-dom": "20.8.7",
+		"happy-dom": "20.8.8",
 		"postcss": "8.5.8",
 		"prettier": "3.8.1",
 		"prettier-plugin-svelte": "3.5.1",
