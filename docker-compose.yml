@@ -272,7 +272,7 @@ services:
   # Grafana Loki - log aggregation
   loki:
     profiles: ["observability"]
-    image: grafana/loki:3.6.7@sha256:3c8fd3570dd9219951a60d3f919c7f31923d10baee578b77bc26c4a0b32d092d
+    image: grafana/loki:3.6.8@sha256:9db961170b729dc38277963cbb4a79941626388562cc455db61bf85564aa8945
     container_name: savvy-loki
     restart: unless-stopped
     command: -config.file=/etc/loki/loki-config.yaml
@@ -292,7 +292,7 @@ services:
   # Promtail - log collector for Docker containers
   promtail:
     profiles: ["observability"]
-    image: grafana/promtail:3.6.7@sha256:51346af8682f7a664affaca4f34a62f5a4f0f83ace9931df94590375a94ff8f1
+    image: grafana/promtail:3.6.8@sha256:6cfa64ec432b24a912d640e2edb940eeae2666f61861a66c121d763dd7241381
     container_name: savvy-promtail
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yaml
