@@ -17,7 +17,7 @@ type Voucher struct {
 	Merchant          *Merchant      `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 	MerchantName      string         `json:"merchant_name"` // Fallback for free text
 	Code              string         `gorm:"uniqueIndex;not null" json:"code"`
-	Type              string         `gorm:"not null" json:"type"` // percentage, fixed_amount, points_multiplier
+	Type              string         `gorm:"not null" json:"type"` // percentage, fixed_amount, points_multiplier, bonus_points
 	Value             float64        `gorm:"not null" json:"value"`
 	Currency          string         `gorm:"default:CHF" json:"currency"` // Currency for fixed_amount vouchers (CHF, EUR, USD, GBP)
 	Description       string         `gorm:"type:text" json:"description"`

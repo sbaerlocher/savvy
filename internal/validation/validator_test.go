@@ -266,6 +266,20 @@ func TestValidateStruct_VoucherRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "valid bonus_points voucher",
+			request: VoucherRequest{
+				MerchantName:      "Coop",
+				Code:              "SUPER222",
+				VoucherType:       "bonus_points",
+				Value:             222.0,
+				MinPurchaseAmount: 22.0,
+				UsageLimitType:    "multiple_use_with_card",
+				BarcodeType:       "CODE128",
+				Status:            "active",
+			},
+			wantErr: false,
+		},
+		{
 			name: "invalid voucher type",
 			request: VoucherRequest{
 				MerchantName:   "Target",

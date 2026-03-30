@@ -16,6 +16,7 @@
 		type?: string;
 		value?: number;
 		currency?: string;
+		minPurchaseAmount?: number;
 		barcodeType?: string;
 		validFrom?: string;
 		validUntil?: string;
@@ -34,6 +35,7 @@
 		type = $bindable('percentage'),
 		value = $bindable(0),
 		currency = $bindable('CHF'),
+		minPurchaseAmount = $bindable(0),
 		barcodeType = $bindable('CODE128'),
 		validFrom = $bindable(''),
 		validUntil = $bindable(''),
@@ -213,6 +215,7 @@
 				<option value="points_multiplier"
 					>{$t('vouchers.typePointsMultiplier')}</option
 				>
+				<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
 			</select>
 		</div>
 
@@ -261,39 +264,66 @@
 						? $t('vouchers.valueHintPercentage')
 						: type === 'points_multiplier'
 							? $t('vouchers.valueHintMultiplier')
-							: $t('vouchers.valueHintAmount')}
+							: type === 'bonus_points'
+								? $t('vouchers.valueHintBonusPoints')
+								: $t('vouchers.valueHintAmount')}
 				</p>
 			{/if}
 		</div>
 	</div>
 
-	<!-- Verwendungsart -->
-	<div>
-		<label for="usageLimitType" class="label"
-			>{$t('vouchers.usageLimitType')}</label
-		>
-		<select
-			id="usageLimitType"
-			bind:value={usageLimitType}
-			class="input"
-			style="font-size: 16px;"
-		>
-			<option value="single_use"
-				>{$t('vouchers.usageLimitTypes.single_use')}</option
+	<!-- Mindesteinkauf / Verwendungsart -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div>
+			<label for="minPurchaseAmount" class="label"
+				>{$t('vouchers.minPurchaseAmount')}</label
 			>
-			<option value="one_per_customer"
-				>{$t('vouchers.usageLimitTypes.one_per_customer')}</option
+			<div class="flex gap-2">
+				<input
+					id="minPurchaseAmount"
+					type="number"
+					step="0.01"
+					min="0"
+					bind:value={minPurchaseAmount}
+					class="flex-1 input"
+					placeholder="0.00"
+				/>
+				<span class="flex items-center text-sm text-gray-500 px-2"
+					>{currency || 'CHF'}</span
+				>
+			</div>
+			<p class="text-sm text-gray-500 mt-1">
+				{$t('vouchers.minPurchaseAmountHint')}
+			</p>
+		</div>
+
+		<div>
+			<label for="usageLimitType" class="label"
+				>{$t('vouchers.usageLimitType')}</label
 			>
-			<option value="multiple_use_with_card"
-				>{$t('vouchers.usageLimitTypes.multiple_use_with_card')}</option
+			<select
+				id="usageLimitType"
+				bind:value={usageLimitType}
+				class="input"
+				style="font-size: 16px;"
 			>
-			<option value="multiple_use_without_card"
-				>{$t('vouchers.usageLimitTypes.multiple_use_without_card')}</option
-			>
-		</select>
-		<p class="text-sm text-gray-500 mt-1">
-			{$t('vouchers.usageLimitTypeHint')}
-		</p>
+				<option value="single_use"
+					>{$t('vouchers.usageLimitTypes.single_use')}</option
+				>
+				<option value="one_per_customer"
+					>{$t('vouchers.usageLimitTypes.one_per_customer')}</option
+				>
+				<option value="multiple_use_with_card"
+					>{$t('vouchers.usageLimitTypes.multiple_use_with_card')}</option
+				>
+				<option value="multiple_use_without_card"
+					>{$t('vouchers.usageLimitTypes.multiple_use_without_card')}</option
+				>
+			</select>
+			<p class="text-sm text-gray-500 mt-1">
+				{$t('vouchers.usageLimitTypeHint')}
+			</p>
+		</div>
 	</div>
 
 	<!-- Gültig von / Gültig bis -->

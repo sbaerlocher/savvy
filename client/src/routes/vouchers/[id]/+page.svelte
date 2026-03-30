@@ -47,6 +47,7 @@
 	let editType = $state('percentage');
 	let editValue = $state(0);
 	let editCurrency = $state('CHF');
+	let editMinPurchaseAmount = $state(0);
 	let editBarcodeType = $state('CODE128');
 	let editUsageLimitType = $state('single_use');
 	let editValidFrom = $state('');
@@ -151,6 +152,7 @@
 		editType = voucher.type || 'percentage';
 		editValue = voucher.value;
 		editCurrency = voucher.currency || 'CHF';
+		editMinPurchaseAmount = voucher.min_purchase_amount || 0;
 		// Ensure barcode_type always has a valid value (handle null, undefined, empty string)
 		editBarcodeType =
 			(voucher.barcode_type && voucher.barcode_type.trim()) || 'CODE128';
@@ -189,6 +191,7 @@
 				type: editType,
 				value: editValue,
 				currency: editCurrency || undefined,
+				min_purchase_amount: editMinPurchaseAmount || undefined,
 				barcode_type: editBarcodeType,
 				usage_limit_type: editUsageLimitType,
 				valid_from: editValidFrom ? `${editValidFrom}T00:00:00Z` : undefined,
@@ -370,7 +373,9 @@
 		} else if (type === 'fixed_amount') {
 			return formatCurrency(value, currency || 'CHF', $locale);
 		} else if (type === 'points_multiplier') {
-			return `${value}x Punkte`;
+			return `${value}x ${tr('vouchers.types.pointsMultiplierDisplay').trim()}`;
+		} else if (type === 'bonus_points') {
+			return `+${value}${tr('vouchers.types.bonusPointsDisplay')}`;
 		}
 		return `${value.toFixed(2)}`;
 	}
@@ -477,6 +482,10 @@
 								voucher.type,
 								voucher.currency
 							)}
+							minPurchaseInfo={voucher.min_purchase_amount &&
+							voucher.min_purchase_amount > 0
+								? `${tr('vouchers.minPurchaseAmount')}: ${formatCurrency(voucher.min_purchase_amount, voucher.currency || 'CHF', $locale)}`
+								: undefined}
 							description={voucher.description}
 						/>
 					</div>
@@ -494,6 +503,7 @@
 							bind:type={editType}
 							bind:value={editValue}
 							bind:currency={editCurrency}
+							bind:minPurchaseAmount={editMinPurchaseAmount}
 							bind:barcodeType={editBarcodeType}
 							bind:validFrom={editValidFrom}
 							bind:validUntil={editValidUntil}

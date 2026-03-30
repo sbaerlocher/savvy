@@ -389,7 +389,13 @@
 																$locale
 															)}
 														{:else if voucher.type === 'points_multiplier'}
-															{voucher.value}x Punkte
+															{voucher.value}{$t(
+																'vouchers.types.pointsMultiplierDisplay'
+															)}
+														{:else if voucher.type === 'bonus_points'}
+															+{voucher.value}{$t(
+																'vouchers.types.bonusPointsDisplay'
+															)}
 														{/if}
 													</p>
 													{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}

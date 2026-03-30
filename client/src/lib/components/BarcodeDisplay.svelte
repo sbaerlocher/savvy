@@ -22,6 +22,7 @@
 		pin?: string;
 		validFrom?: string;
 		validUntil?: string;
+		minPurchaseInfo?: string;
 		displayValue?: string;
 		description?: string;
 		balance?: string;
@@ -38,6 +39,7 @@
 		pin,
 		validFrom,
 		validUntil,
+		minPurchaseInfo,
 		displayValue,
 		description,
 		balance,
@@ -158,7 +160,12 @@
 							validFrom.split('T')[0]
 						).toLocaleDateString(currentLocale)}
 					{/if}
+					{#if minPurchaseInfo}
+						· {minPurchaseInfo}
+					{/if}
 				</span>
+			{:else if minPurchaseInfo}
+				<span class="text-xs text-gray-600">{minPurchaseInfo}</span>
 			{/if}
 		</div>
 	{/if}
@@ -250,7 +257,12 @@
 										validFrom.split('T')[0]
 									).toLocaleDateString(currentLocale)}
 								{/if}
+								{#if minPurchaseInfo}
+									· {minPurchaseInfo}
+								{/if}
 							</span>
+						{:else if minPurchaseInfo}
+							<span class="barcode-info-validity">{minPurchaseInfo}</span>
 						{/if}
 
 						{#if balance && currency}

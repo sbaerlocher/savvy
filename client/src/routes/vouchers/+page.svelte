@@ -870,6 +870,8 @@
 											{voucher.value}{tr(
 												'vouchers.types.pointsMultiplierDisplay'
 											)}
+										{:else if voucher.type === 'bonus_points'}
+											+{voucher.value}{tr('vouchers.types.bonusPointsDisplay')}
 										{:else}
 											{voucher.value}
 										{/if}
