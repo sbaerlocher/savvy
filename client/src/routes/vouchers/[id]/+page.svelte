@@ -191,7 +191,7 @@
 				type: editType,
 				value: editValue,
 				currency: editCurrency || undefined,
-				min_purchase_amount: editMinPurchaseAmount,
+				min_purchase_amount: editMinPurchaseAmount || undefined,
 				barcode_type: editBarcodeType,
 				usage_limit_type: editUsageLimitType,
 				valid_from: editValidFrom ? `${editValidFrom}T00:00:00Z` : undefined,

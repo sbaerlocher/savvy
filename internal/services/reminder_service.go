@@ -422,7 +422,7 @@ func (s *ReminderService) formatVoucherValue(v *models.Voucher) string {
 	case "fixed_amount":
 		return s.formatCurrency(v.Value, v.Currency)
 	case "bonus_points":
-		return fmt.Sprintf("+%.0f Punkte", v.Value)
+		return fmt.Sprintf("+%.0f", v.Value)
 	default:
 		return ""
 	}

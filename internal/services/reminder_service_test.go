@@ -1123,13 +1123,13 @@ func TestReminderService_FormatVoucherValue(t *testing.T) {
 	t.Run("bonus_points type", func(t *testing.T) {
 		v := &models.Voucher{Type: "bonus_points", Value: 222}
 		result := svc.formatVoucherValue(v)
-		assert.Equal(t, "+222 Punkte", result)
+		assert.Equal(t, "+222", result)
 	})
 
 	t.Run("bonus_points type fractional", func(t *testing.T) {
 		v := &models.Voucher{Type: "bonus_points", Value: 99.5}
 		result := svc.formatVoucherValue(v)
-		assert.Equal(t, "+100 Punkte", result) // %.0f rounds 99.5 to 100
+		assert.Equal(t, "+100", result) // %.0f rounds 99.5 to 100
 	})
 
 	t.Run("default/unknown type returns empty", func(t *testing.T) {
