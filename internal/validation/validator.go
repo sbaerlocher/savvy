@@ -28,7 +28,7 @@ var ValidBarcodeTypes = map[string]bool{
 
 // ValidVoucherTypes defines the allowed voucher type values.
 var ValidVoucherTypes = map[string]bool{
-	"percentage": true, "fixed_amount": true, "points_multiplier": true,
+	"percentage": true, "fixed_amount": true, "points_multiplier": true, "bonus_points": true,
 }
 
 // ValidUsageLimitTypes defines the allowed usage limit type values.

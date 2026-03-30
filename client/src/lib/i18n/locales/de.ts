@@ -482,11 +482,13 @@ export const de: TranslationKeys = {
 		typePercentage: 'Prozent (%)',
 		typeFixedAmount: 'Fester Betrag',
 		typePointsMultiplier: 'Punkte-Multiplikator',
+		typeBonusPoints: 'Bonuspunkte (fest)',
 		value: 'Wert',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Prozentsatz (z.B. 20 für 20%)',
 		valueHintAmount: 'Geldbetrag',
 		valueHintMultiplier: 'Multiplikator (z.B. 2 für doppelte Punkte)',
+		valueHintBonusPoints: 'Anzahl Bonuspunkte (z.B. 222)',
 		currency: 'Währung',
 		description: 'Beschreibung',
 		descriptionPlaceholder: 'Weitere Details zum Gutschein...',
@@ -505,6 +507,9 @@ export const de: TranslationKeys = {
 		singleUseOnly: 'Nur einmalige Nutzung',
 		multipleUse: 'Mehrfach nutzbar',
 		barcodeType: 'Barcode-Typ',
+		minPurchaseAmount: 'Mindesteinkauf',
+		minPurchaseAmountHint: 'Optional: Mindestbetrag für die Einlösung',
+		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: 'Verwendungsart',
 		usageLimitTypeHint: 'Wie oft kann der Gutschein verwendet werden?',
 		usageLimitTypes: {
@@ -554,7 +559,10 @@ export const de: TranslationKeys = {
 			fixedAmountDisplay: '€ Gutschein',
 			pointsMultiplier: 'Punkte-Multiplikator',
 			pointsMultiplierHint: 'Multiplikator (z.B. 2 für doppelte Punkte)',
-			pointsMultiplierDisplay: 'x Punkte'
+			pointsMultiplierDisplay: 'x Punkte',
+			bonusPoints: 'Bonuspunkte (fest)',
+			bonusPointsHint: 'Anzahl Bonuspunkte (z.B. 222)',
+			bonusPointsDisplay: ' Punkte'
 		},
 		transfer: {
 			title: 'Besitzerwechsel',

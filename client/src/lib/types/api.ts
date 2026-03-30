@@ -122,6 +122,7 @@ export interface VoucherDTO {
 	barcode_type?: string;
 	valid_from?: string;
 	valid_until?: string;
+	min_purchase_amount?: number;
 	usage_limit_type?: string;
 	status?: string;
 	is_favorite: boolean;
@@ -238,6 +239,7 @@ export interface VoucherCreateRequest {
 	currency?: string;
 	description?: string;
 	barcode_type?: string;
+	min_purchase_amount?: number;
 	usage_limit_type?: string;
 	valid_from?: string;
 	valid_until?: string;
@@ -254,6 +256,7 @@ export interface VoucherUpdateRequest {
 	currency?: string;
 	description?: string;
 	barcode_type?: string;
+	min_purchase_amount?: number;
 	usage_limit_type?: string;
 	valid_from?: string;
 	valid_until?: string;

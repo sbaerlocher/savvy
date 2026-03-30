@@ -469,11 +469,13 @@ export const en: TranslationKeys = {
 		typePercentage: 'Percentage (%)',
 		typeFixedAmount: 'Fixed Amount',
 		typePointsMultiplier: 'Points Multiplier',
+		typeBonusPoints: 'Bonus Points (Fixed)',
 		value: 'Value',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Percentage (e.g. 20 for 20%)',
 		valueHintAmount: 'Monetary amount',
 		valueHintMultiplier: 'Multiplier (e.g. 2 for double points)',
+		valueHintBonusPoints: 'Number of bonus points (e.g. 222)',
 		currency: 'Currency',
 		description: 'Description',
 		descriptionPlaceholder: 'Additional details about the voucher...',
@@ -492,6 +494,9 @@ export const en: TranslationKeys = {
 		singleUseOnly: 'Single use only',
 		multipleUse: 'Multiple use',
 		barcodeType: 'Barcode Type',
+		minPurchaseAmount: 'Minimum Purchase',
+		minPurchaseAmountHint: 'Optional: Minimum amount for redemption',
+		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: 'Usage Type',
 		usageLimitTypeHint: 'How often can the voucher be used?',
 		usageLimitTypes: {
@@ -541,7 +546,10 @@ export const en: TranslationKeys = {
 			fixedAmountDisplay: '€ Voucher',
 			pointsMultiplier: 'Points Multiplier',
 			pointsMultiplierHint: 'Multiplier (e.g. 2 for double points)',
-			pointsMultiplierDisplay: 'x Points'
+			pointsMultiplierDisplay: 'x Points',
+			bonusPoints: 'Bonus Points (Fixed)',
+			bonusPointsHint: 'Number of bonus points (e.g. 222)',
+			bonusPointsDisplay: ' Points'
 		},
 		transfer: {
 			title: 'Transfer Ownership',

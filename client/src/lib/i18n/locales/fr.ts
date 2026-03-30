@@ -480,11 +480,13 @@ export const fr: TranslationKeys = {
 		typePercentage: 'Pourcentage (%)',
 		typeFixedAmount: 'Montant fixe',
 		typePointsMultiplier: 'Multiplicateur de points',
+		typeBonusPoints: 'Points bonus (fixe)',
 		value: 'Valeur',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Pourcentage (par ex. 20 pour 20%)',
 		valueHintAmount: 'Montant monétaire',
 		valueHintMultiplier: 'Multiplicateur (par ex. 2 pour le double de points)',
+		valueHintBonusPoints: 'Nombre de points bonus (par ex. 222)',
 		currency: 'Devise',
 		description: 'Description',
 		descriptionPlaceholder: 'Détails supplémentaires sur le bon...',
@@ -503,6 +505,9 @@ export const fr: TranslationKeys = {
 		singleUseOnly: 'Usage unique seulement',
 		multipleUse: 'Usage multiple',
 		barcodeType: 'Type de code-barres',
+		minPurchaseAmount: "Montant minimum d'achat",
+		minPurchaseAmountHint: "Optionnel: Montant minimum pour l'échange",
+		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: "Type d'utilisation",
 		usageLimitTypeHint: 'Combien de fois peut-on utiliser le bon?',
 		usageLimitTypes: {
@@ -552,7 +557,10 @@ export const fr: TranslationKeys = {
 			fixedAmountDisplay: '€ Bon',
 			pointsMultiplier: 'Multiplicateur de points',
 			pointsMultiplierHint: 'Multiplicateur (ex. 2 pour le double de points)',
-			pointsMultiplierDisplay: 'x Points'
+			pointsMultiplierDisplay: 'x Points',
+			bonusPoints: 'Points bonus (fixe)',
+			bonusPointsHint: 'Nombre de points bonus (par ex. 222)',
+			bonusPointsDisplay: ' Points'
 		},
 		transfer: {
 			title: 'Transfert de propriété',

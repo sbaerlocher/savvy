@@ -453,11 +453,13 @@ export type TranslationKeys = {
 		typePercentage: string;
 		typeFixedAmount: string;
 		typePointsMultiplier: string;
+		typeBonusPoints: string;
 		value: string;
 		valuePlaceholder: string;
 		valueHintPercentage: string;
 		valueHintAmount: string;
 		valueHintMultiplier: string;
+		valueHintBonusPoints: string;
 		currency: string;
 		description: string;
 		descriptionPlaceholder: string;
@@ -476,6 +478,9 @@ export type TranslationKeys = {
 		singleUseOnly: string;
 		multipleUse: string;
 		barcodeType: string;
+		minPurchaseAmount: string;
+		minPurchaseAmountHint: string;
+		minPurchaseAmountCurrency: string;
 		usageLimitType: string;
 		usageLimitTypeHint: string;
 		usageLimitTypes: {
@@ -526,6 +531,9 @@ export type TranslationKeys = {
 			pointsMultiplier: string;
 			pointsMultiplierHint: string;
 			pointsMultiplierDisplay: string; // "{value}x Punkte"
+			bonusPoints: string;
+			bonusPointsHint: string;
+			bonusPointsDisplay: string; // "+{value} Punkte"
 		};
 		transfer: {
 			title: string;

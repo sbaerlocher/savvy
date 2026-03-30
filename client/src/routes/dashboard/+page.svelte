@@ -390,6 +390,8 @@
 															)}
 														{:else if voucher.type === 'points_multiplier'}
 															{voucher.value}x Punkte
+														{:else if voucher.type === 'bonus_points'}
+															+{voucher.value} Punkte
 														{/if}
 													</p>
 													{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
