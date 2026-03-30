@@ -373,7 +373,7 @@
 		} else if (type === 'fixed_amount') {
 			return formatCurrency(value, currency || 'CHF', $locale);
 		} else if (type === 'points_multiplier') {
-			return `${value}x ${tr('vouchers.types.pointsMultiplierDisplay').trim() || 'Punkte'}`;
+			return `${value}x ${tr('vouchers.types.pointsMultiplierDisplay').trim()}`;
 		} else if (type === 'bonus_points') {
 			return `+${value}${tr('vouchers.types.bonusPointsDisplay')}`;
 		}
@@ -482,7 +482,8 @@
 								voucher.type,
 								voucher.currency
 							)}
-							minPurchaseInfo={voucher.min_purchase_amount && voucher.min_purchase_amount > 0
+							minPurchaseInfo={voucher.min_purchase_amount &&
+							voucher.min_purchase_amount > 0
 								? `${tr('vouchers.minPurchaseAmount')}: ${formatCurrency(voucher.min_purchase_amount, voucher.currency || 'CHF', $locale)}`
 								: undefined}
 							description={voucher.description}

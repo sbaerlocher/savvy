@@ -509,7 +509,6 @@ export const de: TranslationKeys = {
 		barcodeType: 'Barcode-Typ',
 		minPurchaseAmount: 'Mindesteinkauf',
 		minPurchaseAmountHint: 'Optional: Mindestbetrag für die Einlösung',
-		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: 'Verwendungsart',
 		usageLimitTypeHint: 'Wie oft kann der Gutschein verwendet werden?',
 		usageLimitTypes: {

@@ -215,9 +215,7 @@
 				<option value="points_multiplier"
 					>{$t('vouchers.typePointsMultiplier')}</option
 				>
-				<option value="bonus_points"
-					>{$t('vouchers.typeBonusPoints')}</option
-				>
+				<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
 			</select>
 		</div>
 
@@ -272,7 +270,6 @@
 				</p>
 			{/if}
 		</div>
-
 	</div>
 
 	<!-- Mindesteinkauf / Verwendungsart -->
@@ -291,17 +288,9 @@
 					class="flex-1 input"
 					placeholder="0.00"
 				/>
-				<select
-					id="minPurchaseCurrency"
-					bind:value={currency}
-					class="w-28 input"
-					style="font-size: 16px;"
+				<span class="flex items-center text-sm text-gray-500 px-2"
+					>{currency || 'CHF'}</span
 				>
-					<option value="CHF">CHF</option>
-					<option value="EUR">EUR</option>
-					<option value="USD">USD</option>
-					<option value="GBP">GBP</option>
-				</select>
 			</div>
 			<p class="text-sm text-gray-500 mt-1">
 				{$t('vouchers.minPurchaseAmountHint')}

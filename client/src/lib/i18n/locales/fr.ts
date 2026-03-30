@@ -507,7 +507,6 @@ export const fr: TranslationKeys = {
 		barcodeType: 'Type de code-barres',
 		minPurchaseAmount: "Montant minimum d'achat",
 		minPurchaseAmountHint: "Optionnel: Montant minimum pour l'échange",
-		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: "Type d'utilisation",
 		usageLimitTypeHint: 'Combien de fois peut-on utiliser le bon?',
 		usageLimitTypes: {

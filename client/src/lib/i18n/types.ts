@@ -480,7 +480,6 @@ export type TranslationKeys = {
 		barcodeType: string;
 		minPurchaseAmount: string;
 		minPurchaseAmountHint: string;
-		minPurchaseAmountCurrency: string;
 		usageLimitType: string;
 		usageLimitTypeHint: string;
 		usageLimitTypes: {

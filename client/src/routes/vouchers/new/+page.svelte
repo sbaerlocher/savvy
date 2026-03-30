@@ -83,7 +83,7 @@
 				value,
 				currency: currency || undefined,
 				barcode_type: barcodeType || undefined,
-				min_purchase_amount: minPurchaseAmount,
+				min_purchase_amount: minPurchaseAmount || undefined,
 				usage_limit_type: usageLimitType || undefined,
 				valid_from: validFrom ? `${validFrom}T00:00:00Z` : `${today}T00:00:00Z`,
 				valid_until: `${validUntil}T23:59:59Z`,

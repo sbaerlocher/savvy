@@ -496,7 +496,6 @@ export const en: TranslationKeys = {
 		barcodeType: 'Barcode Type',
 		minPurchaseAmount: 'Minimum Purchase',
 		minPurchaseAmountHint: 'Optional: Minimum amount for redemption',
-		minPurchaseAmountCurrency: 'CHF',
 		usageLimitType: 'Usage Type',
 		usageLimitTypeHint: 'How often can the voucher be used?',
 		usageLimitTypes: {
