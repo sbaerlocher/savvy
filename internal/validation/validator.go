@@ -129,7 +129,7 @@ type VoucherRequest struct {
 	MerchantID        string  `validate:"omitempty,uuid"`
 	MerchantName      string  `validate:"required_without=MerchantID,max=255"`
 	Code              string  `validate:"required,max=255"`
-	VoucherType       string  `validate:"required,oneof=percentage fixed_amount points_multiplier"`
+	VoucherType       string  `validate:"required,oneof=percentage fixed_amount points_multiplier bonus_points"`
 	Value             float64 `validate:"required,gt=0"`
 	MinPurchaseAmount float64 `validate:"omitempty,gte=0"`
 	UsageLimitType    string  `validate:"required,oneof=single_use one_per_customer multiple_use_with_card multiple_use_without_card"`
