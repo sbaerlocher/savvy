@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-03-31
+
+### Added
+
+- **`bonus_points` voucher type** - New voucher type with `+{value} Points` display, full i18n
+  support (DE/EN/FR), and barcode display rendering
+- **`min_purchase_amount` field on vouchers** - Optional minimum purchase amount exposed in API
+  DTOs and frontend form (2-column grid layout alongside usage limit)
+- **Duplicate barcode blocking (409)** - Card/voucher/gift card creation now returns HTTP 409
+  with `DuplicateErrorResponse` instead of a non-blocking warning; TOCTOU race handled at DB layer
+- **`DuplicateWarningBanner` component** - Frontend banner displayed on create pages when a
+  duplicate barcode/code is detected, with navigation to the existing resource
+- **Custom OpenTelemetry Echo v5 middleware** - In-house OTel tracing middleware replacing
+  third-party `otelecho` (Echo v4 only); W3C trace context propagation, HTTP semantic conventions,
+  span naming (`METHOD /route`), error status recording
+
+### Changed
+
+- **Echo v4 → v5 migration** - Full backend migration to `github.com/labstack/echo/v5`;
+  handler signatures changed to `*echo.Context`, path params via `SetPathValues`, body limit
+  as int64, graceful shutdown via `echo.StartConfig` + `signal.NotifyContext()`
+- **Metrics middleware** - Uses `echo.ResolveResponseStatus()` for accurate status code
+  classification instead of `c.Response().Status` (which could be 0)
+- **OTelLogger middleware** - Replaced removed Echo v4 `c.Logger().SetPrefix()` with
+  `slog.Default().With()` stored in context
+- Updated `github.com/labstack/echo/v4` → `v5 v5.0.4`; removed `labstack/gommon`, `otelecho`
+- Updated Svelte 5.53→5.55, Tailwind CSS 4.2.1→4.2.2, Vitest 4.1.0→4.1.2
+- Updated Docker images: Node 24.14.1, otel-collector 0.148.0, Loki 3.7.1
+
+### Fixed
+
+- **DST-safe reminder calculation** - Fixed timezone bug where `calculateDaysLeft` could
+  produce non-24h differences during DST transitions; now compares calendar dates in UTC
+- **Hardcoded German in voucher display** - Dashboard and detail page `formatVoucherValue`
+  now use localized i18n keys instead of hardcoded `{value}x Punkte`
+- **`bonus_points` in expiry reminders** - Added missing `bonus_points` case to
+  `formatVoucherValue()` in reminder service
+- **Password manager autofill on share email** - EmailAutocomplete input was detected as
+  login field by password managers; fixed with `autocomplete="new-password"`,
+  `name="share-recipient"`, `data-1p-ignore`, and `data-lpignore`
+
 ## [1.2.0] - 2026-03-19
 
 ### Added
@@ -259,6 +300,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.0
 [1.2.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.2.0
 [1.1.4]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.4
 [1.1.3]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.3
