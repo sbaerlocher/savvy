@@ -288,9 +288,17 @@
 					class="flex-1 input"
 					placeholder="0.00"
 				/>
-				<span class="flex items-center text-sm text-gray-500 px-2"
-					>{currency || 'CHF'}</span
+				<select
+					id="minPurchaseCurrency"
+					bind:value={currency}
+					class="w-28 input"
+					style="font-size: 16px;"
 				>
+					<option value="CHF">CHF</option>
+					<option value="EUR">EUR</option>
+					<option value="USD">USD</option>
+					<option value="GBP">GBP</option>
+				</select>
 			</div>
 			<p class="text-sm text-gray-500 mt-1">
 				{$t('vouchers.minPurchaseAmountHint')}

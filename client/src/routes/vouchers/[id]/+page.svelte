@@ -373,7 +373,7 @@
 		} else if (type === 'fixed_amount') {
 			return formatCurrency(value, currency || 'CHF', $locale);
 		} else if (type === 'points_multiplier') {
-			return `${value}x ${tr('vouchers.types.pointsMultiplierDisplay').trim()}`;
+			return `${value}${tr('vouchers.types.pointsMultiplierDisplay').trim()}`;
 		} else if (type === 'bonus_points') {
 			return `+${value}${tr('vouchers.types.bonusPointsDisplay')}`;
 		}
