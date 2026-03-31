@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   classification instead of `c.Response().Status` (which could be 0)
 - **OTelLogger middleware** - Replaced removed Echo v4 `c.Logger().SetPrefix()` with
   `slog.Default().With()` stored in context
+- Updated `github.com/labstack/echo/v4` → `v5 v5.0.4`; removed `labstack/gommon`, `otelecho`
+- Updated Svelte 5.53→5.55, Tailwind CSS 4.2.1→4.2.2, Vitest 4.1.0→4.1.2
+- Updated Docker images: Node 24.14.1, otel-collector 0.148.0, Loki 3.7.1
 
 ### Fixed
 
@@ -44,13 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Password manager autofill on share email** - EmailAutocomplete input was detected as
   login field by password managers; fixed with `autocomplete="new-password"`,
   `name="share-recipient"`, `data-1p-ignore`, and `data-lpignore`
-
-### Dependencies
-
-- Added `github.com/labstack/echo/v5 v5.0.4`
-- Removed `github.com/labstack/echo/v4`, `labstack/gommon`, `otelecho`
-- Updated Svelte 5.53→5.55, Tailwind CSS 4.2.1→4.2.2, Vitest 4.1.0→4.1.2
-- Updated Docker images: Node 24.14.1, otel-collector 0.148.0, Loki 3.7.1
 
 ## [1.2.0] - 2026-03-19
 
@@ -304,6 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.3.0...HEAD
 [1.3.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.0
 [1.2.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.2.0
 [1.1.4]: https://github.com/sbaerlocher/savvy/releases/tag/v1.1.4
