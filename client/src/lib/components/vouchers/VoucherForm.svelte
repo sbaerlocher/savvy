@@ -9,6 +9,7 @@
 	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('VoucherForm');
+	const SUPPORTED_CURRENCIES = ['CHF', 'EUR', 'USD', 'GBP'] as const;
 
 	interface Props {
 		code: string;
@@ -249,10 +250,9 @@
 						class="w-28 input"
 						style="font-size: 16px;"
 					>
-						<option value="CHF">CHF</option>
-						<option value="EUR">EUR</option>
-						<option value="USD">USD</option>
-						<option value="GBP">GBP</option>
+						{#each SUPPORTED_CURRENCIES as c}
+							<option value={c}>{c}</option>
+						{/each}
 					</select>
 				{/if}
 			</div>
@@ -288,9 +288,16 @@
 					class="flex-1 input"
 					placeholder="0.00"
 				/>
-				<span class="flex items-center text-sm text-gray-500 px-2"
-					>{currency || 'CHF'}</span
+				<select
+					id="minPurchaseCurrency"
+					bind:value={currency}
+					class="w-28 input"
+					style="font-size: 16px;"
 				>
+					{#each SUPPORTED_CURRENCIES as c}
+						<option value={c}>{c}</option>
+					{/each}
+				</select>
 			</div>
 			<p class="text-sm text-gray-500 mt-1">
 				{$t('vouchers.minPurchaseAmountHint')}
