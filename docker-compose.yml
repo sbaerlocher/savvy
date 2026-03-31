@@ -236,7 +236,7 @@ services:
   # ============================================================================
   mailpit:
     profiles: ["dev", ""]
-    image: axllent/mailpit:latest@sha256:0530ab1c658a0f225f148e617522db84053bd1e4879e664c23de5fee44ad6819
+    image: axllent/mailpit:latest@sha256:c5a6d0ba4d08187f70f305471da5fd9ad424fdfc2f25a2308226a786335dfa9f
     container_name: savvy-mailpit
     restart: unless-stopped
     ports:
@@ -272,7 +272,7 @@ services:
   # Grafana Loki - log aggregation
   loki:
     profiles: ["observability"]
-    image: grafana/loki:3.6.8@sha256:9db961170b729dc38277963cbb4a79941626388562cc455db61bf85564aa8945
+    image: grafana/loki:3.7.1@sha256:73e905b51a7f917f7a1075e4be68759df30226e03dcb3cd2213b989cc0dc8eb4
     container_name: savvy-loki
     restart: unless-stopped
     command: -config.file=/etc/loki/loki-config.yaml
