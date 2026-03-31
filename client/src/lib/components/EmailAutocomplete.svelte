@@ -119,8 +119,9 @@
 		onblur={onBlur}
 		onkeydown={onKeydown}
 		{required}
+		name="share-recipient"
 		placeholder="benutzer@example.com"
-		autocomplete="off"
+		autocomplete="new-password"
 		{disabled}
 		class="input bg-white"
 	/>
