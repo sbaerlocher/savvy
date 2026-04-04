@@ -174,14 +174,14 @@ func TestRateLimitMiddleware_DifferentIPs(t *testing.T) {
 
 	// Request from IP 1
 	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req1.Header.Set("X-Real-IP", "192.168.1.1")
+	req1.RemoteAddr = "192.168.1.1:1234"
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Immediate request from IP 2 should succeed (different limiter)
 	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req2.Header.Set("X-Real-IP", "192.168.1.2")
+	req2.RemoteAddr = "192.168.1.2:1234"
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 	assert.Equal(t, http.StatusOK, rec2.Code)
