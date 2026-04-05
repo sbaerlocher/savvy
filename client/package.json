@@ -3,13 +3,13 @@
 		"cookie": ">=1.1.1"
 	},
 	"dependencies": {
-		"barcode-detector": "^3.1.1",
+		"barcode-detector": "^3.1.2",
 		"@vite-pwa/sveltekit": "^1.1.0",
 		"bwip-js": "^4.9.0",
 		"workbox-window": "^7.4.0"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.59.0",
+		"@playwright/test": "1.59.1",
 		"@sveltejs/adapter-static": "3.0.10",
 		"@sveltejs/kit": "2.55.0",
 		"@sveltejs/vite-plugin-svelte": "6.2.4",
