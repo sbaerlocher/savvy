@@ -2,13 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>sbaerlocher/.github:renovate-go#2026-03-28",
+    "github>sbaerlocher/.github:renovate-js#2026-03-28",
     "github>sbaerlocher/.github:renovate-docker#2026-03-28"
   ],
   "customManagers": [
     {
       "description": "Track Savvy appVersion in Helm Chart.yaml",
       "customType": "regex",
-      "managerFilePatterns": ["/^deploy/helm/Chart\.yaml$/"],
+      "managerFilePatterns": ["/^deploy/helm/Chart\\.yaml$/"],
       "matchStrings": ["appVersion: \"(?<currentValue>[^\"]+)\""],
       "depNameTemplate": "ghcr.io/sbaerlocher/container/savvy",
       "datasourceTemplate": "docker",
@@ -31,6 +32,12 @@
       "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
       "matchFileNames": ["deploy/kustomize/overlays/development/**"],
       "enabled": false
+    },
+    {
+      "description": "Group @sveltejs/vite-plugin-svelte with Vite packages so mutually-dependent majors land in a single PR",
+      "matchPackageNames": ["@sveltejs/vite-plugin-svelte"],
+      "groupName": "Vite packages",
+      "semanticCommitScope": "build"
     }
   ]
 }
