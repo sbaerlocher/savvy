@@ -1,9 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>sbaerlocher/.github:renovate-go#2026-04-09",
-    "github>sbaerlocher/.github:renovate-js#2026-04-09",
-    "github>sbaerlocher/.github:renovate-docker#2026-04-09"
+    "github>sbaerlocher/.github:renovate-go#2026-04-11",
+    "github>sbaerlocher/.github:renovate-js#2026-04-11",
+    "github>sbaerlocher/.github:renovate-docker#2026-04-11"
   ],
   "customManagers": [
     {
@@ -32,15 +32,6 @@
       "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
       "matchFileNames": ["deploy/kustomize/overlays/development/**"],
       "enabled": false
-    },
-    {
-      "description": "Group @sveltejs/vite-plugin-svelte with Vite packages so mutually-dependent majors land in a single PR (strip major-N- prefix so different majors share the group branch)",
-      "matchPackageNames": ["@sveltejs/vite-plugin-svelte"],
-      "groupName": "Vite packages",
-      "semanticCommitScope": "build",
-      "major": {
-        "additionalBranchPrefix": ""
-      }
     }
   ]
 }
