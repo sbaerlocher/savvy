@@ -34,10 +34,13 @@
       "enabled": false
     },
     {
-      "description": "Group @sveltejs/vite-plugin-svelte with Vite packages so mutually-dependent majors land in a single PR",
+      "description": "Group @sveltejs/vite-plugin-svelte with Vite packages so mutually-dependent majors land in a single PR (strip major-N- prefix so different majors share the group branch)",
       "matchPackageNames": ["@sveltejs/vite-plugin-svelte"],
       "groupName": "Vite packages",
-      "semanticCommitScope": "build"
+      "semanticCommitScope": "build",
+      "major": {
+        "additionalBranchPrefix": ""
+      }
     }
   ]
 }
