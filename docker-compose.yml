@@ -236,7 +236,7 @@ services:
   # ============================================================================
   mailpit:
     profiles: ["dev", ""]
-    image: axllent/mailpit:latest@sha256:c5a6d0ba4d08187f70f305471da5fd9ad424fdfc2f25a2308226a786335dfa9f
+    image: axllent/mailpit:latest@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc
     container_name: savvy-mailpit
     restart: unless-stopped
     ports:
@@ -253,7 +253,7 @@ services:
   # OpenTelemetry Collector - receives OTLP from apps, exports to backends
   otel-collector:
     profiles: ["observability"]
-    image: otel/opentelemetry-collector-contrib:0.148.0@sha256:8164eab2e6bca9c9b0837a8d2f118a6618489008a839db7f9d6510e66be3923c
+    image: otel/opentelemetry-collector-contrib:0.150.1@sha256:a516c26968aa1feb5e5fc0562e3338ea13755cb4f373603226bcc4e276374ad0
     container_name: savvy-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otel-collector-config.yaml"]
@@ -292,7 +292,7 @@ services:
   # Promtail - log collector for Docker containers
   promtail:
     profiles: ["observability"]
-    image: grafana/promtail:3.6.8@sha256:6cfa64ec432b24a912d640e2edb940eeae2666f61861a66c121d763dd7241381
+    image: grafana/promtail:3.6.10@sha256:2a0f5e3e160ee5d549c585f6cc4f4e1c566ff783324a424bd75bc16503fc660e
     container_name: savvy-promtail
     restart: unless-stopped
     command: -config.file=/etc/promtail/promtail-config.yaml
@@ -308,7 +308,7 @@ services:
   # Grafana Tempo - distributed tracing
   tempo:
     profiles: ["observability"]
-    image: grafana/tempo:2.10.3@sha256:cac9de2ac9f6da8efca5b64b690a7cb8c786a0c49cac7b4517dd1b0089a6c703
+    image: grafana/tempo:2.10.4@sha256:a6616c9d224770c883a67b50e4941e99c5df81b076ef05f516bb7cce5a96cec0
     container_name: savvy-tempo
     restart: unless-stopped
     command: -config.file=/etc/tempo/tempo-config.yaml
@@ -328,7 +328,7 @@ services:
   # Prometheus - metrics storage
   prometheus:
     profiles: ["observability"]
-    image: prom/prometheus:v3.10.0@sha256:4a61322ac1103a0e3aea2a61ef1718422a48fa046441f299d71e660a3bc71ae9
+    image: prom/prometheus:v3.11.2@sha256:5550dc63da361dc30f6fe02ac0e4dfc736ededfef3c8d12a634db04a67824d78
     container_name: savvy-prometheus
     restart: unless-stopped
     command:
@@ -354,7 +354,7 @@ services:
   # Grafana - visualization and dashboards
   grafana:
     profiles: ["observability"]
-    image: grafana/grafana:12.4@sha256:83749231c3835e390a3144e5e940203e42b9589761f20ef3169c716e734ad505
+    image: grafana/grafana:12.4@sha256:2e986801428cd689c2358605289c90ab37d2b39e24808874971f54c99bcdc412
     container_name: savvy-grafana
     restart: unless-stopped
     environment:
