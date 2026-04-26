@@ -5,7 +5,7 @@
 	"dependencies": {
 		"barcode-detector": "^3.1.2",
 		"@vite-pwa/sveltekit": "^1.1.0",
-		"bwip-js": "^4.10.0",
+		"bwip-js": "^4.10.1",
 		"workbox-window": "^7.4.0"
 	},
 	"devDependencies": {
