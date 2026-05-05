@@ -15,7 +15,7 @@ permissions:
 jobs:
   claude-review:
     name: Claude Code Review
-    uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-04-30
+    uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-05-03
     permissions:
       contents: read
       pull-requests: write
