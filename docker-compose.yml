@@ -20,6 +20,10 @@ services:
       POSTGRES_DB: savvy
       POSTGRES_USER: savvy
       POSTGRES_PASSWORD: savvy_dev_password
+      # postgres:18+ defaults PGDATA to /var/lib/postgresql/$PG_MAJOR/docker and
+      # aborts when the legacy /var/lib/postgresql/data mount is detected. Pin
+      # PGDATA so the existing volume layout keeps working.
+      PGDATA: /var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
