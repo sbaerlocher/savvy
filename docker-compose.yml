@@ -14,12 +14,16 @@ services:
   # ============================================================================
   postgres:
     profiles: ["", "e2e"] # Runs by default AND with --profile e2e
-    image: postgres:18-alpine@sha256:4da1a4828be12604092fa55311276f08f9224a74a62dcb4708bd7439e2a03911
+    image: postgres:18-alpine@sha256:fa206fb6391c039c6d3ac69791f60536d79ff19d1dc32eac7818f39fa5a4aa2e
     container_name: savvy-postgres
     environment:
       POSTGRES_DB: savvy
       POSTGRES_USER: savvy
       POSTGRES_PASSWORD: savvy_dev_password
+      # postgres:18+ defaults PGDATA to /var/lib/postgresql/$PG_MAJOR/docker and
+      # aborts when the legacy /var/lib/postgresql/data mount is detected. Pin
+      # PGDATA so the existing volume layout keeps working.
+      PGDATA: /var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
