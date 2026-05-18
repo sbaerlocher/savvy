@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/gorilla/sessions v1.4.0
-	golang.org/x/crypto v0.50.0
+	golang.org/x/crypto v0.51.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
@@ -73,7 +73,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0
+	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/text v0.37.0
 	golang.org/x/time v0.15.0
 )
