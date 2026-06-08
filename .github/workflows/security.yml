@@ -20,6 +20,7 @@ jobs:
     with:
       languages: '["go"]'
       go-version: "1.26"
+      concurrency-suffix: code
 
   dependency-scan:
     name: Dependencies & Licenses
@@ -27,10 +28,13 @@ jobs:
     with:
       language: "go"
       enable-license-check: true
+      concurrency-suffix: deps
 
   secret-detection:
     name: Secret Detection
     uses: sbaerlocher/.github/.github/workflows/security-secrets.yml@2026-05-17
+    with:
+      concurrency-suffix: secrets
 
   container-scan:
     name: Container Security
@@ -38,3 +42,4 @@ jobs:
     with:
       # Must match the image pushed by the release workflow
       image-ref: "ghcr.io/sbaerlocher/container/savvy:latest"
+      concurrency-suffix: containers
