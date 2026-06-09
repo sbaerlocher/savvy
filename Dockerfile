@@ -165,7 +165,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ==============================================================================
 # PRODUCTION BUILD STAGE (Distroless Production Image)
 # ==============================================================================
-FROM gcr.io/distroless/static-debian12:nonroot@sha256:a9329520abc449e3b14d5bc3a6ffae065bdde0f02667fa10880c49b35c109fd1 AS production-build
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:d093aa3e30dbadd3efe1310db061a14da60299baff8450a17fe0ccc514a16639 AS production-build
 
 LABEL org.opencontainers.image.title="savvy"
 LABEL org.opencontainers.image.description="Digital customer card, voucher and gift card management system with sharing functionality"
@@ -210,7 +210,7 @@ RUN apk add --no-cache curl tar ca-certificates && \
     tar -xzf /tmp/savvy.tar.gz -C /tmp savvy && \
     chmod +x /tmp/savvy
 
-FROM gcr.io/distroless/static-debian12:nonroot@sha256:a9329520abc449e3b14d5bc3a6ffae065bdde0f02667fa10880c49b35c109fd1 AS production
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:d093aa3e30dbadd3efe1310db061a14da60299baff8450a17fe0ccc514a16639 AS production
 
 LABEL org.opencontainers.image.title="savvy"
 LABEL org.opencontainers.image.description="Digital customer card, voucher and gift card management system with sharing functionality"
