@@ -240,7 +240,7 @@ services:
   # ============================================================================
   mailpit:
     profiles: ["dev", ""]
-    image: axllent/mailpit:latest@sha256:0059ef81e492a7192af3816281eed6859eb078bd7bdc58b76757c13e10e53a7d
+    image: axllent/mailpit:latest@sha256:3bd7c2f2696deb35a4780d152b404dceec99cb041b942c0877b3b22384714f85
     container_name: savvy-mailpit
     restart: unless-stopped
     ports:
@@ -257,7 +257,7 @@ services:
   # OpenTelemetry Collector - receives OTLP from apps, exports to backends
   otel-collector:
     profiles: ["observability"]
-    image: otel/opentelemetry-collector-contrib:0.152.1@sha256:fa1f6ea8dabd3042fabf4411eed7fa52f253edd8940140bec89a573e62a24eb7
+    image: otel/opentelemetry-collector-contrib:0.153.0@sha256:93aad750175cbf1a973ae1c5886c3371f4d800f61be25cdd26870b8441ffe9fa
     container_name: savvy-otel-collector
     restart: unless-stopped
     command: ["--config=/etc/otel-collector-config.yaml"]
@@ -332,7 +332,7 @@ services:
   # Prometheus - metrics storage
   prometheus:
     profiles: ["observability"]
-    image: prom/prometheus:v3.11.3@sha256:e4254400b85610324913f0dc4acf92603d9984e7519414c5a12811aa6146acc3
+    image: prom/prometheus:v3.12.0@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
     container_name: savvy-prometheus
     restart: unless-stopped
     command:
@@ -358,7 +358,7 @@ services:
   # Grafana - visualization and dashboards
   grafana:
     profiles: ["observability"]
-    image: grafana/grafana:13.0@sha256:0f86bada30d65ef9d0183b90c1e2682ac92d53d95da8bed322b984ea78a4a73a
+    image: grafana/grafana:13.0@sha256:5dad0df181cb644a14e13617b913b261a54f7d4fd4510721dba420929f35bea2
     container_name: savvy-grafana
     restart: unless-stopped
     environment:
