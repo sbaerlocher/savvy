@@ -799,56 +799,48 @@ if (barcodes.length > 0) {
 
 ### Running E2E Tests
 
-**Available npm scripts**:
+The full E2E lifecycle is driven through dde plugins; npm/Playwright are
+implementation details called from inside the plugins.
+
+**Lifecycle commands**:
 
 ```bash
-# Run all E2E tests (full suite)
-npm run test:e2e
+# Bring up a clean E2E stack (down + reset-db + up + wait)
+dde project:e2e:start
 
-# Run individual test file (recommended for development)
-npm run test:e2e:run -- <test-file>
+# Run Playwright tests against the running stack
+# (defaults to --project=chromium when called without arguments)
+dde project:e2e:test
 
-# Browser-specific tests
-npm run test:e2e:chromium    # Chromium only
-npm run test:e2e:firefox     # Firefox only
-npm run test:e2e:mobile      # Mobile Chrome
+# Run a single spec or pass any Playwright flag through
+dde project:e2e:test -- tests/e2e/auth.spec.ts
+dde project:e2e:test -- tests/e2e/cards.spec.ts --project=firefox
+dde project:e2e:test -- --headed --debug tests/e2e/sharing.spec.ts
+dde project:e2e:test -- --grep "Authentication"
 
-# Additional utilities
-npm run test:e2e:ui          # Open Playwright UI mode
-npm run test:e2e:debug       # Debug mode
-npm run test:e2e:headed      # Show browser window
-npm run playwright:report    # Show HTML test report
+# List tests without running (Playwright resolves them statically;
+# globalSetup skips the health check for --list automatically)
+dde project:e2e:test -- --list
+
+# Inspect logs while tests are failing
+dde project:e2e:logs -- 200
+
+# Tear down when done
+dde project:e2e:down
 ```
 
-**Running individual test files** (Playwright CLI wrapper):
+**Granular plugins** (rarely needed directly; `e2e:start` aggregates them):
 
-The `test:e2e:run` script provides direct access to Playwright CLI with argument forwarding:
+- `dde project:e2e:reset-db` — drop+create the `savvy_e2e` database
+  on the dde stock postgres
+- `dde project:e2e:up` — `docker compose --profile e2e up -d`
+- `dde project:e2e:wait` — poll `app-e2e` health
+  (`-- --timeout SECONDS`, `-- --service NAME`)
+- `dde project:e2e:logs` — tail compose logs (`-- 200` for last 200
+  lines, optional service name list afterwards)
+- `dde project:e2e:down` — `docker compose --profile e2e down -v`
 
-```bash
-# Run a single test file
-npm run test:e2e:run -- auth.spec.ts
-
-# List tests without running (NO Docker startup, instant)
-npm run test:e2e:run -- auth.spec.ts --list
-npm run test:e2e:run -- cards.spec.ts --list
-
-# Run with specific browser
-npm run test:e2e:run -- cards.spec.ts --project=chromium
-npm run test:e2e:run -- vouchers.spec.ts --project=firefox
-
-# Run in headed mode (show browser)
-npm run test:e2e:run -- import.spec.ts --headed
-
-# Debug mode (step through tests)
-npm run test:e2e:run -- sharing.spec.ts --debug
-
-# Combine multiple flags
-npm run test:e2e:run -- batch-operations.spec.ts --project=chromium --headed
-```
-
-**Important**: The `--list` flag is optimized to skip Docker environment setup, making test listing instant.
-
-**Available test files** (23 test files in `client/tests/e2e/`):
+**Available test files** (23 specs in `client/tests/e2e/`):
 
 - `admin.spec.ts`, `auth.spec.ts`, `batch-operations.spec.ts`, `cards.spec.ts`
 - `config-and-features.spec.ts`, `dashboard.spec.ts`, `error-handling.spec.ts`
@@ -859,53 +851,37 @@ npm run test:e2e:run -- batch-operations.spec.ts --project=chromium --headed
 - `sharing.spec.ts`, `two-factor.spec.ts`, `verify-email.spec.ts`
 - `vouchers.spec.ts`
 
-**Docker Environment Setup** (Best Practice):
+**Architecture**:
 
-- **global.setup.ts** ([client/tests/global.setup.ts](client/tests/global.setup.ts)): Runs ONCE before all tests
-  - Starts PostgreSQL + app-e2e Docker containers
-  - Resets database to clean state (removes volume + recreates)
-  - Waits for services to be healthy
-- **global.teardown.ts** ([client/tests/global.teardown.ts](client/tests/global.teardown.ts)): Runs ONCE after all tests
-  - Stops Docker containers
-  - Optional cleanup via environment variables
-- **Browser Projects**: Run in parallel after globalSetup (chromium, firefox, Mobile Chrome)
-- **Conditional Skip**: Setup/teardown automatically skipped for `--list`, `--help`, `--version` flags
-- **Environment Variables**:
-  - `SKIP_E2E_SETUP=true` - Skip Docker setup (assumes environment already running)
-  - `E2E_KEEP_CONTAINERS=true` - Keep containers running after tests (for debugging)
-  - `E2E_VERBOSE_LOGS=true` - Show detailed Docker logs
-  - `E2E_REMOVE_VOLUMES=true` - Remove Docker volumes on teardown
+- **Stack provisioning lives in dde plugins**, not in the test runner.
+  `dde project:e2e:start` and `dde project:e2e:down` own the
+  lifecycle; CI invokes the same plugins as local developers.
+- **Playwright `globalSetup`** is verification-only: it curls
+  `https://e2e.savvy.test/health` and fails fast with
+  `dde project:e2e:start` as the remediation hint when the stack
+  isn't reachable. There is no `globalTeardown`.
+- **Database isolation** between runs comes from `e2e:reset-db`
+  (DROP DATABASE WITH (FORCE) + CREATE DATABASE on the dde stock
+  postgres), not from a dedicated `postgres-e2e` container.
+- **Browser projects** (chromium, firefox, Mobile Chrome) run in parallel
+  after `globalSetup`. The default for `dde project:e2e:test`
+  without arguments is `chromium`; pass `-- --project=firefox` etc. to
+  switch.
 
-**Architecture**: Standard Playwright setup (globalSetup/globalTeardown only, no Project Dependencies)
+**Skip / debug environment variables**:
 
-**Example workflows**:
+- `SKIP_E2E_SETUP=true` — `globalSetup` returns immediately without
+  probing the health endpoint (use when CI/dev verifies the stack
+  out-of-band).
+- `BASE_URL=<url>` — override `https://e2e.savvy.test` for both the
+  health probe and Playwright's baseURL.
+- `--list`, `--help`, `--version` — `globalSetup` skips the health
+  probe automatically so test discovery stays instant.
 
-```bash
-# 1. List available tests (instant, no Docker startup)
-npm run test:e2e:run -- --list
-
-# 2. Run single test file across all browsers (33 tests)
-npm run test:e2e:run -- tests/e2e/auth.spec.ts
-
-# 3. Run with specific browser only (11 tests)
-npm run test:e2e:run -- tests/e2e/auth.spec.ts --project=chromium
-
-# 4. Run multiple specific browsers (22 tests)
-npm run test:e2e:run -- tests/e2e/auth.spec.ts --project=chromium --project=firefox
-
-# 5. Run with grep pattern across all files
-npm run test:e2e:run -- --grep "Authentication"
-
-# 6. Run with debugging (headed mode, step-through)
-npm run test:e2e:run -- tests/e2e/cards.spec.ts --headed --debug
-
-# 7. Keep containers running for manual debugging
-E2E_KEEP_CONTAINERS=true npm run test:e2e:run -- tests/e2e/auth.spec.ts
-
-# ⚠️ WICHTIG: Vollständiger Pfad erforderlich (tests/e2e/...)
-# ❌ FALSCH: auth.spec.ts (findet keine Tests)
-# ✅ RICHTIG: tests/e2e/auth.spec.ts
-```
+**CI workflow**: `.github/workflows/e2e.yml` is an explicit composition
+of the same dde-plugin steps (`project:up` → `e2e:start` → `e2e:test`
+→ `e2e:down` → `project:down`), with Playwright-report and E2E-logs
+artifact uploads layered on top.
 
 ---
 

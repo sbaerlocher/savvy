@@ -1,399 +1,314 @@
----
-# ==============================================================================
-# Savvy Docker Compose - Development
-# ==============================================================================
-# Development Mode:
-#   docker compose up
-#   → Frontend (Vite Dev Server) on http://localhost:5173
-#   → Backend (Go API) on http://localhost:8080
-# ==============================================================================
-
 services:
-  # ============================================================================
-  # PostgreSQL Database (runs in dev and e2e modes)
-  # ============================================================================
-  postgres:
-    profiles: ["", "e2e"] # Runs by default AND with --profile e2e
-    image: postgres:18-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
-    container_name: savvy-postgres
-    environment:
-      POSTGRES_DB: savvy
-      POSTGRES_USER: savvy
-      POSTGRES_PASSWORD: savvy_dev_password
-      # postgres:18+ defaults PGDATA to /var/lib/postgresql/$PG_MAJOR/docker and
-      # aborts when the legacy /var/lib/postgresql/data mount is detected. Pin
-      # PGDATA so the existing volume layout keeps working.
-      PGDATA: /var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U savvy"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - savvy-network
-
-  # ============================================================================
-  # DEV MODE: Go API Server (with Air Hot Reload)
-  # ============================================================================
-  api:
-    profiles: ["dev", ""] # Runs by default (no --profile needed)
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend-dev
-    container_name: savvy-api
-    restart: unless-stopped
-
-    environment:
-      VERSION: ${VERSION:-dev}
-      DATABASE_URL: postgres://savvy:savvy_dev_password@postgres:5432/savvy?sslmode=disable
-      PORT: 8080
-      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production-not-for-use}
-      GO_ENV: development
-
-      # CORS for Frontend Dev Server
-      CORS_ALLOWED_ORIGINS: http://localhost:5173
-
-      # Observability (OpenTelemetry)
-      OTEL_ENABLED: ${OTEL_ENABLED:-true}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
-      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-savvy-api}
-      OTEL_SERVICE_VERSION: ${OTEL_SERVICE_VERSION:-1.8.0}
-
-      # OAuth
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-}
-      OAUTH_ISSUER: ${OAUTH_ISSUER:-}
-      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL:-http://localhost:8080/auth/oauth/callback}
-      OAUTH_ADMIN_EMAILS: ${OAUTH_ADMIN_EMAILS:-}
-      OAUTH_ADMIN_GROUP: ${OAUTH_ADMIN_GROUP:-}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-
-      # Timezone for date calculations (voucher status, etc.)
-      TIMEZONE: ${TIMEZONE:-Europe/Zurich}
-
-      # Feature Toggles
-      ENABLE_CARDS: ${ENABLE_CARDS:-true}
-      ENABLE_VOUCHERS: ${ENABLE_VOUCHERS:-true}
-      ENABLE_GIFT_CARDS: ${ENABLE_GIFT_CARDS:-true}
-      ENABLE_LOCAL_LOGIN: ${ENABLE_LOCAL_LOGIN:-true}
-      ENABLE_REGISTRATION: ${ENABLE_REGISTRATION:-true}
-
-      # SMTP (Mailpit dev mail catcher)
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-      SMTP_USERNAME: ""
-      SMTP_PASSWORD: ""
-      SMTP_FROM_EMAIL: noreply@savvy.local
-      SMTP_FROM_NAME: Savvy
-      SMTP_USE_TLS: "false"
-
-    ports:
-      - "127.0.0.1:8080:8080" # Map host:8080 to container:8080
-
-    volumes:
-      - .:/app:delegated
-      - /app/tmp
-      # Removed /app/vendor - use -mod=mod to download dependencies
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mailpit:
-        condition: service_started
-
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"] # Backend runs on port 8080
-      interval: 15s
-      timeout: 3s
-      start_period: 10s
-      retries: 3
-
-    security_opt:
-      - no-new-privileges:true
-
-    networks:
-      - savvy-network
-
-  # ============================================================================
-  # E2E MODE: Production API Server (with embedded frontend)
-  # ============================================================================
-  app-e2e:
-    profiles: ["e2e"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production-build
-      args:
-        VERSION: e2e-test
-    container_name: savvy-app-e2e
-    restart: on-failure
-
-    # Override entrypoint to use E2E wrapper (runs seed then server)
-    entrypoint: ["/app/e2e"]
-
-    environment:
-      VERSION: e2e-test
-      DATABASE_URL: postgres://savvy:savvy_dev_password@postgres:5432/savvy?sslmode=disable
-      SERVER_PORT: 8080
-      SESSION_SECRET: test-secret-key-for-e2e-minimum-32-characters
-      GO_ENV: production
-      AUTO_MIGRATE: "true"
-
-      # Feature Toggles (all enabled for E2E)
-      ENABLE_CARDS: "true"
-      ENABLE_VOUCHERS: "true"
-      ENABLE_GIFT_CARDS: "true"
-      ENABLE_LOCAL_LOGIN: "true"
-      ENABLE_REGISTRATION: "true"
-
-      # Rate Limiting (very high limits for E2E to prevent test failures)
-      RATE_LIMIT_GLOBAL_RATE: "10000"
-      RATE_LIMIT_GLOBAL_BURST: "1000"
-      RATE_LIMIT_AUTH_RATE: "1000"
-      RATE_LIMIT_AUTH_BURST: "100"
-      RATE_LIMIT_PASSWORD_RESET_RATE: "1000"
-      RATE_LIMIT_PASSWORD_RESET_BURST: "100"
-      RATE_LIMIT_USER_RATE: "10000"
-      RATE_LIMIT_USER_BURST: "1000"
-
-      # Disable observability for E2E
-      OTEL_ENABLED: "false"
-
-    ports:
-      - "127.0.0.1:8080:8080"
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    healthcheck:
-      test: ["CMD", "/app/savvy", "-health", "-port", "8080"]
-      interval: 5s
-      timeout: 3s
-      start_period: 30s
-      retries: 10
-
-    security_opt:
-      - no-new-privileges:true
-
-    networks:
-      - savvy-network
-
-  # ============================================================================
-  # DEV MODE: SvelteKit Client (Vite Dev Server with HMR)
-  # ============================================================================
-  client:
-    profiles: ["dev", ""] # Runs by default (no --profile needed)
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: frontend-dev
-    container_name: savvy-client
-    restart: unless-stopped
-
-    environment:
-      VITE_API_BASE_URL: http://localhost:8080
-      VITE_OTEL_ENABLED: ${VITE_OTEL_ENABLED:-false}
-
-    ports:
-      - "127.0.0.1:5173:5173"
-
-    volumes:
-      - ./client:/app/client:delegated
-      - /app/client/node_modules
-
-    develop:
-      watch:
-        - action: rebuild
-          path: ./client/package-lock.json
-        - action: sync
-          path: ./client
-          target: /app/client
-          ignore:
-            - node_modules/
-
-    depends_on:
-      - api
-
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
-      interval: 15s
-      timeout: 3s
-      start_period: 10s
-      retries: 3
-
-    security_opt:
-      - no-new-privileges:true
-
-    networks:
-      - savvy-network
-
-  # ============================================================================
-  # DEV MODE: Mailpit (Mail Catcher)
-  # ============================================================================
-  mailpit:
-    profiles: ["dev", ""]
-    image: axllent/mailpit:latest@sha256:37a38e48e9338cd7e89dfeb487f37b02ebfcd9cb23111bed2d345e79d37d6dd6
-    container_name: savvy-mailpit
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:8025:8025" # Web UI
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - savvy-network
-
-  # ============================================================================
-  # OBSERVABILITY STACK (optional, use --profile observability)
-  # ============================================================================
-
-  # OpenTelemetry Collector - receives OTLP from apps, exports to backends
-  otel-collector:
-    profiles: ["observability"]
-    image: otel/opentelemetry-collector-contrib:0.154.0@sha256:b3079f45e19bdb7326bf49cdddce6cf60dfd865138db39f2733ea48ab17bc4cb
-    container_name: savvy-otel-collector
-    restart: unless-stopped
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./deploy/observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    ports:
-      - "127.0.0.1:4317:4317" # OTLP gRPC
-      - "127.0.0.1:4318:4318" # OTLP HTTP
-      - "127.0.0.1:8888:8888" # OTEL Collector internal metrics
-      - "127.0.0.1:8889:8889" # Prometheus exporter (app metrics)
-    networks:
-      - savvy-network
-      # Note: No healthcheck - otel-collector image doesn't include wget/curl
-      # Service will restart automatically if it crashes
-
-  # Grafana Loki - log aggregation
-  loki:
-    profiles: ["observability"]
-    image: grafana/loki:3.7.2@sha256:191d4fdfb7264f16989f0a57f320872620a5a7c2ceeec6229212c4190ec49b86
-    container_name: savvy-loki
-    restart: unless-stopped
-    command: -config.file=/etc/loki/loki-config.yaml
-    volumes:
-      - ./deploy/observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro
-      - loki_data:/loki
-    ports:
-      - "127.0.0.1:3100:3100"
-    networks:
-      - savvy-network
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Promtail - log collector for Docker containers
-  promtail:
-    profiles: ["observability"]
-    image: grafana/promtail:3.6.11@sha256:a761cb834cfaeee29745440d4884d6748f0a08d8f68928db1d707018c1dcfbe9
-    container_name: savvy-promtail
-    restart: unless-stopped
-    command: -config.file=/etc/promtail/promtail-config.yaml
-    volumes:
-      - ./deploy/observability/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - savvy-network
-    depends_on:
-      - loki
-
-  # Grafana Tempo - distributed tracing
-  tempo:
-    profiles: ["observability"]
-    image: grafana/tempo:3.0.2@sha256:cda87c212d8c584dc0b89e337e7ed648a5100feb657e5d528480ee4fa03dbbe3
-    container_name: savvy-tempo
-    restart: unless-stopped
-    command: -config.file=/etc/tempo/tempo-config.yaml
-    volumes:
-      - ./deploy/observability/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
-      - tempo_data:/var/tempo
-    ports:
-      - "127.0.0.1:3200:3200" # Tempo HTTP
-    networks:
-      - savvy-network
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Prometheus - metrics storage
-  prometheus:
-    profiles: ["observability"]
-    image: prom/prometheus:v3.12.0@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac
-    container_name: savvy-prometheus
-    restart: unless-stopped
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
-      - "--enable-feature=exemplar-storage"
-      - "--enable-feature=native-histograms"
-    volumes:
-      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    ports:
-      - "127.0.0.1:9090:9090"
-    networks:
-      - savvy-network
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Grafana - visualization and dashboards
-  grafana:
-    profiles: ["observability"]
-    image: grafana/grafana:13.0@sha256:5dad0df181cb644a14e13617b913b261a54f7d4fd4510721dba420929f35bea2
-    container_name: savvy-grafana
-    restart: unless-stopped
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-    volumes:
-      - ./deploy/observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
-      - ./deploy/observability/grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/provider.yaml:ro
-      - ./deploy/observability/dashboards:/var/lib/grafana/dashboards:ro
-      - ./deploy/grafana:/var/grafana:ro
-      - grafana_data:/var/lib/grafana
-    ports:
-      - "127.0.0.1:3000:3000"
-    depends_on:
-      - loki
-      - tempo
-      - prometheus
-    networks:
-      - savvy-network
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
+    api:
+        profiles:
+            - dev
+            - ''
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: backend-dev
+        environment:
+            VERSION: '${VERSION:-dev}'
+            DATABASE_URL: 'postgres://postgres:postgres@postgres:5432/savvy?sslmode=disable'
+            PORT: 8080
+            SESSION_SECRET: '${SESSION_SECRET:-dev-secret-change-in-production-not-for-use}'
+            GO_ENV: development
+            CORS_ALLOWED_ORIGINS: 'https://savvy.test'
+            OTEL_ENABLED: '${OTEL_ENABLED:-true}'
+            OTEL_EXPORTER_OTLP_ENDPOINT: '${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}'
+            OTEL_SERVICE_NAME: '${OTEL_SERVICE_NAME:-savvy-api}'
+            OTEL_SERVICE_VERSION: '${OTEL_SERVICE_VERSION:-1.8.0}'
+            OAUTH_CLIENT_ID: '${OAUTH_CLIENT_ID:-}'
+            OAUTH_CLIENT_SECRET: '${OAUTH_CLIENT_SECRET:-}'
+            OAUTH_ISSUER: '${OAUTH_ISSUER:-}'
+            OAUTH_REDIRECT_URL: '${OAUTH_REDIRECT_URL:-https://savvy.test/auth/oauth/callback}'
+            OAUTH_ADMIN_EMAILS: '${OAUTH_ADMIN_EMAILS:-}'
+            OAUTH_ADMIN_GROUP: '${OAUTH_ADMIN_GROUP:-}'
+            FRONTEND_URL: '${FRONTEND_URL:-https://savvy.test}'
+            TIMEZONE: '${TIMEZONE:-Europe/Zurich}'
+            ENABLE_CARDS: '${ENABLE_CARDS:-true}'
+            ENABLE_VOUCHERS: '${ENABLE_VOUCHERS:-true}'
+            ENABLE_GIFT_CARDS: '${ENABLE_GIFT_CARDS:-true}'
+            ENABLE_LOCAL_LOGIN: '${ENABLE_LOCAL_LOGIN:-true}'
+            ENABLE_REGISTRATION: '${ENABLE_REGISTRATION:-true}'
+            SMTP_HOST: mail
+            SMTP_PORT: 1025
+            SMTP_USERNAME: ''
+            SMTP_PASSWORD: ''
+            SMTP_FROM_EMAIL: noreply@savvy.test
+            SMTP_FROM_NAME: Savvy
+            SMTP_USE_TLS: 'false'
+        restart: unless-stopped
+        volumes:
+            - '.:/app:delegated'
+            - /app/tmp
+        healthcheck:
+            test:
+                - CMD
+                - curl
+                - '-f'
+                - 'http://localhost:8080/health'
+            interval: 15s
+            timeout: 3s
+            start_period: 10s
+            retries: 3
+        security_opt:
+            - 'no-new-privileges:true'
+        networks:
+            default:
+            services:
+    client:
+        profiles:
+            - dev
+            - ''
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: frontend-dev
+        environment:
+            VITE_API_BASE_URL: 'https://savvy.test'
+            VITE_OTEL_ENABLED: '${VITE_OTEL_ENABLED:-false}'
+        restart: unless-stopped
+        volumes:
+            - './client:/app/client:delegated'
+            - /app/client/node_modules
+        develop:
+            watch:
+                -
+                    action: rebuild
+                    path: ./client/package-lock.json
+                -
+                    action: sync
+                    path: ./client
+                    target: /app/client
+                    ignore:
+                        - node_modules/
+        depends_on:
+            - api
+        networks:
+            default:
+            services:
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - '--no-verbose'
+                - '--tries=1'
+                - '--spider'
+                - 'http://localhost:5173'
+            interval: 15s
+            timeout: 3s
+            start_period: 10s
+            retries: 3
+        security_opt:
+            - 'no-new-privileges:true'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.savvy-client.rule=Host(`savvy.test`)'
+            - 'traefik.http.routers.savvy-client.tls=true'
+            - 'traefik.http.services.savvy-client.loadbalancer.server.port=5173'
+    app-e2e:
+        profiles:
+            - e2e
+        container_name: savvy-app-e2e
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: production-build
+            args:
+                VERSION: e2e-test
+        environment:
+            VERSION: e2e-test
+            # Reuses the dde stock postgres (declared in .dde/config.yml)
+            # on its own database so dev and e2e do not share state.
+            # Run `dde project:e2e:reset-db` before bringing this
+            # service up to drop+recreate `savvy_e2e`.
+            DATABASE_URL: 'postgres://postgres:postgres@postgres:5432/savvy_e2e?sslmode=disable'
+            SERVER_PORT: 8080
+            SESSION_SECRET: test-secret-key-for-e2e-minimum-32-characters
+            GO_ENV: production
+            AUTO_MIGRATE: 'true'
+            CORS_ALLOWED_ORIGINS: 'https://e2e.savvy.test'
+            FRONTEND_URL: 'https://e2e.savvy.test'
+            ENABLE_CARDS: 'true'
+            ENABLE_VOUCHERS: 'true'
+            ENABLE_GIFT_CARDS: 'true'
+            ENABLE_LOCAL_LOGIN: 'true'
+            ENABLE_REGISTRATION: 'true'
+            RATE_LIMIT_GLOBAL_RATE: '10000'
+            RATE_LIMIT_GLOBAL_BURST: '1000'
+            RATE_LIMIT_AUTH_RATE: '1000'
+            RATE_LIMIT_AUTH_BURST: '100'
+            RATE_LIMIT_PASSWORD_RESET_RATE: '1000'
+            RATE_LIMIT_PASSWORD_RESET_BURST: '100'
+            RATE_LIMIT_USER_RATE: '10000'
+            RATE_LIMIT_USER_BURST: '1000'
+            OTEL_ENABLED: 'false'
+        restart: on-failure
+        entrypoint:
+            - /app/e2e
+        # No host port published: tests reach the app through the dde
+        # traefik on https://e2e.savvy.test (resolved via dde dnsmasq).
+        healthcheck:
+            test:
+                - CMD
+                - /app/savvy
+                - '-health'
+                - '-port'
+                - '8080'
+            interval: 5s
+            timeout: 3s
+            start_period: 30s
+            retries: 10
+        security_opt:
+            - 'no-new-privileges:true'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.savvy-app-e2e.rule=Host(`e2e.savvy.test`)'
+            - 'traefik.http.routers.savvy-app-e2e.tls=true'
+            - 'traefik.http.services.savvy-app-e2e.loadbalancer.server.port=8080'
+        networks:
+            default:
+            services:
+    otel-collector:
+        profiles:
+            - observability
+        image: 'otel/opentelemetry-collector-contrib:0.154.0@sha256:b3079f45e19bdb7326bf49cdddce6cf60dfd865138db39f2733ea48ab17bc4cb'
+        restart: unless-stopped
+        command:
+            - '--config=/etc/otel-collector-config.yaml'
+        volumes:
+            - './deploy/observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.savvy-otel.rule=Host(`otel.savvy.test`)'
+            - 'traefik.http.routers.savvy-otel.tls=true'
+            - 'traefik.http.services.savvy-otel.loadbalancer.server.port=4318'
+    loki:
+        profiles:
+            - observability
+        image: 'grafana/loki:3.7.2@sha256:191d4fdfb7264f16989f0a57f320872620a5a7c2ceeec6229212c4190ec49b86'
+        restart: unless-stopped
+        command: '-config.file=/etc/loki/loki-config.yaml'
+        volumes:
+            - './deploy/observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro'
+            - 'loki_data:/loki'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - '--spider'
+                - '-q'
+                - 'http://localhost:3100/ready'
+            interval: 10s
+            timeout: 5s
+            retries: 3
+    promtail:
+        profiles:
+            - observability
+        image: 'grafana/promtail:3.6.11@sha256:a761cb834cfaeee29745440d4884d6748f0a08d8f68928db1d707018c1dcfbe9'
+        restart: unless-stopped
+        command: '-config.file=/etc/promtail/promtail-config.yaml'
+        volumes:
+            - './deploy/observability/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro'
+            - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+            - '/var/run/docker.sock:/var/run/docker.sock:ro'
+        depends_on:
+            - loki
+    tempo:
+        profiles:
+            - observability
+        image: 'grafana/tempo:3.0.2@sha256:cda87c212d8c584dc0b89e337e7ed648a5100feb657e5d528480ee4fa03dbbe3'
+        restart: unless-stopped
+        command: '-config.file=/etc/tempo/tempo-config.yaml'
+        volumes:
+            - './deploy/observability/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro'
+            - 'tempo_data:/var/tempo'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - '--spider'
+                - '-q'
+                - 'http://localhost:3200/ready'
+            interval: 10s
+            timeout: 5s
+            retries: 3
+    prometheus:
+        profiles:
+            - observability
+        image: 'prom/prometheus:v3.12.0@sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac'
+        restart: unless-stopped
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+            - '--enable-feature=exemplar-storage'
+            - '--enable-feature=native-histograms'
+        volumes:
+            - './deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+            - 'prometheus_data:/prometheus'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.savvy-prometheus.rule=Host(`prometheus.savvy.test`)'
+            - 'traefik.http.routers.savvy-prometheus.tls=true'
+            - 'traefik.http.services.savvy-prometheus.loadbalancer.server.port=9090'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - '--spider'
+                - '-q'
+                - 'http://localhost:9090/-/healthy'
+            interval: 10s
+            timeout: 5s
+            retries: 3
+    grafana:
+        profiles:
+            - observability
+        image: 'grafana/grafana:13.0@sha256:5dad0df181cb644a14e13617b913b261a54f7d4fd4510721dba420929f35bea2'
+        environment:
+            - GF_AUTH_ANONYMOUS_ENABLED=true
+            - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin
+            - GF_USERS_ALLOW_SIGN_UP=false
+            - GF_INSTALL_PLUGINS=grafana-piechart-panel
+        restart: unless-stopped
+        volumes:
+            - './deploy/observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro'
+            - './deploy/observability/grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/provider.yaml:ro'
+            - './deploy/observability/dashboards:/var/lib/grafana/dashboards:ro'
+            - './deploy/grafana:/var/grafana:ro'
+            - 'grafana_data:/var/lib/grafana'
+        depends_on:
+            - loki
+            - tempo
+            - prometheus
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.savvy-grafana.rule=Host(`grafana.savvy.test`)'
+            - 'traefik.http.routers.savvy-grafana.tls=true'
+            - 'traefik.http.services.savvy-grafana.loadbalancer.server.port=3000'
+        healthcheck:
+            test:
+                - CMD
+                - wget
+                - '--spider'
+                - '-q'
+                - 'http://localhost:3000/api/health'
+            interval: 10s
+            timeout: 5s
+            retries: 3
 volumes:
-  postgres_data:
-  loki_data:
-  tempo_data:
-  prometheus_data:
-  grafana_data:
-
+    loki_data: null
+    tempo_data: null
+    prometheus_data: null
+    grafana_data: null
 networks:
-  savvy-network:
-    driver: bridge
+    default:
+        name: dde
+        external: true
+    services:
+        name: dde-services-savvy
+        external: true

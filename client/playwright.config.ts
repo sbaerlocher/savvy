@@ -12,13 +12,12 @@ export default defineConfig({
 	// workers: Auto-determined (browsers run in parallel)
 	reporter: 'html',
 	globalSetup: './tests/global.setup.ts',
-	globalTeardown: './tests/global.teardown.ts',
 	use: {
-		baseURL: process.env.BASE_URL || 'http://localhost:8080',
+		baseURL: process.env.BASE_URL || 'https://e2e.savvy.test',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
-		ignoreHTTPSErrors: true, // Fix for WebKit Mixed Content (SVL-E2E-001)
+		ignoreHTTPSErrors: true, // mkcert-signed dde traefik cert + WebKit Mixed Content (SVL-E2E-001)
 		actionTimeout: process.env.CI ? 15000 : 10000, // Increased action timeout for CI
 		navigationTimeout: process.env.CI ? 15000 : 10000 // Increased navigation timeout for CI
 	},

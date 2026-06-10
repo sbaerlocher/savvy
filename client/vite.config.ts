@@ -87,6 +87,7 @@ export default defineConfig({
 	],
 	server: {
 		port: 5173,
+		allowedHosts: ['savvy.test'],
 		proxy: {
 			'/api': {
 				target: 'http://api:8080', // Docker: api container on port 8080
