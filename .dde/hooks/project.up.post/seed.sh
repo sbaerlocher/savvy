@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Seed database after project:up
 #
 # Postgres' initdb only creates the default 'postgres' database, so on a
@@ -7,12 +7,18 @@
 #
 #   1. Locate the dde-managed postgres container by label.
 #   2. Create the savvy database if it doesn't exist.
-#   3. If we just created it (or the API is unhealthy), restart api so
-#      AUTO_MIGRATE picks up the schema.
+#   3. If we just created it, restart api so AUTO_MIGRATE picks up the
+#      schema.
 #   4. Wait for the API healthcheck to go green.
 #   5. Run the seeder with retry/backoff for transient failures.
 
-set -e
+set -euo pipefail
+
+# Anchor docker compose to this project regardless of the caller's cwd —
+# `docker compose ps -q api` would otherwise silently return nothing
+# (read as "E2E mode") when the hook runs from elsewhere.
+hook_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+cd "$hook_dir/../../.."
 
 DB_NAME=savvy
 
