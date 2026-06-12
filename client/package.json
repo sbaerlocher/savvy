@@ -11,7 +11,7 @@
 	"devDependencies": {
 		"@playwright/test": "1.60.0",
 		"@sveltejs/adapter-static": "3.0.10",
-		"@sveltejs/kit": "2.63.1",
+		"@sveltejs/kit": "2.64.0",
 		"@sveltejs/vite-plugin-svelte": "7.1.2",
 		"@tailwindcss/vite": "4.3.0",
 		"@testing-library/jest-dom": "6.9.1",
@@ -22,7 +22,7 @@
 		"esbuild": "0.28.0",
 		"happy-dom": "20.10.2",
 		"postcss": "8.5.15",
-		"prettier": "3.8.3",
+		"prettier": "3.8.4",
 		"prettier-plugin-svelte": "4.1.0",
 		"svelte": "5.56.3",
 		"svelte-check": "4.6.0",
