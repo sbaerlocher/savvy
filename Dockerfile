@@ -11,7 +11,7 @@
 # ==============================================================================
 # BASE STAGE - Shared dependencies for dev targets
 # ==============================================================================
-FROM golang:1.26-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f AS base-dev
+FROM golang:1.26-alpine@sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c AS base-dev
 
 # Install build tools and utilities
 RUN apk add --no-cache \
@@ -60,7 +60,7 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 # FRONTEND-DEV STAGE (Vite Dev Server with HMR)
 # ==============================================================================
-FROM node:24.16.0-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14 AS frontend-dev
+FROM node:24.16.0-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS frontend-dev
 
 # Install wget for healthcheck
 RUN apk add --no-cache wget
@@ -90,7 +90,7 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 # ==============================================================================
 # FRONTEND BUILDER STAGE (Build SvelteKit)
 # ==============================================================================
-FROM node:24.16.0-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14 AS frontend-builder
+FROM node:24.16.0-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS frontend-builder
 
 WORKDIR /app/client
 
@@ -114,7 +114,7 @@ RUN ls -la build/ && echo "✅ Frontend build complete"
 # ==============================================================================
 # GO BUILDER STAGE (Build Go Binaries)
 # ==============================================================================
-FROM golang:1.26-alpine@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f AS go-builder
+FROM golang:1.26-alpine@sha256:7a3e50096189ad57c9f9f865e7e4aa8585ed1585248513dc5cda498e2f41812c AS go-builder
 
 ARG VERSION=dev
 
