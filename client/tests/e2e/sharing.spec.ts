@@ -156,7 +156,7 @@ test.describe('Sharing', () => {
 		// Click the initial transfer button in the form
 		const confirmTransfer = page
 			.locator(
-				'button:has-text("Jetzt übertragen"), button:has-text("Transfer now")'
+				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)
 			.first();
 		await expect(confirmTransfer).toBeVisible({ timeout: 5000 });
@@ -297,7 +297,7 @@ test.describe('Sharing', () => {
 
 		const confirmTransfer = page
 			.locator(
-				'button:has-text("Jetzt übertragen"), button:has-text("Transfer now")'
+				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)
 			.first();
 		await expect(confirmTransfer).toBeVisible({ timeout: 5000 });
@@ -375,7 +375,7 @@ test.describe('Sharing', () => {
 
 		const confirmTransfer = page
 			.locator(
-				'button:has-text("Jetzt übertragen"), button:has-text("Transfer now")'
+				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)
 			.first();
 		await expect(confirmTransfer).toBeVisible({ timeout: 5000 });
