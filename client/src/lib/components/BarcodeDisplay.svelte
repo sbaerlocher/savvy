@@ -138,6 +138,17 @@
 	function openFullscreen() {
 		manualFullscreen = true;
 	}
+
+	// Move focus to the overlay when it opens so a keyboard user can press
+	// Escape to close it (the Escape handler only fires when the overlay has
+	// focus). Without this, opening via the tap-to-enlarge button leaves focus
+	// on the now-obscured button.
+	let overlayEl = $state<HTMLDivElement>();
+	$effect(() => {
+		if (showFullscreen && overlayEl) {
+			overlayEl.focus();
+		}
+	});
 </script>
 
 <div class="bg-gray-50 rounded-lg p-4 text-center border-t border-gray-200">
@@ -241,6 +252,7 @@
 <!-- Barcode Fullscreen Overlay (landscape on mobile, or tap to enlarge) -->
 {#if showFullscreen}
 	<div
+		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
 		onclick={closeFullscreen}
 		role="button"
