@@ -840,6 +840,7 @@ export type TranslationKeys = {
 			enabled: string;
 			disabled: string;
 			enableButton: string;
+			enrollmentDisabled: string;
 			disableButton: string;
 			setupTitle: string;
 			setupStep1: string;

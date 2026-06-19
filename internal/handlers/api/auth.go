@@ -176,7 +176,14 @@ func (h *AuthHandler) Login(c *echo.Context) error {
 	if h.totpService != nil {
 		totpEnabled, totpErr := h.totpService.IsEnabled(c.Request().Context(), user.ID)
 		if totpErr != nil {
+			// Fail closed: this is the primary 2FA enforcement point, so a
+			// status-lookup error must NOT let login proceed without the second
+			// factor (that would re-open the bypass this path closes).
 			slog.Error("Failed to check 2FA status", "user_id", user.ID, "error", totpErr) // #nosec G706 -- structured logging, not injectable
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Error:   "totp_check_failed",
+				Message: "Failed to verify two-factor status",
+			})
 		}
 
 		if totpEnabled {
