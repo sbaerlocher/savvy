@@ -316,6 +316,7 @@ export const en: TranslationKeys = {
 		deleteError: 'Delete failed',
 		loadError: 'Could not load gift card',
 		notFound: 'Gift card not found',
+		backToList: 'Back to gift cards',
 		sortBy: 'Sort By',
 		sortNameAsc: 'Name A-Z',
 		sortNameDesc: 'Name Z-A',

@@ -323,6 +323,7 @@ export const de: TranslationKeys = {
 		deleteError: 'Löschen fehlgeschlagen',
 		loadError: 'Geschenkkarte konnte nicht geladen werden',
 		notFound: 'Geschenkkarte nicht gefunden',
+		backToList: 'Zurück zu den Geschenkkarten',
 		sortBy: 'Sortierung',
 		sortNameAsc: 'Name A-Z',
 		sortNameDesc: 'Name Z-A',

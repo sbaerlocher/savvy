@@ -305,6 +305,7 @@ export type TranslationKeys = {
 		deleteError: string;
 		loadError: string;
 		notFound: string;
+		backToList: string;
 		sortBy: string;
 		sortNameAsc: string;
 		sortNameDesc: string;
