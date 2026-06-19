@@ -122,12 +122,12 @@ func (s *TransferService) TransferCardOwnership(ctx context.Context, cardID, new
 		return errors.New("only owner can transfer")
 	}
 
-	s.logTransferAudit(ctx, currentOwnerID, "cards", cardID,
-		transferAuditData{Resource: card, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
-
 	if err := s.transferRepo.TransferCardOwnership(ctx, card, newOwnerID); err != nil {
 		return fmt.Errorf("transfer card ownership: %w", err)
 	}
+
+	s.logTransferAudit(ctx, currentOwnerID, "cards", cardID,
+		transferAuditData{Resource: card, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
 	s.sendTransferNotification(ctx, "card", cardID, newOwnerID, currentOwnerID)
 	return nil
@@ -148,12 +148,12 @@ func (s *TransferService) TransferVoucherOwnership(ctx context.Context, voucherI
 		return errors.New("only owner can transfer")
 	}
 
-	s.logTransferAudit(ctx, currentOwnerID, "vouchers", voucherID,
-		transferAuditData{Resource: voucher, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
-
 	if err := s.transferRepo.TransferVoucherOwnership(ctx, voucher, newOwnerID); err != nil {
 		return fmt.Errorf("transfer voucher ownership: %w", err)
 	}
+
+	s.logTransferAudit(ctx, currentOwnerID, "vouchers", voucherID,
+		transferAuditData{Resource: voucher, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
 	s.sendTransferNotification(ctx, "voucher", voucherID, newOwnerID, currentOwnerID)
 	return nil
@@ -174,12 +174,12 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 		return errors.New("only owner can transfer")
 	}
 
-	s.logTransferAudit(ctx, currentOwnerID, "gift_cards", giftCardID,
-		transferAuditData{Resource: giftCard, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
-
 	if err := s.transferRepo.TransferGiftCardOwnership(ctx, giftCard, newOwnerID); err != nil {
 		return fmt.Errorf("transfer gift card ownership: %w", err)
 	}
+
+	s.logTransferAudit(ctx, currentOwnerID, "gift_cards", giftCardID,
+		transferAuditData{Resource: giftCard, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
 	s.sendTransferNotification(ctx, "gift_card", giftCardID, newOwnerID, currentOwnerID)
 	return nil
