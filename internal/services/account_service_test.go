@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -20,32 +21,74 @@ func newAccountServiceForTest(db *gorm.DB) AccountServiceInterface {
 	return NewAccountService(db, NewUserService(repository.NewUserRepository(db)), nil)
 }
 
-// seedUserWithData creates a user owning one card (shared to a second user),
-// one gift card with a transaction, a TOTP row, a session and a notification —
-// i.e. at least one row in every table DeleteAccount touches. Returns the
-// owner's ID and the recipient's ID.
-func seedUserWithData(t *testing.T, db *gorm.DB) (owner, recipient uuid.UUID) {
+// seededIDs holds the row IDs created by seedUserWithData so assertions can
+// target captured IDs rather than re-deriving them from rows that delete-cascade
+// removes (which would make the assertion vacuous).
+type seededIDs struct {
+	owner, recipient  uuid.UUID
+	cardID, voucherID uuid.UUID
+	giftCardID        uuid.UUID
+	giftCardTxID      uuid.UUID
+}
+
+// seedUserWithData creates a row in EVERY table DeleteAccount touches, owned by
+// `owner`, plus a second `recipient` user that must survive. Outgoing shares
+// (of the owner's resources) and incoming shares (to the owner) are both seeded.
+func seedUserWithData(t *testing.T, db *gorm.DB) seededIDs {
 	t.Helper()
-	owner = uuid.New()
-	recipient = uuid.New()
+	ids := seededIDs{owner: uuid.New(), recipient: uuid.New()}
 
-	require.NoError(t, db.Create(&models.User{ID: owner, Email: "owner-del@example.com", PasswordHash: "x", FirstName: "Own", LastName: "Er"}).Error)
-	require.NoError(t, db.Create(&models.User{ID: recipient, Email: "recipient-del@example.com", PasswordHash: "x", FirstName: "Rec", LastName: "Ip"}).Error)
+	require.NoError(t, db.Create(&models.User{ID: ids.owner, Email: "owner-del@example.com", PasswordHash: "x", FirstName: "Own", LastName: "Er"}).Error)
+	require.NoError(t, db.Create(&models.User{ID: ids.recipient, Email: "recipient-del@example.com", PasswordHash: "x", FirstName: "Rec", LastName: "Ip"}).Error)
+	ownerRef := ids.owner
 
-	card := &models.Card{UserID: &owner, CardNumber: "DEL-CARD", MerchantName: "M"}
+	// Owned resources.
+	card := &models.Card{UserID: &ids.owner, CardNumber: "DEL-CARD", MerchantName: "M"}
 	require.NoError(t, db.Create(card).Error)
-	require.NoError(t, db.Create(&models.CardShare{CardID: card.ID, SharedWithID: recipient}).Error)
+	ids.cardID = card.ID
 
-	gc := &models.GiftCard{UserID: &owner, CardNumber: "DEL-GC", MerchantName: "M", InitialBalance: 100, CurrentBalance: 100, Currency: "CHF"}
+	voucher := &models.Voucher{UserID: &ids.owner, Code: "DEL-VOUCHER", Type: "fixed_amount", Value: 10, ValidFrom: time.Now(), ValidUntil: time.Now().Add(24 * time.Hour)}
+	require.NoError(t, db.Create(voucher).Error)
+	ids.voucherID = voucher.ID
+
+	gc := &models.GiftCard{UserID: &ids.owner, CardNumber: "DEL-GC", MerchantName: "M", InitialBalance: 100, CurrentBalance: 100, Currency: "CHF"}
 	require.NoError(t, db.Create(gc).Error)
-	ownerRef := owner
-	require.NoError(t, db.Create(&models.GiftCardTransaction{GiftCardID: gc.ID, Amount: -10, CreatedByUserID: &ownerRef}).Error)
+	ids.giftCardID = gc.ID
 
-	require.NoError(t, db.Create(&models.UserFavorite{UserID: owner, ResourceType: "card", ResourceID: card.ID}).Error)
-	require.NoError(t, db.Create(&models.Notification{UserID: owner, Type: models.NotificationTypeShareReceived, ResourceType: "card", ResourceID: card.ID}).Error)
-	require.NoError(t, db.Create(&models.UserTOTP{UserID: owner, Secret: "enc", Enabled: true}).Error)
-	require.NoError(t, db.Create(&models.Session{UserID: &ownerRef, TokenHash: "h"}).Error)
-	return owner, recipient
+	tx := &models.GiftCardTransaction{GiftCardID: gc.ID, Amount: -10, CreatedByUserID: &ownerRef}
+	require.NoError(t, db.Create(tx).Error)
+	ids.giftCardTxID = tx.ID
+
+	// Outgoing shares (owner's resources shared TO recipient).
+	require.NoError(t, db.Create(&models.CardShare{CardID: card.ID, SharedWithID: ids.recipient}).Error)
+	require.NoError(t, db.Create(&models.VoucherShare{VoucherID: voucher.ID, SharedWithID: ids.recipient}).Error)
+	require.NoError(t, db.Create(&models.GiftCardShare{GiftCardID: gc.ID, SharedWithID: ids.recipient}).Error)
+
+	// Incoming shares (recipient's resources shared TO owner) — exercise the
+	// "delete shares where shared_with_id = owner" stage.
+	recipientCard := &models.Card{UserID: &ids.recipient, CardNumber: "REC-CARD", MerchantName: "M"}
+	require.NoError(t, db.Create(recipientCard).Error)
+	require.NoError(t, db.Create(&models.CardShare{CardID: recipientCard.ID, SharedWithID: ids.owner}).Error)
+
+	// Preferences.
+	require.NoError(t, db.Create(&models.UserFavorite{UserID: ids.owner, ResourceType: "card", ResourceID: card.ID}).Error)
+	require.NoError(t, db.Create(&models.Notification{UserID: ids.owner, Type: models.NotificationTypeShareReceived, ResourceType: "card", ResourceID: card.ID}).Error)
+
+	// Auth / device data.
+	require.NoError(t, db.Create(&models.UserTOTP{UserID: ids.owner, Secret: "enc", Enabled: true}).Error)
+	require.NoError(t, db.Create(&models.Session{UserID: &ownerRef, TokenHash: "session-hash"}).Error)
+	require.NoError(t, db.Create(&models.EmailToken{UserID: ids.owner, TokenHash: "tok-hash", TokenType: "verify", ExpiresAt: time.Now().Add(time.Hour)}).Error)
+	require.NoError(t, db.Create(&models.PushSubscription{UserID: ids.owner, Endpoint: "https://push.example/1", P256dhKey: "p", AuthKey: "a"}).Error)
+	require.NoError(t, db.Create(&models.ExpiryReminderSent{UserID: ids.owner, ResourceType: "gift_card", ResourceID: gc.ID, DaysBefore: 7}).Error)
+
+	return ids
+}
+
+func countByID(t *testing.T, db *gorm.DB, model interface{}, id uuid.UUID) int64 {
+	t.Helper()
+	var n int64
+	require.NoError(t, db.Unscoped().Model(model).Where("id = ?", id).Count(&n).Error)
+	return n
 }
 
 func countWhere(t *testing.T, db *gorm.DB, model interface{}, query string, arg interface{}) int64 {
@@ -58,33 +101,45 @@ func countWhere(t *testing.T, db *gorm.DB, model interface{}, query string, arg 
 func TestAccountService_DeleteAccount_RemovesAllUserData(t *testing.T) {
 	db := setupDirectTestDB(t) // direct DB: DeleteAccount runs its own transaction + a goroutine guard
 	svc := newAccountServiceForTest(db)
-	owner, recipient := seedUserWithData(t, db)
+	ids := seedUserWithData(t, db)
 
-	require.NoError(t, svc.DeleteAccount(context.Background(), owner))
+	require.NoError(t, svc.DeleteAccount(context.Background(), ids.owner))
 
-	// User is hard-deleted.
-	assert.Zero(t, countWhere(t, db, &models.User{}, "id = ?", owner), "user row")
-	// Owned resources + their children gone.
-	assert.Zero(t, countWhere(t, db, &models.Card{}, "user_id = ?", owner), "cards")
-	assert.Zero(t, countWhere(t, db, &models.GiftCard{}, "user_id = ?", owner), "gift cards")
-	assert.Zero(t, countWhere(t, db, &models.GiftCardTransaction{}, "gift_card_id IN (?)", db.Model(&models.GiftCard{}).Unscoped().Select("id").Where("user_id = ?", owner)), "gift card transactions")
+	// User hard-deleted.
+	assert.Zero(t, countByID(t, db, &models.User{}, ids.owner), "user row")
+	// Owned resources gone (by captured ID — survives cascade ordering).
+	assert.Zero(t, countByID(t, db, &models.Card{}, ids.cardID), "card")
+	assert.Zero(t, countByID(t, db, &models.Voucher{}, ids.voucherID), "voucher")
+	assert.Zero(t, countByID(t, db, &models.GiftCard{}, ids.giftCardID), "gift card")
+	// Gift card transaction gone — asserted by its OWN captured ID, not via a
+	// subquery on the already-deleted gift_cards table (which would be vacuous).
+	assert.Zero(t, countByID(t, db, &models.GiftCardTransaction{}, ids.giftCardTxID), "gift card transaction")
 	// Preferences gone.
-	assert.Zero(t, countWhere(t, db, &models.UserFavorite{}, "user_id = ?", owner), "favorites")
-	assert.Zero(t, countWhere(t, db, &models.Notification{}, "user_id = ?", owner), "notifications")
-	// Auth data gone.
-	assert.Zero(t, countWhere(t, db, &models.UserTOTP{}, "user_id = ?", owner), "totp")
-	assert.Zero(t, countWhere(t, db, &models.Session{}, "user_id = ?", owner), "sessions")
-	// Incoming share (owner's card shared to recipient) gone.
-	assert.Zero(t, countWhere(t, db, &models.CardShare{}, "shared_with_id = ?", recipient), "incoming share of deleted card")
+	assert.Zero(t, countWhere(t, db, &models.UserFavorite{}, "user_id = ?", ids.owner), "favorites")
+	assert.Zero(t, countWhere(t, db, &models.Notification{}, "user_id = ?", ids.owner), "notifications")
+	// Auth / device data gone.
+	assert.Zero(t, countWhere(t, db, &models.UserTOTP{}, "user_id = ?", ids.owner), "totp")
+	assert.Zero(t, countWhere(t, db, &models.Session{}, "user_id = ?", ids.owner), "sessions")
+	assert.Zero(t, countWhere(t, db, &models.EmailToken{}, "user_id = ?", ids.owner), "email tokens")
+	assert.Zero(t, countWhere(t, db, &models.PushSubscription{}, "user_id = ?", ids.owner), "push subscriptions")
+	assert.Zero(t, countWhere(t, db, &models.ExpiryReminderSent{}, "user_id = ?", ids.owner), "expiry reminders")
+	// Outgoing shares gone.
+	assert.Zero(t, countWhere(t, db, &models.VoucherShare{}, "voucher_id = ?", ids.voucherID), "outgoing voucher share")
+	assert.Zero(t, countWhere(t, db, &models.GiftCardShare{}, "gift_card_id = ?", ids.giftCardID), "outgoing gift card share")
+	// Incoming share (recipient's card shared to owner) gone.
+	assert.Zero(t, countWhere(t, db, &models.CardShare{}, "shared_with_id = ?", ids.owner), "incoming share to deleted user")
 
-	// Recipient is untouched.
-	assert.Equal(t, int64(1), countWhere(t, db, &models.User{}, "id = ?", recipient), "recipient survives")
+	// Recipient untouched.
+	assert.Equal(t, int64(1), countByID(t, db, &models.User{}, ids.recipient), "recipient survives")
 
-	// Audit trail preserved but user reference nulled: the account_deleted
-	// entry exists with a NULL user_id, not removed.
-	var auditWithUser int64
-	require.NoError(t, db.Model(&models.AuditLog{}).Where("user_id = ?", owner).Count(&auditWithUser).Error)
-	assert.Zero(t, auditWithUser, "no audit log still references the deleted user")
+	// Audit trail: the account_deleted entry must SURVIVE (preserved trail)…
+	var deletedEntries int64
+	require.NoError(t, db.Model(&models.AuditLog{}).
+		Where("action = ? AND resource_id = ?", "account_deleted", ids.owner).
+		Count(&deletedEntries).Error)
+	assert.Equal(t, int64(1), deletedEntries, "account_deleted audit entry is preserved")
+	// …with its user_id nulled (no audit row references the deleted user).
+	assert.Zero(t, countWhere(t, db, &models.AuditLog{}, "user_id = ?", ids.owner), "no audit row references the deleted user")
 }
 
 func TestAccountService_DeleteAccount_UnknownUser(t *testing.T) {
@@ -98,11 +153,11 @@ func TestAccountService_DeleteAccount_UnknownUser(t *testing.T) {
 func TestAccountService_DeleteAccount_Idempotent(t *testing.T) {
 	db := setupDirectTestDB(t)
 	svc := newAccountServiceForTest(db)
-	owner, _ := seedUserWithData(t, db)
+	ids := seedUserWithData(t, db)
 
-	require.NoError(t, svc.DeleteAccount(context.Background(), owner))
+	require.NoError(t, svc.DeleteAccount(context.Background(), ids.owner))
 	// Second run: user already gone → fails cleanly at the get-user stage,
 	// no panic, no partial side effects.
-	err := svc.DeleteAccount(context.Background(), owner)
+	err := svc.DeleteAccount(context.Background(), ids.owner)
 	assert.Error(t, err, "re-running delete on an already-deleted account must error, not succeed")
 }
