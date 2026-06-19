@@ -160,9 +160,21 @@ func (c *Config) IsPushEnabled() bool {
 	return c.VAPIDPublicKey != "" && c.VAPIDPrivateKey != "" && c.VAPIDSubject != ""
 }
 
-// Is2FAEnabled returns true if 2FA is enabled and encryption key is configured
+// Is2FAEnabled reports whether *new* 2FA enrollments are allowed. It gates the
+// setup/enable flow and the UI/feature advertisement only — it does NOT gate
+// enforcement of existing 2FA. See IsTOTPAvailable.
 func (c *Config) Is2FAEnabled() bool {
 	return c.Enable2FA && c.TOTPEncryptionKey != ""
+}
+
+// IsTOTPAvailable reports whether the TOTP service can run, i.e. an encryption
+// key is configured. Enforcement of existing 2FA (login challenge) depends on
+// this, NOT on Enable2FA: once a user has set up 2FA, flipping ENABLE_2FA=false
+// must not silently drop their second factor. As long as a key is present the
+// login handler queries IsEnabled(userID) per user and enforces accordingly.
+// To truly switch 2FA off, remove the key (and delete user TOTP rows).
+func (c *Config) IsTOTPAvailable() bool {
+	return c.TOTPEncryptionKey != ""
 }
 
 // Validate checks configuration constraints that apply in all environments.
@@ -224,8 +236,8 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	if c.Is2FAEnabled() && len(c.TOTPEncryptionKey) != 32 {
-		return fmt.Errorf("TOTP_ENCRYPTION_KEY must be exactly 32 bytes when 2FA is enabled, got %d", len(c.TOTPEncryptionKey))
+	if c.IsTOTPAvailable() && len(c.TOTPEncryptionKey) != 32 {
+		return fmt.Errorf("TOTP_ENCRYPTION_KEY must be exactly 32 bytes when set, got %d", len(c.TOTPEncryptionKey))
 	}
 
 	return nil

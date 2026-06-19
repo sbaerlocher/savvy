@@ -334,8 +334,17 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 
 	// 2FA management (protected - requires full auth)
 	if totpAPIHandler != nil {
-		apiProtected.POST("/auth/2fa/setup", totpAPIHandler.Setup)
-		apiProtected.POST("/auth/2fa/verify", totpAPIHandler.Verify)
+		// New enrollment (setup + verify-and-enable) is gated on Is2FAEnabled:
+		// when the operator turns 2FA off, no one can newly enroll.
+		if cfg.Is2FAEnabled() {
+			apiProtected.POST("/auth/2fa/setup", totpAPIHandler.Setup)
+			apiProtected.POST("/auth/2fa/verify", totpAPIHandler.Verify)
+		}
+		// Existing-2FA management stays available whenever the TOTP service
+		// runs (key present), independent of the enrollment flag: users must
+		// still be able to disable, rotate backup codes, and read status for
+		// 2FA they already have — otherwise flipping ENABLE_2FA=false would
+		// trap them with an unmanageable second factor.
 		apiProtected.POST("/auth/2fa/disable", totpAPIHandler.Disable)
 		apiProtected.POST("/auth/2fa/backup-codes", totpAPIHandler.RegenerateBackupCodes)
 		apiProtected.GET("/auth/2fa/status", totpAPIHandler.Status)
