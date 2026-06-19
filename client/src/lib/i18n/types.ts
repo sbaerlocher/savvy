@@ -157,6 +157,7 @@ export type TranslationKeys = {
 		showBarcode: string;
 		barcodeHint: string;
 		tapToClose: string;
+		tapToEnlarge: string;
 	};
 	cards: {
 		title: string;

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Long-content QR/barcode scannability (#122)** - QR codes with long payloads
+  (URLs, long tokens) now use error-correction level M and a larger module scale so
+  they stay scannable from a phone. The barcode in the detail view is tappable to open
+  a fullscreen view (previously only landscape on touch devices), and 2D codes grow to
+  a large square in fullscreen instead of the short 1D-barcode height.
+
 ### Tests
 
 - **Backend i18n drift guard** - `TestLocaleKeysInSync` asserts every supported language

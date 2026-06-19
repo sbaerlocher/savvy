@@ -168,7 +168,8 @@ export const de: TranslationKeys = {
 		getStarted: 'Erste Karte hinzufügen',
 		showBarcode: 'Barcode anzeigen',
 		barcodeHint: 'Drehe dein Gerät ins Querformat für eine größere Ansicht',
-		tapToClose: 'Tippen zum Schließen'
+		tapToClose: 'Tippen zum Schließen',
+		tapToEnlarge: 'Tippen zum Vergrößern'
 	},
 	cards: {
 		title: 'Kundenkarten',

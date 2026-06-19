@@ -163,7 +163,8 @@ export const en: TranslationKeys = {
 		getStarted: 'Add your first card',
 		showBarcode: 'Show barcode',
 		barcodeHint: 'Rotate your device to landscape for a larger view',
-		tapToClose: 'Tap to close'
+		tapToClose: 'Tap to close',
+		tapToEnlarge: 'Tap to enlarge'
 	},
 	cards: {
 		title: 'Cards',
