@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Tests
+
+- **Backend i18n drift guard** - `TestLocaleKeysInSync` asserts every supported language
+  (`internal/assets/locales/{de,en,fr}.json`) defines the identical set of message IDs.
+  Catches a missing/extra translation key in CI; the typed `TranslationKeys` interface
+  already covers the frontend TS locales.
+
 ## [1.3.1] - 2026-03-31
 
 ### Fixed
