@@ -396,6 +396,18 @@ test.describe('Sharing', () => {
 			);
 			await dialogConfirmButton.click();
 			await transferResponse;
+
+			// Regression guard for #121: after a successful transfer the user
+			// must land back on the gift-cards list, not a white screen. The
+			// detail page reloads to /gift-cards because the owner just lost
+			// access — assert the redirect actually happens, the list renders,
+			// and the transferred card is gone from it.
+			await page.waitForURL(/\/gift-cards\/?$/, { timeout: 10000 });
+			await expect(page.locator('body')).toContainText(
+				/Geschenkkarten|Gift Cards|Cartes/i,
+				{ timeout: 10000 }
+			);
+			await expect(page.locator(`text=${cardNumber}`)).toHaveCount(0);
 		}
 	});
 
