@@ -167,7 +167,8 @@ export const fr: TranslationKeys = {
 		getStarted: 'Ajouter votre première carte',
 		showBarcode: 'Afficher le code-barres',
 		barcodeHint: 'Tournez votre appareil en mode paysage pour une vue agrandie',
-		tapToClose: 'Appuyez pour fermer'
+		tapToClose: 'Appuyez pour fermer',
+		tapToEnlarge: 'Appuyez pour agrandir'
 	},
 	cards: {
 		title: 'Cartes',

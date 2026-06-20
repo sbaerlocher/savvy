@@ -53,7 +53,20 @@
 
 	// Fullscreen state
 	let isLandscape = $state(false);
+	// Explicit user-triggered fullscreen (tap/click/keyboard), independent of
+	// device orientation — works on desktop and portrait phones too.
+	let manualFullscreen = $state(false);
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+
+	const showFullscreen = $derived(isLandscape || manualFullscreen);
+
+	// 2D codes (QR, PDF417, …) stay square and benefit from a much larger
+	// fullscreen size than the wide-but-short 1D barcodes.
+	const is2DType = $derived(
+		['QR', 'QRCODE', 'PDF417', 'DATAMATRIX', 'AZTEC', 'MAXICODE'].includes(
+			type.toUpperCase()
+		)
+	);
 
 	onMount(() => {
 		// Only enable orientation detection on touch devices
@@ -119,7 +132,23 @@
 
 	function closeFullscreen() {
 		isLandscape = false;
+		manualFullscreen = false;
 	}
+
+	function openFullscreen() {
+		manualFullscreen = true;
+	}
+
+	// Move focus to the overlay when it opens so a keyboard user can press
+	// Escape to close it (the Escape handler only fires when the overlay has
+	// focus). Without this, opening via the tap-to-enlarge button leaves focus
+	// on the now-obscured button.
+	let overlayEl = $state<HTMLDivElement>();
+	$effect(() => {
+		if (showFullscreen && overlayEl) {
+			overlayEl.focus();
+		}
+	});
 </script>
 
 <div class="bg-gray-50 rounded-lg p-4 text-center border-t border-gray-200">
@@ -170,9 +199,17 @@
 		</div>
 	{/if}
 
-	<!-- Barcode Image -->
+	<!-- Barcode Image (tap to enlarge for scanning) -->
 	<div class="flex justify-center mb-4">
-		<Barcode {value} {type} {height} />
+		<button
+			type="button"
+			class="barcode-zoom-button"
+			onclick={openFullscreen}
+			aria-label={tr('dashboard.tapToEnlarge')}
+			title={tr('dashboard.tapToEnlarge')}
+		>
+			<Barcode {value} {type} {height} />
+		</button>
 	</div>
 
 	<!-- Code/Number -->
@@ -212,9 +249,10 @@
 	{/if}
 </div>
 
-<!-- Barcode Fullscreen Overlay (landscape on mobile) -->
-{#if isLandscape}
+<!-- Barcode Fullscreen Overlay (landscape on mobile, or tap to enlarge) -->
+{#if showFullscreen}
 	<div
+		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
 		onclick={closeFullscreen}
 		role="button"
@@ -283,8 +321,14 @@
 			</div>
 
 			<!-- Barcode Container (fixed height) -->
-			<div class="barcode-container">
-				<Barcode {value} {type} width={4} height={100} displayValue={false} />
+			<div class="barcode-container" class:is-2d={is2DType}>
+				<Barcode
+					{value}
+					{type}
+					width={is2DType ? 6 : 4}
+					height={100}
+					displayValue={false}
+				/>
 				<p class="barcode-value">{value}</p>
 			</div>
 
@@ -316,6 +360,18 @@
 {/if}
 
 <style>
+	/* Tap-to-enlarge button wrapping the inline barcode — visually transparent,
+	   just makes the code a hit target. */
+	.barcode-zoom-button {
+		appearance: none;
+		background: none;
+		border: none;
+		padding: 0;
+		margin: 0;
+		cursor: zoom-in;
+		display: inline-flex;
+	}
+
 	/* Barcode Fullscreen Overlay */
 	.barcode-fullscreen-overlay {
 		position: fixed;
@@ -376,6 +432,16 @@
 		height: 160px !important;
 		width: auto !important;
 		object-fit: contain;
+	}
+
+	/* 2D codes (QR etc.) are square: let them grow to fill the available space
+	   instead of the short 1D barcode height, so dense long-content codes stay
+	   scannable. */
+	.barcode-fullscreen-overlay .barcode-container.is-2d :global(canvas) {
+		height: auto !important;
+		max-height: min(80vw, 80vh) !important;
+		max-width: min(80vw, 80vh) !important;
+		width: auto !important;
 	}
 
 	.barcode-fullscreen-overlay .barcode-footer-section {

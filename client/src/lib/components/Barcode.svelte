@@ -87,6 +87,13 @@
 		// Different scaling for 1D vs 2D barcodes
 		if (is2D) {
 			options.scale = width || 2;
+			// Long payloads (URLs, long tokens) produce dense QR codes whose
+			// modules become too small to scan. Bump the module scale so each
+			// module stays large enough for a phone camera. (Module size is set
+			// by `scale`; the error-correction level only affects module count.)
+			if (bcid === 'qrcode' && value.length > 100) {
+				options.scale = Math.max(options.scale, 4);
+			}
 		} else {
 			options.scale = width || 2;
 			options.height = Math.max(10, height / 5);
