@@ -11,9 +11,13 @@
 
 	interface Props {
 		authProvider: string;
+		// Whether *new* enrollment is allowed (server ENABLE_2FA). When false,
+		// users with existing 2FA still see status + disable/rotate, but no new
+		// setup is offered. Defaults to true.
+		enrollmentEnabled?: boolean;
 	}
 
-	let { authProvider }: Props = $props();
+	let { authProvider, enrollmentEnabled = true }: Props = $props();
 
 	// State
 	let isEnabled = $state(false);
@@ -214,7 +218,7 @@
 					{tr('settings.twoFactor.disableButton')}
 				</button>
 			</div>
-		{:else}
+		{:else if enrollmentEnabled}
 			<button
 				type="button"
 				onclick={startSetup}
@@ -232,6 +236,10 @@
 				{/if}
 				{tr('settings.twoFactor.enableButton')}
 			</button>
+		{:else}
+			<p class="text-sm text-gray-500">
+				{tr('settings.twoFactor.enrollmentDisabled')}
+			</p>
 		{/if}
 	{/if}
 </div>

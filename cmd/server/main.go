@@ -145,8 +145,11 @@ func run() int {
 		slog.Info("Expiry reminders enabled", "days_before", cfg.ReminderDaysBefore, "check_time", cfg.ReminderCheckTime, "timezone", cfg.Timezone)
 	}
 
-	// Initialize TOTP 2FA service
-	if cfg.Is2FAEnabled() {
+	// Initialize TOTP 2FA service whenever a key is configured — NOT only when
+	// ENABLE_2FA is on. Existing 2FA users must keep being challenged even if
+	// the operator flips ENABLE_2FA=false; otherwise their second factor is
+	// silently bypassed. ENABLE_2FA only governs new enrollments (setup routes).
+	if cfg.IsTOTPAvailable() {
 		totpRepo := repository.NewTOTPRepository(database.DB)
 		totpService, err := services.NewTOTPService(totpRepo, cfg.TOTPEncryptionKey, cfg.TOTPIssuer)
 		if err != nil {
@@ -154,7 +157,7 @@ func run() int {
 			return 1
 		}
 		serviceContainer.TOTPService = totpService
-		slog.Info("Two-factor authentication enabled", "issuer", cfg.TOTPIssuer)
+		slog.Info("TOTP service initialized", "issuer", cfg.TOTPIssuer, "new_enrollments_enabled", cfg.Is2FAEnabled())
 	}
 
 	// Create and configure Echo server

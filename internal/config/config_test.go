@@ -428,3 +428,72 @@ func findSubstring(s, substr string) bool {
 	}
 	return false
 }
+
+// validKey is exactly 32 bytes, as required for AES-256 TOTP encryption.
+const validKey = "0123456789abcdef0123456789abcdef"
+
+func TestTOTPGating(t *testing.T) {
+	tests := []struct {
+		name           string
+		enable2FA      bool
+		key            string
+		wantAvailable  bool // service runs + existing 2FA enforced
+		want2FAEnabled bool // new enrollment allowed
+	}{
+		{"key set, flag on", true, validKey, true, true},
+		{"key set, flag off", false, validKey, true, false}, // the bypass-fix case: still enforced
+		{"no key, flag on", true, "", false, false},         // flag without key is inert
+		{"no key, flag off", false, "", false, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Config{Enable2FA: tt.enable2FA, TOTPEncryptionKey: tt.key}
+			if got := c.IsTOTPAvailable(); got != tt.wantAvailable {
+				t.Errorf("IsTOTPAvailable() = %v, want %v", got, tt.wantAvailable)
+			}
+			if got := c.Is2FAEnabled(); got != tt.want2FAEnabled {
+				t.Errorf("Is2FAEnabled() = %v, want %v", got, tt.want2FAEnabled)
+			}
+		})
+	}
+}
+
+func TestValidateTOTPKeyLength(t *testing.T) {
+	base := func() *Config {
+		return &Config{
+			ServerPort:             "3000",
+			MetricsPort:            "9090",
+			SessionSecret:          "test-secret-that-is-long-enough-for-validation",
+			SessionMaxAge:          604800,
+			ShutdownTimeoutSeconds: 10,
+			LogLevel:               "INFO",
+			EnableLocalLogin:       true,
+		}
+	}
+
+	t.Run("short key fails even when flag is off", func(t *testing.T) {
+		c := base()
+		c.Enable2FA = false
+		c.TOTPEncryptionKey = "tooshort"
+		if err := c.Validate(); err == nil {
+			t.Error("expected validation error for 8-byte TOTP key, got nil")
+		}
+	})
+
+	t.Run("32-byte key passes", func(t *testing.T) {
+		c := base()
+		c.Enable2FA = false
+		c.TOTPEncryptionKey = validKey
+		if err := c.Validate(); err != nil {
+			t.Errorf("expected no error for 32-byte key, got %v", err)
+		}
+	})
+
+	t.Run("empty key passes (TOTP off)", func(t *testing.T) {
+		c := base()
+		c.TOTPEncryptionKey = ""
+		if err := c.Validate(); err != nil {
+			t.Errorf("expected no error for empty key, got %v", err)
+		}
+	})
+}

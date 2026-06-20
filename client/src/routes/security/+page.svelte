@@ -307,9 +307,15 @@
 					</div>
 				{/if}
 
-				<!-- 2FA -->
-				{#if $configStore.two_factor_enabled && profile}
-					<TwoFactorSettings authProvider={profile.auth_provider || 'local'} />
+				<!-- 2FA: always shown so users with existing 2FA can manage it
+				     (status/disable/backup codes) even when new enrollment is
+				     disabled server-side. The component loads its own status and
+				     only offers setup when enrollmentEnabled. -->
+				{#if profile}
+					<TwoFactorSettings
+						authProvider={profile.auth_provider || 'local'}
+						enrollmentEnabled={$configStore.two_factor_enabled}
+					/>
 				{/if}
 			</div>
 

@@ -120,8 +120,9 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 		checks["vapid"] = CheckResult{Status: "not_configured", Enabled: false}
 	}
 
-	// 5. TOTP encryption check (OPTIONAL) - only if enabled
-	if s.config.Is2FAEnabled() {
+	// 5. TOTP encryption check (OPTIONAL) - whenever the service can run
+	// (key present), since enforcement no longer depends on the enrollment flag.
+	if s.config.IsTOTPAvailable() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
