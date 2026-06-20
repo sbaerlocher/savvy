@@ -39,7 +39,7 @@ jobs:
     with:
       package-manager: "npm"
       working-directory: "./client"
-      enable-type-check: true
+      enable-typecheck: true
       enable-format-check: true
       enable-lint: false
       enable-build: true
