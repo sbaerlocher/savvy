@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Tests
+
+- **Gift-card transfer post-action guard (#121)** - The gift-card transfer E2E only
+  asserted the HTTP response, so a white screen after the transfer (no redirect / empty
+  page) would have gone unnoticed. The test now asserts the user lands back on the
+  `/gift-cards` list, the list actually renders, and the transferred card is gone.
+
 ### Changed
 
 - **Migrations split one-per-file** - `internal/migrations/migrations.go` (~2000 LoC,
