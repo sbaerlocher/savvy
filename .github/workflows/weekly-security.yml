@@ -1,5 +1,7 @@
 ---
-name: Security Scan
+name: Weekly Security Scan
+run-name: |
+  Security Scan by @${{ github.actor }}
 
 "on":
   schedule:
@@ -18,7 +20,7 @@ jobs:
     name: SAST (CodeQL)
     uses: sbaerlocher/.github/.github/workflows/security-code.yml@2026-06-18
     with:
-      languages: '["go"]'
+      languages: '["go", "javascript"]'
       go-version: "1.26"
       concurrency-suffix: code
 

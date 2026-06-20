@@ -139,3 +139,6 @@ client/static/zxing_reader.wasm
 
 # Kiro spec/steering scratch — local tooling output, not committed
 .kiro/
+
+# Ansible local cache (collections/roles/modules pulled by tooling)
+.ansible/

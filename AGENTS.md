@@ -878,10 +878,11 @@ dde project:e2e:down
 - `--list`, `--help`, `--version` — `globalSetup` skips the health
   probe automatically so test discovery stays instant.
 
-**CI workflow**: `.github/workflows/e2e.yml` is an explicit composition
-of the same dde-plugin steps (`project:up` → `e2e:start` → `e2e:test`
-→ `e2e:down` → `project:down`), with Playwright-report and E2E-logs
-artifact uploads layered on top.
+**CI workflow**: the E2E suite runs as the `e2e` job in
+`.github/workflows/pull-request.yml` via the `e2e-dde.yml` reusable, an
+explicit composition of the same dde-plugin steps (`project:up` →
+`e2e:start` → `e2e:test` → `e2e:down` → `project:down`), with
+Playwright-report and E2E-logs artifact uploads layered on top.
 
 ---
 
@@ -1606,7 +1607,7 @@ Using `tls.Dial()` directly will fail with "Client Quit Before Message" error.
 - ✅ **Email Verification & Password Reset**: Token-based, SMTP
 - ✅ **Account Management**: Profile, password change, GDPR deletion
 - ✅ **Voucher Status**: Active/inactive/expired lifecycle
-- ✅ **CI/CD Pipeline**: 4 GitHub Actions workflows (ci.yml, e2e.yml, security.yml, release.yml)
+- ✅ **CI/CD Pipeline**: 3 GitHub Actions workflows (pull-request.yml, tag.yml, weekly-security.yml)
 - ✅ **Security Headers**: X-XSS-Protection, X-Content-Type-Options, X-Frame-Options, HSTS
 - ✅ **E2E Testing**: 23 Playwright test files covering all major features
 - ✅ **AuthzService**: Fully integrated in ALL 27 handlers
