@@ -7,12 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Tests
+## [1.3.2] - 2026-06-20
 
-- **Gift-card transfer post-action guard (#121)** - The gift-card transfer E2E only
-  asserted the HTTP response, so a white screen after the transfer (no redirect / empty
-  page) would have gone unnoticed. The test now asserts the user lands back on the
-  `/gift-cards` list, the list actually renders, and the transferred card is gone.
+### Security
+
+- **Existing 2FA enforced regardless of `ENABLE_2FA` (#164)** - The TOTP service was
+  only instantiated when `ENABLE_2FA=true`, so with the flag off the login handler
+  skipped the 2FA check entirely and any user who had set up 2FA could log in with just
+  a password. Enforcement now keys off `TOTP_ENCRYPTION_KEY` being present, so existing
+  second factors stay active no matter the flag; `ENABLE_2FA` now gates only new
+  enrollment and UI advertisement. Existing-2FA management (disable, backup codes,
+  status) stays reachable so users are never locked out.
+- **Gift-card balance race on concurrent transactions (#166)** - `CreateTransaction`
+  did a bare insert; the balance-guard trigger reads `SUM(amount)`, so two concurrent
+  transactions in separate DB transactions both read the pre-insert balance, both pass
+  the overdraw check, and both commit (TOCTOU). The insert now runs inside a DB
+  transaction that takes `SELECT … FOR UPDATE` on the gift-card row, serializing
+  concurrent inserts so the trigger always sees the committed sum.
 
 ### Changed
 
@@ -30,6 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   they stay scannable from a phone. The barcode in the detail view is tappable to open
   a fullscreen view (previously only landscape on touch devices), and 2D codes grow to
   a large square in fullscreen instead of the short 1D-barcode height.
+- **White screen on missing gift card (#121)** - The gift-card detail page had no
+  `{:else}` branch, so a finished load with no gift card (e.g. right after an ownership
+  transfer removed access, or a load that errored before redirecting) rendered nothing.
+  Now shows a "not found" message and a back-to-list button. New i18n key
+  `giftCards.backToList` (DE/EN/FR).
+- **False audit entry on failed transfer (#168)** - `logTransferAudit` ran before the
+  repository transfer in all three transfer methods, so a failed ownership transfer
+  still left a "transfer" audit entry. The audit write now runs only after the
+  repository call succeeds for cards, vouchers, and gift cards.
 
 ### Tests
 
@@ -42,6 +62,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   transactions, favorites) with real content, not just that a download is triggered.
   Guards the advertised GDPR data-portability promise against a category silently
   dropping out of the export.
+- **GDPR account-deletion coverage (#167)** - `account_service.go` (9-stage hard delete,
+  the most destructive service — cascades across cards, vouchers, gift cards, shares,
+  transactions, TOTP, sessions, audit refs) had no test. New `account_service_test.go`
+  asserts all user data is removed, a second recipient survives, the audit trail is kept
+  with the user reference nulled, and that delete on an unknown/already-deleted account
+  errors cleanly instead of partially succeeding.
+- **Gift-card transfer post-action guard (#121)** - The gift-card transfer E2E only
+  asserted the HTTP response, so a white screen after the transfer (no redirect / empty
+  page) would have gone unnoticed. The test now asserts the user lands back on the
+  `/gift-cards` list, the list actually renders, and the transferred card is gone.
 
 ## [1.3.1] - 2026-03-31
 
