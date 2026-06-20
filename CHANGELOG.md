@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`internal/assets/locales/{de,en,fr}.json`) defines the identical set of message IDs.
   Catches a missing/extra translation key in CI; the typed `TranslationKeys` interface
   already covers the frontend TS locales.
+- **Data-export completeness E2E** - New Playwright test asserts `GET /api/v1/export`
+  actually returns every user-data category (cards, vouchers, gift cards with nested
+  transactions, favorites) with real content, not just that a download is triggered.
+  Guards the advertised GDPR data-portability promise against a category silently
+  dropping out of the export.
 
 ## [1.3.1] - 2026-03-31
 

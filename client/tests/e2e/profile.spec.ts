@@ -121,6 +121,56 @@ test.describe('Profile', () => {
 				expect(suggestedFilename).toMatch(/\.json$/);
 			}
 		});
+
+		// GDPR / data-portability: the export is advertised as containing all of a
+		// user's data. This asserts the payload actually carries every resource
+		// category with real content (not just that a download happens), so a
+		// regression that drops a category from the export is caught. The regular
+		// seed user (Anna) owns cards, vouchers, gift cards with transactions, and
+		// favorites, which keeps the assertions non-vacuous.
+		test('export contains all user data categories', async ({
+			authenticatedProfilePage,
+			profilePage
+		}) => {
+			await profilePage.waitForPageReady();
+
+			// Reuse the authenticated page's session cookie for the API call.
+			const response = await profilePage.page.request.get('/api/v1/export');
+			expect(response.ok()).toBeTruthy();
+
+			const data = await response.json();
+
+			// Top-level structure
+			expect(data).toHaveProperty('exported_at');
+			expect(data.user?.email).toBe(TEST_USERS.regular.email);
+
+			// Every resource category present and non-empty for the seed user
+			expect(Array.isArray(data.cards)).toBe(true);
+			expect(data.cards.length).toBeGreaterThan(0);
+			expect(Array.isArray(data.vouchers)).toBe(true);
+			expect(data.vouchers.length).toBeGreaterThan(0);
+			expect(Array.isArray(data.gift_cards)).toBe(true);
+			expect(data.gift_cards.length).toBeGreaterThan(0);
+			expect(Array.isArray(data.favorites)).toBe(true);
+			expect(data.favorites.length).toBeGreaterThan(0);
+
+			// Card content is real, not placeholder rows
+			expect(data.cards[0]).toHaveProperty('merchant_name');
+			expect(data.cards[0].merchant_name).toBeTruthy();
+			expect(data.cards[0]).toHaveProperty('card_number');
+
+			// Gift card transactions are nested and at least one gift card carries them
+			const giftCardWithTx = data.gift_cards.find(
+				(gc: { transactions?: unknown[] }) =>
+					Array.isArray(gc.transactions) && gc.transactions.length > 0
+			);
+			expect(giftCardWithTx).toBeTruthy();
+			expect(giftCardWithTx.transactions[0]).toHaveProperty('amount');
+
+			// Favorites reference resources by type + id
+			expect(data.favorites[0]).toHaveProperty('resource_type');
+			expect(data.favorites[0]).toHaveProperty('resource_id');
+		});
 	});
 
 	test.describe('Danger Zone', () => {
