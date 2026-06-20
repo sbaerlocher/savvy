@@ -434,7 +434,6 @@ func TestTransferCardOwnership_TransferRepoError(t *testing.T) {
 
 	d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
 	d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
-	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
 
 	transferErr := errors.New("db connection lost")
 	d.transferRepo.On("TransferCardOwnership", ctx, card, newOwnerID).Return(transferErr)
@@ -443,6 +442,7 @@ func TestTransferCardOwnership_TransferRepoError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "transfer card ownership")
 	assert.ErrorIs(t, err, transferErr)
+	d.auditRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 }
 
 func TestTransferCardOwnership_AuditLogError_StillTransfers(t *testing.T) {
@@ -608,7 +608,6 @@ func TestTransferVoucherOwnership_TransferRepoError(t *testing.T) {
 
 	d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
 	d.voucherRepo.On("GetByID", ctx, voucherID).Return(voucher, nil)
-	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
 
 	transferErr := errors.New("db error")
 	d.transferRepo.On("TransferVoucherOwnership", ctx, voucher, newOwnerID).Return(transferErr)
@@ -617,6 +616,7 @@ func TestTransferVoucherOwnership_TransferRepoError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "transfer voucher ownership")
 	assert.ErrorIs(t, err, transferErr)
+	d.auditRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 }
 
 func TestTransferVoucherOwnership_NewOwnerNotFound(t *testing.T) {
@@ -735,7 +735,6 @@ func TestTransferGiftCardOwnership_TransferRepoError(t *testing.T) {
 
 	d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
 	d.giftCardRepo.On("GetByID", ctx, giftCardID).Return(giftCard, nil)
-	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
 
 	transferErr := errors.New("db error")
 	d.transferRepo.On("TransferGiftCardOwnership", ctx, giftCard, newOwnerID).Return(transferErr)
@@ -744,6 +743,7 @@ func TestTransferGiftCardOwnership_TransferRepoError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "transfer gift card ownership")
 	assert.ErrorIs(t, err, transferErr)
+	d.auditRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 }
 
 func TestTransferGiftCardOwnership_NewOwnerNotFound(t *testing.T) {
