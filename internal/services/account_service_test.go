@@ -76,7 +76,7 @@ func seedUserWithData(t *testing.T, db *gorm.DB) seededIDs {
 
 	// Auth / device data.
 	require.NoError(t, db.Create(&models.UserTOTP{UserID: ids.owner, Secret: "enc", Enabled: true}).Error)
-	require.NoError(t, db.Create(&models.Session{UserID: &ownerRef, TokenHash: "session-hash"}).Error)
+	require.NoError(t, db.Create(&models.Session{UserID: &ownerRef, TokenHash: "session-hash", Data: []byte("{}")}).Error)
 	require.NoError(t, db.Create(&models.EmailToken{UserID: ids.owner, TokenHash: "tok-hash", TokenType: "verify", ExpiresAt: time.Now().Add(time.Hour)}).Error)
 	require.NoError(t, db.Create(&models.PushSubscription{UserID: ids.owner, Endpoint: "https://push.example/1", P256dhKey: "p", AuthKey: "a"}).Error)
 	require.NoError(t, db.Create(&models.ExpiryReminderSent{UserID: ids.owner, ResourceType: "gift_card", ResourceID: gc.ID, DaysBefore: 7}).Error)

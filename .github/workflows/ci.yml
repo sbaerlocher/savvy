@@ -30,6 +30,12 @@ jobs:
       enable-sarif-upload: false
       binary-path: "./cmd/server"
       artifact-name-prefix: "go-"
+      # All three reusables derive their concurrency group from
+      # `${{ github.workflow }}-${{ github.ref }}`, which is identical for
+      # every call made from this single workflow. Without a distinct suffix
+      # they share one group with cancel-in-progress and cancel each other
+      # (jobs show up as "fail 0s"). Give each call its own suffix.
+      concurrency-suffix: "go"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -39,7 +45,7 @@ jobs:
     with:
       package-manager: "npm"
       working-directory: "./client"
-      enable-type-check: true
+      enable-typecheck: true
       enable-format-check: true
       enable-lint: false
       enable-build: true
@@ -52,6 +58,7 @@ jobs:
       test-command: "test"
       coverage-files: "./client/coverage/lcov.info"
       artifact-name-prefix: "client-"
+      concurrency-suffix: "client"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -66,3 +73,4 @@ jobs:
       enable-helm-lint: true
       enable-k8s-validation: false
       enable-docs-check: false
+      concurrency-suffix: "helm"

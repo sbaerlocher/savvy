@@ -233,8 +233,7 @@
 			bind:value={notes}
 			rows="3"
 			class="input"
-			placeholder={$t('giftCards.notesPlaceholder')}
-		></textarea>
+			placeholder={$t('giftCards.notesPlaceholder')}></textarea>
 	</div>
 
 	<div class="flex gap-2">

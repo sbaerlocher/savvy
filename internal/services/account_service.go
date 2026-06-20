@@ -139,6 +139,10 @@ func (s *AccountService) DeleteAccount(ctx context.Context, userID uuid.UUID) er
 			Action:       "account_deleted",
 			ResourceType: "users",
 			ResourceID:   userID,
+			// resource_data is a jsonb column; an empty string is invalid JSON
+			// (SQLSTATE 22P02). No snapshot is kept for account deletion, so
+			// store an empty object.
+			ResourceData: "{}",
 		}
 		if err := tx.Create(auditLog).Error; err != nil {
 			return fmt.Errorf("create audit log: %w", err)
