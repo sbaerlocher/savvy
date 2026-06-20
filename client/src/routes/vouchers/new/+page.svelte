@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
 	import { vouchersApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
 
 	import type { DuplicateWarning } from '$lib/types/api';
 	import { extractDuplicate } from '$lib/utils/api-errors';
@@ -16,7 +16,6 @@
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const pageLogger = logger.child('VoucherNewPage');
 
 	let code = $state('');
 	let merchantId = $state('');
@@ -93,12 +92,13 @@
 			toastStore.success(tr('vouchers.createSuccess'));
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/vouchers/${response.voucher.id}`;
-		} catch (err: any) {
+		} catch (err) {
 			const duplicate = extractDuplicate(err);
 			if (duplicate) {
 				duplicateWarning = duplicate;
 			} else {
-				toastStore.error(err.message || tr('vouchers.createError'));
+				const message = err instanceof Error ? err.message : '';
+				toastStore.error(message || tr('vouchers.createError'));
 			}
 		} finally {
 			isLoading = false;
@@ -106,7 +106,7 @@
 	}
 
 	function handleCancel() {
-		goto('/vouchers');
+		goto(resolve('/vouchers'));
 	}
 </script>
 
@@ -115,7 +115,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href="/vouchers" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/vouchers')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -130,7 +130,7 @@
 			<DuplicateWarningBanner
 				warning={duplicateWarning}
 				resourceType="voucher"
-				onNavigate={(id) => goto(`/vouchers/${id}`)}
+				onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
 			/>
 			<VoucherForm
 				bind:code

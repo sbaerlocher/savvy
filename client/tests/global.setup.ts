@@ -78,7 +78,8 @@ async function globalSetup(_config: FullConfig): Promise<void> {
 				`  dde project:e2e:start\n\n` +
 				`If the stack is up but traefik is not routing (rare, after long\n` +
 				`local sessions): docker restart dde-traefik\n\n` +
-				`Underlying error: ${message}`
+				`Underlying error: ${message}`,
+			{ cause: error }
 		);
 	}
 }

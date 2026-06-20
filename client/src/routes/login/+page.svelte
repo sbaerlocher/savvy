@@ -4,6 +4,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { logger } from '$lib/utils/logger';
@@ -28,7 +29,7 @@
 	// Redirect if already logged in
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto('/dashboard');
+			goto(resolve('/dashboard'));
 			return;
 		}
 
@@ -80,13 +81,13 @@
 
 			// Check if 2FA is required
 			if ($authStore.requires2FA) {
-				goto('/login/2fa');
+				goto(resolve('/login/2fa'));
 				return;
 			}
 
 			toastStore.success(tr('auth.login.success'));
-			goto('/dashboard');
-		} catch (error) {
+			goto(resolve('/dashboard'));
+		} catch {
 			toastStore.error($authStore.error || tr('auth.login.error'));
 		} finally {
 			isLoading = false;
@@ -143,7 +144,11 @@
 						<!-- OAuth Button (if enabled) -->
 						{#if oauthEnabled}
 							<div class="mb-6">
-								<a href={oauthLoginURL} class="btn btn-ghost w-full">
+								<a
+									href={oauthLoginURL}
+									rel="external"
+									class="btn btn-ghost w-full"
+								>
 									<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
 										<path
 											d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
@@ -260,7 +265,7 @@
 								<div class="flex items-center justify-between pt-4">
 									{#if registrationEnabled}
 										<a
-											href="/register"
+											href={resolve('/register')}
 											class="font-medium text-cyan-600 hover:text-cyan-500 text-sm"
 										>
 											{tr('auth.login.noAccountYet')}
@@ -270,7 +275,7 @@
 										<span></span>
 									{/if}
 									<a
-										href="/forgot-password"
+										href={resolve('/forgot-password')}
 										class="font-medium text-cyan-600 hover:text-cyan-500 text-sm"
 									>
 										{tr('auth.login.forgotPassword')}

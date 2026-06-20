@@ -21,7 +21,9 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { categoryColors } from '$lib/utils/category-colors';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
 
 	// Svelte 5 compatible translation wrapper
@@ -32,7 +34,6 @@
 
 	let giftCards = $state<GiftCardDTO[]>([]);
 	let isLoading = $state(true);
-	let isLoadingMore = $state(false); // Progressive background loading indicator
 	let searchInput = $state(''); // User input (immediate)
 	let search = $state(''); // Debounced search value (used for filtering)
 	let sortBy = $state('name-asc');
@@ -44,7 +45,7 @@
 
 	// Batch selection state
 	let selectMode = $state(false);
-	let selectedIds = $state<Set<string>>(new Set());
+	let selectedIds = new SvelteSet<string>();
 	let batchAction = $state<'delete' | 'share' | 'transfer'>('delete');
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
@@ -55,28 +56,29 @@
 	function toggleSelectMode() {
 		selectMode = !selectMode;
 		if (!selectMode) {
-			selectedIds = new Set();
+			selectedIds.clear();
 		} else {
 			showFilterMenu = false;
 		}
 	}
 
 	function toggleSelection(id: string) {
-		const next = new Set(selectedIds);
-		if (next.has(id)) {
-			next.delete(id);
+		if (selectedIds.has(id)) {
+			selectedIds.delete(id);
 		} else {
-			next.add(id);
+			selectedIds.add(id);
 		}
-		selectedIds = next;
 	}
 
 	function selectAll() {
-		selectedIds = new Set(filteredGiftCards.map((gc) => gc.id));
+		selectedIds.clear();
+		for (const gc of filteredGiftCards) {
+			selectedIds.add(gc.id);
+		}
 	}
 
 	function deselectAll() {
-		selectedIds = new Set();
+		selectedIds.clear();
 	}
 
 	function openBatchModal(action: 'delete' | 'share' | 'transfer') {
@@ -142,7 +144,7 @@
 
 			showBatchModal = false;
 			selectMode = false;
-			selectedIds = new Set();
+			selectedIds.clear();
 			await loadGiftCards();
 		} catch (err) {
 			const msg =
@@ -305,8 +307,6 @@
 					`[Progressive Loading] Loading ${totalPages - 1} more pages in background`
 				);
 
-				isLoadingMore = true;
-
 				// Load remaining pages in background (100 items per page)
 				for (let page = 2; page <= totalPages; page++) {
 					try {
@@ -325,7 +325,6 @@
 					}
 				}
 
-				isLoadingMore = false;
 				pageLogger.info(
 					`[Progressive Loading] Complete. Total gift cards: ${giftCards.length}`
 				);
@@ -361,7 +360,8 @@
 		value: unknown
 	): value is (typeof VALID_SORT_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_SORT_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_SORT_VALUES.includes(value as (typeof VALID_SORT_VALUES)[number])
 		);
 	}
 
@@ -369,7 +369,8 @@
 		value: unknown
 	): value is (typeof VALID_OWNER_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_OWNER_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_OWNER_VALUES.includes(value as (typeof VALID_OWNER_VALUES)[number])
 		);
 	}
 
@@ -377,7 +378,10 @@
 		value: unknown
 	): value is (typeof VALID_STATUS_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_STATUS_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_STATUS_VALUES.includes(
+				value as (typeof VALID_STATUS_VALUES)[number]
+			)
 		);
 	}
 
@@ -422,17 +426,6 @@
 			pageLogger.error('Failed to load filters:', e);
 			// Clear invalid localStorage on parse error
 			localStorage.removeItem('savvy_gift_cards_filters');
-		}
-	}
-
-	async function toggleFavorite(giftCardId: string) {
-		try {
-			const response = await giftCardsApi.toggleFavorite(giftCardId);
-			giftCards = giftCards.map((gc) =>
-				gc.id === giftCardId ? { ...gc, is_favorite: response.is_favorite } : gc
-			);
-		} catch (err) {
-			toastStore.error(tr('common.favoriteError'));
 		}
 	}
 
@@ -606,7 +599,7 @@
 
 				<!-- New Gift Card Button -->
 				<a
-					href="/gift-cards/new"
+					href={resolve('/gift-cards/new')}
 					data-testid="new-gift-card-btn-desktop"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -697,7 +690,7 @@
 
 				<!-- New Gift Card Button (Mobile) -->
 				<a
-					href="/gift-cards/new"
+					href={resolve('/gift-cards/new')}
 					data-testid="new-gift-card-btn-mobile"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -730,7 +723,7 @@
 	{:else if !isLoading}
 		<div class="inline-block mb-6">
 			<a
-				href="/gift-cards/new"
+				href={resolve('/gift-cards/new')}
 				data-testid="new-gift-card-btn-header"
 				onclick={(e) => {
 					if (isOffline) e.preventDefault();
@@ -768,7 +761,7 @@
 			<p class="text-gray-600 text-lg mb-4">{tr('giftCards.noGiftCards')}</p>
 			<div class="inline-block">
 				<a
-					href="/gift-cards/new"
+					href={resolve('/gift-cards/new')}
 					data-testid="new-gift-card-btn-empty"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -852,7 +845,7 @@
 								if (selectMode) {
 									toggleSelection(giftCard.id);
 								} else {
-									goto(`/gift-cards/${giftCard.id}`);
+									goto(resolve(`/gift-cards/${giftCard.id}`));
 								}
 							}}
 							onkeydown={(e) => {
@@ -861,7 +854,7 @@
 									if (selectMode) {
 										toggleSelection(giftCard.id);
 									} else {
-										goto(`/gift-cards/${giftCard.id}`);
+										goto(resolve(`/gift-cards/${giftCard.id}`));
 									}
 								}
 							}}
@@ -1049,7 +1042,7 @@
 									class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 								>
 									<option value="all">{tr('giftCards.allMerchants')}</option>
-									{#each uniqueMerchants() as merchant}
+									{#each uniqueMerchants() as merchant (merchant?.id)}
 										{#if merchant}
 											<option value={merchant.id}>{merchant.name}</option>
 										{/if}
@@ -1308,7 +1301,7 @@
 						class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
 					>
 						<option value="all">{tr('giftCards.allMerchants')}</option>
-						{#each uniqueMerchants() as merchant}
+						{#each uniqueMerchants() as merchant (merchant?.id)}
 							{#if merchant}
 								<option value={merchant.id}>{merchant.name}</option>
 							{/if}

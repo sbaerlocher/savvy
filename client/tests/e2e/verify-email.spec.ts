@@ -7,12 +7,6 @@ test.describe('Email Verification', () => {
 
 		// Without a token, the page should show error state with red icon
 		// Error heading: "Verifizierung fehlgeschlagen" or "Verification Failed"
-		const errorHeading = page
-			.locator(
-				'h2:has-text("fehlgeschlagen"), h2:has-text("Failed"), h2:has-text("Error")'
-			)
-			.first();
-
 		// Or the idle state shows "checkEmail" text + login link
 		const idleOrError = page
 			.locator(

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
 	import { adminApi } from '$lib/api';
@@ -28,9 +29,11 @@
 				role: role
 			});
 			toastStore.success(tr('admin.users.createSuccess'));
-			goto('/admin/users');
-		} catch (err: any) {
-			toastStore.error(err.message || tr('admin.users.createError'));
+			goto(resolve('/admin/users'));
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : tr('admin.users.createError');
+			toastStore.error(message);
 		} finally {
 			isLoading = false;
 		}
@@ -42,7 +45,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href="/admin/users" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/admin/users')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -145,7 +148,7 @@
 					>
 						{isLoading ? tr('common.loading') : tr('common.save')}
 					</button>
-					<a href="/admin/users" class="btn btn-sm btn-ghost">
+					<a href={resolve('/admin/users')} class="btn btn-sm btn-ghost">
 						{tr('common.cancel')}
 					</a>
 				</div>

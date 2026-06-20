@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { ApiError, authApi } from '$lib/api';
 	import { authStore } from '$lib/stores/auth';
@@ -21,7 +22,7 @@
 
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto('/dashboard');
+			goto(resolve('/dashboard'));
 			return;
 		}
 
@@ -109,7 +110,7 @@
 					<p class="text-gray-600 mb-6">
 						{tr('auth.resetPassword.successMessage')}
 					</p>
-					<a href="/login" class="btn btn-primary w-full">
+					<a href={resolve('/login')} class="btn btn-primary w-full">
 						{tr('auth.resetPassword.goToLogin')}
 					</a>
 				</div>
@@ -139,11 +140,14 @@
 
 					<div class="space-y-3">
 						{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
-							<a href="/forgot-password" class="btn btn-primary w-full">
+							<a
+								href={resolve('/forgot-password')}
+								class="btn btn-primary w-full"
+							>
 								{tr('auth.resetPassword.requestNew')}
 							</a>
 						{/if}
-						<a href="/login" class="btn btn-ghost w-full">
+						<a href={resolve('/login')} class="btn btn-ghost w-full">
 							{tr('auth.resetPassword.goToLogin')}
 						</a>
 					</div>
@@ -215,7 +219,7 @@
 
 					<div class="text-center pt-4">
 						<a
-							href="/login"
+							href={resolve('/login')}
 							class="font-medium text-cyan-600 hover:text-cyan-500"
 						>
 							{tr('auth.resetPassword.goToLogin')}

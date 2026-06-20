@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
@@ -13,7 +14,9 @@
 	let merchant = $state<MerchantDTO | null>(null);
 	let name = $state('');
 	let color = $state('#3B82F6');
-	let colorText = $state('#3B82F6');
+	// Writable derived: mirrors `color` but can be temporarily overridden by
+	// the text input while the user types an (possibly invalid) value.
+	let colorText = $derived(color);
 	let logoUrl = $state('');
 	let website = $state('');
 	let isLoading = $state(true);
@@ -34,11 +37,6 @@
 		return /^#[0-9A-Fa-f]{6}$/.test(value);
 	}
 
-	// Sync: Color Picker -> Text Input
-	$effect(() => {
-		colorText = color;
-	});
-
 	async function loadMerchant() {
 		isLoading = true;
 		try {
@@ -52,12 +50,11 @@
 			const validColor =
 				rawColor && isValidHexColor(rawColor) ? rawColor : '#3B82F6';
 			color = validColor;
-			colorText = validColor;
 			logoUrl = merchant.logo_url || '';
 			website = merchant.website || '';
-		} catch (err) {
+		} catch {
 			toastStore.error($t('admin.merchants.loadError'));
-			goto('/merchants');
+			goto(resolve('/merchants'));
 		} finally {
 			isLoading = false;
 		}
@@ -90,9 +87,11 @@
 
 			await merchantsApi.update(merchantId, input);
 			toastStore.success($t('admin.merchants.updateSuccess'));
-			goto('/merchants/' + merchantId);
-		} catch (err: any) {
-			toastStore.error(err.message || $t('admin.merchants.updateError'));
+			goto(resolve(`/merchants/${merchantId}`));
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : $t('admin.merchants.updateError');
+			toastStore.error(message || $t('admin.merchants.updateError'));
 		} finally {
 			isSubmitting = false;
 		}
@@ -104,7 +103,7 @@
 			toastStore.success(
 				$t('admin.merchants.deleteSuccess', { name: merchant?.name ?? '' })
 			);
-			goto('/merchants');
+			goto(resolve('/merchants'));
 		} catch {
 			toastStore.error($t('admin.merchants.deleteError'));
 		}
@@ -120,7 +119,7 @@
 	<!-- Back Button -->
 	<div class="mb-6">
 		<a
-			href="/merchants"
+			href={resolve('/merchants')}
 			class="text-cyan-600 hover:text-cyan-700 transition-colors"
 		>
 			{$t('common.backToOverview')}
@@ -285,7 +284,7 @@
 							>
 								{isSubmitting ? $t('common.saving') : $t('common.save')}
 							</button>
-							<a href="/merchants" class="btn btn-sm btn-ghost">
+							<a href={resolve('/merchants')} class="btn btn-sm btn-ghost">
 								{$t('common.cancel')}
 							</a>
 						</div>
@@ -382,7 +381,7 @@
 										<a
 											href={website}
 											target="_blank"
-											rel="noopener noreferrer"
+											rel="noopener noreferrer external"
 											class="text-xs text-cyan-600 hover:text-cyan-800 truncate block"
 										>
 											{website}

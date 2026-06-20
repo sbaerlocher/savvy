@@ -15,8 +15,10 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { categoryColors } from '$lib/utils/category-colors';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -25,7 +27,6 @@
 
 	let cards = $state<CardDTO[]>([]);
 	let isLoading = $state(true);
-	let isLoadingMore = $state(false); // Progressive background loading indicator
 	let searchInput = $state(''); // User input (immediate)
 	let search = $state(''); // Debounced search value (used for filtering)
 	let sortBy = $state('name-asc');
@@ -39,7 +40,7 @@
 
 	// Batch selection state
 	let selectMode = $state(false);
-	let selectedIds = $state<Set<string>>(new Set());
+	let selectedIds = new SvelteSet<string>();
 	let batchAction = $state<'delete' | 'share' | 'transfer'>('delete');
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
@@ -50,28 +51,29 @@
 	function toggleSelectMode() {
 		selectMode = !selectMode;
 		if (!selectMode) {
-			selectedIds = new Set();
+			selectedIds.clear();
 		} else {
 			showFilterMenu = false;
 		}
 	}
 
 	function toggleSelection(id: string) {
-		const next = new Set(selectedIds);
-		if (next.has(id)) {
-			next.delete(id);
+		if (selectedIds.has(id)) {
+			selectedIds.delete(id);
 		} else {
-			next.add(id);
+			selectedIds.add(id);
 		}
-		selectedIds = next;
 	}
 
 	function selectAll() {
-		selectedIds = new Set(filteredCards.map((c) => c.id));
+		selectedIds.clear();
+		for (const c of filteredCards) {
+			selectedIds.add(c.id);
+		}
 	}
 
 	function deselectAll() {
-		selectedIds = new Set();
+		selectedIds.clear();
 	}
 
 	function openBatchModal(action: 'delete' | 'share' | 'transfer') {
@@ -136,7 +138,7 @@
 
 			showBatchModal = false;
 			selectMode = false;
-			selectedIds = new Set();
+			selectedIds.clear();
 			await loadCards();
 		} catch (err) {
 			const msg =
@@ -278,8 +280,6 @@
 					`[Progressive Loading] Loading ${totalPages - 1} more pages in background`
 				);
 
-				isLoadingMore = true;
-
 				// Load remaining pages in background (100 items per page)
 				for (let page = 2; page <= totalPages; page++) {
 					try {
@@ -298,7 +298,6 @@
 					}
 				}
 
-				isLoadingMore = false;
 				pageLogger.info(
 					`[Progressive Loading] Complete. Total cards: ${cards.length}`
 				);
@@ -329,7 +328,8 @@
 		value: unknown
 	): value is (typeof VALID_SORT_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_SORT_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_SORT_VALUES.includes(value as (typeof VALID_SORT_VALUES)[number])
 		);
 	}
 
@@ -337,7 +337,8 @@
 		value: unknown
 	): value is (typeof VALID_OWNER_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_OWNER_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_OWNER_VALUES.includes(value as (typeof VALID_OWNER_VALUES)[number])
 		);
 	}
 
@@ -345,7 +346,10 @@
 		value: unknown
 	): value is (typeof VALID_STATUS_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_STATUS_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_STATUS_VALUES.includes(
+				value as (typeof VALID_STATUS_VALUES)[number]
+			)
 		);
 	}
 
@@ -438,17 +442,6 @@
 			return () => document.removeEventListener('keydown', handleKeydown);
 		}
 	});
-
-	async function toggleFavorite(cardId: string) {
-		try {
-			const response = await cardsApi.toggleFavorite(cardId);
-			cards = cards.map((c) =>
-				c.id === cardId ? { ...c, is_favorite: response.is_favorite } : c
-			);
-		} catch (err) {
-			toastStore.error($t('common.error'));
-		}
-	}
 
 	function getStatusBadge(status: string): { class: string; text: string } {
 		switch (status) {
@@ -608,7 +601,7 @@
 
 				<!-- New Card Button -->
 				<a
-					href="/cards/new"
+					href={resolve('/cards/new')}
 					data-testid="new-card-btn-desktop"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -701,7 +694,7 @@
 
 				<!-- New Card Button (Mobile) -->
 				<a
-					href="/cards/new"
+					href={resolve('/cards/new')}
 					data-testid="new-card-btn-mobile"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -734,7 +727,7 @@
 	{:else if !isLoading}
 		<div class="inline-block mb-6">
 			<a
-				href="/cards/new"
+				href={resolve('/cards/new')}
 				data-testid="new-card-btn-header"
 				onclick={(e) => {
 					if (isOffline) e.preventDefault();
@@ -772,7 +765,7 @@
 			<p class="text-gray-600 text-lg mb-4">{tr('cards.noCards')}</p>
 			<div class="inline-block">
 				<a
-					href="/cards/new"
+					href={resolve('/cards/new')}
 					data-testid="new-card-btn-empty"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -852,7 +845,7 @@
 								if (selectMode) {
 									toggleSelection(card.id);
 								} else {
-									goto(`/cards/${card.id}`);
+									goto(resolve(`/cards/${card.id}`));
 								}
 							}}
 							onkeydown={(e) => {
@@ -861,7 +854,7 @@
 									if (selectMode) {
 										toggleSelection(card.id);
 									} else {
-										goto(`/cards/${card.id}`);
+										goto(resolve(`/cards/${card.id}`));
 									}
 								}
 							}}
@@ -1034,7 +1027,7 @@
 									class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 								>
 									<option value="all">{tr('cards.allMerchants')}</option>
-									{#each uniqueMerchants() as merchant}
+									{#each uniqueMerchants() as merchant (merchant?.id)}
 										{#if merchant}
 											<option value={merchant.id}>{merchant.name}</option>
 										{/if}
@@ -1282,7 +1275,7 @@
 						class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
 					>
 						<option value="all">{tr('cards.allMerchants')}</option>
-						{#each uniqueMerchants() as merchant}
+						{#each uniqueMerchants() as merchant (merchant?.id)}
 							{#if merchant}
 								<option value={merchant.id}>{merchant.name}</option>
 							{/if}

@@ -310,7 +310,7 @@ export class OfflineDB {
 				for (const item of items) {
 					store.put(item);
 				}
-			} catch (error) {
+			} catch {
 				// Abort transaction to roll back the clear() and prevent data loss
 				try {
 					transaction.abort();

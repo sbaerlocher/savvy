@@ -6,6 +6,7 @@
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
 	import { locale, t } from '$lib/stores/i18n';
+	import { SvelteDate } from 'svelte/reactivity';
 	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('VoucherForm');
@@ -79,7 +80,7 @@
 	}
 
 	function setExpiryOffset(days: number) {
-		const date = new Date();
+		const date = new SvelteDate();
 		date.setDate(date.getDate() + days);
 		validUntil = date.toISOString().split('T')[0];
 	}
@@ -249,7 +250,7 @@
 						class="w-28 input"
 						style="font-size: 16px;"
 					>
-						{#each SUPPORTED_CURRENCIES as c}
+						{#each SUPPORTED_CURRENCIES as c (c)}
 							<option value={c}>{c}</option>
 						{/each}
 					</select>
@@ -293,7 +294,7 @@
 					class="w-28 input"
 					style="font-size: 16px;"
 				>
-					{#each SUPPORTED_CURRENCIES as c}
+					{#each SUPPORTED_CURRENCIES as c (c)}
 						<option value={c}>{c}</option>
 					{/each}
 				</select>

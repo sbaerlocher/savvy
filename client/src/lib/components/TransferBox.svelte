@@ -96,7 +96,7 @@
 			<div>
 				<p class="text-sm font-medium text-gray-700 mb-2">{whatHappensLabel}</p>
 				<ul class="text-xs text-gray-600 space-y-1">
-					{#each details as detail}
+					{#each details as detail (detail)}
 						<li>{detail}</li>
 					{/each}
 				</ul>

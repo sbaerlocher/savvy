@@ -77,7 +77,7 @@
 		].includes(bcid);
 
 		// bwip-js options
-		const options: any = {
+		const options: Parameters<typeof bwipjs.toCanvas>[1] = {
 			bcid,
 			text: value,
 			includetext: displayValue,

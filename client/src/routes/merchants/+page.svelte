@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { cardsApi, vouchersApi, giftCardsApi, merchantsApi } from '$lib/api';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import { authStore } from '$lib/stores/auth';
@@ -204,10 +205,8 @@
 	}
 
 	$effect(() => {
-		// Track filter changes for persistence
-		sortBy;
-		typeFilter;
-		statusFilter;
+		// Reference filter values so the effect re-runs on any change
+		void [sortBy, typeFilter, statusFilter];
 		saveFilters();
 	});
 
@@ -309,7 +308,7 @@
 				</button>
 				{#if isAdmin}
 					<a
-						href="/admin/merchants/new"
+						href={resolve('/admin/merchants/new')}
 						onclick={(e) => {
 							if (isOffline) e.preventDefault();
 						}}
@@ -372,7 +371,7 @@
 				</button>
 				{#if isAdmin}
 					<a
-						href="/admin/merchants/new"
+						href={resolve('/admin/merchants/new')}
 						onclick={(e) => {
 							if (isOffline) e.preventDefault();
 						}}
@@ -405,7 +404,7 @@
 	{:else if !isLoading && isAdmin}
 		<div class="inline-block mb-6">
 			<a
-				href="/admin/merchants/new"
+				href={resolve('/admin/merchants/new')}
 				onclick={(e) => {
 					if (isOffline) e.preventDefault();
 				}}
@@ -470,7 +469,7 @@
 				>
 					{#each filteredMerchants as merchant (merchant.id)}
 						<a
-							href="/merchants/{merchant.id}"
+							href={resolve(`/merchants/${merchant.id}`)}
 							class="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden group h-full flex flex-col"
 							style="border-left: 6px solid {merchant.color}"
 						>

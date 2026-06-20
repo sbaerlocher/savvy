@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authApi } from '$lib/api';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
@@ -16,7 +17,7 @@
 
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto('/dashboard');
+			goto(resolve('/dashboard'));
 			return;
 		}
 		// Initialize CSRF cookie by hitting a public GET endpoint
@@ -80,7 +81,7 @@
 							<p class="text-gray-600 mb-6">
 								{tr('auth.forgotPassword.successMessage')}
 							</p>
-							<a href="/login" class="btn btn-primary w-full">
+							<a href={resolve('/login')} class="btn btn-primary w-full">
 								{tr('auth.forgotPassword.backToLogin')}
 							</a>
 						</div>
@@ -133,7 +134,7 @@
 
 							<div class="text-center pt-4">
 								<a
-									href="/login"
+									href={resolve('/login')}
 									class="font-medium text-cyan-600 hover:text-cyan-500"
 								>
 									{tr('auth.forgotPassword.backToLogin')}

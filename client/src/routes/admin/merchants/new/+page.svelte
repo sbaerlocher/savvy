@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
 	import { merchantsApi } from '$lib/api';
@@ -9,7 +9,7 @@
 	// Form state
 	let name = $state('');
 	let color = $state('#3B82F6');
-	let colorText = $state('#3B82F6');
+	let colorText = $derived(color);
 	let logoUrl = $state('');
 	let website = $state('');
 	let isSubmitting = $state(false);
@@ -23,11 +23,6 @@
 	function isValidHexColor(value: string): boolean {
 		return /^#[0-9A-Fa-f]{6}$/.test(value);
 	}
-
-	// Sync: Color Picker -> Text Input
-	$effect(() => {
-		colorText = color;
-	});
 
 	function validate(): boolean {
 		errors = {};
@@ -56,9 +51,11 @@
 
 			await merchantsApi.create(input);
 			toastStore.success($t('admin.merchants.createSuccess'));
-			goto('/merchants');
-		} catch (err: any) {
-			toastStore.error(err.message || $t('admin.merchants.createError'));
+			goto(resolve('/merchants'));
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : $t('admin.merchants.createError');
+			toastStore.error(message);
 		} finally {
 			isSubmitting = false;
 		}
@@ -73,7 +70,7 @@
 	<!-- Back Button -->
 	<div class="mb-6">
 		<a
-			href="/merchants"
+			href={resolve('/merchants')}
 			class="text-cyan-600 hover:text-cyan-700 transition-colors"
 		>
 			{$t('common.backToOverview')}
@@ -205,7 +202,7 @@
 						>
 							{isSubmitting ? $t('common.saving') : $t('common.create')}
 						</button>
-						<a href="/merchants" class="btn btn-sm btn-ghost">
+						<a href={resolve('/merchants')} class="btn btn-sm btn-ghost">
 							{$t('common.cancel')}
 						</a>
 					</div>

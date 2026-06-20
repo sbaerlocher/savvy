@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 
 	let retrying = $state(false);
 	let isOnline = $state(false);
@@ -145,7 +145,7 @@
 					<div class="text-sm text-cyan-800">
 						<p class="font-semibold mb-1">{text.offlineFeaturesTitle}</p>
 						<ul class="list-disc list-inside space-y-1">
-							{#each text.offlineFeatures as feature}
+							{#each text.offlineFeatures as feature (feature)}
 								<li>{feature}</li>
 							{/each}
 						</ul>
@@ -188,7 +188,7 @@
 					{/if}
 				</button>
 				<a
-					href="/"
+					href={resolve('/')}
 					class="block w-full text-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
 				>
 					{text.goHome}

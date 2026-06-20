@@ -431,7 +431,7 @@ export interface NotificationDTO {
 			can_delete?: boolean;
 			can_edit_transactions?: boolean;
 		};
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 	is_read: boolean;
 	read_at?: string;

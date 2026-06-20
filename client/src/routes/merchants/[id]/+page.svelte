@@ -27,12 +27,13 @@
 	import { formatCurrency } from '$lib/utils/currency';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
-	import { categoryColors } from '$lib/utils/category-colors';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -59,7 +60,7 @@
 
 	// Batch selection state
 	let selectMode = $state(false);
-	let selectedIds = $state<Set<string>>(new Set());
+	let selectedIds = new SvelteSet<string>();
 	let batchAction = $state<'delete' | 'share' | 'transfer'>('delete');
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
@@ -357,7 +358,7 @@
 	$effect(() => {
 		if (typeFilter !== lastTypeFilter) {
 			if (selectMode) {
-				selectedIds = new Set();
+				selectedIds.clear();
 			}
 			// Reset status filter when type changes to avoid invalid combinations
 			statusFilter = 'all';
@@ -421,7 +422,7 @@
 	function toggleSelectMode() {
 		selectMode = !selectMode;
 		if (!selectMode) {
-			selectedIds = new Set();
+			selectedIds.clear();
 			typeFilter = 'all';
 		} else {
 			showFilterMenu = false;
@@ -435,21 +436,22 @@
 	}
 
 	function toggleSelection(id: string) {
-		const next = new Set(selectedIds);
-		if (next.has(id)) {
-			next.delete(id);
+		if (selectedIds.has(id)) {
+			selectedIds.delete(id);
 		} else {
-			next.add(id);
+			selectedIds.add(id);
 		}
-		selectedIds = next;
 	}
 
 	function selectAll() {
-		selectedIds = new Set(currentFilteredItems.map((item) => item.id));
+		selectedIds.clear();
+		for (const item of currentFilteredItems) {
+			selectedIds.add(item.id);
+		}
 	}
 
 	function deselectAll() {
-		selectedIds = new Set();
+		selectedIds.clear();
 	}
 
 	function openBatchModal(action: 'delete' | 'share' | 'transfer') {
@@ -528,7 +530,7 @@
 
 			showBatchModal = false;
 			selectMode = false;
-			selectedIds = new Set();
+			selectedIds.clear();
 			await loadData();
 		} catch (err) {
 			const msg =
@@ -683,7 +685,7 @@
 				</div>
 				{#if isAdmin}
 					<a
-						href="/admin/merchants/{merchant.id}/edit"
+						href={resolve(`/admin/merchants/${merchant.id}/edit`)}
 						class="btn btn-xs btn-gray whitespace-nowrap flex items-center gap-1.5"
 					>
 						{tr('common.edit')}
@@ -908,7 +910,7 @@
 										if (selectMode) {
 											toggleSelection(card.id);
 										} else {
-											goto(`/cards/${card.id}`);
+											goto(resolve(`/cards/${card.id}`));
 										}
 									}}
 									onkeydown={(e) => {
@@ -917,7 +919,7 @@
 											if (selectMode) {
 												toggleSelection(card.id);
 											} else {
-												goto(`/cards/${card.id}`);
+												goto(resolve(`/cards/${card.id}`));
 											}
 										}
 									}}
@@ -1010,7 +1012,7 @@
 										if (selectMode) {
 											toggleSelection(voucher.id);
 										} else {
-											goto(`/vouchers/${voucher.id}`);
+											goto(resolve(`/vouchers/${voucher.id}`));
 										}
 									}}
 									onkeydown={(e) => {
@@ -1019,7 +1021,7 @@
 											if (selectMode) {
 												toggleSelection(voucher.id);
 											} else {
-												goto(`/vouchers/${voucher.id}`);
+												goto(resolve(`/vouchers/${voucher.id}`));
 											}
 										}
 									}}
@@ -1161,7 +1163,7 @@
 										if (selectMode) {
 											toggleSelection(giftCard.id);
 										} else {
-											goto(`/gift-cards/${giftCard.id}`);
+											goto(resolve(`/gift-cards/${giftCard.id}`));
 										}
 									}}
 									onkeydown={(e) => {
@@ -1170,7 +1172,7 @@
 											if (selectMode) {
 												toggleSelection(giftCard.id);
 											} else {
-												goto(`/gift-cards/${giftCard.id}`);
+												goto(resolve(`/gift-cards/${giftCard.id}`));
 											}
 										}
 									}}

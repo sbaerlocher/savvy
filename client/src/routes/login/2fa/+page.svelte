@@ -4,6 +4,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -18,7 +19,7 @@
 	onMount(() => {
 		// Redirect if not in 2FA flow
 		if (!$authStore.requires2FA) {
-			goto('/login');
+			goto(resolve('/login'));
 		}
 	});
 
@@ -34,8 +35,8 @@
 
 			await authStore.verify2FA(data);
 			toastStore.success(tr('auth.login.success'));
-			goto('/dashboard');
-		} catch (err) {
+			goto(resolve('/dashboard'));
+		} catch {
 			error = $authStore.error || tr('auth.twoFactor.invalidCode');
 		} finally {
 			isLoading = false;
@@ -188,7 +189,7 @@
 				</button>
 
 				<a
-					href="/login"
+					href={resolve('/login')}
 					class="block w-full text-sm text-gray-500 hover:text-gray-700 text-center"
 				>
 					{tr('auth.twoFactor.backToLogin')}

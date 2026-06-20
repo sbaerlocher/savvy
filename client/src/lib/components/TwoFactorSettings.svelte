@@ -384,7 +384,7 @@
 
 			<div class="bg-gray-50 rounded-lg p-4 mb-4">
 				<div class="grid grid-cols-2 gap-2">
-					{#each backupCodes as code}
+					{#each backupCodes as code (code)}
 						<code
 							class="text-sm font-mono text-center bg-white px-3 py-1.5 rounded border select-all"
 						>

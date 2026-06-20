@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
@@ -20,7 +21,6 @@
 	import type { VoucherDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
-	import { detectBarcodeType } from '$lib/utils/barcode';
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
 
@@ -58,9 +58,6 @@
 	let editStatus = $state('active');
 	let editDescription = $state('');
 
-	// Scanner state
-	let scannerOpen = $state(false);
-
 	// Modal state
 	let showDeleteModal = $state(false);
 	let showDeleteShareModal = $state(false);
@@ -78,7 +75,7 @@
 		try {
 			if (!voucherId) {
 				toastStore.error(tr('vouchers.loadError'));
-				goto('/vouchers');
+				goto(resolve('/vouchers'));
 				return;
 			}
 
@@ -104,12 +101,12 @@
 					) {
 						await offlineDB.deleteVoucher(voucherId);
 						toastStore.error(tr('vouchers.loadError'));
-						goto('/vouchers');
+						goto(resolve('/vouchers'));
 						return;
 					}
 					if (!cached) {
 						toastStore.error(tr('vouchers.loadError'));
-						goto('/vouchers');
+						goto(resolve('/vouchers'));
 						return;
 					}
 					// Transient error with cached data available - show warning, don't redirect
@@ -117,11 +114,11 @@
 				}
 			} else if (!cached) {
 				toastStore.error(tr('vouchers.loadError'));
-				goto('/vouchers');
+				goto(resolve('/vouchers'));
 			}
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('vouchers.loadError'));
-			goto('/vouchers');
+			goto(resolve('/vouchers'));
 		} finally {
 			isLoading = false;
 			isRefreshing = false;
@@ -169,12 +166,6 @@
 		isEditing = false;
 	}
 
-	function setEditExpiryOffset(days: number) {
-		const date = new Date();
-		date.setDate(date.getDate() + days);
-		editValidUntil = date.toISOString().split('T')[0];
-	}
-
 	async function saveEdit() {
 		if (!voucher || !voucherId) return;
 
@@ -208,24 +199,9 @@
 			shares = response.shares || [];
 			isEditing = false;
 			toastStore.success(tr('vouchers.updateSuccess'));
-		} catch (err: any) {
-			toastStore.error(err.message || tr('vouchers.updateError'));
-		}
-	}
-
-	function handleScan(event: { barcode: string; format?: string }) {
-		editCode = event.barcode;
-		// Use detected format from scanner if available, otherwise fallback to detectBarcodeType
-		editBarcodeType = event.format || detectBarcodeType(event.barcode);
-		scannerOpen = false;
-		toastStore.success(tr('common.scanSuccess'));
-	}
-
-	function handleCodeInput(event: Event) {
-		const input = event.target as HTMLInputElement;
-		editCode = input.value;
-		if (editCode.trim()) {
-			editBarcodeType = detectBarcodeType(editCode);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : '';
+			toastStore.error(message || tr('vouchers.updateError'));
 		}
 	}
 
@@ -253,7 +229,7 @@
 			toastStore.success(tr('vouchers.deleteSuccess'));
 			// Force full page reload to refresh the list (SPA navigation caches data)
 			window.location.href = '/vouchers';
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('vouchers.deleteError'));
 		}
 	}
@@ -270,7 +246,7 @@
 			// Update favorite state directly from POST response
 			// Avoids stale data from Service Worker cached GET responses
 			voucher = { ...voucher, is_favorite: response.is_favorite };
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('common.favoriteError'));
 		} finally {
 			isTogglingFavorite = false;
@@ -290,8 +266,9 @@
 			toastStore.success(tr('vouchers.sharing.shareSuccess'));
 			shareEmail = '';
 			showShareForm = false;
-		} catch (err: any) {
-			toastStore.error(err.message || tr('vouchers.sharing.shareError'));
+		} catch (err) {
+			const message = err instanceof Error ? err.message : '';
+			toastStore.error(message || tr('vouchers.sharing.shareError'));
 		}
 	}
 
@@ -316,7 +293,7 @@
 			managingShareId = null;
 			showDeleteShareModal = false;
 			await loadShares();
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('vouchers.sharing.removeError'));
 		} finally {
 			shareToDelete = null;
@@ -340,8 +317,9 @@
 			await offlineDB.deleteVoucher(voucherId);
 			// Force full page reload (user lost access after transfer)
 			window.location.href = '/vouchers';
-		} catch (err: any) {
-			toastStore.error(err.message || tr('vouchers.transfer.error'));
+		} catch (err) {
+			const message = err instanceof Error ? err.message : '';
+			toastStore.error(message || tr('vouchers.transfer.error'));
 		}
 	}
 
@@ -390,7 +368,7 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href="/vouchers" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/vouchers')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
@@ -429,32 +407,30 @@
 								ontoggleFavorite={toggleFavorite}
 								onstartEdit={startEdit}
 							>
-								{#snippet children()}
-									{@const v = voucher!}
-									<div class="flex items-baseline gap-3 flex-wrap mb-2">
-										<h1
-											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
-										>
-											{#if v.merchant}
-												{v.merchant.name}
-											{:else}
-												{tr('vouchers.title')}
-											{/if}
-										</h1>
-										<span class="text-sm text-gray-600">
-											{v.usage_limit_type === 'single_use'
-												? tr('vouchers.singleUseOnly')
-												: tr('vouchers.multipleUse')}
-										</span>
-										{#if v.owner && v.owner.id !== $authStore.user?.id}
-											<span class="text-xs text-gray-400">
-												{tr('vouchers.sharedBy', {
-													name: v.owner.first_name || v.owner.email
-												})}
-											</span>
+								{@const v = voucher!}
+								<div class="flex items-baseline gap-3 flex-wrap mb-2">
+									<h1
+										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+									>
+										{#if v.merchant}
+											{v.merchant.name}
+										{:else}
+											{tr('vouchers.title')}
 										{/if}
-									</div>
-								{/snippet}
+									</h1>
+									<span class="text-sm text-gray-600">
+										{v.usage_limit_type === 'single_use'
+											? tr('vouchers.singleUseOnly')
+											: tr('vouchers.multipleUse')}
+									</span>
+									{#if v.owner && v.owner.id !== $authStore.user?.id}
+										<span class="text-xs text-gray-400">
+											{tr('vouchers.sharedBy', {
+												name: v.owner.first_name || v.owner.email
+											})}
+										</span>
+									{/if}
+								</div>
 							</ResourceHeader>
 
 							<!-- Duplicate Warning -->
@@ -462,7 +438,7 @@
 								<DuplicateWarningBanner
 									warning={voucher.duplicate_warning}
 									resourceType="voucher"
-									onNavigate={(id) => goto(`/vouchers/${id}`)}
+									onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
 								/>
 							{/if}
 						</div>
@@ -658,7 +634,7 @@
 
 					{#if shares.length > 0}
 						<div class="space-y-3">
-							{#each shares as share}
+							{#each shares as share (share.shared_with_user.id)}
 								<ShareListItem
 									{share}
 									isEditing={managingShareId === share.shared_with_user.id}
@@ -671,18 +647,16 @@
 									oncancel={cancelManageShare}
 									ondelete={() => promptDeleteShare(share.shared_with_user.id)}
 								>
-									{#snippet children()}
-										<div
-											class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-										>
-											<p class="text-xs font-medium text-yellow-800 mb-1">
-												{tr('vouchers.sharing.alwaysReadOnly')}
-											</p>
-											<p class="text-xs text-yellow-700">
-												{tr('vouchers.sharing.canOnlyRemove')}
-											</p>
-										</div>
-									{/snippet}
+									<div
+										class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+									>
+										<p class="text-xs font-medium text-yellow-800 mb-1">
+											{tr('vouchers.sharing.alwaysReadOnly')}
+										</p>
+										<p class="text-xs text-yellow-700">
+											{tr('vouchers.sharing.canOnlyRemove')}
+										</p>
+									</div>
 								</ShareListItem>
 							{/each}
 						</div>

@@ -144,11 +144,6 @@
 		}
 	}
 
-	function formatTimestamp(timestamp: string): string {
-		const date = new Date(timestamp);
-		return date.toLocaleTimeString();
-	}
-
 	function getTimeAgo(date: Date | null): string {
 		if (!date) return '-';
 		const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);

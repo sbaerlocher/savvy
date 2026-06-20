@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
 	import { platform } from '$lib/utils/platform';
@@ -45,7 +46,7 @@
 <nav class={navClass} style="-webkit-tap-highlight-color: transparent;">
 	<div class="grid grid-cols-4 h-16">
 		<a
-			href="/cards"
+			href={resolve('/cards')}
 			data-sveltekit-preload-data={preloadStrategy}
 			class={linkClass('/cards')}
 		>
@@ -73,7 +74,7 @@
 		</a>
 
 		<a
-			href="/vouchers"
+			href={resolve('/vouchers')}
 			data-sveltekit-preload-data={preloadStrategy}
 			class={linkClass('/vouchers')}
 		>
@@ -101,7 +102,7 @@
 		</a>
 
 		<a
-			href="/gift-cards"
+			href={resolve('/gift-cards')}
 			data-sveltekit-preload-data={preloadStrategy}
 			class={linkClass('/gift-cards')}
 		>
@@ -129,7 +130,7 @@
 		</a>
 
 		<a
-			href="/merchants"
+			href={resolve('/merchants')}
 			data-sveltekit-preload-data={preloadStrategy}
 			class={linkClass('/merchants')}
 		>

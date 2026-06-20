@@ -60,12 +60,6 @@
 		onClose();
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			handleClose();
-		}
-	}
-
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
 		isDragging = true;
@@ -279,7 +273,7 @@
 							{tr('settings.import.csvResourceType')}
 						</p>
 						<div class="space-y-2">
-							{#each [{ value: 'cards' as CSVType, label: tr('settings.import.csvCards') }, { value: 'vouchers' as CSVType, label: tr('settings.import.csvVouchers') }, { value: 'gift-cards' as CSVType, label: tr('settings.import.csvGiftCards') }] as option}
+							{#each [{ value: 'cards' as CSVType, label: tr('settings.import.csvCards') }, { value: 'vouchers' as CSVType, label: tr('settings.import.csvVouchers') }, { value: 'gift-cards' as CSVType, label: tr('settings.import.csvGiftCards') }] as option (option.value)}
 								<label
 									class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors {csvType ===
 									option.value
@@ -420,7 +414,7 @@
 										{tr('settings.import.errors')}
 									</h4>
 									<ul class="space-y-1 max-h-32 overflow-y-auto">
-										{#each result.errors as error}
+										{#each result.errors as error (`${error.row ?? ''}-${error.field ?? ''}-${error.message}`)}
 											<li class="text-xs text-red-600">
 												{#if error.row}{tr('settings.import.row', {
 														row: error.row

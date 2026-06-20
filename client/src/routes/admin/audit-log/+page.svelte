@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
 	import { adminApi } from '$lib/api';
@@ -10,11 +8,8 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import type { AuditLogDTO, AdminUserDTO } from '$lib/types/api';
-	import type { LayoutData } from '../../$types';
 
 	const pageLogger = logger.child('AuditLogPage');
-
-	let { data }: { data: LayoutData } = $props();
 
 	// State
 	let logs = $state<AuditLogDTO[]>([]);
@@ -35,11 +30,9 @@
 	// Pagination
 	let currentPage = $state(1);
 	let perPage = $state(20);
-	let totalLogs = $state(0);
 	let totalPages = $state(0);
 
 	const isOffline = $derived(!$isOnline);
-	const currentUser = $derived($authStore.user);
 	const hasActiveFilters = $derived(
 		userFilter !== '' ||
 			resourceTypeFilter !== '' ||
@@ -142,9 +135,8 @@
 			});
 
 			logs = response.logs;
-			totalLogs = response.total;
 			totalPages = response.total_pages;
-		} catch (err) {
+		} catch {
 			toastStore.error($t('admin.auditLog.loadError'));
 		} finally {
 			isLoading = false;
@@ -596,7 +588,7 @@
 								class="input text-sm"
 							>
 								<option value="">{$t('admin.auditLog.allUsers')}</option>
-								{#each users as user}
+								{#each users as user (user.id)}
 									<option value={user.id}>{user.email}</option>
 								{/each}
 							</select>
@@ -614,7 +606,7 @@
 								bind:value={resourceTypeFilter}
 								class="input text-sm"
 							>
-								{#each resourceTypes as type}
+								{#each resourceTypes as type (type.value)}
 									<option value={type.value}>{type.label}</option>
 								{/each}
 							</select>
@@ -632,7 +624,7 @@
 								bind:value={actionFilter}
 								class="input text-sm"
 							>
-								{#each actions as action}
+								{#each actions as action (action.value)}
 									<option value={action.value}>{action.label}</option>
 								{/each}
 							</select>
@@ -734,7 +726,7 @@
 						class="input"
 					>
 						<option value="">{$t('admin.auditLog.allUsers')}</option>
-						{#each users as user}
+						{#each users as user (user.id)}
 							<option value={user.id}>{user.email}</option>
 						{/each}
 					</select>
@@ -752,7 +744,7 @@
 						bind:value={resourceTypeFilter}
 						class="input"
 					>
-						{#each resourceTypes as type}
+						{#each resourceTypes as type (type.value)}
 							<option value={type.value}>{type.label}</option>
 						{/each}
 					</select>
@@ -770,7 +762,7 @@
 						bind:value={actionFilter}
 						class="input"
 					>
-						{#each actions as action}
+						{#each actions as action (action.value)}
 							<option value={action.value}>{action.label}</option>
 						{/each}
 					</select>

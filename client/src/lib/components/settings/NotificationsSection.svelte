@@ -8,6 +8,7 @@
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import { onMount, onDestroy } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
 
 	const pageLogger = logger.child('NotificationsSection');
@@ -29,29 +30,21 @@
 		| 'email_reminders_enabled'
 		| 'email_sharing_enabled';
 
-	let preferences = $state<Record<PreferenceKey, boolean>>({
-		push_notifications_enabled: true,
-		email_notifications_enabled: true,
-		push_reminders_enabled: true,
-		push_sharing_enabled: true,
-		email_reminders_enabled: true,
-		email_sharing_enabled: true
-	});
-
-	// Sync preferences when profile prop changes
-	$effect(() => {
-		preferences = {
-			push_notifications_enabled: profile.push_notifications_enabled ?? true,
-			email_notifications_enabled: profile.email_notifications_enabled ?? true,
-			push_reminders_enabled: profile.push_reminders_enabled ?? true,
-			push_sharing_enabled: profile.push_sharing_enabled ?? true,
-			email_reminders_enabled: profile.email_reminders_enabled ?? true,
-			email_sharing_enabled: profile.email_sharing_enabled ?? true
-		};
+	// Derived from profile prop, but locally writable for optimistic toggles
+	let preferences: Record<PreferenceKey, boolean> = $derived({
+		push_notifications_enabled: profile.push_notifications_enabled ?? true,
+		email_notifications_enabled: profile.email_notifications_enabled ?? true,
+		push_reminders_enabled: profile.push_reminders_enabled ?? true,
+		push_sharing_enabled: profile.push_sharing_enabled ?? true,
+		email_reminders_enabled: profile.email_reminders_enabled ?? true,
+		email_sharing_enabled: profile.email_sharing_enabled ?? true
 	});
 
 	let savingKeys = $state<Set<PreferenceKey>>(new Set());
-	let debounceTimers = new Map<PreferenceKey, ReturnType<typeof setTimeout>>();
+	let debounceTimers = new SvelteMap<
+		PreferenceKey,
+		ReturnType<typeof setTimeout>
+	>();
 
 	onMount(async () => {
 		if ($configStore.push_enabled) {

@@ -124,7 +124,7 @@
 		bind:value={sortBy}
 		class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 	>
-		{#each sortOptions as opt}
+		{#each sortOptions as opt (opt.value)}
 			<option value={opt.value}>{opt.label}</option>
 		{/each}
 	</select>
@@ -146,7 +146,7 @@
 			bind:value={statusFilter}
 			class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 		>
-			{#each statusOptions as opt}
+			{#each statusOptions as opt (opt.value)}
 				<option value={opt.value}>{opt.label}</option>
 			{/each}
 		</select>
@@ -169,7 +169,7 @@
 			bind:value={ownerFilter}
 			class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 		>
-			{#each ownerOptions as opt}
+			{#each ownerOptions as opt (opt.value)}
 				<option value={opt.value}>{opt.label}</option>
 			{/each}
 		</select>
@@ -192,7 +192,7 @@
 			bind:value={expiringFilter}
 			class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 		>
-			{#each expiringOptions as opt}
+			{#each expiringOptions as opt (opt.value)}
 				<option value={opt.value}>{opt.label}</option>
 			{/each}
 		</select>

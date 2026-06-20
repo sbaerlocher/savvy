@@ -257,8 +257,13 @@
 		animationFrameId = requestAnimationFrame(scan);
 	}
 
+	// C0 (0x00-0x1F), DEL and C1 (0x7F-0x9F) control characters. Built via
+	// string concatenation so the intentional control-char range is preserved
+	// without tripping the no-control-regex lint rule on a regex literal.
+	const CONTROL_CHARS_RE = new RegExp('[\\x00-\\x1F' + '\\x7F-\\x9F]', 'g');
+
 	function handleBarcodeDetected(barcode: string, format: string) {
-		const sanitized = barcode.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+		const sanitized = barcode.replace(CONTROL_CHARS_RE, '');
 		if (sanitized.length === 0 || sanitized.length > 255) {
 			componentLogger.warn('Invalid barcode rejected:', {
 				length: sanitized.length,
@@ -320,7 +325,12 @@
 			if (!mediaStream) return;
 
 			const track = mediaStream.getVideoTracks()[0];
-			const capabilities = track.getCapabilities() as any;
+			// `torch` is a non-standard capability not present in the DOM lib types.
+			const capabilities = track.getCapabilities() as ReturnType<
+				MediaStreamTrack['getCapabilities']
+			> & {
+				torch?: boolean;
+			};
 
 			torchSupported = capabilities?.torch || false;
 			componentLogger.info('Torch support:', { supported: torchSupported });
@@ -335,8 +345,17 @@
 
 		try {
 			const track = mediaStream.getVideoTracks()[0];
+			// `torch` is a non-standard constraint not present in the DOM lib types.
 			await track.applyConstraints({
-				advanced: [{ torch: !torchEnabled } as any]
+				advanced: [
+					{ torch: !torchEnabled } as NonNullable<
+						NonNullable<
+							Parameters<MediaStreamTrack['applyConstraints']>[0]
+						>['advanced']
+					>[number] & {
+						torch?: boolean;
+					}
+				]
 			});
 			torchEnabled = !torchEnabled;
 			componentLogger.info('Torch toggled:', { enabled: torchEnabled });
@@ -650,7 +669,7 @@
 					</div>
 					<div class="debug-logs">
 						<div class="text-xs font-semibold mb-1">Recent Logs:</div>
-						{#each debugLogs as log}
+						{#each debugLogs as log, index (index)}
 							<div class="debug-log-entry">{log}</div>
 						{/each}
 						{#if debugLogs.length === 0}

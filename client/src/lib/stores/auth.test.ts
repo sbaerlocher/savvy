@@ -246,7 +246,7 @@ describe('authStore', () => {
 
 			try {
 				await authStore.login({ email: 'test@example.com', password: 'wrong' });
-			} catch (e) {
+			} catch {
 				// Expected to throw
 			}
 

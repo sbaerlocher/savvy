@@ -51,8 +51,6 @@
 	let showSuggestions = $state(false);
 	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	const needsEmail = $derived(action === 'share' || action === 'transfer');
-
 	function handleConfirm() {
 		onConfirm(email, { canEdit, canDelete, canEditTransactions });
 	}
@@ -266,7 +264,7 @@
 							<div
 								class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
 							>
-								{#each suggestedUsers as user}
+								{#each suggestedUsers as user (user.id)}
 									<button
 										type="button"
 										onclick={() => selectUser(user)}
@@ -462,7 +460,7 @@
 							<div
 								class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
 							>
-								{#each suggestedUsers as user}
+								{#each suggestedUsers as user (user.id)}
 									<button
 										type="button"
 										onclick={() => selectUser(user)}

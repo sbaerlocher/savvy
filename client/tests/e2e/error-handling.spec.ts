@@ -1,4 +1,4 @@
-import { expect, test, TEST_USERS } from './fixtures/test-fixtures';
+import { expect, test } from './fixtures/test-fixtures';
 import { LoginPage } from './pages/login.page';
 
 test.describe('Error Handling', () => {
