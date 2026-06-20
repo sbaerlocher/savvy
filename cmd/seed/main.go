@@ -1064,6 +1064,22 @@ func createGiftCards(users []models.User, merchants []models.Merchant) {
 		}
 		createGiftCardTransactions(transactionsIKEA)
 	}
+
+	// Anna's Manor card - transaction so the regular user owns a gift card
+	// with nested transactions (needed by the export-completeness E2E test)
+	var manorAnnaGC models.GiftCard
+	database.DB.Where("card_number = ?", "MANOR-ANNA-555").First(&manorAnnaGC)
+	if manorAnnaGC.ID.String() != "00000000-0000-0000-0000-000000000000" {
+		transactionsManorAnna := []models.GiftCardTransaction{
+			{
+				GiftCardID:      manorAnnaGC.ID,
+				Amount:          20.00,
+				Description:     "Einkauf Manor",
+				TransactionDate: time.Now().AddDate(0, 0, -3),
+			},
+		}
+		createGiftCardTransactions(transactionsManorAnna)
+	}
 }
 
 // createShares creates test shares for all resource types

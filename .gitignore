@@ -68,6 +68,7 @@ tmp/
 # Build artifacts
 savvy
 server
+seed
 
 # Generated code
 *_templ.go
