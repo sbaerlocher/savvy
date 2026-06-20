@@ -6,7 +6,6 @@
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
 	import { locale, t } from '$lib/stores/i18n';
-	import { SvelteDate } from 'svelte/reactivity';
 	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('VoucherForm');
@@ -80,7 +79,10 @@
 	}
 
 	function setExpiryOffset(days: number) {
-		const date = new SvelteDate();
+		// Transient local, not reactive state — svelte/prefer-svelte-reactivity
+		// is a false positive here (per PR review).
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const date = new Date();
 		date.setDate(date.getDate() + days);
 		validUntil = date.toISOString().split('T')[0];
 	}

@@ -2,6 +2,7 @@
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { authApi } from '$lib/api';
+	import { ApiError } from '$lib/api/client';
 	import { t } from '$lib/stores/i18n';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -38,10 +39,7 @@
 			status = 'success';
 		} catch (error: unknown) {
 			status = 'error';
-			const code =
-				typeof error === 'object' && error !== null && 'code' in error
-					? String((error as { code?: unknown }).code ?? '')
-					: '';
+			const code = error instanceof ApiError ? error.error || '' : '';
 
 			if (code === 'token_expired') {
 				errorMessage = tr('unsubscribe.tokenExpired');
