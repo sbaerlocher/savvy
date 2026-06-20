@@ -52,8 +52,7 @@ make seed
 
 **Access the application**:
 
-- Frontend (Vite dev server): <http://localhost:5173>
-- Backend API: <http://localhost:8080>
+- App (Frontend + API, routed by dde traefik): <https://savvy.test>
 
 ### 3. Verify Setup
 

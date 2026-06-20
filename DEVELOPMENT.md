@@ -58,10 +58,9 @@ go install github.com/air-verse/air@latest
 # Start all services (PostgreSQL + Backend + Frontend)
 docker compose up
 
-# Access:
-# - Frontend: http://localhost:5173 (Vite dev server with HMR)
-# - Backend API: http://localhost:8080
-# - PostgreSQL: localhost:5432
+# Access (routed by dde traefik on a single origin):
+# - App (Frontend + API): https://savvy.test
+# - PostgreSQL: dde stock postgres (no host port; reach it inside the dde network)
 ```
 
 **Hot Reload enabled**: Air (Go) + Vite (SvelteKit) detect changes automatically.

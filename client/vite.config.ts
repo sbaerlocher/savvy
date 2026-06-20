@@ -87,6 +87,9 @@ export default defineConfig({
 	],
 	server: {
 		port: 5173,
+		// Leading dot covers subdomains: dde >= v2.0.0-beta.2 serves git
+		// worktrees on `<suffix>.savvy.test`.
+		allowedHosts: ['.savvy.test'],
 		proxy: {
 			'/api': {
 				target: 'http://api:8080', // Docker: api container on port 8080

@@ -295,7 +295,7 @@ make dev
 make seed
 ```
 
-**Application URL**: <http://localhost:8080>
+**Application URL**: <https://savvy.test> (routed by dde traefik)
 
 > **Note**: Local development without Docker is **not supported** due to Vite proxy requirements.
 > The Vite dev server requires access to `http://api:8080` which only works in the Docker network.

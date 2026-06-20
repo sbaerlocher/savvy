@@ -8,24 +8,48 @@ name: E2E Tests
     branches: [main]
   workflow_dispatch:
 
+# The reusable workflow's `comment` job needs pull-requests: write to
+# post the test-results comment back to the PR; the test job itself
+# stays at contents: read. permissions are an upper bound on what the
+# reusable can request, so grant both here.
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  e2e-tests:
-    name: Playwright E2E Tests
-    uses: sbaerlocher/.github/.github/workflows/e2e-docker.yml@2026-06-18
+  e2e:
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-06-10
     permissions:
       contents: read
       pull-requests: write
     with:
-      compose-file: "docker-compose.yml"
-      compose-profile: "e2e"
-      node-version: "20"
-      package-manager: "npm"
-      playwright-directory: "./client"
-      test-command: "test:e2e:chromium"
-      playwright-browsers: "chromium"
-      upload-artifacts: true
-      artifact-retention-days: 30
+      # Pinned to v2.0.0-beta.2 (latest beta): alpha.5 tried to build a
+      # dev-layer over every compose service (including distroless
+      # observability images like otel-collector) and crashed with
+      # `/bin/sh: not found`. The beta line skips shell-less bases and
+      # renamed plugin invocation from `project:exec:<name>` to
+      # `project:<name>` — workflow steps and AGENTS.md follow that.
+      dde-version: v2.0.0-beta.2
+      # `e2e` profile gates app-e2e while leaving the dev profile
+      # (api + client) dormant in CI. Applied to project:up, project:down
+      # and every dde plugin invocation in the job.
+      compose-profiles: e2e
+      playwright-directory: ./client
+      playwright-browsers: chromium
+      # Stack provisioning lives in dde plugins, not in this workflow.
+      # `e2e:reset-db` drops+creates `savvy_e2e` on the dde stock
+      # postgres; `e2e:wait` polls app-e2e's healthcheck.
+      pre-test-commands: |
+        dde project:e2e:reset-db
+        dde project:e2e:wait -- --timeout 90
+      # Playwright runs via the dde plugin so globalSetup's health probe
+      # against https://e2e.savvy.test executes inside the dde network.
+      test-command-override: dde project:e2e:test
+      # Plugin-driven log helper that tails the last 200 lines per
+      # service from the e2e profile (raw `dde project:logs` would
+      # include the dormant dev-profile containers and bury the signal).
+      failure-logs-command: |
+        dde project:e2e:logs -- 200
+      # `-v` teardown removes the e2e volumes so the next run starts
+      # from a fresh stock postgres without state leakage.
+      teardown-command: dde project:e2e:down
