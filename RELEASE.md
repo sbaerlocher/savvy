@@ -132,7 +132,7 @@ ghcr.io/sbaerlocher/container/savvy:latest    # Latest stable
 
 ## 📚 Resources
 
-- **[.github/workflows/release.yml](../.github/workflows/release.yml)** - Release workflow
+- **[.github/workflows/tag.yml](../.github/workflows/tag.yml)** - Release workflow (tag-triggered)
 - **[GoReleaser Docs](https://goreleaser.com/)** - Release automation
 - **[Semantic Versioning](https://semver.org/)** - Versioning spec
 - **[Conventional Commits](https://www.conventionalcommits.org/)** - Commit format

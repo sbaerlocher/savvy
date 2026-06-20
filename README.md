@@ -7,9 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.23%2B-blue.svg)](https://golang.org/dl/)
 [![Node Version](https://img.shields.io/badge/Node-18%2B-green.svg)](https://nodejs.org/)
-[![CI Status](https://github.com/sbaerlocher/savvy/workflows/Continuous%20Integration/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/sbaerlocher/savvy/workflows/Security%20Scan/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/security.yml)
-[![E2E Tests](https://github.com/sbaerlocher/savvy/workflows/E2E%20Tests/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/e2e.yml)
+[![Pull Request](https://github.com/sbaerlocher/savvy/workflows/Pull%20Request/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/pull-request.yml)
+[![Weekly Security Scan](https://github.com/sbaerlocher/savvy/workflows/Weekly%20Security%20Scan/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/weekly-security.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sbaerlocher/savvy)](https://goreportcard.com/report/github.com/sbaerlocher/savvy)
 [![codecov](https://codecov.io/gh/sbaerlocher/savvy/branch/main/graph/badge.svg)](https://codecov.io/gh/sbaerlocher/savvy)
 
