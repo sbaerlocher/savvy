@@ -1,0 +1,51 @@
+# Git hooks managed by lefthook (https://lefthook.dev).
+# Fast host-native safety net before commit/push. The dde + docker
+# container flow remains the canonical CI path; lefthook is opt-in and
+# can be skipped with `LEFTHOOK=0 git commit` or `--no-verify`.
+#
+# Install locally with: `brew install lefthook && lefthook install`
+---
+pre-commit:
+  parallel: true
+  commands:
+    # Go: auto-format and re-stage.
+    gofmt:
+      glob: '*.go'
+      run: gofmt -w {staged_files}
+      stage_fixed: true
+
+    # Go: full-module lint via .golangci.yml. Glob gates whether the hook
+    # runs; the lint analyses the whole module to catch cross-file regressions.
+    golangci-lint:
+      glob: '*.go'
+      run: golangci-lint run
+
+    # Frontend: Prettier (config in client/.prettierrc).
+    prettier:
+      root: client/
+      glob: '*.{js,cjs,mjs,ts,svelte,json,css}'
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+
+    # Frontend: ESLint flat config.
+    eslint:
+      root: client/
+      glob: '*.{js,cjs,mjs,ts,svelte}'
+      run: npx eslint --fix {staged_files}
+      stage_fixed: true
+
+    markdownlint:
+      glob: '*.md'
+      run: markdownlint {staged_files}
+
+pre-push:
+  parallel: true
+  commands:
+    # Go unit/integration suites. CI gates the full -race sweep on merge.
+    go-test:
+      run: go test ./internal/... ./cmd/...
+
+    # Frontend type check (svelte-check).
+    typecheck:
+      root: client/
+      run: npm run typecheck
