@@ -78,9 +78,6 @@ jobs:
   e2e:
     name: E2E Tests
     uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-06-10
-    permissions:
-      contents: read
-      pull-requests: write
     with:
       # Pinned beta: alpha.5 built a dev-layer over distroless images and
       # crashed; the beta line skips shell-less bases and renamed plugin
@@ -100,8 +97,5 @@ jobs:
   code-review:
     name: Claude Code Review
     uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-06-18
-    permissions:
-      contents: read
-      pull-requests: write
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
