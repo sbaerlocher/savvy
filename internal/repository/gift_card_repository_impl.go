@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // GormGiftCardRepository implements GiftCardRepository using GORM.
@@ -112,7 +113,23 @@ func (r *GormGiftCardRepository) GetTotalBalance(ctx context.Context, userID uui
 
 // CreateTransaction creates a new gift card transaction in the database.
 func (r *GormGiftCardRepository) CreateTransaction(ctx context.Context, transaction *models.GiftCardTransaction) error {
-	return r.db.WithContext(ctx).Create(transaction).Error
+	// Serialize concurrent transactions on the same gift card. The
+	// check_gift_card_balance BEFORE-trigger guards against overdraw, but it
+	// reads SUM(amount) without locking the card row — two concurrent spends
+	// in separate DB transactions both read the old balance, both pass the
+	// check, and both commit → negative balance (TOCTOU). Taking a row lock
+	// on the gift card first forces the second transaction to wait until the
+	// first commits, so its trigger sees the up-to-date sum and rejects an
+	// overdraw. Insert happens in the same DB transaction as the lock.
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var locked models.GiftCard
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Select("id").
+			First(&locked, "id = ?", transaction.GiftCardID).Error; err != nil {
+			return err
+		}
+		return tx.Create(transaction).Error
+	})
 }
 
 // GetTransaction retrieves a specific transaction for a gift card.
