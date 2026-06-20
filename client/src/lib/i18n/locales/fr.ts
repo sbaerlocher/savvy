@@ -322,6 +322,7 @@ export const fr: TranslationKeys = {
 		deleteError: 'Échec de la suppression',
 		loadError: 'Impossible de charger la carte-cadeau',
 		notFound: 'Carte-cadeau introuvable',
+		backToList: 'Retour aux cartes-cadeaux',
 		sortBy: 'Tri',
 		sortNameAsc: 'Nom A-Z',
 		sortNameDesc: 'Nom Z-A',

@@ -1069,4 +1069,14 @@
 		onconfirm={confirmDeleteTransaction}
 		oncancel={() => (showDeleteTransactionModal = false)}
 	/>
+{:else}
+	<!-- Not loading and no gift card (e.g. after a transfer that removed
+	     access, or a load that failed before redirect). Without this branch
+	     the page rendered nothing → white screen (issue #121). -->
+	<div class="flex flex-col items-center justify-center py-16 text-center">
+		<p class="text-gray-600 mb-4">{tr('giftCards.notFound')}</p>
+		<button type="button" onclick={() => goto('/gift-cards')} class="btn btn-primary">
+			{tr('giftCards.backToList')}
+		</button>
+	</div>
 {/if}
