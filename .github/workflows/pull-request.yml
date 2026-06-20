@@ -103,3 +103,5 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
