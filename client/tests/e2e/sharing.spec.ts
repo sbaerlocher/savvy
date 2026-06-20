@@ -403,10 +403,12 @@ test.describe('Sharing', () => {
 			// access — assert the redirect actually happens, the list renders,
 			// and the transferred card is gone from it.
 			await page.waitForURL(/\/gift-cards\/?$/, { timeout: 10000 });
-			await expect(page.locator('body')).toContainText(
-				/Geschenkkarten|Gift Cards|Cartes/i,
-				{ timeout: 10000 }
-			);
+			// Assert the list's own <h1> rendered — not just the persistent nav
+			// shell, which carries the same "Gift Cards" label on every page and
+			// would stay visible even on the blank content area #121 is about.
+			await expect(
+				page.locator('h1', { hasText: /Geschenkkarten|Gift Cards|Cartes/i })
+			).toBeVisible({ timeout: 10000 });
 			await expect(page.locator(`text=${cardNumber}`)).toHaveCount(0);
 		}
 	});
