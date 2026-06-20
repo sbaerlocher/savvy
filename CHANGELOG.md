@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Migrations split one-per-file** - `internal/migrations/migrations.go` (~2000 LoC,
+  30 migrations inline) split into one `<migration-id>.go` file per migration, leaving
+  `migrations.go` as the shared helpers plus the `GetMigrations()` registry. Each new
+  migration adds a file instead of growing the monolith, which removes the guaranteed
+  merge conflict on parallel branches. Migration bodies and registry order are
+  unchanged (no behavior change).
+
 ### Fixed
 
 - **Long-content QR/barcode scannability (#122)** - QR codes with long payloads
