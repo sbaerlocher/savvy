@@ -129,7 +129,7 @@ function createAuthStore() {
 				};
 				set(newState);
 				saveAuthToStorage(newState);
-			} catch (error) {
+			} catch {
 				if (!navigator.onLine) {
 					update((state) => ({ ...state, isLoading: false }));
 					return;

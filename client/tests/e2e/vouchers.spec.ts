@@ -54,8 +54,6 @@ test.describe('Vouchers Management', () => {
 		voucherFormPage,
 		voucherDetailPage
 	}) => {
-		const page = authenticatedPage;
-
 		await vouchersListPage.goto();
 		await vouchersListPage.clickNewButton();
 

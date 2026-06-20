@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { giftCardsApi, sharedUsersApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
@@ -111,12 +112,14 @@
 			toastStore.success(tr('giftCards.createSuccess'));
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/gift-cards/${response.gift_card.id}`;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			const duplicate = extractDuplicate(err);
 			if (duplicate) {
 				duplicateWarning = duplicate;
 			} else {
-				toastStore.error(err.message || tr('giftCards.createError'));
+				const message =
+					err instanceof Error ? err.message : tr('giftCards.createError');
+				toastStore.error(message || tr('giftCards.createError'));
 			}
 		} finally {
 			isLoading = false;
@@ -124,7 +127,7 @@
 	}
 
 	function handleCancel() {
-		goto('/gift-cards');
+		goto(resolve('/gift-cards'));
 	}
 </script>
 
@@ -133,7 +136,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href="/gift-cards" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/gift-cards')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -148,7 +151,7 @@
 			<DuplicateWarningBanner
 				warning={duplicateWarning}
 				resourceType="gift_card"
-				onNavigate={(id) => goto(`/gift-cards/${id}`)}
+				onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
 			/>
 			<GiftCardForm
 				bind:cardNumber
@@ -207,7 +210,7 @@
 						<div
 							class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
 						>
-							{#each suggestions as suggestion, index}
+							{#each suggestions as suggestion, index (suggestion.id)}
 								<button
 									type="button"
 									onclick={() => selectSuggestion(suggestion)}

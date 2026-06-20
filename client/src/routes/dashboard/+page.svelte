@@ -5,6 +5,7 @@
 	import { t, locale } from '$lib/stores/i18n';
 	import { dashboardApi } from '$lib/api';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { formatCurrency } from '$lib/utils/currency';
 	import { categoryColors } from '$lib/utils/category-colors';
 	import { logger } from '$lib/utils/logger';
@@ -70,7 +71,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 
@@ -218,7 +219,7 @@
 				class="mt-2 hidden lg:flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600"
 			>
 				<a
-					href="/cards"
+					href={resolve('/cards')}
 					data-testid="dashboard-stat-cards"
 					class="hover:text-cyan-600 transition"
 				>
@@ -229,7 +230,7 @@
 				</a>
 				<span class="text-gray-300">|</span>
 				<a
-					href="/vouchers"
+					href={resolve('/vouchers')}
 					data-testid="dashboard-stat-vouchers"
 					class="hover:text-green-600 transition"
 				>
@@ -240,7 +241,7 @@
 				</a>
 				<span class="text-gray-300">|</span>
 				<a
-					href="/gift-cards"
+					href={resolve('/gift-cards')}
 					data-testid="dashboard-stat-gift-cards"
 					class="hover:text-red-600 transition"
 				>
@@ -286,7 +287,7 @@
 									{$t('dashboard.noActivityHint')}
 								</p>
 								<a
-									href="/cards/new"
+									href={resolve('/cards/new')}
 									class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-800 transition"
 								>
 									{$t('dashboard.getStarted')} →
@@ -296,7 +297,7 @@
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<!-- Cards -->
 								{#if data.recent_cards.length > 0 && (!data.has_favorites || data.has_card_favorites)}
-									{#each data.recent_cards.slice(0, 3) as card}
+									{#each data.recent_cards.slice(0, 3) as card (card.id)}
 										<div
 											class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
 										>
@@ -305,7 +306,10 @@
 												style="background-color: {card.merchant?.color ||
 													'#6B7280'}"
 											></div>
-											<a href="/cards/{card.id}" class="p-3 flex-1 min-w-0">
+											<a
+												href={resolve(`/cards/${card.id}`)}
+												class="p-3 flex-1 min-w-0"
+											>
 												<p
 													class="font-semibold text-gray-900 text-sm truncate group-hover:text-cyan-600 transition"
 												>
@@ -357,7 +361,7 @@
 
 								<!-- Vouchers -->
 								{#if data.recent_vouchers.length > 0 && (!data.has_favorites || data.has_voucher_favorites)}
-									{#each data.recent_vouchers.slice(0, 3) as voucher}
+									{#each data.recent_vouchers.slice(0, 3) as voucher (voucher.id)}
 										<div
 											class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
 										>
@@ -367,7 +371,7 @@
 													'#6B7280'}"
 											></div>
 											<a
-												href="/vouchers/{voucher.id}"
+												href={resolve(`/vouchers/${voucher.id}`)}
 												class="p-3 flex-1 min-w-0"
 											>
 												<p
@@ -447,7 +451,7 @@
 
 								<!-- Gift Cards -->
 								{#if data.recent_gift_cards.length > 0 && (!data.has_favorites || data.has_gift_card_favorites)}
-									{#each data.recent_gift_cards.slice(0, 3) as giftCard}
+									{#each data.recent_gift_cards.slice(0, 3) as giftCard (giftCard.id)}
 										<div
 											class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
 										>
@@ -457,7 +461,7 @@
 													'#6B7280'}"
 											></div>
 											<a
-												href="/gift-cards/{giftCard.id}"
+												href={resolve(`/gift-cards/${giftCard.id}`)}
 												class="p-3 flex-1 min-w-0"
 											>
 												<p
@@ -537,7 +541,7 @@
 					</h2>
 					<div class="flex flex-col gap-2">
 						<a
-							href="/cards/new"
+							href={resolve('/cards/new')}
 							onclick={(e) => {
 								if (isOffline) e.preventDefault();
 							}}
@@ -549,7 +553,7 @@
 							{$t('dashboard.addCard')}
 						</a>
 						<a
-							href="/vouchers/new"
+							href={resolve('/vouchers/new')}
 							onclick={(e) => {
 								if (isOffline) e.preventDefault();
 							}}
@@ -561,7 +565,7 @@
 							{$t('dashboard.addVoucher')}
 						</a>
 						<a
-							href="/gift-cards/new"
+							href={resolve('/gift-cards/new')}
 							onclick={(e) => {
 								if (isOffline) e.preventDefault();
 							}}

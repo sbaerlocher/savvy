@@ -113,7 +113,7 @@ export function detectBarcodeType(barcode: string): string {
 		cleaned.length > 50 ||
 		cleaned.includes('http') ||
 		cleaned.includes('\n') ||
-		/[{}\[\]]/.test(cleaned)
+		/[{}[\]]/.test(cleaned)
 	) {
 		return 'QR';
 	}

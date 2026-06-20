@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
@@ -25,7 +26,6 @@
 	import SharePermissions from '$lib/components/SharePermissions.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import { logger } from '$lib/utils/logger';
-	import { detectBarcodeType } from '$lib/utils/barcode';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
@@ -74,9 +74,6 @@
 	let editShareCanDelete = $state(false);
 	let editShareCanEditTransactions = $state(false);
 
-	// Scanner state
-	let scannerOpen = $state(false);
-
 	// Modal state
 	let showDeleteModal = $state(false);
 	let showDeleteShareModal = $state(false);
@@ -101,7 +98,7 @@
 		try {
 			if (!giftCardId) {
 				toastStore.error(tr('giftCards.loadError'));
-				goto('/gift-cards');
+				goto(resolve('/gift-cards'));
 				return;
 			}
 
@@ -128,12 +125,12 @@
 					) {
 						await offlineDB.deleteGiftCard(giftCardId);
 						toastStore.error(tr('giftCards.loadError'));
-						goto('/gift-cards');
+						goto(resolve('/gift-cards'));
 						return;
 					}
 					if (!cached) {
 						toastStore.error(tr('giftCards.loadError'));
-						goto('/gift-cards');
+						goto(resolve('/gift-cards'));
 						return;
 					}
 					// Transient error with cached data available - show warning, don't redirect
@@ -141,11 +138,11 @@
 				}
 			} else if (!cached) {
 				toastStore.error(tr('giftCards.loadError'));
-				goto('/gift-cards');
+				goto(resolve('/gift-cards'));
 			}
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('giftCards.loadError'));
-			goto('/gift-cards');
+			goto(resolve('/gift-cards'));
 		} finally {
 			isLoading = false;
 			isRefreshing = false;
@@ -219,24 +216,10 @@
 			shares = response.shares || [];
 			isEditing = false;
 			toastStore.success(tr('giftCards.updateSuccess'));
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.updateError'));
-		}
-	}
-
-	function handleScan(event: { barcode: string; format?: string }) {
-		editCardNumber = event.barcode;
-		// Use detected format from scanner if available, otherwise fallback to detectBarcodeType
-		editBarcodeType = event.format || detectBarcodeType(event.barcode);
-		scannerOpen = false;
-		toastStore.success(tr('common.scanSuccess'));
-	}
-
-	function handleCardNumberInput(event: Event) {
-		const input = event.target as HTMLInputElement;
-		editCardNumber = input.value;
-		if (editCardNumber.trim()) {
-			editBarcodeType = detectBarcodeType(editCardNumber);
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('giftCards.updateError')
+			);
 		}
 	}
 
@@ -264,7 +247,7 @@
 			toastStore.success(tr('giftCards.deleteSuccess'));
 			// Force full page reload to refresh the list (SPA navigation caches data)
 			window.location.href = '/gift-cards';
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('giftCards.deleteError'));
 		}
 	}
@@ -281,7 +264,7 @@
 			// Update favorite state directly from POST response
 			// Avoids stale data from Service Worker cached GET responses
 			giftCard = { ...giftCard, is_favorite: response.is_favorite };
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('common.favoriteError'));
 		} finally {
 			isTogglingFavorite = false;
@@ -307,8 +290,10 @@
 			canDelete = false;
 			canEditTransactions = false;
 			showShareForm = false;
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.sharing.shareError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('giftCards.sharing.shareError')
+			);
 		}
 	}
 
@@ -344,8 +329,10 @@
 			shares = response.shares || [];
 			editingShareId = null;
 			toastStore.success(tr('giftCards.sharing.updateSuccess'));
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.sharing.updateError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('giftCards.sharing.updateError')
+			);
 		}
 	}
 
@@ -361,7 +348,7 @@
 			toastStore.success(tr('giftCards.sharing.removeSuccess'));
 			showDeleteShareModal = false;
 			await loadShares();
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('giftCards.sharing.removeError'));
 		} finally {
 			shareToDelete = null;
@@ -387,8 +374,10 @@
 			await offlineDB.deleteGiftCard(giftCardId);
 			// Force full page reload (user lost access after transfer)
 			window.location.href = '/gift-cards';
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.transfer.error'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('giftCards.transfer.error')
+			);
 		}
 	}
 
@@ -414,8 +403,12 @@
 			transactionDescription = '';
 			transactionDate = new Date().toISOString().split('T')[0];
 			await Promise.all([loadGiftCard(), loadTransactions()]);
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.transactions.createError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error
+					? err.message
+					: tr('giftCards.transactions.createError')
+			);
 		}
 	}
 
@@ -431,8 +424,12 @@
 			toastStore.success(tr('giftCards.transactions.deleteSuccess'));
 			showDeleteTransactionModal = false;
 			await Promise.all([loadGiftCard(), loadTransactions()]);
-		} catch (err: any) {
-			toastStore.error(err.message || tr('giftCards.transactions.deleteError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error
+					? err.message
+					: tr('giftCards.transactions.deleteError')
+			);
 		} finally {
 			transactionToDelete = null;
 			showDeleteTransactionModal = false;
@@ -471,7 +468,7 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href="/gift-cards" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/gift-cards')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
@@ -510,40 +507,38 @@
 								ontoggleFavorite={toggleFavorite}
 								onstartEdit={startEdit}
 							>
-								{#snippet children()}
-									{@const gc = giftCard!}
-									<div class="flex items-baseline gap-3 flex-wrap mb-2">
-										<h1
-											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
-										>
-											{#if gc.merchant}
-												{gc.merchant.name}
-											{:else}
-												{tr('giftCards.title')}
-											{/if}
-										</h1>
-										<span
-											class="text-sm sm:text-base md:text-lg font-semibold"
-											style="color: {gc.merchant?.color || '#F59E0B'}"
-										>
-											{formatCurrency(gc.current_balance, gc.currency, $locale)}
-											<span class="text-sm text-gray-500 font-normal">
-												({tr('giftCards.balance.remaining', {
-													percent: Math.round(
-														(gc.current_balance / gc.initial_balance) * 100
-													)
-												})})
-											</span>
-										</span>
-										{#if gc.owner && gc.owner.id !== $authStore.user?.id}
-											<span class="text-xs text-gray-400">
-												{tr('giftCards.sharedBy', {
-													name: gc.owner.first_name || gc.owner.email
-												})}
-											</span>
+								{@const gc = giftCard!}
+								<div class="flex items-baseline gap-3 flex-wrap mb-2">
+									<h1
+										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+									>
+										{#if gc.merchant}
+											{gc.merchant.name}
+										{:else}
+											{tr('giftCards.title')}
 										{/if}
-									</div>
-								{/snippet}
+									</h1>
+									<span
+										class="text-sm sm:text-base md:text-lg font-semibold"
+										style="color: {gc.merchant?.color || '#F59E0B'}"
+									>
+										{formatCurrency(gc.current_balance, gc.currency, $locale)}
+										<span class="text-sm text-gray-500 font-normal">
+											({tr('giftCards.balance.remaining', {
+												percent: Math.round(
+													(gc.current_balance / gc.initial_balance) * 100
+												)
+											})})
+										</span>
+									</span>
+									{#if gc.owner && gc.owner.id !== $authStore.user?.id}
+										<span class="text-xs text-gray-400">
+											{tr('giftCards.sharedBy', {
+												name: gc.owner.first_name || gc.owner.email
+											})}
+										</span>
+									{/if}
+								</div>
 							</ResourceHeader>
 
 							<!-- Duplicate Warning -->
@@ -551,7 +546,7 @@
 								<DuplicateWarningBanner
 									warning={giftCard.duplicate_warning}
 									resourceType="gift_card"
-									onNavigate={(id) => goto(`/gift-cards/${id}`)}
+									onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
 								/>
 							{/if}
 						</div>
@@ -786,7 +781,7 @@
 
 					{#if transactions.length > 0}
 						<div class="space-y-2">
-							{#each transactions as transaction}
+							{#each transactions as transaction (transaction.id)}
 								<div
 									class="flex items-center justify-between p-3 bg-gray-50 rounded gap-3"
 								>
@@ -983,7 +978,7 @@
 
 					{#if shares.length > 0}
 						<div class="space-y-3">
-							{#each shares as share}
+							{#each shares as share (share.shared_with_user.id)}
 								<ShareListItem
 									{share}
 									isEditing={editingShareId === share.shared_with_user.id}
@@ -994,24 +989,22 @@
 									oncancel={cancelEditShare}
 									ondelete={() => promptDeleteShare(share.shared_with_user.id)}
 								>
-									{#snippet children()}
-										<SharePermissions
-											bind:canEdit={editShareCanEdit}
-											bind:canDelete={editShareCanDelete}
-											bind:canEditTransactions={editShareCanEditTransactions}
-											showEditTransactions={true}
-											labelEdit={tr('giftCards.sharing.canEdit')}
-											labelEditDesc={tr('giftCards.sharing.canEditDesc')}
-											labelDelete={tr('giftCards.sharing.canDelete')}
-											labelDeleteDesc={tr('giftCards.sharing.canDeleteDesc')}
-											labelEditTransactions={tr(
-												'giftCards.sharing.canManageTransactions'
-											)}
-											labelEditTransactionsDesc={tr(
-												'giftCards.sharing.canManageTransactionsDesc'
-											)}
-										/>
-									{/snippet}
+									<SharePermissions
+										bind:canEdit={editShareCanEdit}
+										bind:canDelete={editShareCanDelete}
+										bind:canEditTransactions={editShareCanEditTransactions}
+										showEditTransactions={true}
+										labelEdit={tr('giftCards.sharing.canEdit')}
+										labelEditDesc={tr('giftCards.sharing.canEditDesc')}
+										labelDelete={tr('giftCards.sharing.canDelete')}
+										labelDeleteDesc={tr('giftCards.sharing.canDeleteDesc')}
+										labelEditTransactions={tr(
+											'giftCards.sharing.canManageTransactions'
+										)}
+										labelEditTransactionsDesc={tr(
+											'giftCards.sharing.canManageTransactionsDesc'
+										)}
+									/>
 								</ShareListItem>
 							{/each}
 						</div>
@@ -1077,7 +1070,7 @@
 		<p class="text-gray-600 mb-4">{tr('giftCards.notFound')}</p>
 		<button
 			type="button"
-			onclick={() => goto('/gift-cards')}
+			onclick={() => goto(resolve('/gift-cards'))}
 			class="btn btn-primary"
 		>
 			{tr('giftCards.backToList')}

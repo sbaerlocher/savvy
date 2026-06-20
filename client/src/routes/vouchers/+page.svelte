@@ -21,7 +21,9 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { categoryColors } from '$lib/utils/category-colors';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
 
 	const pageLogger = logger.child('VouchersPage');
@@ -33,7 +35,6 @@
 
 	let vouchers = $state<VoucherDTO[]>([]);
 	let isLoading = $state(true);
-	let isLoadingMore = $state(false); // Progressive background loading indicator
 	let searchInput = $state(''); // User input (immediate)
 	let search = $state(''); // Debounced search value (used for filtering)
 	let sortBy = $state('name-asc');
@@ -45,7 +46,7 @@
 
 	// Batch selection state
 	let selectMode = $state(false);
-	let selectedIds = $state<Set<string>>(new Set());
+	let selectedIds = new SvelteSet<string>();
 	let batchAction = $state<'delete' | 'share' | 'transfer'>('delete');
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
@@ -56,28 +57,29 @@
 	function toggleSelectMode() {
 		selectMode = !selectMode;
 		if (!selectMode) {
-			selectedIds = new Set();
+			selectedIds.clear();
 		} else {
 			showFilterMenu = false;
 		}
 	}
 
 	function toggleSelection(id: string) {
-		const next = new Set(selectedIds);
-		if (next.has(id)) {
-			next.delete(id);
+		if (selectedIds.has(id)) {
+			selectedIds.delete(id);
 		} else {
-			next.add(id);
+			selectedIds.add(id);
 		}
-		selectedIds = next;
 	}
 
 	function selectAll() {
-		selectedIds = new Set(filteredVouchers.map((v) => v.id));
+		selectedIds.clear();
+		for (const v of filteredVouchers) {
+			selectedIds.add(v.id);
+		}
 	}
 
 	function deselectAll() {
-		selectedIds = new Set();
+		selectedIds.clear();
 	}
 
 	function openBatchModal(action: 'delete' | 'share' | 'transfer') {
@@ -137,7 +139,7 @@
 
 			showBatchModal = false;
 			selectMode = false;
-			selectedIds = new Set();
+			selectedIds.clear();
 			await loadVouchers();
 		} catch (err) {
 			const msg =
@@ -285,8 +287,6 @@
 					`[Progressive Loading] Loading ${totalPages - 1} more pages in background`
 				);
 
-				isLoadingMore = true;
-
 				// Load remaining pages in background (100 items per page)
 				for (let page = 2; page <= totalPages; page++) {
 					try {
@@ -305,7 +305,6 @@
 					}
 				}
 
-				isLoadingMore = false;
 				pageLogger.info(
 					`[Progressive Loading] Complete. Total vouchers: ${vouchers.length}`
 				);
@@ -337,7 +336,8 @@
 		value: unknown
 	): value is (typeof VALID_SORT_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_SORT_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_SORT_VALUES.includes(value as (typeof VALID_SORT_VALUES)[number])
 		);
 	}
 
@@ -345,7 +345,8 @@
 		value: unknown
 	): value is (typeof VALID_OWNER_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_OWNER_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_OWNER_VALUES.includes(value as (typeof VALID_OWNER_VALUES)[number])
 		);
 	}
 
@@ -353,7 +354,10 @@
 		value: unknown
 	): value is (typeof VALID_STATUS_VALUES)[number] {
 		return (
-			typeof value === 'string' && VALID_STATUS_VALUES.includes(value as any)
+			typeof value === 'string' &&
+			VALID_STATUS_VALUES.includes(
+				value as (typeof VALID_STATUS_VALUES)[number]
+			)
 		);
 	}
 
@@ -417,17 +421,6 @@
 			pageLogger.error('Failed to save filters', { error: e });
 		}
 	});
-
-	async function toggleFavorite(voucherId: string) {
-		try {
-			const response = await vouchersApi.toggleFavorite(voucherId);
-			vouchers = vouchers.map((v) =>
-				v.id === voucherId ? { ...v, is_favorite: response.is_favorite } : v
-			);
-		} catch (err) {
-			toastStore.error(tr('common.favoriteError'));
-		}
-	}
 
 	function getStatusBadge(status: string): { class: string; text: string } {
 		switch (status) {
@@ -579,7 +572,7 @@
 
 				<!-- New Voucher Button -->
 				<a
-					href="/vouchers/new"
+					href={resolve('/vouchers/new')}
 					data-testid="new-voucher-btn-desktop"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -668,7 +661,7 @@
 
 				<!-- New Voucher Button (Mobile) -->
 				<a
-					href="/vouchers/new"
+					href={resolve('/vouchers/new')}
 					data-testid="new-voucher-btn-mobile"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -701,7 +694,7 @@
 	{:else if !isLoading}
 		<div class="inline-block mb-6">
 			<a
-				href="/vouchers/new"
+				href={resolve('/vouchers/new')}
 				data-testid="new-voucher-btn-header"
 				onclick={(e) => {
 					if (isOffline) e.preventDefault();
@@ -739,7 +732,7 @@
 			<p class="text-gray-600 text-lg mb-4">{tr('vouchers.noVouchers')}</p>
 			<div class="inline-block">
 				<a
-					href="/vouchers/new"
+					href={resolve('/vouchers/new')}
 					data-testid="new-voucher-btn-empty"
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
@@ -821,7 +814,7 @@
 								if (selectMode) {
 									toggleSelection(voucher.id);
 								} else {
-									goto(`/vouchers/${voucher.id}`);
+									goto(resolve(`/vouchers/${voucher.id}`));
 								}
 							}}
 							onkeydown={(e) => {
@@ -830,7 +823,7 @@
 									if (selectMode) {
 										toggleSelection(voucher.id);
 									} else {
-										goto(`/vouchers/${voucher.id}`);
+										goto(resolve(`/vouchers/${voucher.id}`));
 									}
 								}
 							}}
@@ -1038,7 +1031,7 @@
 									class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
 								>
 									<option value="all">{tr('vouchers.allMerchants')}</option>
-									{#each uniqueMerchants() as merchant}
+									{#each uniqueMerchants() as merchant (merchant?.id)}
 										{#if merchant}
 											<option value={merchant.id}>{merchant.name}</option>
 										{/if}
@@ -1289,7 +1282,7 @@
 						class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
 					>
 						<option value="all">{tr('vouchers.allMerchants')}</option>
-						{#each uniqueMerchants() as merchant}
+						{#each uniqueMerchants() as merchant (merchant?.id)}
 							{#if merchant}
 								<option value={merchant.id}>{merchant.name}</option>
 							{/if}

@@ -1,4 +1,4 @@
-import { getCSRFToken, ApiError } from './client';
+import { ApiError } from './client';
 
 export const exportApi = {
 	async download(): Promise<{ blob: Blob; filename: string }> {

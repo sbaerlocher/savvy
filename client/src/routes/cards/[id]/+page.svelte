@@ -2,6 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
@@ -17,7 +18,6 @@
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
 
 	import type { CardDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
-	import { detectBarcodeType } from '$lib/utils/barcode';
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
@@ -56,9 +56,6 @@
 	let editStatus = $state('active');
 	let editNotes = $state('');
 
-	// Scanner state
-	let scannerOpen = $state(false);
-
 	// Modal state
 	let showDeleteModal = $state(false);
 	let showDeleteShareModal = $state(false);
@@ -96,12 +93,12 @@
 					) {
 						await offlineDB.deleteCard(cardId);
 						toastStore.error(tr('cards.loadError'));
-						goto('/cards');
+						goto(resolve('/cards'));
 						return;
 					}
 					if (!cached) {
 						toastStore.error(tr('cards.loadError'));
-						goto('/cards');
+						goto(resolve('/cards'));
 						return;
 					}
 					// Transient error with cached data available - show warning, don't redirect
@@ -109,11 +106,11 @@
 				}
 			} else if (!cached) {
 				toastStore.error(tr('cards.loadError'));
-				goto('/cards');
+				goto(resolve('/cards'));
 			}
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('cards.loadError'));
-			goto('/cards');
+			goto(resolve('/cards'));
 		} finally {
 			isLoading = false;
 			isRefreshing = false;
@@ -193,9 +190,11 @@
 
 			// Wait for DOM to update before completing
 			await tick();
-		} catch (err: any) {
+		} catch (err: unknown) {
 			pageLogger.error('Save error:', err);
-			toastStore.error(err.message || tr('cards.updateError'));
+			toastStore.error(
+				err instanceof Error ? err.message : tr('cards.updateError')
+			);
 		}
 	}
 
@@ -209,22 +208,6 @@
 		}
 	}
 
-	function handleScan(event: { barcode: string; format?: string }) {
-		editCardNumber = event.barcode;
-		// Use detected format from scanner if available, otherwise fallback to detectBarcodeType
-		editBarcodeType = event.format || detectBarcodeType(event.barcode);
-		scannerOpen = false;
-		toastStore.success(tr('common.scanSuccess'));
-	}
-
-	function handleCardNumberInput(event: Event) {
-		const input = event.target as HTMLInputElement;
-		editCardNumber = input.value;
-		if (editCardNumber.trim()) {
-			editBarcodeType = detectBarcodeType(editCardNumber);
-		}
-	}
-
 	function promptDelete() {
 		showDeleteModal = true;
 	}
@@ -235,7 +218,7 @@
 			toastStore.success(tr('cards.deleteSuccess'));
 			// Force full page reload to refresh the list (SPA navigation caches data)
 			window.location.href = '/cards';
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('cards.deleteError'));
 		}
 	}
@@ -252,7 +235,7 @@
 			// Update favorite state directly from POST response
 			// Avoids stale data from Service Worker cached GET responses
 			card = { ...card, is_favorite: response.is_favorite };
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('common.favoriteError'));
 		} finally {
 			isTogglingFavorite = false;
@@ -272,8 +255,10 @@
 			canEdit = false;
 			canDelete = false;
 			showShareForm = false;
-		} catch (err: any) {
-			toastStore.error(err.message || tr('cards.sharing.shareError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('cards.sharing.shareError')
+			);
 		}
 	}
 
@@ -298,8 +283,10 @@
 			shares = response.shares || [];
 			editingShareId = null;
 			toastStore.success(tr('cards.sharing.updateSuccess'));
-		} catch (err: any) {
-			toastStore.error(err.message || tr('cards.sharing.updateError'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('cards.sharing.updateError')
+			);
 		}
 	}
 
@@ -315,7 +302,7 @@
 			toastStore.success(tr('cards.sharing.removeSuccess'));
 			showDeleteShareModal = false;
 			await loadShares();
-		} catch (err) {
+		} catch {
 			toastStore.error(tr('cards.sharing.removeError'));
 		} finally {
 			shareToDelete = null;
@@ -335,8 +322,10 @@
 			await offlineDB.deleteCard(cardId);
 			// Force full page reload (user lost access after transfer)
 			window.location.href = '/cards';
-		} catch (err: any) {
-			toastStore.error(err.message || tr('cards.transfer.error'));
+		} catch (err: unknown) {
+			toastStore.error(
+				err instanceof Error ? err.message : tr('cards.transfer.error')
+			);
 		}
 	}
 
@@ -377,7 +366,7 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href="/cards" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/cards')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
@@ -416,33 +405,31 @@
 								ontoggleFavorite={toggleFavorite}
 								onstartEdit={startEdit}
 							>
-								{#snippet children()}
-									{@const c = card!}
-									<div class="flex items-baseline gap-2 flex-wrap mb-1">
-										<h1
-											class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
-										>
-											{#if c.merchant}
-												{c.merchant.name}
-											{:else}
-												{tr('common.card')}
-											{/if}
-											{#if c.program}
-												<span
-													class="text-sm sm:text-base md:text-lg font-normal text-gray-500 ml-1"
-													>{c.program}</span
-												>
-											{/if}
-										</h1>
-										{#if c.owner && c.owner.id !== $authStore.user?.id}
-											<span class="text-xs text-gray-400">
-												{tr('cards.sharedBy', {
-													name: c.owner.first_name || c.owner.email
-												})}
-											</span>
+								{@const c = card!}
+								<div class="flex items-baseline gap-2 flex-wrap mb-1">
+									<h1
+										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+									>
+										{#if c.merchant}
+											{c.merchant.name}
+										{:else}
+											{tr('common.card')}
 										{/if}
-									</div>
-								{/snippet}
+										{#if c.program}
+											<span
+												class="text-sm sm:text-base md:text-lg font-normal text-gray-500 ml-1"
+												>{c.program}</span
+											>
+										{/if}
+									</h1>
+									{#if c.owner && c.owner.id !== $authStore.user?.id}
+										<span class="text-xs text-gray-400">
+											{tr('cards.sharedBy', {
+												name: c.owner.first_name || c.owner.email
+											})}
+										</span>
+									{/if}
+								</div>
 							</ResourceHeader>
 
 							<!-- Duplicate Warning -->
@@ -450,7 +437,7 @@
 								<DuplicateWarningBanner
 									warning={card.duplicate_warning}
 									resourceType="card"
-									onNavigate={(id) => goto(`/cards/${id}`)}
+									onNavigate={(id) => goto(resolve(`/cards/${id}`))}
 								/>
 							{/if}
 						</div>
@@ -644,7 +631,7 @@
 
 					{#if shares.length > 0}
 						<div class="space-y-3">
-							{#each shares as share}
+							{#each shares as share (share.shared_with_user.id)}
 								<ShareListItem
 									{share}
 									isEditing={editingShareId === share.shared_with_user.id}
@@ -654,16 +641,14 @@
 									oncancel={cancelEditShare}
 									ondelete={() => promptDeleteShare(share.shared_with_user.id)}
 								>
-									{#snippet children()}
-										<SharePermissions
-											bind:canEdit={editShareCanEdit}
-											bind:canDelete={editShareCanDelete}
-											labelEdit={tr('cards.sharing.canEdit')}
-											labelEditDesc={tr('cards.sharing.canEditDesc')}
-											labelDelete={tr('cards.sharing.canDelete')}
-											labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
-										/>
-									{/snippet}
+									<SharePermissions
+										bind:canEdit={editShareCanEdit}
+										bind:canDelete={editShareCanDelete}
+										labelEdit={tr('cards.sharing.canEdit')}
+										labelEditDesc={tr('cards.sharing.canEditDesc')}
+										labelDelete={tr('cards.sharing.canDelete')}
+										labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+									/>
 								</ShareListItem>
 							{/each}
 						</div>

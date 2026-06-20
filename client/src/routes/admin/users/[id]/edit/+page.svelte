@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { adminApi } from '$lib/api';
 	import { authStore } from '$lib/stores/auth';
 	import { toastStore } from '$lib/stores/toast';
@@ -41,7 +42,7 @@
 		try {
 			if (!userId) {
 				toastStore.error($t('admin.users.loadError'));
-				goto('/admin/users');
+				goto(resolve('/admin/users'));
 				return;
 			}
 			const response = await adminApi.getUser(userId);
@@ -50,9 +51,9 @@
 			firstName = user.first_name;
 			lastName = user.last_name;
 			role = user.role;
-		} catch (err) {
+		} catch {
 			toastStore.error($t('admin.users.loadError'));
-			goto('/admin/users');
+			goto(resolve('/admin/users'));
 		} finally {
 			isLoadingUser = false;
 		}
@@ -78,16 +79,18 @@
 				...(isOAuthUser ? {} : { role })
 			});
 			toastStore.success($t('admin.users.updateSuccess'));
-			goto('/admin/users');
-		} catch (err: any) {
-			toastStore.error(err.message || $t('admin.users.updateError'));
+			goto(resolve('/admin/users'));
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : $t('admin.users.updateError');
+			toastStore.error(message);
 		} finally {
 			isLoading = false;
 		}
 	}
 
 	function handleCancel() {
-		goto('/admin/users');
+		goto(resolve('/admin/users'));
 	}
 
 	function promptImpersonate() {
@@ -101,8 +104,12 @@
 			await authStore.startImpersonation(user.id);
 			// Redirect happens in authStore
 			showImpersonateModal = false;
-		} catch (err: any) {
-			toastStore.error(err.message || $t('admin.impersonate_info.failed'));
+		} catch (err) {
+			const message =
+				err instanceof Error
+					? err.message
+					: $t('admin.impersonate_info.failed');
+			toastStore.error(message);
 			showImpersonateModal = false;
 		}
 	}

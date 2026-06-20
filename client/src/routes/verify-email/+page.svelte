@@ -2,9 +2,11 @@
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { authApi } from '$lib/api';
+	import { ApiError } from '$lib/api/client';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
@@ -35,9 +37,9 @@
 			if ($authStore.isAuthenticated) {
 				await authStore.checkAuth();
 			}
-		} catch (error: any) {
+		} catch (error) {
 			status = 'error';
-			errorCode = error?.code || '';
+			errorCode = error instanceof ApiError ? error.error || '' : '';
 
 			if (errorCode === 'token_expired') {
 				errorMessage = tr('auth.verification.tokenExpired');
@@ -51,7 +53,7 @@
 
 	async function handleResend() {
 		if (!$authStore.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 
@@ -110,11 +112,11 @@
 					</p>
 
 					{#if $authStore.isAuthenticated}
-						<a href="/dashboard" class="btn btn-primary w-full">
+						<a href={resolve('/dashboard')} class="btn btn-primary w-full">
 							{tr('auth.verification.goToDashboard')}
 						</a>
 					{:else}
-						<a href="/login" class="btn btn-primary w-full">
+						<a href={resolve('/login')} class="btn btn-primary w-full">
 							{tr('auth.verification.goToLogin')}
 						</a>
 					{/if}
@@ -164,11 +166,11 @@
 						{/if}
 
 						{#if $authStore.isAuthenticated}
-							<a href="/dashboard" class="btn btn-ghost w-full">
+							<a href={resolve('/dashboard')} class="btn btn-ghost w-full">
 								{tr('auth.verification.goToDashboard')}
 							</a>
 						{:else}
-							<a href="/login" class="btn btn-ghost w-full">
+							<a href={resolve('/login')} class="btn btn-ghost w-full">
 								{tr('auth.verification.goToLogin')}
 							</a>
 						{/if}
@@ -178,7 +180,7 @@
 				<!-- idle state - no token provided -->
 				<div class="text-center py-8">
 					<p class="text-gray-600 mb-6">{tr('auth.verification.checkEmail')}</p>
-					<a href="/login" class="btn btn-primary w-full">
+					<a href={resolve('/login')} class="btn btn-primary w-full">
 						{tr('auth.verification.goToLogin')}
 					</a>
 				</div>

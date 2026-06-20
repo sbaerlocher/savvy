@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { profileApi, type ProfileDTO } from '$lib/api';
 	import { notificationsApi } from '$lib/api/notifications';
 	import NotificationsSection from '$lib/components/settings/NotificationsSection.svelte';
@@ -28,7 +29,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 		await Promise.all([loadProfile(), loadNotifications()]);
@@ -106,16 +107,23 @@
 		return $t('notifications.newNotification');
 	}
 
-	function getNotificationLink(notification: NotificationDTO): string {
-		const type = notification.resource_type.replace('_', '-');
-		return `/${type}s/${notification.resource_id}`;
+	function getNotificationLink(notification: NotificationDTO) {
+		const id = notification.resource_id;
+		switch (notification.resource_type) {
+			case 'voucher':
+				return `/vouchers/${id}` as const;
+			case 'gift_card':
+				return `/gift-cards/${id}` as const;
+			default:
+				return `/cards/${id}` as const;
+		}
 	}
 
 	async function handleNotificationClick(notification: NotificationDTO) {
 		if (!notification.is_read) {
 			await handleMarkAsRead(notification.id);
 		}
-		goto(getNotificationLink(notification));
+		goto(resolve(getNotificationLink(notification)));
 	}
 
 	function formatTimeAgo(dateString: string): string {

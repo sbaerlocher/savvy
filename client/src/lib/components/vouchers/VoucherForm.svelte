@@ -79,6 +79,9 @@
 	}
 
 	function setExpiryOffset(days: number) {
+		// Transient local, not reactive state — svelte/prefer-svelte-reactivity
+		// is a false positive here (per PR review).
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const date = new Date();
 		date.setDate(date.getDate() + days);
 		validUntil = date.toISOString().split('T')[0];
@@ -249,7 +252,7 @@
 						class="w-28 input"
 						style="font-size: 16px;"
 					>
-						{#each SUPPORTED_CURRENCIES as c}
+						{#each SUPPORTED_CURRENCIES as c (c)}
 							<option value={c}>{c}</option>
 						{/each}
 					</select>
@@ -293,7 +296,7 @@
 					class="w-28 input"
 					style="font-size: 16px;"
 				>
-					{#each SUPPORTED_CURRENCIES as c}
+					{#each SUPPORTED_CURRENCIES as c (c)}
 						<option value={c}>{c}</option>
 					{/each}
 				</select>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
@@ -7,13 +8,13 @@
 		// Legacy redirect: old tab URLs → /profile
 		const urlTab = $page.url.searchParams.get('tab');
 		if (urlTab === 'profile') {
-			goto('/profile', { replaceState: true });
+			goto(resolve('/profile'), { replaceState: true });
 			return;
 		}
 		if (urlTab === 'security') {
-			goto('/security', { replaceState: true });
+			goto(resolve('/security'), { replaceState: true });
 			return;
 		}
-		goto('/notifications', { replaceState: true });
+		goto(resolve('/notifications'), { replaceState: true });
 	});
 </script>

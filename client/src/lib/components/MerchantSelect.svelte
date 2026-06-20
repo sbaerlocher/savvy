@@ -93,7 +93,7 @@
 		}
 	}
 
-	function onBlur(e: FocusEvent) {
+	function onBlur(_e: FocusEvent) {
 		// Delay so mousedown on list items fires first
 		setTimeout(() => {
 			if (containerEl && !containerEl.contains(document.activeElement)) {
@@ -171,7 +171,7 @@
 					{$t('merchants.noResults')}
 				</li>
 			{:else}
-				{#each filtered as merchant, i}
+				{#each filtered as merchant, i (merchant.id)}
 					<li
 						id="{id}-option-{i}"
 						role="option"

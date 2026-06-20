@@ -1,6 +1,5 @@
 import { api } from './client';
 import type {
-	NotificationDTO,
 	NotificationListResponse,
 	NotificationUnreadCountResponse
 } from '$lib/types/api';

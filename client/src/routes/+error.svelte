@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { t } from '$lib/stores/i18n';
 
 	const isOffline = $derived(browser && !navigator.onLine);
@@ -129,7 +130,7 @@
 					</button>
 				{/if}
 				<a
-					href="/dashboard"
+					href={resolve('/dashboard')}
 					class="block w-full text-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
 				>
 					{$t('errors.toDashboard')}

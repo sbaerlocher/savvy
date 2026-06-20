@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { t } from '$lib/stores/i18n';
 	import { notificationStore } from '$lib/stores/notifications';
 	import type { NotificationDTO } from '$lib/types/api';
@@ -62,17 +63,26 @@
 		return $t('notifications.newNotification');
 	}
 
-	function getNotificationLink(notification: NotificationDTO): string {
-		const type = notification.resource_type.replace('_', '-');
-		return `/${type}s/${notification.resource_id}`;
-	}
-
 	async function handleNotificationClick(notification: NotificationDTO) {
 		if (!notification.is_read) {
 			await notificationStore.markAsRead(notification.id);
 		}
 		notificationStore.closePanel();
-		goto(getNotificationLink(notification));
+
+		const params = { id: notification.resource_id };
+		switch (notification.resource_type) {
+			case 'card':
+				goto(resolve('/cards/[id]', params));
+				break;
+			case 'voucher':
+				goto(resolve('/vouchers/[id]', params));
+				break;
+			case 'gift_card':
+				goto(resolve('/gift-cards/[id]', params));
+				break;
+			default:
+				goto(resolve('/dashboard'));
+		}
 	}
 
 	function formatTimeAgo(dateString: string): string {
@@ -175,7 +185,7 @@
 					class="text-cyan-600 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-50 transition-colors"
 					onclick={() => {
 						notificationStore.closePanel();
-						goto('/notifications');
+						goto(resolve('/notifications'));
 					}}
 					title={$t('notifications.viewAll')}
 					aria-label={$t('notifications.viewAll')}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
 	import { cardsApi } from '$lib/api';
@@ -7,7 +8,6 @@
 	import type { DuplicateWarning } from '$lib/types/api';
 	import { extractDuplicate } from '$lib/utils/api-errors';
 
-	import { logger } from '$lib/utils/logger';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
@@ -16,7 +16,6 @@
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const pageLogger = logger.child('CardsNewPage');
 
 	let cardNumber = $state('');
 	let merchantId = $state('');
@@ -48,12 +47,14 @@
 			toastStore.success(tr('cards.createSuccess'));
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/cards/${response.card.id}`;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			const duplicate = extractDuplicate(err);
 			if (duplicate) {
 				duplicateWarning = duplicate;
 			} else {
-				toastStore.error(err.message || tr('cards.createError'));
+				const message =
+					err instanceof Error ? err.message : tr('cards.createError');
+				toastStore.error(message || tr('cards.createError'));
 			}
 		} finally {
 			isLoading = false;
@@ -61,7 +62,7 @@
 	}
 
 	function handleCancel() {
-		goto('/cards');
+		goto(resolve('/cards'));
 	}
 </script>
 
@@ -70,7 +71,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href="/cards" class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/cards')} class="text-cyan-600 hover:text-cyan-700"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -85,7 +86,7 @@
 			<DuplicateWarningBanner
 				warning={duplicateWarning}
 				resourceType="card"
-				onNavigate={(id) => goto(`/cards/${id}`)}
+				onNavigate={(id) => goto(resolve(`/cards/${id}`))}
 			/>
 			<CardForm
 				bind:cardNumber

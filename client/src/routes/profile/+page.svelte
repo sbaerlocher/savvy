@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { profileApi, type ProfileDTO } from '$lib/api';
 	import ProfileSection from '$lib/components/settings/ProfileSection.svelte';
 	import SecuritySection from '$lib/components/settings/SecuritySection.svelte';
@@ -20,7 +21,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 

@@ -1,5 +1,7 @@
 <script lang="ts">
+	/* global __APP_VERSION__ -- compile-time constant injected by Vite `define` (see vite.config.ts, typed in src/app.d.ts) */
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import OfflineIndicator from '$lib/components/OfflineIndicator.svelte';
 	import Toast from '$lib/components/Toast.svelte';
@@ -9,7 +11,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { pwaStore } from '$lib/stores/pwa';
 	import { toastStore } from '$lib/stores/toast';
-	import { showOfflineBanner, offlineStore } from '$lib/stores/offline';
+	import { showOfflineBanner } from '$lib/stores/offline';
 	import { browser } from '$app/environment';
 	import { onMount, type Snippet } from 'svelte';
 	import { logger } from '$lib/utils/logger';
@@ -26,8 +28,6 @@
 			!$page.url.pathname.startsWith('/login') &&
 			!$page.url.pathname.startsWith('/register')
 	);
-
-	const isOnline = $derived($offlineStore.isOnline);
 
 	// Track preload state to prevent duplicate runs
 	let preloadStarted = false;
@@ -163,9 +163,13 @@
 		try {
 			await authStore.stopImpersonation();
 			// Redirect happens in authStore.stopImpersonation
-		} catch (err: any) {
+		} catch (err: unknown) {
 			layoutLogger.error('Failed to stop impersonation', { error: err });
-			toastStore.error(err.message || $t('admin.impersonate_info.stop_failed'));
+			const message =
+				err instanceof Error
+					? err.message
+					: $t('admin.impersonate_info.stop_failed');
+			toastStore.error(message || $t('admin.impersonate_info.stop_failed'));
 		}
 	}
 </script>
@@ -184,7 +188,7 @@
 			<div class="flex justify-between h-16">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<a href="/dashboard" class="flex items-center space-x-3">
+						<a href={resolve('/dashboard')} class="flex items-center space-x-3">
 							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
 							<span class="hidden sm:inline text-2xl font-bold text-cyan-600"
 								>{$t('common.appName')}</span
@@ -195,7 +199,7 @@
 					<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
 						{#if $configStore.features.cards}
 							<a
-								href="/cards"
+								href={resolve('/cards')}
 								data-testid="nav-cards-desktop"
 								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
 								class:border-cyan-600={$page.url.pathname.startsWith('/cards')}
@@ -206,7 +210,7 @@
 						{/if}
 						{#if $configStore.features.vouchers}
 							<a
-								href="/vouchers"
+								href={resolve('/vouchers')}
 								data-testid="nav-vouchers-desktop"
 								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
 								class:border-cyan-600={$page.url.pathname.startsWith(
@@ -219,7 +223,7 @@
 						{/if}
 						{#if $configStore.features.gift_cards}
 							<a
-								href="/gift-cards"
+								href={resolve('/gift-cards')}
 								data-testid="nav-gift-cards-desktop"
 								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
 								class:border-cyan-600={$page.url.pathname.startsWith(
@@ -233,7 +237,7 @@
 							</a>
 						{/if}
 						<a
-							href="/merchants"
+							href={resolve('/merchants')}
 							data-testid="nav-merchants-desktop"
 							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
 							class:border-cyan-600={$page.url.pathname.startsWith(
@@ -371,7 +375,7 @@
 										</div>
 
 										<a
-											href="/admin/users"
+											href={resolve('/admin/users')}
 											onclick={() => (showAdminMenu = false)}
 											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 										>
@@ -392,7 +396,7 @@
 										</a>
 
 										<a
-											href="/admin/audit-log"
+											href={resolve('/admin/audit-log')}
 											onclick={() => (showAdminMenu = false)}
 											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 										>
@@ -413,7 +417,7 @@
 										</a>
 
 										<a
-											href="/admin/system-health"
+											href={resolve('/admin/system-health')}
 											onclick={() => (showAdminMenu = false)}
 											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 										>
@@ -435,7 +439,7 @@
 
 										{#if $configStore.is_development}
 											<a
-												href="/admin/email-templates"
+												href={resolve('/admin/email-templates')}
 												onclick={() => (showAdminMenu = false)}
 												class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 											>
@@ -528,7 +532,7 @@
 									{/if}
 
 									<a
-										href="/profile"
+										href={resolve('/profile')}
 										onclick={() => (showUserMenu = false)}
 										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 									>
@@ -549,7 +553,7 @@
 									</a>
 
 									<a
-										href="/security"
+										href={resolve('/security')}
 										onclick={() => (showUserMenu = false)}
 										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 									>
@@ -570,7 +574,7 @@
 									</a>
 
 									<a
-										href="/notifications"
+										href={resolve('/notifications')}
 										onclick={() => (showUserMenu = false)}
 										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
 									>
@@ -669,7 +673,7 @@
 				<ul class="space-y-2">
 					<li>
 						<a
-							href="/dashboard"
+							href={resolve('/dashboard')}
 							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 						>
 							{$t('nav.dashboard')}
@@ -678,7 +682,7 @@
 					{#if $configStore.features.cards}
 						<li>
 							<a
-								href="/cards"
+								href={resolve('/cards')}
 								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 							>
 								{$t('nav.cards')}
@@ -688,7 +692,7 @@
 					{#if $configStore.features.vouchers}
 						<li>
 							<a
-								href="/vouchers"
+								href={resolve('/vouchers')}
 								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 							>
 								{$t('nav.vouchers')}
@@ -698,7 +702,7 @@
 					{#if $configStore.features.gift_cards}
 						<li>
 							<a
-								href="/gift-cards"
+								href={resolve('/gift-cards')}
 								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 							>
 								{$t('nav.giftCards')}
@@ -707,7 +711,7 @@
 					{/if}
 					<li>
 						<a
-							href="/merchants"
+							href={resolve('/merchants')}
 							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 						>
 							{$t('nav.merchants')}

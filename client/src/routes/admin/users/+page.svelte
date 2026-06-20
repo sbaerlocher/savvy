@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
@@ -10,11 +10,8 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import type { AdminUserDTO } from '$lib/types/api';
-	import type { LayoutData } from '../../$types';
 
 	const pageLogger = logger.child('AdminPage');
-
-	let { data }: { data: LayoutData } = $props();
 
 	// State
 	let users = $state<AdminUserDTO[]>([]);
@@ -63,7 +60,7 @@
 			const response = await adminApi.listUsers();
 			users = response.users;
 			applyFilters();
-		} catch (err) {
+		} catch {
 			toastStore.error($t('admin.users.loadError'));
 		} finally {
 			isLoading = false;
@@ -149,17 +146,18 @@
 			await adminApi.updateUser(userId, { role: newRole });
 			toastStore.success($t('admin.users.roleUpdateSuccess'));
 			await loadUsers();
-		} catch (err) {
+		} catch {
 			toastStore.error($t('admin.users.roleUpdateError'));
 		}
 	}
 
-	async function handleImpersonate(userId: string, userEmail: string) {
+	async function handleImpersonate(userId: string, _userEmail: string) {
 		try {
 			await authStore.startImpersonation(userId);
 			// Redirect happens in authStore
-		} catch (err: any) {
-			toastStore.error(err.message || $t('admin.impersonate_info.failed'));
+		} catch (err) {
+			const message = err instanceof Error ? err.message : '';
+			toastStore.error(message || $t('admin.impersonate_info.failed'));
 		}
 	}
 
@@ -231,7 +229,7 @@
 			<!-- Create User Button -->
 			{#if localLoginEnabled}
 				<a
-					href="/admin/users/new"
+					href={resolve('/admin/users/new')}
 					class="btn btn-primary whitespace-nowrap {isOffline
 						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 						: ''}"
@@ -277,7 +275,7 @@
 			<!-- Create User Button (Mobile) -->
 			{#if localLoginEnabled}
 				<a
-					href="/admin/users/new"
+					href={resolve('/admin/users/new')}
 					class="btn btn-sm btn-primary flex-1 text-center {isOffline
 						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 						: ''}"
@@ -455,7 +453,7 @@
 													>
 														{#if !isOAuth}
 															<a
-																href="/admin/users/{user.id}/edit"
+																href={resolve(`/admin/users/${user.id}/edit`)}
 																class="btn btn-sm btn-primary"
 															>
 																{$t('common.edit')}

@@ -2,9 +2,11 @@
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { authApi } from '$lib/api';
+	import { ApiError } from '$lib/api/client';
 	import { t } from '$lib/stores/i18n';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
 	const tr = (key: string) => get(t)(key);
@@ -35,9 +37,9 @@
 				await authApi.unsubscribeNotifications(token);
 			}
 			status = 'success';
-		} catch (error: any) {
+		} catch (error: unknown) {
 			status = 'error';
-			const code = error?.code || '';
+			const code = error instanceof ApiError ? error.error || '' : '';
 
 			if (code === 'token_expired') {
 				errorMessage = tr('unsubscribe.tokenExpired');
@@ -98,11 +100,14 @@
 							</p>
 
 							{#if $authStore.isAuthenticated}
-								<a href="/notifications" class="btn btn-primary w-full">
+								<a
+									href={resolve('/notifications')}
+									class="btn btn-primary w-full"
+								>
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href="/login" class="btn btn-primary w-full">
+								<a href={resolve('/login')} class="btn btn-primary w-full">
 									{tr('unsubscribe.goToLogin')}
 								</a>
 							{/if}
@@ -132,11 +137,14 @@
 							<p class="text-gray-600 mb-6">{errorMessage}</p>
 
 							{#if $authStore.isAuthenticated}
-								<a href="/notifications" class="btn btn-ghost w-full">
+								<a
+									href={resolve('/notifications')}
+									class="btn btn-ghost w-full"
+								>
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href="/login" class="btn btn-ghost w-full">
+								<a href={resolve('/login')} class="btn btn-ghost w-full">
 									{tr('unsubscribe.goToLogin')}
 								</a>
 							{/if}
@@ -145,7 +153,7 @@
 						<!-- idle state - no token provided -->
 						<div class="text-center py-8">
 							<p class="text-gray-600 mb-6">{tr('unsubscribe.invalidToken')}</p>
-							<a href="/login" class="btn btn-primary w-full">
+							<a href={resolve('/login')} class="btn btn-primary w-full">
 								{tr('unsubscribe.goToLogin')}
 							</a>
 						</div>

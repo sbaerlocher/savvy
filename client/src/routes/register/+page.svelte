@@ -4,6 +4,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
@@ -24,7 +25,7 @@
 	// Redirect if already logged in or registration disabled
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto('/dashboard');
+			goto(resolve('/dashboard'));
 			return;
 		}
 
@@ -36,17 +37,17 @@
 				const registrationEnabled = config.registration_enabled ?? false;
 
 				if (!registrationEnabled) {
-					goto('/login');
+					goto(resolve('/login'));
 					return;
 				}
 			} else {
 				// Config endpoint failed - redirect to login for safety
-				goto('/login');
+				goto(resolve('/login'));
 				return;
 			}
 		} catch (error) {
 			pageLogger.error('Failed to load config', { error });
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		} finally {
 			configLoaded = true;
@@ -65,8 +66,8 @@
 				last_name: lastName || undefined
 			});
 			toastStore.success(tr('auth.register.success'));
-			goto('/dashboard');
-		} catch (error) {
+			goto(resolve('/dashboard'));
+		} catch {
 			toastStore.error($authStore.error || tr('auth.register.error'));
 		} finally {
 			isLoading = false;
@@ -223,7 +224,7 @@
 
 							<div class="text-center pt-4">
 								<a
-									href="/login"
+									href={resolve('/login')}
 									class="font-medium text-cyan-600 hover:text-cyan-500"
 								>
 									{tr('auth.register.hasAccount')}

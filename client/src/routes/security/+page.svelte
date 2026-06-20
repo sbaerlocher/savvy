@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import {
 		profileApi,
 		sessionsApi,
@@ -56,7 +57,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 			return;
 		}
 
@@ -228,7 +229,7 @@
 									{#if newPassword}
 										<div class="mt-2">
 											<div class="flex gap-1">
-												{#each [1, 2, 3, 4] as i}
+												{#each [1, 2, 3, 4] as i (i)}
 													<div
 														class="h-1 flex-1 rounded-full transition-colors {passwordStrength.score >=
 														i

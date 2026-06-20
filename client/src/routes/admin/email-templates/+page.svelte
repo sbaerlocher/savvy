@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { t } from '$lib/stores/i18n';
 	import { configStore } from '$lib/stores/config';
 	import { toastStore } from '$lib/stores/toast';
@@ -63,7 +64,7 @@
 	onMount(async () => {
 		await configStore.loaded;
 		if (!$configStore.is_development) {
-			goto('/admin/users');
+			goto(resolve('/admin/users'));
 		}
 	});
 
