@@ -910,7 +910,8 @@ export const fr: TranslationKeys = {
 			enabled: "L'authentification à deux facteurs est activée.",
 			disabled: "L'authentification à deux facteurs est désactivée.",
 			enableButton: 'Activer 2FA',
-			enrollmentDisabled: "L'enregistrement d'une nouvelle 2FA est actuellement désactivé par l'administrateur.",
+			enrollmentDisabled:
+				"L'enregistrement d'une nouvelle 2FA est actuellement désactivé par l'administrateur.",
 			disableButton: 'Désactiver 2FA',
 			setupTitle: "Configurer l'authentification à deux facteurs",
 			setupStep1:

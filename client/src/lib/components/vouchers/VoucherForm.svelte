@@ -196,8 +196,7 @@
 			bind:value={description}
 			rows="3"
 			class="input"
-			placeholder={$t('vouchers.descriptionPlaceholder')}
-		></textarea>
+			placeholder={$t('vouchers.descriptionPlaceholder')}></textarea>
 	</div>
 
 	<!-- Typ / Wert -->

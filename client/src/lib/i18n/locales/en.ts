@@ -884,7 +884,8 @@ export const en: TranslationKeys = {
 			enabled: 'Two-factor authentication is enabled.',
 			disabled: 'Two-factor authentication is disabled.',
 			enableButton: 'Enable 2FA',
-			enrollmentDisabled: 'New 2FA enrollment is currently disabled by the administrator.',
+			enrollmentDisabled:
+				'New 2FA enrollment is currently disabled by the administrator.',
 			disableButton: 'Disable 2FA',
 			setupTitle: 'Set Up Two-Factor Authentication',
 			setupStep1:
