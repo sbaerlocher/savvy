@@ -35,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unchanged (no behavior change).
 - **Repo aligned with the sbaerlocher standard (#177, #178)** - Added REVIEW.md,
   lefthook, and ESLint (407-finding first lint pass); migrated `.github/workflows/` to
-  the standard four-file layout (`pull-request.yml`, `tag.yml`, `weekly-security.yml`);
+  the standard layout (`pull-request.yml`, `tag.yml`, `weekly-security.yml`; no
+  `merge.yml` since deploys run via Fleet GitOps, not CI);
   removed a stray tracked `.ansible/` cache. No runtime behavior change.
 
 ### Fixed
