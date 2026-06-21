@@ -38,9 +38,15 @@ helm.sh/chart: {{ include "savvy.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/component: backend
 app.kubernetes.io/part-of: savvy
 {{- end }}
+{{/*
+component label intentionally omitted from common labels: per-resource
+templates set their own app.kubernetes.io/component (config, secrets,
+backend, ...). Hardcoding it here produced a duplicate map key wherever a
+resource also declared its own — invalid YAML, caught by helm-template
+rendered-manifest validation.
+*/}}
 
 {{/*
 Selector labels
