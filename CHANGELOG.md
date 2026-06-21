@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.2] - 2026-06-20
+## [1.3.2] - 2026-06-21
 
 ### Security
 
@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   migration adds a file instead of growing the monolith, which removes the guaranteed
   merge conflict on parallel branches. Migration bodies and registry order are
   unchanged (no behavior change).
+- **Repo aligned with the sbaerlocher standard (#177, #178)** - Added REVIEW.md,
+  lefthook, and ESLint (407-finding first lint pass); migrated `.github/workflows/` to
+  the standard layout (`pull-request.yml`, `tag.yml`, `weekly-security.yml`; no
+  `merge.yml` since deploys run via Fleet GitOps, not CI);
+  removed a stray tracked `.ansible/` cache. No runtime behavior change.
 
 ### Fixed
 
@@ -50,6 +55,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository transfer in all three transfer methods, so a failed ownership transfer
   still left a "transfer" audit entry. The audit write now runs only after the
   repository call succeeds for cards, vouchers, and gift cards.
+- **Duplicate `component` label in Helm manifests (#183)** - The common `savvy.labels`
+  helper hardcoded `app.kubernetes.io/component: backend`; templates that set their own
+  component (configmap, externalsecret) appended a second key, producing invalid YAML
+  (duplicate map key). Dropped `component` from the common labels and set it per resource
+  (`backend` on the Deployment, `config`/`secrets` where they belong). Surfaced by the
+  rendered-manifest kubeconform validation in ci-gitops.
 
 ### Tests
 
@@ -72,6 +83,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   asserted the HTTP response, so a white screen after the transfer (no redirect / empty
   page) would have gone unnoticed. The test now asserts the user lands back on the
   `/gift-cards` list, the list actually renders, and the transferred card is gone.
+- **Stable toast matching in E2E (#182)** - `expectToast` asserted the *first*
+  `role="status"` node, but toasts stack and linger; a lingering service-worker warning
+  toast could occupy `.first()` and fail the share-success assertion intermittently. Now
+  matches the toast that *contains* the expected message via `filter({ hasText })`,
+  fixing the flake across every spec — no app change.
 
 ## [1.3.1] - 2026-03-31
 
