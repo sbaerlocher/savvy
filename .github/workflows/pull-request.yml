@@ -19,7 +19,7 @@ permissions:
 jobs:
   api-ci:
     name: Go CI Pipeline
-    uses: sbaerlocher/.github/.github/workflows/ci-go.yml@2026-06-19
+    uses: sbaerlocher/.github/.github/workflows/ci-go.yml@2026-06-21
     with:
       # renovate: datasource=golang-version depName=golang
       go-version: "1.26"
@@ -41,7 +41,7 @@ jobs:
 
   client-ci:
     name: Client CI Pipeline
-    uses: sbaerlocher/.github/.github/workflows/ci-js.yml@2026-06-19
+    uses: sbaerlocher/.github/.github/workflows/ci-js.yml@2026-06-21
     with:
       package-manager: "npm"
       working-directory: "./client"
@@ -77,7 +77,7 @@ jobs:
 
   e2e:
     name: E2E Tests
-    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-06-19
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-06-21
     with:
       # Pinned beta: alpha.5 built a dev-layer over distroless images and
       # crashed; the beta line skips shell-less bases and renamed plugin
@@ -96,6 +96,6 @@ jobs:
 
   code-review:
     name: Claude Code Review
-    uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-06-19
+    uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-06-21
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
