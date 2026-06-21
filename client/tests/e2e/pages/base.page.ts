@@ -49,9 +49,19 @@ export class BasePage {
 	}
 
 	async expectToast(message?: string) {
-		await expect(this.toast).toBeVisible({ timeout: 5000 });
 		if (message) {
-			await expect(this.toast).toContainText(message);
+			// Toasts stack (role="status" each) and linger up to 5s. A leftover
+			// toast (e.g. the SW-registration warning) can occupy .first(), so
+			// match the toast *containing* the message instead of asserting the
+			// first one already does — filter({ hasText }) polls until it appears.
+			await expect(
+				this.page
+					.locator('[role="status"], [role="alert"], .toast')
+					.filter({ hasText: message })
+					.first()
+			).toBeVisible({ timeout: 5000 });
+		} else {
+			await expect(this.toast).toBeVisible({ timeout: 5000 });
 		}
 	}
 
