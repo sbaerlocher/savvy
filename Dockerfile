@@ -60,7 +60,7 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 # FRONTEND-DEV STAGE (Vite Dev Server with HMR)
 # ==============================================================================
-FROM node:24.16.0-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS frontend-dev
+FROM node:24.17.0-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS frontend-dev
 
 # Install wget for healthcheck
 RUN apk add --no-cache wget
@@ -90,7 +90,7 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 # ==============================================================================
 # FRONTEND BUILDER STAGE (Build SvelteKit)
 # ==============================================================================
-FROM node:24.16.0-alpine@sha256:fb71d01345f11b708a3553c66e7c74074f2d506400ea81973343d915cb64eef0 AS frontend-builder
+FROM node:24.17.0-alpine@sha256:156b55f92e98ccd5ef49578a8cea0df4679826564bad1c9d4ef04462b9f0ded6 AS frontend-builder
 
 WORKDIR /app/client
 
