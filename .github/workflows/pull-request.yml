@@ -64,7 +64,7 @@ jobs:
 
   helm-test:
     name: Helm Chart Test
-    uses: sbaerlocher/.github/.github/workflows/ci-gitops.yml@2026-06-18
+    uses: sbaerlocher/.github/.github/workflows/ci-gitops.yml@2026-06-21
     with:
       fleet-paths: "deploy"
       enable-yaml-lint: false
