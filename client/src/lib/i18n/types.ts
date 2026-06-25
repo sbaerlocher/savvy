@@ -64,6 +64,17 @@ export type TranslationKeys = {
 		scanFormatWarningEan13: string;
 		scanFormatWarningEan8: string;
 		scanFormatWarningUpca: string;
+		symbologyWarningEan13: string;
+		symbologyWarningEan8: string;
+		symbologyWarningUpca: string;
+		symbologyWarningUpce: string;
+		symbologyWarningItf14: string;
+		symbologyWarningIsbn13: string;
+		symbologyWarningIsbn10: string;
+		symbologyWarningIssn: string;
+		symbologyWarningItf: string;
+		symbologyWarningCode39: string;
+		symbologyWarningCodabar: string;
 		scanTorchUnavailable: string;
 		scanTorchOn: string;
 		scanTorchOff: string;
