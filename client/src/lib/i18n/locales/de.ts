@@ -72,6 +72,22 @@ export const de: TranslationKeys = {
 		scanFormatWarningEan13: 'EAN-13 sollte 13 Ziffern haben',
 		scanFormatWarningEan8: 'EAN-8 sollte 8 Ziffern haben',
 		scanFormatWarningUpca: 'UPC-A sollte 12 Ziffern haben',
+		symbologyWarningEan13: 'EAN-13 erfordert genau 13 Ziffern',
+		symbologyWarningEan8: 'EAN-8 erfordert genau 8 Ziffern',
+		symbologyWarningUpca: 'UPC-A erfordert genau 12 Ziffern',
+		symbologyWarningUpce: 'UPC-E erfordert 6 bis 8 Ziffern',
+		symbologyWarningItf14: 'ITF-14 erfordert genau 14 Ziffern',
+		symbologyWarningIsbn13:
+			'ISBN-13 muss mit 978 oder 979 beginnen und 13 Ziffern haben',
+		symbologyWarningIsbn10:
+			'ISBN-10 erfordert 9 Ziffern und eine Prüfziffer (0-9 oder X)',
+		symbologyWarningIssn:
+			'ISSN erfordert 8 Zeichen (7 Ziffern und eine Prüfziffer 0-9 oder X)',
+		symbologyWarningItf: 'ITF erfordert eine gerade Anzahl Ziffern',
+		symbologyWarningCode39:
+			'CODE39 erlaubt nur Ziffern, Grossbuchstaben und - . $ / + % Leerzeichen',
+		symbologyWarningCodabar:
+			'CODABAR erlaubt nur Ziffern, - $ : / . + und optionale Start/Stopp-Zeichen A-D',
 		scanTorchUnavailable: 'Taschenlampe nicht verfügbar',
 		scanTorchOn: 'Taschenlampe einschalten',
 		scanTorchOff: 'Taschenlampe ausschalten',

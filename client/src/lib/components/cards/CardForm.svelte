@@ -6,6 +6,7 @@
 
 	import type { MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+	import { checkSymbologySuitability } from '$lib/utils/barcode';
 	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
 
 	const componentLogger = logger.child('CardForm');
@@ -38,6 +39,11 @@
 
 	let merchants = $state<MerchantDTO[]>([]);
 	let scanning = $state(false);
+
+	// Warn when the entered card number cannot be encoded by the chosen symbology.
+	const symbologyWarning = $derived(
+		checkSymbologySuitability(cardNumber, barcodeType)
+	);
 
 	onMount(async () => {
 		await loadMerchants();
@@ -174,6 +180,11 @@
 			<option value="AZTEC">Aztec</option>
 			<option value="MAXICODE">MaxiCode</option>
 		</select>
+		{#if symbologyWarning}
+			<p class="mt-1 text-sm text-amber-600 dark:text-amber-400" role="alert">
+				{$t(symbologyWarning)}
+			</p>
+		{/if}
 	</div>
 
 	{#if status !== undefined}

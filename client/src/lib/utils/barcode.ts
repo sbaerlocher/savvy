@@ -57,6 +57,64 @@ export function validateBarcodeFormat(
 	return { valid: true };
 }
 
+/** Content-vs-symbology suitability for the manual barcode-type picker in the
+ *  forms. Returns an i18n warning key when the entered content cannot be
+ *  encoded by the chosen symbology, undefined when it fits (or the symbology
+ *  accepts arbitrary content, e.g. CODE128/QR). Keyed by the form's type
+ *  values (CODE128, EAN13, …), NOT the scanner's snake_case formats. */
+const SYMBOLOGY_RULES: Record<string, { test: RegExp; warningKey: string }> = {
+	// Fixed-length numeric symbologies.
+	EAN13: { test: /^\d{13}$/, warningKey: 'common.symbologyWarningEan13' },
+	EAN8: { test: /^\d{8}$/, warningKey: 'common.symbologyWarningEan8' },
+	UPCA: { test: /^\d{12}$/, warningKey: 'common.symbologyWarningUpca' },
+	UPCE: { test: /^\d{6,8}$/, warningKey: 'common.symbologyWarningUpce' },
+	ITF14: { test: /^\d{14}$/, warningKey: 'common.symbologyWarningItf14' },
+	ISBN13: {
+		test: /^(978|979)\d{10}$/,
+		warningKey: 'common.symbologyWarningIsbn13'
+	},
+	// ISBN-10: 9 digits + check digit (last may be X).
+	ISBN10: {
+		test: /^\d{9}[\dX]$/i,
+		warningKey: 'common.symbologyWarningIsbn10'
+	},
+	// ISSN: 7 digits + check digit (last may be X), optional NNNN-NNNC hyphen.
+	ISSN: {
+		test: /^\d{4}-?\d{3}[\dX]$/i,
+		warningKey: 'common.symbologyWarningIssn'
+	},
+	// Variable-length but constrained character sets.
+	// ponytail: CODE93 encodes full ASCII via shift characters → effectively
+	// arbitrary content like CODE128/QR, so it deliberately gets no rule.
+	// ITF (Interleaved 2 of 5) encodes digit PAIRS → even count required.
+	ITF: { test: /^(\d{2})+$/, warningKey: 'common.symbologyWarningItf' },
+	// CODE39 standard charset: digits, uppercase, and - . space $ / + %
+	CODE39: {
+		test: /^[0-9A-Z\-. $/+%]*$/,
+		warningKey: 'common.symbologyWarningCode39'
+	},
+	// CODABAR: digits + a few symbols, optional A-D start/stop.
+	CODABAR: {
+		test: /^[A-D]?[0-9\-$:/.+]*[A-D]?$/i,
+		warningKey: 'common.symbologyWarningCodabar'
+	}
+};
+
+/** Check whether `content` is encodable by the chosen `symbology` (a form
+ *  barcode-type value). Empty content never warns (user hasn't typed yet).
+ *  Unknown / arbitrary-content symbologies (CODE128, QR, PDF417, DATAMATRIX,
+ *  AZTEC, …) never warn. Returns an i18n key or undefined. */
+export function checkSymbologySuitability(
+	content: string,
+	symbology: string
+): string | undefined {
+	const trimmed = content.trim();
+	if (!trimmed) return undefined;
+	const rule = SYMBOLOGY_RULES[symbology];
+	if (!rule) return undefined;
+	return rule.test.test(trimmed) ? undefined : rule.warningKey;
+}
+
 /**
  * Validates an EAN/UPC check digit using the standard algorithm.
  * Works for EAN-13, EAN-8, UPC-A, and ITF-14.
