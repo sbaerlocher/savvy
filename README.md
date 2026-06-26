@@ -17,6 +17,41 @@
 A modern web-based system for managing loyalty cards, discount vouchers, and prepaid gift cards. Features integrated
 barcode scanner, transaction history, and flexible sharing with other users.
 
+## Project Scope
+
+- **Hosting model**: **Self-hosted, open source (MIT)**. There is no hosted SaaS
+  or paid tier. The stack (Go binary + PostgreSQL + Helm chart) is built to run
+  on your own infrastructure. Run it with Docker Compose or the bundled Helm
+  chart — see [Deployment](#-deployment).
+- **Client model**: **PWA only**. The installable Progressive Web App covers
+  iOS/Android/Desktop; there is intentionally no native (Capacitor/Tauri)
+  build. Apple Wallet pass integration would require a native shell and is
+  deliberately out of scope.
+
+### Core vs. optional features
+
+Every feature ships in the binary; scope is controlled at runtime via
+`ENABLE_*` environment variables, not by deleting code. This keeps a small
+deployment small without forking.
+
+| Group            | Feature                         | Toggle                    | Default |
+| ---------------- | ------------------------------- | ------------------------- | ------- |
+| **Core**         | Loyalty cards + barcode + share | `ENABLE_CARDS`            | on      |
+| Optional         | Discount vouchers               | `ENABLE_VOUCHERS`         | on      |
+| Optional         | Prepaid gift cards              | `ENABLE_GIFT_CARDS`       | on      |
+| Optional (auth)  | Email/password login            | `ENABLE_LOCAL_LOGIN`      | on      |
+| Optional (auth)  | Self-registration               | `ENABLE_REGISTRATION`     | on      |
+| Optional (auth)  | Two-factor (TOTP)               | `ENABLE_2FA`              | off     |
+| Optional         | Expiry reminders                | `ENABLE_EXPIRY_REMINDERS` | on      |
+
+> Defaults reflect `internal/config/config.go`. At least one auth method
+> (`ENABLE_LOCAL_LOGIN` or OAuth) must stay enabled — the config validates this.
+
+A minimal single-user deployment can run on loyalty cards alone
+(`ENABLE_VOUCHERS=false ENABLE_GIFT_CARDS=false`); the broader feature set is
+opt-in per instance. See [Feature Toggles in AGENTS.md](AGENTS.md) and
+[Deployment](#-deployment) for the full variable reference.
+
 ## Features
 
 ### Loyalty Cards

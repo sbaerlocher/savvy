@@ -168,6 +168,21 @@ See [TODO.md](TODO.md) for:
 - Future improvements
 - Priority levels
 
+### Feature Scope Decision (2026-06)
+
+A maintainability audit flagged the breadth of the feature set (20+
+features for a solo-maintained project — Admin System Health, Email
+Template Preview, Impersonation, Batch Export, per-channel notification
+preferences, …) as a candidate for trimming.
+
+**Decision: keep the full feature set.** No features are removed. They
+are built, tested, and runtime-gated via `ENABLE_*` toggles
+(see [README.md](README.md#core-vs-optional-features)), so a small
+deployment stays small without deleting code. Scope is managed by
+configuration, not amputation. Revisit only if maintenance burden
+becomes concrete (recurring security/upkeep cost on a specific
+feature), not preemptively.
+
 ### Release Cycle
 
 - **Patch releases** (1.8.x): Bug fixes, security updates (as needed)
