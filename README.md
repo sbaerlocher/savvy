@@ -22,7 +22,7 @@ barcode scanner, transaction history, and flexible sharing with other users.
 - **Hosting model**: **Self-hosted, open source (MIT)**. There is no hosted SaaS
   or paid tier. The stack (Go binary + PostgreSQL + Helm chart) is built to run
   on your own infrastructure. Run it with Docker Compose or the bundled Helm
-  chart — see [Deployment](#-deployment).
+  chart — see [Deployment](#deployment).
 - **Client model**: **PWA only**. The installable Progressive Web App covers
   iOS/Android/Desktop; there is intentionally no native (Capacitor/Tauri)
   build. Apple Wallet pass integration would require a native shell and is
@@ -50,7 +50,7 @@ deployment small without forking.
 A minimal single-user deployment can run on loyalty cards alone
 (`ENABLE_VOUCHERS=false ENABLE_GIFT_CARDS=false`); the broader feature set is
 opt-in per instance. See [Feature Toggles in AGENTS.md](AGENTS.md) and
-[Deployment](#-deployment) for the full variable reference.
+[Deployment](#deployment) for the full variable reference.
 
 ## Features
 
