@@ -46,8 +46,7 @@ export function createBarcodeDetector(
 ): BarcodeDetectorWrapper {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const NativeDetector = (globalThis as any).BarcodeDetector as
-		| typeof PolyfillBarcodeDetector
-		| undefined;
+		typeof PolyfillBarcodeDetector | undefined;
 
 	const formats = [...SCANNER_FORMATS];
 
