@@ -1,6 +1,6 @@
 {
 	"overrides": {
-		"cookie": ">=1.1.1"
+		"cookie": ">=2.0.0"
 	},
 	"dependencies": {
 		"@vite-pwa/sveltekit": "^1.1.0",
