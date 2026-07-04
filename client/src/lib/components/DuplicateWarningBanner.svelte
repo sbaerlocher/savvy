@@ -71,6 +71,7 @@
 					<button
 						type="button"
 						class="view-existing-btn"
+						data-testid="restore-duplicate"
 						onclick={onrestore}
 					>
 						{tr('duplicate.restore')}
