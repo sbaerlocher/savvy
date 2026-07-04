@@ -24,6 +24,8 @@ type CardServiceInterface interface {
 	CountUserCards(ctx context.Context, userID uuid.UUID) (int64, error)
 	CanUserAccessCard(ctx context.Context, cardID, userID uuid.UUID) (bool, error)
 	CheckDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID, excludeID *uuid.UUID) (*models.Card, error)
+	FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
+	RestoreCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Card, error)
 }
 
 // CardService implements CardServiceInterface.
@@ -144,6 +146,37 @@ func (s *CardService) CanUserAccessCard(ctx context.Context, cardID, userID uuid
 
 	// Check if shared (simplified - in real implementation check card_shares table)
 	return false, nil
+}
+
+// FindDeletedDuplicate returns a soft-deleted card with the same number owned by the user, or nil.
+func (s *CardService) FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
+	return s.repo.FindDeletedByCardNumber(ctx, cardNumber, userID)
+}
+
+// RestoreCard clears deleted_at for the user's soft-deleted card and returns the restored card.
+// Returns (nil, nil) when there is no restorable twin for this user (id unknown or not owned by user);
+// (restoredCard, nil) on success; (nil, err) on real DB error.
+// Zero-row-restore guard (approach a): after RestoreByID, GetByID is called; if the record is still
+// not found (nothing was actually undeleted), we return (nil, nil) instead of an error.
+func (s *CardService) RestoreCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Card, error) {
+	if err := s.repo.RestoreByID(ctx, id, userID); err != nil {
+		return nil, fmt.Errorf("restore card: %w", err)
+	}
+	restored, err := s.repo.GetByID(ctx, id, "Merchant", "User")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Nothing was restored (wrong id or not owned by this user) — signal 404.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load restored card: %w", err)
+	}
+	// Guard against cross-user reads: RestoreByID is user-scoped and no-ops on a
+	// foreign id, but GetByID fetches by id only. Without this check a user could
+	// read another user's active card via the restore endpoint. Signal 404 instead.
+	if restored.UserID == nil || *restored.UserID != userID {
+		return nil, nil
+	}
+	return restored, nil
 }
 
 // CheckDuplicate checks if a card with the same card number already exists for the user.

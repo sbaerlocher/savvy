@@ -122,4 +122,29 @@ func (r *GormVoucherRepository) FindByVoucherCode(ctx context.Context, voucherCo
 	return &voucher, nil
 }
 
+// FindDeletedByCode finds a soft-deleted voucher by code for a specific user.
+func (r *GormVoucherRepository) FindDeletedByCode(ctx context.Context, code string, userID uuid.UUID) (*models.Voucher, error) {
+	var voucher models.Voucher
+	err := r.db.WithContext(ctx).
+		Unscoped().
+		Where("code = ? AND user_id = ? AND deleted_at IS NOT NULL", code, userID).
+		First(&voucher).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &voucher, nil
+}
+
+// RestoreByID clears deleted_at for a soft-deleted voucher owned by the user.
+func (r *GormVoucherRepository) RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Unscoped().
+		Model(&models.Voucher{}).
+		Where("id = ? AND user_id = ? AND deleted_at IS NOT NULL", id, userID).
+		Update("deleted_at", nil).Error
+}
+
 // Search searches vouchers by query (merchant name, code, description).

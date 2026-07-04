@@ -5,6 +5,7 @@ export const en: TranslationKeys = {
 		appName: 'Savvy',
 		loading: 'Loading...',
 		error: 'Error',
+		restoreError: 'Restore failed',
 		retry: 'Retry',
 		search: 'Search...',
 		save: 'Save',
@@ -121,7 +122,9 @@ export const en: TranslationKeys = {
 		warning_title: 'Possible duplicate detected',
 		warning_message:
 			'A similar {resourceType} for "{merchantName}" with the number "{resourceNumber}" already exists.',
-		view_existing: 'View existing'
+		view_existing: 'View existing',
+		restore: 'Restore deleted entry',
+		deleted_message: 'A deleted entry with this number exists.'
 	},
 	aria: {
 		selectLanguage: 'Select language',

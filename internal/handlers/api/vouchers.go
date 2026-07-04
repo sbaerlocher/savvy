@@ -280,6 +280,25 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		})
 	}
 
+	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
+	deletedDup, err := h.voucherService.FindDeletedDuplicate(c.Request().Context(), req.Code, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	}
+	if deletedDup != nil {
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A soft-deleted voucher with this code exists and can be restored",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   deletedDup.MerchantName,
+				ResourceNumber: deletedDup.Code,
+				ExistingID:     deletedDup.ID.String(),
+				Deleted:        true,
+			},
+		})
+	}
+
 	// Create voucher
 	voucher := &models.Voucher{
 		UserID:            &user.ID,
@@ -599,6 +618,38 @@ func (h *VouchersHandler) DeleteShare(c *echo.Context) error {
 // POST /api/v1/vouchers/:id/transfer
 func (h *VouchersHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "voucher", h.authzService.CheckVoucherAccess, h.transferService.TransferVoucherOwnership, h.userService)
+}
+
+// Restore restores a soft-deleted voucher owned by the current user
+// POST /api/v1/vouchers/:id/restore
+func (h *VouchersHandler) Restore(c *echo.Context) error {
+	user := c.Get("current_user").(*models.User)
+
+	voucherID, err := parseResourceID(c, "voucher")
+	if err != nil {
+		return err
+	}
+
+	restored, err := h.voucherService.RestoreVoucher(c.Request().Context(), voucherID, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to restore voucher", "voucher_id", voucherID, "error", err)
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "server_error",
+			Message: "Failed to restore voucher",
+		})
+	}
+	if restored == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Error:   "not_found",
+			Message: "No restorable voucher found",
+		})
+	}
+
+	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
+	dto := ToVoucherDTO(restored, isFavorite)
+	// A restored voucher is always owned by the caller — return owner permissions.
+	perms := PermissionDTO{CanView: true, CanEdit: true, CanDelete: true, IsOwner: true}
+	return c.JSON(http.StatusOK, VoucherDetailResponse{Voucher: dto, Permissions: perms})
 }
 
 // checkVoucherDuplicate checks for duplicate vouchers by code (warning only, does not block)

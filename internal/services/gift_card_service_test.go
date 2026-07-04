@@ -112,6 +112,14 @@ func (m *MockGiftCardRepository) Search(ctx context.Context, userID uuid.UUID, q
 	return args.Get(0).([]models.GiftCard), args.Error(1)
 }
 
+func (m *MockGiftCardRepository) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
+}
+
+func (m *MockGiftCardRepository) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
+
 var _ repository.GiftCardRepository = (*MockGiftCardRepository)(nil)
 
 func TestGiftCardService_CreateGiftCard_Success(t *testing.T) {

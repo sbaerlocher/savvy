@@ -5,6 +5,7 @@ export type TranslationKeys = {
 		appName: string;
 		loading: string;
 		error: string;
+		restoreError: string;
 		retry: string;
 		search: string;
 		save: string;
@@ -110,6 +111,8 @@ export type TranslationKeys = {
 		warning_title: string;
 		warning_message: string;
 		view_existing: string;
+		restore: string;
+		deleted_message: string;
 	};
 	aria: {
 		selectLanguage: string;

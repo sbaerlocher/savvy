@@ -730,3 +730,43 @@ func (m *MockGiftCardServiceInterface) CheckDuplicate(ctx context.Context, cardN
 	}
 	return r0, r1
 }
+
+// FindDeletedDuplicate provides a mock function with given fields: ctx, cardNumber, userID
+func (m *MockGiftCardServiceInterface) FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error) {
+	ret := m.Called(ctx, cardNumber, userID)
+	var r0 *models.GiftCard
+	if rf, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) *models.GiftCard); ok {
+		r0 = rf(ctx, cardNumber, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.GiftCard)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, uuid.UUID) error); ok {
+		r1 = rf(ctx, cardNumber, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// RestoreGiftCard provides a mock function with given fields: ctx, id, userID
+func (m *MockGiftCardServiceInterface) RestoreGiftCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.GiftCard, error) {
+	ret := m.Called(ctx, id, userID)
+	var r0 *models.GiftCard
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.GiftCard); ok {
+		r0 = rf(ctx, id, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.GiftCard)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, id, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}

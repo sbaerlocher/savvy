@@ -219,6 +219,17 @@ export const cardsApi = {
 	},
 
 	/**
+	 * Restore soft-deleted card
+	 */
+	async restore(
+		id: string
+	): Promise<{ card: CardDTO; permissions: PermissionDTO }> {
+		return api.post<{ card: CardDTO; permissions: PermissionDTO }>(
+			`/cards/${id}/restore`
+		);
+	},
+
+	/**
 	 * Toggle favorite — Optimistic Update Pattern
 	 */
 	async toggleFavorite(id: string): Promise<{ is_favorite: boolean }> {

@@ -10,6 +10,7 @@ import (
 	"savvy/internal/repository"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // VoucherServiceInterface defines the interface for voucher business logic.
@@ -22,6 +23,8 @@ type VoucherServiceInterface interface {
 	DeleteVoucher(ctx context.Context, id uuid.UUID) error
 	CountUserVouchers(ctx context.Context, userID uuid.UUID) (int64, error)
 	CheckDuplicate(ctx context.Context, voucherCode string, userID uuid.UUID, excludeID *uuid.UUID) (*models.Voucher, error)
+	FindDeletedDuplicate(ctx context.Context, code string, userID uuid.UUID) (*models.Voucher, error)
+	RestoreVoucher(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Voucher, error)
 }
 
 // VoucherService implements VoucherServiceInterface.
@@ -149,6 +152,37 @@ func (s *VoucherService) CountUserVouchers(ctx context.Context, userID uuid.UUID
 		return 0, fmt.Errorf("count user vouchers: %w", err)
 	}
 	return count, nil
+}
+
+// FindDeletedDuplicate returns a soft-deleted voucher with the same code owned by the user, or nil.
+func (s *VoucherService) FindDeletedDuplicate(ctx context.Context, code string, userID uuid.UUID) (*models.Voucher, error) {
+	return s.repo.FindDeletedByCode(ctx, code, userID)
+}
+
+// RestoreVoucher clears deleted_at for the user's soft-deleted voucher and returns the restored voucher.
+// Returns (nil, nil) when there is no restorable twin for this user (id unknown or not owned by user);
+// (restoredVoucher, nil) on success; (nil, err) on real DB error.
+// Zero-row-restore guard: after RestoreByID, GetByID is called; if the record is still
+// not found (nothing was actually undeleted), we return (nil, nil) instead of an error.
+func (s *VoucherService) RestoreVoucher(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Voucher, error) {
+	if err := s.repo.RestoreByID(ctx, id, userID); err != nil {
+		return nil, fmt.Errorf("restore voucher: %w", err)
+	}
+	restored, err := s.repo.GetByID(ctx, id, "Merchant", "User")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Nothing was restored (wrong id or not owned by this user) — signal 404.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load restored voucher: %w", err)
+	}
+	// Guard against cross-user reads: RestoreByID is user-scoped and no-ops on a
+	// foreign id, but GetByID fetches by id only. Without this check a user could
+	// read another user's active voucher via the restore endpoint. Signal 404 instead.
+	if restored.UserID == nil || *restored.UserID != userID {
+		return nil, nil
+	}
+	return restored, nil
 }
 
 // CheckDuplicate checks if a voucher with the same code already exists for the user.

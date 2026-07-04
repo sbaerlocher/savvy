@@ -42,4 +42,10 @@ type VoucherRepository interface {
 
 	// FindByVoucherCode finds a voucher by code for a specific user
 	FindByVoucherCode(ctx context.Context, voucherCode string, userID uuid.UUID) (*models.Voucher, error)
+
+	// FindDeletedByCode finds a soft-deleted voucher by code for a specific user
+	FindDeletedByCode(ctx context.Context, code string, userID uuid.UUID) (*models.Voucher, error)
+
+	// RestoreByID clears deleted_at for a soft-deleted voucher owned by the user
+	RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 }

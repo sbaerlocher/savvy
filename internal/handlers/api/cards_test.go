@@ -221,6 +221,7 @@ func TestCardsHandler_Create_Success(t *testing.T) {
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
 	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
 
@@ -267,6 +268,7 @@ func TestCardsHandler_Create_WithNewMerchant(t *testing.T) {
 
 	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
 	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
 
@@ -796,6 +798,117 @@ func TestCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) {
 	assert.NotContains(t, response.Message, "card_shares_pkey")
 	assert.NotContains(t, response.Message, "SQLSTATE")
 	mockShareService.AssertExpectations(t)
+}
+
+// ==================== Restore Tests ====================
+
+func TestCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *testing.T) {
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	merchantID := uuid.New()
+	body := `{"merchant_id":"` + merchantID.String() + `","card_number":"1234567890","barcode_type":"CODE128"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	deletedCard := &models.Card{
+		ID:           uuid.New(),
+		UserID:       &user.ID,
+		MerchantName: "Test Merchant",
+		CardNumber:   "1234567890",
+		BarcodeType:  "CODE128",
+		Status:       "active",
+	}
+
+	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
+	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
+	// No active duplicate
+	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	// Soft-deleted duplicate found
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(deletedCard, nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+
+	var response DuplicateErrorResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, "duplicate_barcode", response.Error)
+	assert.NotNil(t, response.Duplicate)
+	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
+	assert.Equal(t, deletedCard.ID.String(), response.Duplicate.ExistingID)
+	mockMerchantService.AssertExpectations(t)
+	mockCardService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Restore_Success(t *testing.T) {
+	handler, mockCardService, _, _, _, mockFavoriteService, _, _, _ := setupCardsTest()
+	restoredCard := createTestCard()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: restoredCard.ID.String()}})
+
+	mockCardService.On("RestoreCard", mock.Anything, restoredCard.ID, user.ID).Return(restoredCard, nil)
+	mockFavoriteService.On("IsFavorite", mock.Anything, user.ID, "card", restoredCard.ID).Return(false, nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var response CardDetailResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, restoredCard.ID.String(), response.Card.ID)
+	mockCardService.AssertExpectations(t)
+	mockFavoriteService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Restore_NotFound(t *testing.T) {
+	handler, mockCardService, _, _, _, _, _, _, _ := setupCardsTest()
+	cardID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
+
+	mockCardService.On("RestoreCard", mock.Anything, cardID, user.ID).Return((*models.Card)(nil), nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+	mockCardService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Restore_InvalidID(t *testing.T) {
+	handler, _, _, _, _, _, _, _, _ := setupCardsTest()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
+
+	err := handler.Restore(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestCardsHandler_Restore_ServiceError(t *testing.T) {
+	handler, mockCardService, _, _, _, _, _, _, _ := setupCardsTest()
+	cardID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
+
+	mockCardService.On("RestoreCard", mock.Anything, cardID, user.ID).Return((*models.Card)(nil), errors.New("db error"))
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	mockCardService.AssertExpectations(t)
 }
 
 func TestCardsHandler_UpdateShare_ServiceError_NoLeakedDetails(t *testing.T) {

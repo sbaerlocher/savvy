@@ -45,6 +45,7 @@ type DuplicateWarning struct {
 	MerchantName   string `json:"merchant_name,omitempty"`
 	ResourceNumber string `json:"resource_number,omitempty"` // Card number, voucher code, etc.
 	ExistingID     string `json:"existing_id,omitempty"`
+	Deleted        bool   `json:"deleted"` // true = existing_id refers to a soft-deleted resource that can be restored
 }
 
 // ==================== User DTOs ====================

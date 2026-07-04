@@ -105,6 +105,20 @@
 		}
 	}
 
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		const id = duplicateWarning.existing_id;
+		try {
+			await vouchersApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/vouchers/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
+	}
+
 	function handleCancel() {
 		goto(resolve('/vouchers'));
 	}
@@ -131,6 +145,7 @@
 				warning={duplicateWarning}
 				resourceType="voucher"
 				onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
+				onrestore={handleRestore}
 			/>
 			<VoucherForm
 				bind:code

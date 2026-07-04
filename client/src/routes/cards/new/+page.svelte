@@ -61,6 +61,20 @@
 		}
 	}
 
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		const id = duplicateWarning.existing_id;
+		try {
+			await cardsApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/cards/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
+	}
+
 	function handleCancel() {
 		goto(resolve('/cards'));
 	}
@@ -87,6 +101,7 @@
 				warning={duplicateWarning}
 				resourceType="card"
 				onNavigate={(id) => goto(resolve(`/cards/${id}`))}
+				onrestore={handleRestore}
 			/>
 			<CardForm
 				bind:cardNumber

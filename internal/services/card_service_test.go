@@ -86,6 +86,19 @@ func (m *MockCardRepository) Search(ctx context.Context, userID uuid.UUID, query
 	return args.Get(0).([]models.Card), args.Error(1)
 }
 
+func (m *MockCardRepository) FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
+	args := m.Called(ctx, cardNumber, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Card), args.Error(1)
+}
+
+func (m *MockCardRepository) RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(ctx, id, userID)
+	return args.Error(0)
+}
+
 // Ensure MockCardRepository implements CardRepository
 var _ repository.CardRepository = (*MockCardRepository)(nil)
 
@@ -598,5 +611,122 @@ func TestCardService_GetUserCardsPaginated_RepositoryError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "get paginated cards")
+	mockRepo.AssertExpectations(t)
+}
+
+// ============================================================================
+// RESTORE CARD TESTS
+// ============================================================================
+
+func TestCardService_RestoreCard_Success(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+	restoredCard := &models.Card{
+		ID:           cardID,
+		UserID:       &userID,
+		CardNumber:   "1234567890",
+		MerchantName: "Test Merchant",
+	}
+
+	mockRepo.On("RestoreByID", ctx, cardID, userID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(restoredCard, nil)
+
+	card, err := service.RestoreCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, card)
+	assert.Equal(t, cardID, card.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+// TestCardService_RestoreCard_ForeignCardNotLeaked guards against a cross-user
+// IDOR: RestoreByID no-ops on a foreign id, but the follow-up GetByID fetches by
+// id only and would return another user's active card. The service must return
+// (nil, nil) — a 404 — rather than leaking the foreign card.
+func TestCardService_RestoreCard_ForeignCardNotLeaked(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	attackerID := uuid.New()
+	ownerID := uuid.New()
+	// GetByID returns the owner's active card even though the attacker asked to restore it.
+	foreignCard := &models.Card{
+		ID:           cardID,
+		UserID:       &ownerID,
+		CardNumber:   "9999999999",
+		MerchantName: "Victim Merchant",
+	}
+
+	mockRepo.On("RestoreByID", ctx, cardID, attackerID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(foreignCard, nil)
+
+	card, err := service.RestoreCard(ctx, cardID, attackerID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, card, "must not leak a card owned by another user")
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_RestoreCard_NoDeletedTwin(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+
+	// RestoreByID no-ops (zero rows), GetByID returns not-found (record still deleted)
+	mockRepo.On("RestoreByID", ctx, cardID, userID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(nil, gorm.ErrRecordNotFound)
+
+	card, err := service.RestoreCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, card)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_FindDeletedDuplicate_Found(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	deletedCard := &models.Card{
+		ID:           uuid.New(),
+		UserID:       &userID,
+		CardNumber:   "1234567890",
+		MerchantName: "Test Merchant",
+	}
+
+	mockRepo.On("FindDeletedByCardNumber", ctx, "1234567890", userID).Return(deletedCard, nil)
+
+	result, err := service.FindDeletedDuplicate(ctx, "1234567890", userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, deletedCard.ID, result.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_FindDeletedDuplicate_NotFound(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+
+	mockRepo.On("FindDeletedByCardNumber", ctx, "9999999999", userID).Return(nil, nil)
+
+	result, err := service.FindDeletedDuplicate(ctx, "9999999999", userID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
 }

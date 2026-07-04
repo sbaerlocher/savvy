@@ -213,6 +213,13 @@ export const giftCardsApi = {
 	},
 
 	/**
+	 * Restore soft-deleted gift card
+	 */
+	async restore(id: string): Promise<GiftCardResponse> {
+		return api.post<GiftCardResponse>(`/gift-cards/${id}/restore`);
+	},
+
+	/**
 	 * Toggle favorite — Optimistic Update Pattern
 	 */
 	async toggleFavorite(id: string): Promise<{ is_favorite: boolean }> {

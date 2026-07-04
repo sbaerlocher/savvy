@@ -404,3 +404,43 @@ func (m *MockVoucherServiceInterface) CheckDuplicate(ctx context.Context, vouche
 	}
 	return r0, r1
 }
+
+// FindDeletedDuplicate provides a mock function with given fields: ctx, code, userID
+func (m *MockVoucherServiceInterface) FindDeletedDuplicate(ctx context.Context, code string, userID uuid.UUID) (*models.Voucher, error) {
+	ret := m.Called(ctx, code, userID)
+	var r0 *models.Voucher
+	if rf, ok := ret.Get(0).(func(context.Context, string, uuid.UUID) *models.Voucher); ok {
+		r0 = rf(ctx, code, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Voucher)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, uuid.UUID) error); ok {
+		r1 = rf(ctx, code, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// RestoreVoucher provides a mock function with given fields: ctx, id, userID
+func (m *MockVoucherServiceInterface) RestoreVoucher(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Voucher, error) {
+	ret := m.Called(ctx, id, userID)
+	var r0 *models.Voucher
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *models.Voucher); ok {
+		r0 = rf(ctx, id, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Voucher)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, id, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}

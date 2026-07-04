@@ -144,5 +144,6 @@ func GetMigrations() []*gormigrate.Migration {
 		addUserPasswordChangedAt(),
 		addServerSideSessions(),
 		fixNotificationPreferenceDefaults(),
+		partialUniqueIndexesExcludeSoftDeleted(),
 	}
 }

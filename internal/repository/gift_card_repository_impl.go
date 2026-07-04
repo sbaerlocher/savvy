@@ -234,4 +234,29 @@ func (r *GormGiftCardRepository) FindByCardNumber(ctx context.Context, cardNumbe
 	return &giftCard, nil
 }
 
+// FindDeletedByCardNumber finds a soft-deleted gift card by card number for a specific user.
+func (r *GormGiftCardRepository) FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error) {
+	var giftCard models.GiftCard
+	err := r.db.WithContext(ctx).
+		Unscoped().
+		Where("card_number = ? AND user_id = ? AND deleted_at IS NOT NULL", cardNumber, userID).
+		First(&giftCard).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &giftCard, nil
+}
+
+// RestoreByID clears deleted_at for a soft-deleted gift card owned by the user.
+func (r *GormGiftCardRepository) RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Unscoped().
+		Model(&models.GiftCard{}).
+		Where("id = ? AND user_id = ? AND deleted_at IS NOT NULL", id, userID).
+		Update("deleted_at", nil).Error
+}
+
 // Search searches gift cards by query (merchant name, card number, notes).

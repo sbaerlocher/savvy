@@ -40,6 +40,7 @@ export interface DuplicateWarning {
 	merchant_name?: string;
 	resource_number?: string;
 	existing_id?: string;
+	deleted?: boolean;
 }
 
 // API Response Types

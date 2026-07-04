@@ -77,6 +77,12 @@ func (m *mockVoucherRepoForReminder) GetAllForUserPaginated(_ context.Context, _
 func (m *mockVoucherRepoForReminder) FindByVoucherCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
 	return nil, nil
 }
+func (m *mockVoucherRepoForReminder) FindDeletedByCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+func (m *mockVoucherRepoForReminder) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
 func (m *mockVoucherRepoForReminder) Search(_ context.Context, _ uuid.UUID, _ string) ([]models.Voucher, error) {
 	return nil, nil
 }
@@ -130,6 +136,12 @@ func (m *mockGiftCardRepoForReminder) GetAllForUserPaginated(_ context.Context, 
 }
 func (m *mockGiftCardRepoForReminder) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
 	return nil, nil
+}
+func (m *mockGiftCardRepoForReminder) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
+}
+func (m *mockGiftCardRepoForReminder) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
 }
 func (m *mockGiftCardRepoForReminder) Search(_ context.Context, _ uuid.UUID, _ string) ([]models.GiftCard, error) {
 	return nil, nil

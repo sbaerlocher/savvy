@@ -5,6 +5,7 @@ export const fr: TranslationKeys = {
 		appName: 'Savvy',
 		loading: 'Chargement...',
 		error: 'Erreur',
+		restoreError: 'Échec de la restauration',
 		retry: 'Réessayer',
 		search: 'Rechercher...',
 		save: 'Enregistrer',
@@ -125,7 +126,9 @@ export const fr: TranslationKeys = {
 		warning_title: 'Doublon possible détecté',
 		warning_message:
 			'Un {resourceType} similaire pour "{merchantName}" avec le numéro "{resourceNumber}" existe déjà.',
-		view_existing: 'Afficher existant'
+		view_existing: 'Afficher existant',
+		restore: "Restaurer l'entrée supprimée",
+		deleted_message: 'Une entrée supprimée avec ce numéro existe.'
 	},
 	aria: {
 		selectLanguage: 'Sélectionner la langue',

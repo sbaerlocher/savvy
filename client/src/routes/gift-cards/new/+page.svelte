@@ -126,6 +126,20 @@
 		}
 	}
 
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		const id = duplicateWarning.existing_id;
+		try {
+			await giftCardsApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/gift-cards/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
+	}
+
 	function handleCancel() {
 		goto(resolve('/gift-cards'));
 	}
@@ -152,6 +166,7 @@
 				warning={duplicateWarning}
 				resourceType="gift_card"
 				onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
+				onrestore={handleRestore}
 			/>
 			<GiftCardForm
 				bind:cardNumber
