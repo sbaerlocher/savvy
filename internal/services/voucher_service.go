@@ -176,6 +176,12 @@ func (s *VoucherService) RestoreVoucher(ctx context.Context, id uuid.UUID, userI
 		}
 		return nil, fmt.Errorf("load restored voucher: %w", err)
 	}
+	// Guard against cross-user reads: RestoreByID is user-scoped and no-ops on a
+	// foreign id, but GetByID fetches by id only. Without this check a user could
+	// read another user's active voucher via the restore endpoint. Signal 404 instead.
+	if restored.UserID == nil || *restored.UserID != userID {
+		return nil, nil
+	}
 	return restored, nil
 }
 

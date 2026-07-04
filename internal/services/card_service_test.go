@@ -643,6 +643,36 @@ func TestCardService_RestoreCard_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// TestCardService_RestoreCard_ForeignCardNotLeaked guards against a cross-user
+// IDOR: RestoreByID no-ops on a foreign id, but the follow-up GetByID fetches by
+// id only and would return another user's active card. The service must return
+// (nil, nil) — a 404 — rather than leaking the foreign card.
+func TestCardService_RestoreCard_ForeignCardNotLeaked(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	attackerID := uuid.New()
+	ownerID := uuid.New()
+	// GetByID returns the owner's active card even though the attacker asked to restore it.
+	foreignCard := &models.Card{
+		ID:           cardID,
+		UserID:       &ownerID,
+		CardNumber:   "9999999999",
+		MerchantName: "Victim Merchant",
+	}
+
+	mockRepo.On("RestoreByID", ctx, cardID, attackerID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(foreignCard, nil)
+
+	card, err := service.RestoreCard(ctx, cardID, attackerID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, card, "must not leak a card owned by another user")
+	mockRepo.AssertExpectations(t)
+}
+
 func TestCardService_RestoreCard_NoDeletedTwin(t *testing.T) {
 	mockRepo := new(MockCardRepository)
 	service := NewCardService(mockRepo)
