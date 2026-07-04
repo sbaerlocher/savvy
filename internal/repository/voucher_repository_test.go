@@ -294,9 +294,9 @@ func TestVoucherRepository_FindDeletedByCode(t *testing.T) {
 	userID := createTestUser(t, db)
 
 	voucher := &models.Voucher{
-		UserID:    &userID,
-		Code:      "DEL-V-1",
-		ValidFrom: time.Now().Add(-24 * time.Hour),
+		UserID:     &userID,
+		Code:       "DEL-V-1",
+		ValidFrom:  time.Now().Add(-24 * time.Hour),
 		ValidUntil: time.Now().Add(24 * time.Hour),
 	}
 	require.NoError(t, repo.Create(ctx, voucher))
