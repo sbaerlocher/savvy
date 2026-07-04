@@ -288,6 +288,11 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
+	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
+	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
+		return err
+	}
+
 	// Create gift card
 	giftCard := &models.GiftCard{
 		UserID:         &user.ID,
@@ -298,6 +303,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		CurrentBalance: req.InitialBalance, // Starts at initial balance
 		Currency:       req.Currency,
 		PIN:            stringOrDefault(req.PIN, ""),
+		BarcodeType:    barcodeType,
 		ExpiresAt:      expiresAt,
 		Notes:          stringOrDefault(req.Notes, ""),
 	}

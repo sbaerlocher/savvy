@@ -225,7 +225,7 @@ func ToGiftCardDTO(giftCard *models.GiftCard, isFavorite bool) GiftCardDTO {
 	var merchantID *string
 	var merchant *MerchantDTO
 	var owner *UserDTO
-	var pin, expiresAt, notes *string
+	var pin, expiresAt, notes, barcodeType *string
 
 	if giftCard.MerchantID != nil {
 		mid := giftCard.MerchantID.String()
@@ -251,6 +251,9 @@ func ToGiftCardDTO(giftCard *models.GiftCard, isFavorite bool) GiftCardDTO {
 	if giftCard.Notes != "" {
 		notes = &giftCard.Notes
 	}
+	if giftCard.BarcodeType != "" {
+		barcodeType = &giftCard.BarcodeType
+	}
 
 	return GiftCardDTO{
 		ID:             giftCard.ID.String(),
@@ -262,6 +265,7 @@ func ToGiftCardDTO(giftCard *models.GiftCard, isFavorite bool) GiftCardDTO {
 		CurrentBalance: giftCard.CurrentBalance,
 		Currency:       giftCard.Currency,
 		PIN:            pin,
+		BarcodeType:    barcodeType,
 		ExpiresAt:      expiresAt,
 		Notes:          notes,
 		IsFavorite:     isFavorite,
