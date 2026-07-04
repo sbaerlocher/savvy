@@ -248,6 +248,7 @@ type GiftCardDTO struct {
 	CurrentBalance  float64        `json:"current_balance"`
 	Currency        string         `json:"currency"`
 	PIN             *string        `json:"pin,omitempty"`
+	BarcodeType     *string        `json:"barcode_type,omitempty"`
 	ExpiresAt       *string        `json:"expires_at,omitempty"`
 	Notes           *string        `json:"notes,omitempty"`
 	IsFavorite      bool           `json:"is_favorite"`
@@ -266,6 +267,7 @@ type GiftCardCreateRequest struct {
 	InitialBalance  float64 `json:"initial_balance"`
 	Currency        string  `json:"currency"`
 	PIN             *string `json:"pin,omitempty"`
+	BarcodeType     *string `json:"barcode_type,omitempty"`
 	ExpiresAt       *string `json:"expires_at,omitempty"`
 	Notes           *string `json:"notes,omitempty"`
 }
