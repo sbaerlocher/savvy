@@ -126,7 +126,7 @@ export const fr: TranslationKeys = {
 		warning_message:
 			'Un {resourceType} similaire pour "{merchantName}" avec le numéro "{resourceNumber}" existe déjà.',
 		view_existing: 'Afficher existant',
-		restore: 'Restaurer l\'entrée supprimée',
+		restore: "Restaurer l'entrée supprimée",
 		deletedMessage: 'Une entrée supprimée avec ce numéro existe.'
 	},
 	aria: {

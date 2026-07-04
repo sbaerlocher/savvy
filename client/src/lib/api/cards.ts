@@ -221,8 +221,12 @@ export const cardsApi = {
 	/**
 	 * Restore soft-deleted card
 	 */
-	async restore(id: string): Promise<{ card: CardDTO; permissions: PermissionDTO }> {
-		return api.post<{ card: CardDTO; permissions: PermissionDTO }>(`/cards/${id}/restore`);
+	async restore(
+		id: string
+	): Promise<{ card: CardDTO; permissions: PermissionDTO }> {
+		return api.post<{ card: CardDTO; permissions: PermissionDTO }>(
+			`/cards/${id}/restore`
+		);
 	},
 
 	/**
