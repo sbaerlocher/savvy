@@ -288,6 +288,25 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
+	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
+	deletedDup, err := h.giftCardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	}
+	if deletedDup != nil {
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A soft-deleted gift card with this number exists and can be restored",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   deletedDup.MerchantName,
+				ResourceNumber: deletedDup.CardNumber,
+				ExistingID:     deletedDup.ID.String(),
+				Deleted:        true,
+			},
+		})
+	}
+
 	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
 	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
 		return err
@@ -613,6 +632,36 @@ func (h *GiftCardsHandler) DeleteShare(c *echo.Context) error {
 // POST /api/v1/gift-cards/:id/transfer
 func (h *GiftCardsHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "gift card", h.authzService.CheckGiftCardAccess, h.transferService.TransferGiftCardOwnership, h.userService)
+}
+
+// Restore restores a soft-deleted gift card owned by the current user
+// POST /api/v1/gift-cards/:id/restore
+func (h *GiftCardsHandler) Restore(c *echo.Context) error {
+	user := c.Get("current_user").(*models.User)
+
+	giftCardID, err := parseResourceID(c, "gift card")
+	if err != nil {
+		return err
+	}
+
+	restored, err := h.giftCardService.RestoreGiftCard(c.Request().Context(), giftCardID, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to restore gift card", "gift_card_id", giftCardID, "error", err)
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "server_error",
+			Message: "Failed to restore gift card",
+		})
+	}
+	if restored == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Error:   "not_found",
+			Message: "No restorable gift card found",
+		})
+	}
+
+	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
+	dto := ToGiftCardDTO(restored, isFavorite)
+	return c.JSON(http.StatusOK, GiftCardDetailResponse{GiftCard: dto})
 }
 
 // applyGiftCardUpdates applies partial update fields from the request to the gift card model.

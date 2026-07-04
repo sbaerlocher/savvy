@@ -190,6 +190,7 @@ func TestGiftCardsHandler_Create_Success(t *testing.T) {
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	mockGiftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil)
+	mockGiftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.GiftCard)(nil), nil)
 	mockGiftCardService.On("CreateGiftCard", mock.Anything, mock.AnythingOfType("*models.GiftCard")).Return(nil)
 	mockGiftCardService.On("GetGiftCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestGiftCard(), nil)
 
@@ -832,4 +833,112 @@ func TestCheckGiftCardDuplicate_ServiceError(t *testing.T) {
 	result := checkGiftCardDuplicate(c, mockSvc, &cardNum, userID, nil)
 	assert.Nil(t, result)
 	mockSvc.AssertExpectations(t)
+}
+
+// ==================== Restore Tests ====================
+
+func TestGiftCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *testing.T) {
+	handler, mockGiftCardService, _, mockMerchantService, _, _, _, _ := setupGiftCardsTest()
+	merchantID := uuid.New()
+	body := `{"merchant_id":"` + merchantID.String() + `","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	deletedGiftCard := createTestGiftCard()
+	deletedGiftCard.ID = uuid.New()
+	deletedGiftCard.UserID = &user.ID
+	deletedGiftCard.CardNumber = "1234567890"
+	deletedGiftCard.MerchantName = "Test Merchant"
+
+	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
+	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
+	// No active duplicate
+	mockGiftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil)
+	// Soft-deleted duplicate found
+	mockGiftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(deletedGiftCard, nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+
+	var response DuplicateErrorResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, "duplicate_barcode", response.Error)
+	assert.NotNil(t, response.Duplicate)
+	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
+	assert.Equal(t, deletedGiftCard.ID.String(), response.Duplicate.ExistingID)
+	mockMerchantService.AssertExpectations(t)
+	mockGiftCardService.AssertExpectations(t)
+}
+
+func TestGiftCardsHandler_Restore_Success(t *testing.T) {
+	handler, mockGiftCardService, _, _, _, mockFavoriteService, _, _ := setupGiftCardsTest()
+	restoredGiftCard := createTestGiftCard()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: restoredGiftCard.ID.String()}})
+
+	mockGiftCardService.On("RestoreGiftCard", mock.Anything, restoredGiftCard.ID, user.ID).Return(restoredGiftCard, nil)
+	mockFavoriteService.On("IsFavorite", mock.Anything, user.ID, "gift_card", restoredGiftCard.ID).Return(false, nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var response GiftCardDetailResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, restoredGiftCard.ID.String(), response.GiftCard.ID)
+	mockGiftCardService.AssertExpectations(t)
+	mockFavoriteService.AssertExpectations(t)
+}
+
+func TestGiftCardsHandler_Restore_NotFound(t *testing.T) {
+	handler, mockGiftCardService, _, _, _, _, _, _ := setupGiftCardsTest()
+	giftCardID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
+
+	mockGiftCardService.On("RestoreGiftCard", mock.Anything, giftCardID, user.ID).Return((*models.GiftCard)(nil), nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+	mockGiftCardService.AssertExpectations(t)
+}
+
+func TestGiftCardsHandler_Restore_InvalidID(t *testing.T) {
+	handler, _, _, _, _, _, _, _ := setupGiftCardsTest()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
+
+	err := handler.Restore(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestGiftCardsHandler_Restore_ServiceError(t *testing.T) {
+	handler, mockGiftCardService, _, _, _, _, _, _ := setupGiftCardsTest()
+	giftCardID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: giftCardID.String()}})
+
+	mockGiftCardService.On("RestoreGiftCard", mock.Anything, giftCardID, user.ID).Return((*models.GiftCard)(nil), errors.New("db error"))
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	mockGiftCardService.AssertExpectations(t)
 }

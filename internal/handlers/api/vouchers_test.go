@@ -206,6 +206,7 @@ func TestVouchersHandler_Create_Success(t *testing.T) {
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
+	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(nil)
 	mockVoucherService.On("GetVoucher", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestVoucher(), nil)
 
@@ -266,6 +267,7 @@ func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
 
 	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
+	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(nil)
 	mockVoucherService.On("GetVoucher", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestVoucher(), nil)
 
@@ -662,4 +664,114 @@ func TestCheckVoucherDuplicate_ServiceError(t *testing.T) {
 	result := checkVoucherDuplicate(c, mockSvc, &code, userID, nil)
 	assert.Nil(t, result)
 	mockSvc.AssertExpectations(t)
+}
+
+// ==================== Restore Tests ====================
+
+func TestVouchersHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *testing.T) {
+	handler, mockVoucherService, _, mockMerchantService, _, _, _, _ := setupVouchersTest()
+	merchantID := uuid.New()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"merchant_id":"` + merchantID.String() + `","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	deletedVoucher := createTestVoucher()
+	deletedVoucher.ID = uuid.New()
+	deletedVoucher.UserID = &user.ID
+	deletedVoucher.Code = "VOUCHER123"
+	deletedVoucher.MerchantName = "Test Merchant"
+
+	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
+	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
+	// No active duplicate
+	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
+	// Soft-deleted duplicate found
+	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return(deletedVoucher, nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+
+	var response DuplicateErrorResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, "duplicate_barcode", response.Error)
+	assert.NotNil(t, response.Duplicate)
+	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
+	assert.Equal(t, deletedVoucher.ID.String(), response.Duplicate.ExistingID)
+	mockMerchantService.AssertExpectations(t)
+	mockVoucherService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_Restore_Success(t *testing.T) {
+	handler, mockVoucherService, _, _, _, mockFavoriteService, _, _ := setupVouchersTest()
+	restoredVoucher := createTestVoucher()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: restoredVoucher.ID.String()}})
+
+	mockVoucherService.On("RestoreVoucher", mock.Anything, restoredVoucher.ID, user.ID).Return(restoredVoucher, nil)
+	mockFavoriteService.On("IsFavorite", mock.Anything, user.ID, "voucher", restoredVoucher.ID).Return(false, nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var response VoucherDetailResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.Equal(t, restoredVoucher.ID.String(), response.Voucher.ID)
+	mockVoucherService.AssertExpectations(t)
+	mockFavoriteService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_Restore_NotFound(t *testing.T) {
+	handler, mockVoucherService, _, _, _, _, _, _ := setupVouchersTest()
+	voucherID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
+
+	mockVoucherService.On("RestoreVoucher", mock.Anything, voucherID, user.ID).Return((*models.Voucher)(nil), nil)
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+	mockVoucherService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_Restore_InvalidID(t *testing.T) {
+	handler, _, _, _, _, _, _, _ := setupVouchersTest()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: "invalid-uuid"}})
+
+	err := handler.Restore(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestVouchersHandler_Restore_ServiceError(t *testing.T) {
+	handler, mockVoucherService, _, _, _, _, _, _ := setupVouchersTest()
+	voucherID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/restore", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
+
+	mockVoucherService.On("RestoreVoucher", mock.Anything, voucherID, user.ID).Return((*models.Voucher)(nil), errors.New("db error"))
+
+	err := handler.Restore(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	mockVoucherService.AssertExpectations(t)
 }
