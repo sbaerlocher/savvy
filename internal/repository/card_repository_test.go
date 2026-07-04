@@ -283,3 +283,38 @@ func TestCardRepository_FindDeletedByCardNumber(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, active2)
 }
+
+// TestCardRepository_ReinsertAfterSoftDelete is the core regression for this
+// feature: the partial unique index must exclude soft-deleted rows so a user can
+// create a new card whose number matches one they previously soft-deleted.
+func TestCardRepository_ReinsertAfterSoftDelete(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewCardRepository(db)
+	ctx := context.Background()
+	userID := createTestUser(t, db)
+
+	first := &models.Card{UserID: &userID, Program: "P", CardNumber: "REUSE-1"}
+	require.NoError(t, repo.Create(ctx, first))
+	require.NoError(t, repo.Delete(ctx, first.ID)) // soft-delete
+
+	// Re-insert with the same number must succeed (index excludes the deleted row).
+	second := &models.Card{UserID: &userID, Program: "P", CardNumber: "REUSE-1"}
+	require.NoError(t, repo.Create(ctx, second))
+	require.NotEqual(t, first.ID, second.ID)
+}
+
+// TestCardRepository_SameNumberDifferentUsers verifies the composite index is
+// per-user: two different users may hold the same card number simultaneously.
+func TestCardRepository_SameNumberDifferentUsers(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewCardRepository(db)
+	ctx := context.Background()
+	userA := createTestUser(t, db)
+	userB := createTestUser(t, db)
+
+	cardA := &models.Card{UserID: &userA, Program: "P", CardNumber: "SHARED-1"}
+	require.NoError(t, repo.Create(ctx, cardA))
+
+	cardB := &models.Card{UserID: &userB, Program: "P", CardNumber: "SHARED-1"}
+	require.NoError(t, repo.Create(ctx, cardB))
+}
