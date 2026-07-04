@@ -11,12 +11,12 @@ import (
 // Voucher represents a discount voucher in the system
 type Voucher struct {
 	ID                uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	UserID            *uuid.UUID     `gorm:"type:uuid;index" json:"user_id"`
+	UserID            *uuid.UUID     `gorm:"type:uuid;index;uniqueIndex:idx_vouchers_user_code,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_code,priority:1" json:"user_id"`
 	User              *User          `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	MerchantID        *uuid.UUID     `gorm:"type:uuid;index" json:"merchant_id"`
 	Merchant          *Merchant      `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 	MerchantName      string         `json:"merchant_name"` // Fallback for free text
-	Code              string         `gorm:"uniqueIndex;not null" json:"code"`
+	Code              string         `gorm:"uniqueIndex:idx_vouchers_user_code,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_code,priority:2;not null" json:"code"`
 	Type              string         `gorm:"not null" json:"type"` // percentage, fixed_amount, points_multiplier, bonus_points
 	Value             float64        `gorm:"not null" json:"value"`
 	Currency          string         `gorm:"default:CHF" json:"currency"` // Currency for fixed_amount vouchers (CHF, EUR, USD, GBP)

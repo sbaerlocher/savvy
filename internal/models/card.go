@@ -11,13 +11,13 @@ import (
 // Card represents a savvy card in the system
 type Card struct {
 	ID           uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	UserID       *uuid.UUID     `gorm:"type:uuid;index" json:"user_id"`
+	UserID       *uuid.UUID     `gorm:"type:uuid;index;uniqueIndex:idx_cards_user_card_number,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_card,priority:1" json:"user_id"`
 	User         *User          `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	MerchantID   *uuid.UUID     `gorm:"type:uuid;index" json:"merchant_id"`
 	Merchant     *Merchant      `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 	MerchantName string         `gorm:"default:''" json:"merchant_name"` // Retailer as fallback for free text
 	Program      string         `gorm:"not null" json:"program"`         // Savvy program name (e.g. Cumulus, Supercard)
-	CardNumber   string         `gorm:"uniqueIndex;not null" json:"card_number"`
+	CardNumber   string         `gorm:"uniqueIndex:idx_cards_user_card_number,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_card,priority:2;not null" json:"card_number"`
 	BarcodeType  string         `gorm:"default:CODE128" json:"barcode_type"`
 	Status       string         `gorm:"default:active" json:"status"`
 	Notes        string         `gorm:"type:text" json:"notes"`

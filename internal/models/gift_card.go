@@ -12,12 +12,12 @@ import (
 // GiftCard represents a prepaid gift card in the system
 type GiftCard struct {
 	ID             uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	UserID         *uuid.UUID     `gorm:"type:uuid;index" json:"user_id"`
+	UserID         *uuid.UUID     `gorm:"type:uuid;index;uniqueIndex:idx_gift_cards_user_card_number,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_card,priority:1" json:"user_id"`
 	User           *User          `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	MerchantID     *uuid.UUID     `gorm:"type:uuid;index" json:"merchant_id"`
 	Merchant       *Merchant      `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 	MerchantName   string         `gorm:"default:''" json:"merchant_name"` // Retailer as fallback
-	CardNumber     string         `gorm:"uniqueIndex;not null" json:"card_number"`
+	CardNumber     string         `gorm:"uniqueIndex:idx_gift_cards_user_card_number,where:user_id IS NOT NULL AND deleted_at IS NULL,composite:user_card,priority:2;not null" json:"card_number"`
 	InitialBalance float64        `gorm:"not null" json:"initial_balance"`
 	CurrentBalance float64        `gorm:"not null" json:"current_balance"` // Cached balance (auto-updated by trigger)
 	Currency       string         `gorm:"default:CHF" json:"currency"`
