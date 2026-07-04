@@ -647,7 +647,9 @@ func (h *VouchersHandler) Restore(c *echo.Context) error {
 
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "voucher", voucherID)
 	dto := ToVoucherDTO(restored, isFavorite)
-	return c.JSON(http.StatusOK, VoucherDetailResponse{Voucher: dto})
+	// A restored voucher is always owned by the caller — return owner permissions.
+	perms := PermissionDTO{CanView: true, CanEdit: true, CanDelete: true, IsOwner: true}
+	return c.JSON(http.StatusOK, VoucherDetailResponse{Voucher: dto, Permissions: perms})
 }
 
 // checkVoucherDuplicate checks for duplicate vouchers by code (warning only, does not block)

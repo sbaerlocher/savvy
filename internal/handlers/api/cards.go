@@ -735,7 +735,10 @@ func (h *CardsHandler) Restore(c *echo.Context) error {
 
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "card", cardID)
 	dto := ToCardDTO(restored, isFavorite)
-	return c.JSON(http.StatusOK, CardDetailResponse{Card: dto})
+	// A restored card is always owned by the caller — return owner permissions.
+	perms := PermissionDTO{CanView: true, CanEdit: true, CanDelete: true, IsOwner: true}
+	dto.Permissions = &perms
+	return c.JSON(http.StatusOK, CardDetailResponse{Card: dto, Permissions: perms})
 }
 
 // stringOrDefault returns the dereferenced string or default if nil

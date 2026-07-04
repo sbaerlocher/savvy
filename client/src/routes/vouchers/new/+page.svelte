@@ -107,8 +107,16 @@
 
 	async function handleRestore() {
 		if (!duplicateWarning?.existing_id) return;
-		await vouchersApi.restore(duplicateWarning.existing_id);
-		await goto(resolve(`/vouchers/${duplicateWarning.existing_id}`));
+		const id = duplicateWarning.existing_id;
+		try {
+			await vouchersApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/vouchers/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
 	}
 
 	function handleCancel() {

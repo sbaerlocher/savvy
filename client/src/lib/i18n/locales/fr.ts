@@ -5,6 +5,7 @@ export const fr: TranslationKeys = {
 		appName: 'Savvy',
 		loading: 'Chargement...',
 		error: 'Erreur',
+		restoreError: 'Échec de la restauration',
 		retry: 'Réessayer',
 		search: 'Rechercher...',
 		save: 'Enregistrer',

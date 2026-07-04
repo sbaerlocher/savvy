@@ -5,6 +5,7 @@ export type TranslationKeys = {
 		appName: string;
 		loading: string;
 		error: string;
+		restoreError: string;
 		retry: string;
 		search: string;
 		save: string;

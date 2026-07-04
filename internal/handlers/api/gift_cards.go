@@ -661,7 +661,9 @@ func (h *GiftCardsHandler) Restore(c *echo.Context) error {
 
 	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "gift_card", giftCardID)
 	dto := ToGiftCardDTO(restored, isFavorite)
-	return c.JSON(http.StatusOK, GiftCardDetailResponse{GiftCard: dto})
+	// A restored gift card is always owned by the caller — return owner permissions.
+	perms := PermissionDTO{CanView: true, CanEdit: true, CanDelete: true, CanEditTransactions: true, IsOwner: true}
+	return c.JSON(http.StatusOK, GiftCardDetailResponse{GiftCard: dto, Permissions: perms})
 }
 
 // applyGiftCardUpdates applies partial update fields from the request to the gift card model.

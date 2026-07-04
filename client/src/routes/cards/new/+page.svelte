@@ -63,8 +63,16 @@
 
 	async function handleRestore() {
 		if (!duplicateWarning?.existing_id) return;
-		await cardsApi.restore(duplicateWarning.existing_id);
-		await goto(resolve(`/cards/${duplicateWarning.existing_id}`));
+		const id = duplicateWarning.existing_id;
+		try {
+			await cardsApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/cards/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
 	}
 
 	function handleCancel() {
