@@ -255,3 +255,31 @@ func TestCardRepository_GetByID_WithPreloads(t *testing.T) {
 	assert.NotNil(t, found.User)
 	assert.Equal(t, userID, found.User.ID)
 }
+
+func TestCardRepository_FindDeletedByCardNumber(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewCardRepository(db)
+	ctx := context.Background()
+	userID := createTestUser(t, db)
+
+	card := &models.Card{UserID: &userID, Program: "P", CardNumber: "DEL-1"}
+	require.NoError(t, repo.Create(ctx, card))
+	require.NoError(t, repo.Delete(ctx, card.ID)) // soft-delete
+
+	// Active lookup does not see it
+	active, err := repo.FindByCardNumber(ctx, "DEL-1", userID)
+	require.NoError(t, err)
+	require.Nil(t, active)
+
+	// Deleted lookup finds it
+	found, err := repo.FindDeletedByCardNumber(ctx, "DEL-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	require.Equal(t, card.ID, found.ID)
+
+	// Restore brings it back
+	require.NoError(t, repo.RestoreByID(ctx, card.ID, userID))
+	active2, err := repo.FindByCardNumber(ctx, "DEL-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, active2)
+}

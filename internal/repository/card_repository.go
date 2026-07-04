@@ -36,4 +36,10 @@ type CardRepository interface {
 
 	// FindByCardNumber finds a card by card number for a specific user
 	FindByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
+
+	// FindDeletedByCardNumber finds a soft-deleted card by card number for a specific user
+	FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
+
+	// RestoreByID clears deleted_at for a soft-deleted card owned by the user
+	RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 }
