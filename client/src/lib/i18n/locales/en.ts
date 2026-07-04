@@ -121,7 +121,9 @@ export const en: TranslationKeys = {
 		warning_title: 'Possible duplicate detected',
 		warning_message:
 			'A similar {resourceType} for "{merchantName}" with the number "{resourceNumber}" already exists.',
-		view_existing: 'View existing'
+		view_existing: 'View existing',
+		restore: 'Restore deleted entry',
+		deletedMessage: 'A deleted entry with this number exists.'
 	},
 	aria: {
 		selectLanguage: 'Select language',

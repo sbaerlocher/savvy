@@ -125,7 +125,9 @@ export const de: TranslationKeys = {
 		warning_title: 'Mögliches Duplikat erkannt',
 		warning_message:
 			'Ein ähnlicher {resourceType} für "{merchantName}" mit der Nummer "{resourceNumber}" existiert bereits.',
-		view_existing: 'Bestehendes anzeigen'
+		view_existing: 'Bestehendes anzeigen',
+		restore: 'Gelöschten Eintrag wiederherstellen',
+		deletedMessage: 'Ein gelöschter Eintrag mit dieser Nummer existiert.'
 	},
 	aria: {
 		selectLanguage: 'Sprache wählen',

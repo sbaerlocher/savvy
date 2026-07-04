@@ -10,9 +10,10 @@
 		warning: DuplicateWarning | null | undefined;
 		resourceType: 'card' | 'voucher' | 'gift_card';
 		onNavigate?: (id: string) => void;
+		onrestore?: () => void;
 	}
 
-	let { warning, resourceType, onNavigate }: Props = $props();
+	let { warning, resourceType, onNavigate, onrestore }: Props = $props();
 
 	function getResourceTypeLabel(type: string): string {
 		switch (type) {
@@ -55,21 +56,36 @@
 		<div class="warning-content">
 			<h3 class="warning-title">{tr('duplicate.warning_title')}</h3>
 			<p class="warning-message">
-				{tr('duplicate.warning_message', {
-					resourceType: getResourceTypeLabel(resourceType),
-					merchantName: warning.merchant_name || tr('common.unknown'),
-					resourceNumber: warning.resource_number || ''
-				})}
+				{#if warning.deleted}
+					{tr('duplicate.deletedMessage')}
+				{:else}
+					{tr('duplicate.warning_message', {
+						resourceType: getResourceTypeLabel(resourceType),
+						merchantName: warning.merchant_name || tr('common.unknown'),
+						resourceNumber: warning.resource_number || ''
+					})}
+				{/if}
 			</p>
-			{#if warning.existing_id && onNavigate}
-				<button
-					type="button"
-					class="view-existing-btn"
-					onclick={handleNavigate}
-				>
-					{tr('duplicate.view_existing')}
-				</button>
-			{/if}
+			<div class="warning-actions">
+				{#if warning.deleted && onrestore}
+					<button
+						type="button"
+						class="view-existing-btn"
+						onclick={onrestore}
+					>
+						{tr('duplicate.restore')}
+					</button>
+				{/if}
+				{#if warning.existing_id && onNavigate && !warning.deleted}
+					<button
+						type="button"
+						class="view-existing-btn"
+						onclick={handleNavigate}
+					>
+						{tr('duplicate.view_existing')}
+					</button>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}
@@ -112,6 +128,12 @@
 		font-size: 0.875rem;
 		line-height: 1.5;
 		color: #856404;
+	}
+
+	.warning-actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 
 	.view-existing-btn {

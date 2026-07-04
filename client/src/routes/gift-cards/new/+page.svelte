@@ -126,6 +126,12 @@
 		}
 	}
 
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		await giftCardsApi.restore(duplicateWarning.existing_id);
+		await goto(`/gift-cards/${duplicateWarning.existing_id}`);
+	}
+
 	function handleCancel() {
 		goto(resolve('/gift-cards'));
 	}
@@ -152,6 +158,7 @@
 				warning={duplicateWarning}
 				resourceType="gift_card"
 				onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
+				onrestore={handleRestore}
 			/>
 			<GiftCardForm
 				bind:cardNumber

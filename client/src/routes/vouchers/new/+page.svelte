@@ -105,6 +105,12 @@
 		}
 	}
 
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		await vouchersApi.restore(duplicateWarning.existing_id);
+		await goto(`/vouchers/${duplicateWarning.existing_id}`);
+	}
+
 	function handleCancel() {
 		goto(resolve('/vouchers'));
 	}
@@ -131,6 +137,7 @@
 				warning={duplicateWarning}
 				resourceType="voucher"
 				onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
+				onrestore={handleRestore}
 			/>
 			<VoucherForm
 				bind:code
