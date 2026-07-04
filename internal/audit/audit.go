@@ -128,97 +128,154 @@ func SetupAuditHooks(db *gorm.DB) error {
 	return db.Callback().Delete().Before("gorm:before_delete").Register("audit:before_delete", beforeDeleteHook)
 }
 
-// beforeDeleteHook is called BEFORE any DELETE operation (to capture full data)
+// auditedTables is the set of tables whose deletions are recorded in the audit
+// log. It intentionally excludes notifications and user_favorites (churn, not
+// worth auditing). Membership is keyed by GORM table name.
+var auditedTables = map[string]bool{
+	"cards":                  true,
+	"card_shares":            true,
+	"vouchers":               true,
+	"voucher_shares":         true,
+	"gift_cards":             true,
+	"gift_card_shares":       true,
+	"gift_card_transactions": true,
+	"merchants":              true,
+}
+
+// beforeDeleteHook is called BEFORE any DELETE operation (to capture full data).
+//
+// The resource id and data are read from the rows the DELETE actually targets,
+// NOT from db.Statement.Dest. Callers routinely delete via an empty struct plus
+// a WHERE clause (e.g. Delete(&models.GiftCard{}, "id = ?", id) or
+// Where("voucher_id = ?", id).Delete(&models.VoucherShare{})); in those cases
+// Dest carries a zero-value ID, which previously wrote uuid.Nil into the audit
+// row and made the record impossible to restore. Re-selecting the target rows
+// captures the real ids for every delete shape, single-row and bulk alike.
 func beforeDeleteHook(db *gorm.DB) {
-	// Skip if this is the audit_logs table itself
-	if db.Statement.Table == "audit_logs" {
+	if db.Statement == nil || db.Statement.Table == "audit_logs" {
 		return
 	}
 
-	// Get the deleted record from the statement
-	if db.Statement.Dest == nil {
-		return
-	}
-
-	// Extract resource info
 	resourceType := db.Statement.Table
-
-	// Try to get the ID from the deleted record
-	var resourceID uuid.UUID
-	switch v := db.Statement.Dest.(type) {
-	case *models.Card:
-		resourceID = v.ID
-	case *models.CardShare:
-		resourceID = v.ID
-	case *models.Voucher:
-		resourceID = v.ID
-	case *models.VoucherShare:
-		resourceID = v.ID
-	case *models.GiftCard:
-		resourceID = v.ID
-	case *models.GiftCardShare:
-		resourceID = v.ID
-	case *models.GiftCardTransaction:
-		resourceID = v.ID
-	case *models.Merchant:
-		resourceID = v.ID
-	default:
-		// Unknown type, skip audit (intentionally excludes Notification and UserFavorite)
+	if !auditedTables[resourceType] {
 		return
 	}
 
-	// Try to get user ID, IP address, and user agent from context
-	var userID *uuid.UUID
-	var ipAddress string
-	var userAgent string
+	// Re-select the rows this DELETE targets. The delete condition comes from
+	// one of two shapes, and we must handle both:
+	//   1. Struct delete: db.Delete(&loadedStruct) — the primary key lives in
+	//      Dest; GORM derives the WHERE from it. Model(Dest) reproduces that.
+	//   2. Conditional delete: Where(...).Delete(&Model{}) or
+	//      Delete(&Model{}, "id = ?", id) — the condition is in the WHERE
+	//      clause, while Dest is a zero-value struct.
+	// Applying Model(Dest) AND any explicit WHERE clause covers both without
+	// re-parsing SQL. Unscoped so soft-delete conditions don't hide the rows
+	// we're about to (soft-)delete. Rows read as generic maps to stay
+	// model-agnostic.
+	sel := db.Session(&gorm.Session{NewDB: true, SkipHooks: true}).
+		WithContext(db.Statement.Context).
+		Unscoped().
+		Table(resourceType)
 
-	ctx := db.Statement.Context
-	if ctx != nil {
-		if val := ctx.Value(userIDKey); val != nil {
-			if uid, ok := val.(uuid.UUID); ok {
-				userID = &uid
-			}
-		}
-		if val := ctx.Value(ipAddressKey); val != nil {
-			if ip, ok := val.(string); ok {
-				ipAddress = ip
-			}
-		}
-		if val := ctx.Value(userAgentKey); val != nil {
-			if ua, ok := val.(string); ok {
-				userAgent = ua
-			}
-		}
+	hasCondition := false
+	if db.Statement.Dest != nil {
+		sel = sel.Model(db.Statement.Dest)
+		hasCondition = true
+	}
+	if whereClause, ok := db.Statement.Clauses["WHERE"]; ok {
+		sel.Statement.Clauses["WHERE"] = whereClause
+		hasCondition = true
+	}
+	if !hasCondition {
+		// Neither a keyed struct nor a WHERE clause: refuse rather than
+		// audit-log an unbounded delete.
+		return
 	}
 
-	// Create audit log (without triggering another hook)
-	dataJSON, _ := json.Marshal(db.Statement.Dest)
+	var rows []map[string]interface{}
+	if err := sel.Find(&rows).Error; err != nil {
+		db.Logger.Error(db.Statement.Context, "audit: failed to load rows before delete: %v", err)
+		return
+	}
+	if len(rows) == 0 {
+		return
+	}
 
-	// Get underlying SQL DB connection
+	userID, ipAddress, userAgent := auditInfoFromContext(db.Statement.Context)
+
 	sqlDB, err := db.DB()
 	if err != nil {
-		db.Logger.Error(db.Statement.Context, "Failed to get SQL DB: %v", err)
+		db.Logger.Error(db.Statement.Context, "audit: failed to get SQL DB: %v", err)
 		return
 	}
 
-	// Insert directly using database/sql to avoid GORM type issues
-	var query string
-	var args []interface{}
+	for _, row := range rows {
+		resourceID, ok := rowUUID(row["id"])
+		if !ok {
+			continue
+		}
+		dataJSON, _ := json.Marshal(row)
 
-	if userID != nil {
-		query = `INSERT INTO audit_logs (user_id, action, resource_type, resource_id, resource_data, ip_address, user_agent, created_at)
-		         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`
-		args = []interface{}{userID, "delete", resourceType, resourceID, dataJSON, ipAddress, userAgent}
-	} else {
-		query = `INSERT INTO audit_logs (action, resource_type, resource_id, resource_data, ip_address, user_agent, created_at)
-		         VALUES ($1, $2, $3, $4, $5, $6, NOW())`
-		args = []interface{}{"delete", resourceType, resourceID, dataJSON, ipAddress, userAgent}
-	}
+		var query string
+		var args []interface{}
+		if userID != nil {
+			query = `INSERT INTO audit_logs (user_id, action, resource_type, resource_id, resource_data, ip_address, user_agent, created_at)
+			         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`
+			args = []interface{}{userID, "delete", resourceType, resourceID, dataJSON, ipAddress, userAgent}
+		} else {
+			query = `INSERT INTO audit_logs (action, resource_type, resource_id, resource_data, ip_address, user_agent, created_at)
+			         VALUES ($1, $2, $3, $4, $5, $6, NOW())`
+			args = []interface{}{"delete", resourceType, resourceID, dataJSON, ipAddress, userAgent}
+		}
 
-	_, err = sqlDB.ExecContext(db.Statement.Context, query, args...)
-	if err != nil {
-		db.Logger.Error(db.Statement.Context, "Failed to create audit log: %v", err)
+		if _, err := sqlDB.ExecContext(db.Statement.Context, query, args...); err != nil {
+			db.Logger.Error(db.Statement.Context, "audit: failed to create audit log: %v", err)
+		}
 	}
+}
+
+// rowUUID coerces a scanned "id" column into a uuid.UUID. The pgx/database-sql
+// path may hand back a [16]byte, a string, or a uuid.UUID depending on driver.
+func rowUUID(v interface{}) (uuid.UUID, bool) {
+	switch id := v.(type) {
+	case uuid.UUID:
+		return id, id != uuid.Nil
+	case [16]byte:
+		u := uuid.UUID(id)
+		return u, u != uuid.Nil
+	case string:
+		u, err := uuid.Parse(id)
+		return u, err == nil && u != uuid.Nil
+	case []byte:
+		u, err := uuid.ParseBytes(id)
+		return u, err == nil && u != uuid.Nil
+	default:
+		return uuid.Nil, false
+	}
+}
+
+// auditInfoFromContext pulls the acting user, IP, and user agent stashed on the
+// context by the request middleware.
+func auditInfoFromContext(ctx context.Context) (userID *uuid.UUID, ipAddress, userAgent string) {
+	if ctx == nil {
+		return nil, "", ""
+	}
+	if val := ctx.Value(userIDKey); val != nil {
+		if uid, ok := val.(uuid.UUID); ok {
+			userID = &uid
+		}
+	}
+	if val := ctx.Value(ipAddressKey); val != nil {
+		if ip, ok := val.(string); ok {
+			ipAddress = ip
+		}
+	}
+	if val := ctx.Value(userAgentKey); val != nil {
+		if ua, ok := val.(string); ok {
+			userAgent = ua
+		}
+	}
+	return userID, ipAddress, userAgent
 }
 
 // contextKey is a custom type for context keys to avoid collisions

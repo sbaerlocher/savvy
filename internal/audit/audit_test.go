@@ -382,6 +382,109 @@ func TestSetupAuditHooks(t *testing.T) {
 	assert.Equal(t, "TestAgent", auditLog.UserAgent)
 }
 
+// TestBeforeDeleteHook_EmptyStructWithWhere is the regression guard for the
+// bug where deleting via an empty struct + WHERE clause (the pattern used by
+// gift cards, merchants, and all *_shares) wrote uuid.Nil as resource_id,
+// making the audit entry impossible to restore. The hook must read the real id
+// from the targeted row, not from the zero-value Dest struct.
+func TestBeforeDeleteHook_EmptyStructWithWhere(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	merchant := &models.Merchant{Name: "Test Merchant"}
+	db.Create(merchant)
+
+	user := &models.User{Email: "gc@example.com", PasswordHash: "h", FirstName: "G", LastName: "C"}
+	db.Create(user)
+
+	giftCard := &models.GiftCard{
+		UserID:         &user.ID,
+		MerchantID:     &merchant.ID,
+		MerchantName:   "Test Merchant",
+		CardNumber:     "GC-123",
+		BarcodeType:    "CODE128",
+		Status:         "active",
+		Currency:       "CHF",
+		InitialBalance: 100,
+	}
+	db.Create(giftCard)
+
+	ctx := AddAuditContextToContext(context.Background(), user.ID, "10.0.0.1", "TestAgent")
+
+	// The bug reproduction: empty struct + WHERE (mirrors GiftCardRepository.Delete).
+	err := db.WithContext(ctx).Delete(&models.GiftCard{}, "id = ?", giftCard.ID).Error
+	require.NoError(t, err)
+
+	time.Sleep(100 * time.Millisecond)
+
+	var auditLog models.AuditLog
+	err = db.Where("resource_type = ? AND action = ?", "gift_cards", "delete").First(&auditLog).Error
+	require.NoError(t, err)
+
+	// The real id must be captured, not uuid.Nil.
+	assert.Equal(t, giftCard.ID, auditLog.ResourceID)
+	assert.NotEqual(t, uuid.Nil, auditLog.ResourceID)
+
+	// Resource data must carry the real row, not a zero-value struct.
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal([]byte(auditLog.ResourceData), &parsed))
+	assert.Equal(t, "Test Merchant", parsed["merchant_name"])
+}
+
+// TestBeforeDeleteHook_BulkDelete verifies that a WHERE clause matching multiple
+// rows produces one audit entry per row (with its own real id), not a single
+// nil-id entry.
+func TestBeforeDeleteHook_BulkDelete(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	owner := &models.User{Email: "owner@example.com", PasswordHash: "h", FirstName: "O", LastName: "W"}
+	db.Create(owner)
+	u1 := &models.User{Email: "u1@example.com", PasswordHash: "h", FirstName: "U", LastName: "1"}
+	db.Create(u1)
+	u2 := &models.User{Email: "u2@example.com", PasswordHash: "h", FirstName: "U", LastName: "2"}
+	db.Create(u2)
+
+	voucher := &models.Voucher{
+		UserID:       &owner.ID,
+		MerchantName: "M",
+		Code:         "VCODE-1",
+		Type:         "percentage",
+		Value:        10,
+		ValidFrom:    time.Now(),
+		ValidUntil:   time.Now().Add(24 * time.Hour),
+		BarcodeType:  "CODE128",
+	}
+	db.Create(voucher)
+
+	s1 := &models.VoucherShare{VoucherID: voucher.ID, SharedWithID: u1.ID}
+	s2 := &models.VoucherShare{VoucherID: voucher.ID, SharedWithID: u2.ID}
+	db.Create(s1)
+	db.Create(s2)
+
+	ctx := AddAuditContextToContext(context.Background(), owner.ID, "10.0.0.1", "TestAgent")
+
+	// Bulk delete both shares (mirrors TransferRepository share cleanup).
+	err := db.WithContext(ctx).Where("voucher_id = ?", voucher.ID).Delete(&models.VoucherShare{}).Error
+	require.NoError(t, err)
+
+	time.Sleep(100 * time.Millisecond)
+
+	var logs []models.AuditLog
+	err = db.Where("resource_type = ? AND action = ?", "voucher_shares", "delete").Find(&logs).Error
+	require.NoError(t, err)
+
+	// One audit entry per deleted share, each with a real id.
+	require.Len(t, logs, 2)
+	ids := map[uuid.UUID]bool{}
+	for _, l := range logs {
+		assert.NotEqual(t, uuid.Nil, l.ResourceID)
+		ids[l.ResourceID] = true
+	}
+	assert.True(t, ids[s1.ID])
+	assert.True(t, ids[s2.ID])
+}
+
 func TestBeforeDeleteHook_SkipsAuditLogs(t *testing.T) {
 	db := testutil.NewTestDBDirect(t)
 
