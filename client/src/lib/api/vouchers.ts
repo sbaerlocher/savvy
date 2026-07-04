@@ -208,6 +208,13 @@ export const vouchersApi = {
 	},
 
 	/**
+	 * Restore soft-deleted voucher
+	 */
+	async restore(id: string): Promise<{ voucher: VoucherDTO }> {
+		return api.post<{ voucher: VoucherDTO }>(`/vouchers/${id}/restore`);
+	},
+
+	/**
 	 * Toggle favorite — Optimistic Update Pattern
 	 */
 	async toggleFavorite(id: string): Promise<{ is_favorite: boolean }> {
