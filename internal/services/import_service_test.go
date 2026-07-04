@@ -57,6 +57,14 @@ func (m *mockImportCardService) CheckDuplicate(_ context.Context, _ string, _ uu
 	return nil, nil
 }
 
+func (m *mockImportCardService) FindDeletedDuplicate(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+
+func (m *mockImportCardService) RestoreCard(_ context.Context, _ uuid.UUID, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+
 var _ CardServiceInterface = (*mockImportCardService)(nil)
 
 // mockImportVoucherService implements VoucherServiceInterface for import tests.
@@ -92,6 +100,14 @@ func (m *mockImportVoucherService) CountUserVouchers(_ context.Context, _ uuid.U
 	return 0, nil
 }
 func (m *mockImportVoucherService) CheckDuplicate(_ context.Context, _ string, _ uuid.UUID, _ *uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+
+func (m *mockImportVoucherService) FindDeletedDuplicate(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+
+func (m *mockImportVoucherService) RestoreVoucher(_ context.Context, _ uuid.UUID, _ uuid.UUID) (*models.Voucher, error) {
 	return nil, nil
 }
 
@@ -155,6 +171,14 @@ func (m *mockImportGiftCardService) GetTransaction(_ context.Context, _, _ uuid.
 
 func (m *mockImportGiftCardService) DeleteTransaction(_ context.Context, _ uuid.UUID) error {
 	return nil
+}
+
+func (m *mockImportGiftCardService) FindDeletedDuplicate(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
+}
+
+func (m *mockImportGiftCardService) RestoreGiftCard(_ context.Context, _ uuid.UUID, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
 }
 
 var _ GiftCardServiceInterface = (*mockImportGiftCardService)(nil)

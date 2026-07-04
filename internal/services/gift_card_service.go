@@ -29,6 +29,8 @@ type GiftCardServiceInterface interface {
 	GetTransaction(ctx context.Context, transactionID, giftCardID uuid.UUID) (*models.GiftCardTransaction, error)
 	DeleteTransaction(ctx context.Context, transactionID uuid.UUID) error
 	CheckDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID, excludeID *uuid.UUID) (*models.GiftCard, error)
+	FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error)
+	RestoreGiftCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.GiftCard, error)
 }
 
 // GiftCardService implements GiftCardServiceInterface.
@@ -211,6 +213,31 @@ func (s *GiftCardService) DeleteTransaction(ctx context.Context, transactionID u
 
 	slog.Info("Gift card transaction deleted", "transaction_id", transactionID)
 	return nil
+}
+
+// FindDeletedDuplicate returns a soft-deleted gift card with the same number owned by the user, or nil.
+func (s *GiftCardService) FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error) {
+	return s.repo.FindDeletedByCardNumber(ctx, cardNumber, userID)
+}
+
+// RestoreGiftCard clears deleted_at for the user's soft-deleted gift card and returns the restored gift card.
+// Returns (nil, nil) when there is no restorable twin for this user (id unknown or not owned by user);
+// (restoredGiftCard, nil) on success; (nil, err) on real DB error.
+// Zero-row-restore guard: after RestoreByID, GetByID is called; if the record is still
+// not found (nothing was actually undeleted), we return (nil, nil) instead of an error.
+func (s *GiftCardService) RestoreGiftCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.GiftCard, error) {
+	if err := s.repo.RestoreByID(ctx, id, userID); err != nil {
+		return nil, fmt.Errorf("restore gift card: %w", err)
+	}
+	restored, err := s.repo.GetByID(ctx, id, "Merchant", "User", "Transactions")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Nothing was restored (wrong id or not owned by this user) — signal 404.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("load restored gift card: %w", err)
+	}
+	return restored, nil
 }
 
 // CheckDuplicate checks if a gift card with the same card number already exists for the user.

@@ -86,12 +86,17 @@ func (m *MockCardRepository) Search(ctx context.Context, userID uuid.UUID, query
 	return args.Get(0).([]models.Card), args.Error(1)
 }
 
-func (m *MockCardRepository) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
-	return nil, nil
+func (m *MockCardRepository) FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
+	args := m.Called(ctx, cardNumber, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Card), args.Error(1)
 }
 
-func (m *MockCardRepository) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
-	return nil
+func (m *MockCardRepository) RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	args := m.Called(ctx, id, userID)
+	return args.Error(0)
 }
 
 // Ensure MockCardRepository implements CardRepository
@@ -606,5 +611,92 @@ func TestCardService_GetUserCardsPaginated_RepositoryError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "get paginated cards")
+	mockRepo.AssertExpectations(t)
+}
+
+// ============================================================================
+// RESTORE CARD TESTS
+// ============================================================================
+
+func TestCardService_RestoreCard_Success(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+	restoredCard := &models.Card{
+		ID:           cardID,
+		UserID:       &userID,
+		CardNumber:   "1234567890",
+		MerchantName: "Test Merchant",
+	}
+
+	mockRepo.On("RestoreByID", ctx, cardID, userID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(restoredCard, nil)
+
+	card, err := service.RestoreCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, card)
+	assert.Equal(t, cardID, card.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_RestoreCard_NoDeletedTwin(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	cardID := uuid.New()
+	userID := uuid.New()
+
+	// RestoreByID no-ops (zero rows), GetByID returns not-found (record still deleted)
+	mockRepo.On("RestoreByID", ctx, cardID, userID).Return(nil)
+	mockRepo.On("GetByID", ctx, cardID, []string{"Merchant", "User"}).Return(nil, gorm.ErrRecordNotFound)
+
+	card, err := service.RestoreCard(ctx, cardID, userID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, card)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_FindDeletedDuplicate_Found(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	deletedCard := &models.Card{
+		ID:           uuid.New(),
+		UserID:       &userID,
+		CardNumber:   "1234567890",
+		MerchantName: "Test Merchant",
+	}
+
+	mockRepo.On("FindDeletedByCardNumber", ctx, "1234567890", userID).Return(deletedCard, nil)
+
+	result, err := service.FindDeletedDuplicate(ctx, "1234567890", userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, deletedCard.ID, result.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_FindDeletedDuplicate_NotFound(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+
+	mockRepo.On("FindDeletedByCardNumber", ctx, "9999999999", userID).Return(nil, nil)
+
+	result, err := service.FindDeletedDuplicate(ctx, "9999999999", userID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
 }
