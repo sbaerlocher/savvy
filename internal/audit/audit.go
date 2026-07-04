@@ -209,6 +209,9 @@ func beforeDeleteHook(db *gorm.DB) {
 		return
 	}
 
+	// ponytail: one INSERT per deleted row. Bulk deletes in this codebase are
+	// small (shares per resource, per-user GDPR wipe, batch cap 50), so N+1 is
+	// fine; switch to a multi-row INSERT if a large-fan-out delete ever lands.
 	for _, row := range rows {
 		resourceID, ok := rowUUID(row["id"])
 		if !ok {

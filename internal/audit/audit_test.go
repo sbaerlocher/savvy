@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 	"savvy/internal/models"
 	"savvy/internal/testutil"
 )
@@ -483,6 +484,52 @@ func TestBeforeDeleteHook_BulkDelete(t *testing.T) {
 	}
 	assert.True(t, ids[s1.ID])
 	assert.True(t, ids[s2.ID])
+}
+
+// TestBeforeDeleteHook_InsideTransaction guards against the re-select running on
+// a different connection than the in-flight DELETE. The real transfer path
+// deletes shares inside db.Transaction(...); the hook's re-select must see the
+// (not-yet-deleted) rows on the transaction's own connection and the audit
+// entry must survive the commit. If the re-select grabbed a fresh pool
+// connection outside the tx, it would read zero rows and write no audit entry.
+func TestBeforeDeleteHook_InsideTransaction(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	owner := &models.User{Email: "txowner@example.com", PasswordHash: "h", FirstName: "T", LastName: "X"}
+	db.Create(owner)
+	u1 := &models.User{Email: "txu1@example.com", PasswordHash: "h", FirstName: "U", LastName: "1"}
+	db.Create(u1)
+
+	voucher := &models.Voucher{
+		UserID:       &owner.ID,
+		MerchantName: "M",
+		Code:         "TXCODE-1",
+		Type:         "percentage",
+		Value:        10,
+		ValidFrom:    time.Now(),
+		ValidUntil:   time.Now().Add(24 * time.Hour),
+		BarcodeType:  "CODE128",
+	}
+	db.Create(voucher)
+	share := &models.VoucherShare{VoucherID: voucher.ID, SharedWithID: u1.ID}
+	db.Create(share)
+
+	ctx := AddAuditContextToContext(context.Background(), owner.ID, "10.0.0.1", "TestAgent")
+
+	// Delete inside an explicit transaction, mirroring TransferRepository.
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Where("voucher_id = ?", voucher.ID).Delete(&models.VoucherShare{}).Error
+	})
+	require.NoError(t, err)
+
+	time.Sleep(100 * time.Millisecond)
+
+	var auditLog models.AuditLog
+	err = db.Where("resource_type = ? AND resource_id = ?", "voucher_shares", share.ID).First(&auditLog).Error
+	require.NoError(t, err)
+	assert.Equal(t, share.ID, auditLog.ResourceID)
+	assert.NotEqual(t, uuid.Nil, auditLog.ResourceID)
 }
 
 func TestBeforeDeleteHook_SkipsAuditLogs(t *testing.T) {
