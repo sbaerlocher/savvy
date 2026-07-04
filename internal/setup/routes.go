@@ -411,6 +411,7 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 	cardsAPI.GET("/:id", cardsAPIHandler.Show)
 	cardsAPI.PATCH("/:id", cardsAPIHandler.Update)
 	cardsAPI.DELETE("/:id", cardsAPIHandler.Delete)
+	cardsAPI.POST("/:id/restore", cardsAPIHandler.Restore)
 	cardsAPI.POST("/:id/favorite", cardsAPIHandler.ToggleFavorite)
 	cardsAPI.POST("/:id/share", cardsAPIHandler.CreateShare)
 	cardsAPI.PATCH("/:id/share/:sharedWithID", cardsAPIHandler.UpdateShare)

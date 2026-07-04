@@ -288,6 +288,25 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
+	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
+	deletedDup, err := h.cardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	}
+	if deletedDup != nil {
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A soft-deleted card with this number exists and can be restored",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   deletedDup.MerchantName,
+				ResourceNumber: deletedDup.CardNumber,
+				ExistingID:     deletedDup.ID.String(),
+				Deleted:        true,
+			},
+		})
+	}
+
 	// Create card
 	card := &models.Card{
 		UserID:       &user.ID,
@@ -687,6 +706,36 @@ func (h *CardsHandler) DeleteShare(c *echo.Context) error {
 // POST /api/v1/cards/:id/transfer
 func (h *CardsHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "card", h.authzService.CheckCardAccess, h.transferService.TransferCardOwnership, h.userService)
+}
+
+// Restore restores a soft-deleted card owned by the current user
+// POST /api/v1/cards/:id/restore
+func (h *CardsHandler) Restore(c *echo.Context) error {
+	user := c.Get("current_user").(*models.User)
+
+	cardID, err := parseResourceID(c, "card")
+	if err != nil {
+		return err
+	}
+
+	restored, err := h.cardService.RestoreCard(c.Request().Context(), cardID, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to restore card", "card_id", cardID, "error", err)
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "server_error",
+			Message: "Failed to restore card",
+		})
+	}
+	if restored == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Error:   "not_found",
+			Message: "No restorable card found",
+		})
+	}
+
+	isFavorite, _ := h.favoriteService.IsFavorite(c.Request().Context(), user.ID, "card", cardID)
+	dto := ToCardDTO(restored, isFavorite)
+	return c.JSON(http.StatusOK, CardDetailResponse{Card: dto})
 }
 
 // stringOrDefault returns the dereferenced string or default if nil
