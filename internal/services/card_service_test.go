@@ -86,6 +86,14 @@ func (m *MockCardRepository) Search(ctx context.Context, userID uuid.UUID, query
 	return args.Get(0).([]models.Card), args.Error(1)
 }
 
+func (m *MockCardRepository) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+
+func (m *MockCardRepository) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
+
 // Ensure MockCardRepository implements CardRepository
 var _ repository.CardRepository = (*MockCardRepository)(nil)
 

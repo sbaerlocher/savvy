@@ -97,6 +97,12 @@ func (m *mockExportCardRepo) GetAllForUserPaginated(_ context.Context, _ uuid.UU
 func (m *mockExportCardRepo) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
+func (m *mockExportCardRepo) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+func (m *mockExportCardRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
 
 var _ repository.CardRepository = (*mockExportCardRepo)(nil)
 
@@ -145,6 +151,12 @@ func (m *mockExportVoucherRepo) GetVouchersStartingTomorrow(_ context.Context) (
 }
 func (m *mockExportVoucherRepo) FindByVoucherCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
 	return nil, nil
+}
+func (m *mockExportVoucherRepo) FindDeletedByCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+func (m *mockExportVoucherRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
 }
 
 var _ repository.VoucherRepository = (*mockExportVoucherRepo)(nil)
@@ -203,6 +215,12 @@ func (m *mockExportGiftCardRepo) GetExpiringGiftCards(_ context.Context, _ int) 
 }
 func (m *mockExportGiftCardRepo) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
 	return nil, nil
+}
+func (m *mockExportGiftCardRepo) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
+}
+func (m *mockExportGiftCardRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
 }
 
 var _ repository.GiftCardRepository = (*mockExportGiftCardRepo)(nil)

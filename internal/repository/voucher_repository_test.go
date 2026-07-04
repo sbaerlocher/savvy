@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"savvy/internal/models"
 )
@@ -284,4 +285,37 @@ func TestVoucherRepository_GetByID_WithPreloads(t *testing.T) {
 	assert.Equal(t, merchant.ID, found.Merchant.ID)
 	assert.NotNil(t, found.User)
 	assert.Equal(t, userID, found.User.ID)
+}
+
+func TestVoucherRepository_FindDeletedByCode(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewVoucherRepository(db)
+	ctx := context.Background()
+	userID := createTestUser(t, db)
+
+	voucher := &models.Voucher{
+		UserID:    &userID,
+		Code:      "DEL-V-1",
+		ValidFrom: time.Now().Add(-24 * time.Hour),
+		ValidUntil: time.Now().Add(24 * time.Hour),
+	}
+	require.NoError(t, repo.Create(ctx, voucher))
+	require.NoError(t, repo.Delete(ctx, voucher.ID)) // soft-delete
+
+	// Active lookup does not see it
+	active, err := repo.FindByVoucherCode(ctx, "DEL-V-1", userID)
+	require.NoError(t, err)
+	require.Nil(t, active)
+
+	// Deleted lookup finds it
+	deleted, err := repo.FindDeletedByCode(ctx, "DEL-V-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, deleted)
+	require.Equal(t, voucher.ID, deleted.ID)
+
+	// Restore brings it back
+	require.NoError(t, repo.RestoreByID(ctx, voucher.ID, userID))
+	active2, err := repo.FindByVoucherCode(ctx, "DEL-V-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, active2)
 }

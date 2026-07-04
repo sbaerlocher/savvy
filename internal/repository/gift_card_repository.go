@@ -51,4 +51,10 @@ type GiftCardRepository interface {
 
 	// FindByCardNumber finds a gift card by card number for a specific user
 	FindByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error)
+
+	// FindDeletedByCardNumber finds a soft-deleted gift card by card number for a specific user
+	FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.GiftCard, error)
+
+	// RestoreByID clears deleted_at for a soft-deleted gift card owned by the user
+	RestoreByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 }

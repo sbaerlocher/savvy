@@ -52,6 +52,12 @@ func (m *mockCardRepo) GetAllForUserPaginated(_ context.Context, _ uuid.UUID, _ 
 func (m *mockCardRepo) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
+func (m *mockCardRepo) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+func (m *mockCardRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
 func (m *mockCardRepo) Search(_ context.Context, _ uuid.UUID, _ string) ([]models.Card, error) {
 	return nil, nil
 }
@@ -99,6 +105,12 @@ func (m *mockVoucherRepo) GetVouchersStartingTomorrow(_ context.Context) ([]mode
 }
 func (m *mockVoucherRepo) FindByVoucherCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
 	return nil, nil
+}
+func (m *mockVoucherRepo) FindDeletedByCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+func (m *mockVoucherRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
 }
 func (m *mockVoucherRepo) Search(_ context.Context, _ uuid.UUID, _ string) ([]models.Voucher, error) {
 	return nil, nil
@@ -158,6 +170,12 @@ func (m *mockGiftCardRepo) GetExpiringGiftCards(_ context.Context, _ int) ([]mod
 }
 func (m *mockGiftCardRepo) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
 	return nil, nil
+}
+func (m *mockGiftCardRepo) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.GiftCard, error) {
+	return nil, nil
+}
+func (m *mockGiftCardRepo) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
 }
 func (m *mockGiftCardRepo) Search(_ context.Context, _ uuid.UUID, _ string) ([]models.GiftCard, error) {
 	return nil, nil

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 	"savvy/internal/models"
 )
@@ -479,4 +480,38 @@ func TestGiftCardRepository_GetByID_WithPreloads(t *testing.T) {
 	assert.NotNil(t, found.User)
 	assert.Equal(t, userID, found.User.ID)
 	assert.GreaterOrEqual(t, len(found.Transactions), 1)
+}
+
+func TestGiftCardRepository_FindDeletedByCardNumber(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewGiftCardRepository(db)
+	ctx := context.Background()
+	userID := createTestUser(t, db)
+
+	giftCard := &models.GiftCard{
+		UserID:         &userID,
+		CardNumber:     "DEL-GC-1",
+		InitialBalance: 50.0,
+		CurrentBalance: 50.0,
+		Currency:       "CHF",
+	}
+	require.NoError(t, repo.Create(ctx, giftCard))
+	require.NoError(t, repo.Delete(ctx, giftCard.ID)) // soft-delete
+
+	// Active lookup does not see it
+	active, err := repo.FindByCardNumber(ctx, "DEL-GC-1", userID)
+	require.NoError(t, err)
+	require.Nil(t, active)
+
+	// Deleted lookup finds it
+	deleted, err := repo.FindDeletedByCardNumber(ctx, "DEL-GC-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, deleted)
+	require.Equal(t, giftCard.ID, deleted.ID)
+
+	// Restore brings it back
+	require.NoError(t, repo.RestoreByID(ctx, giftCard.ID, userID))
+	active2, err := repo.FindByCardNumber(ctx, "DEL-GC-1", userID)
+	require.NoError(t, err)
+	require.NotNil(t, active2)
 }

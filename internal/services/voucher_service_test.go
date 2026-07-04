@@ -100,6 +100,14 @@ func (m *MockVoucherRepository) Search(ctx context.Context, userID uuid.UUID, qu
 	return args.Get(0).([]models.Voucher), args.Error(1)
 }
 
+func (m *MockVoucherRepository) FindDeletedByCode(_ context.Context, _ string, _ uuid.UUID) (*models.Voucher, error) {
+	return nil, nil
+}
+
+func (m *MockVoucherRepository) RestoreByID(_ context.Context, _ uuid.UUID, _ uuid.UUID) error {
+	return nil
+}
+
 var _ repository.VoucherRepository = (*MockVoucherRepository)(nil)
 
 // ============================================================================
