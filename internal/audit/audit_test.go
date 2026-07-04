@@ -532,6 +532,47 @@ func TestBeforeDeleteHook_InsideTransaction(t *testing.T) {
 	assert.NotEqual(t, uuid.Nil, auditLog.ResourceID)
 }
 
+// TestBeforeDeleteHook_KeyedStructWithWhere covers the mixed delete shape (a
+// keyed struct AND an explicit WHERE), which no current call site uses. The
+// hook cannot faithfully reproduce both conditions, so it must skip the audit
+// (fail loud in the log) rather than write an entry targeting the wrong rows —
+// and the DELETE itself must still succeed.
+func TestBeforeDeleteHook_KeyedStructWithWhere(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	merchant := &models.Merchant{Name: "Mixed Merchant"}
+	db.Create(merchant)
+	user := &models.User{Email: "mixed@example.com", PasswordHash: "h", FirstName: "M", LastName: "X"}
+	db.Create(user)
+
+	card := &models.Card{
+		UserID:       &user.ID,
+		MerchantID:   &merchant.ID,
+		MerchantName: "Mixed Merchant",
+		CardNumber:   "MIX-1",
+		Program:      "P",
+		BarcodeType:  "CODE128",
+		Status:       "active",
+	}
+	db.Create(card)
+
+	ctx := AddAuditContextToContext(context.Background(), user.ID, "10.0.0.1", "TestAgent")
+
+	// Keyed struct (card carries its ID) plus an explicit WHERE.
+	err := db.WithContext(ctx).Where("user_id = ?", user.ID).Delete(card).Error
+	require.NoError(t, err) // delete still succeeds
+
+	time.Sleep(100 * time.Millisecond)
+
+	// No audit entry should have been written for this ambiguous shape.
+	var count int64
+	db.Model(&models.AuditLog{}).
+		Where("resource_type = ? AND action = ?", "cards", "delete").
+		Count(&count)
+	assert.Equal(t, int64(0), count)
+}
+
 func TestBeforeDeleteHook_SkipsAuditLogs(t *testing.T) {
 	db := testutil.NewTestDBDirect(t)
 

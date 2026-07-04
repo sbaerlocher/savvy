@@ -4,6 +4,7 @@ package audit
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 	"savvy/internal/models"
 
 	"github.com/google/uuid"
@@ -162,31 +163,43 @@ func beforeDeleteHook(db *gorm.DB) {
 	}
 
 	// Re-select the rows this DELETE targets. The delete condition comes from
-	// one of two shapes, and we must handle both:
-	//   1. Struct delete: db.Delete(&loadedStruct) — the primary key lives in
-	//      Dest; GORM derives the WHERE from it. Model(Dest) reproduces that.
-	//   2. Conditional delete: Where(...).Delete(&Model{}) or
+	// one of two mutually exclusive shapes:
+	//   1. Conditional delete: Where(...).Delete(&Model{}) or
 	//      Delete(&Model{}, "id = ?", id) — the condition is in the WHERE
-	//      clause, while Dest is a zero-value struct.
-	// Applying Model(Dest) AND any explicit WHERE clause covers both without
-	// re-parsing SQL. Unscoped so soft-delete conditions don't hide the rows
-	// we're about to (soft-)delete. Rows read as generic maps to stay
-	// model-agnostic.
+	//      clause and Dest is a zero-value struct. The WHERE alone reproduces
+	//      the delete's targeting.
+	//   2. Struct delete: db.Delete(&loadedStruct) — no explicit WHERE; the
+	//      primary key lives in Dest, so Model(Dest) reproduces GORM's derived
+	//      PK condition.
+	// These are handled separately rather than combined: layering Model(Dest)
+	// under an explicit WHERE would let one silently override the other. Every
+	// delete call site in this codebase is exactly one shape (verified by
+	// grep), so the mixed case (keyed struct AND explicit WHERE) does not
+	// occur — but if one is ever added, we fail loud below instead of
+	// silently auditing the wrong rows.
+	// Unscoped so soft-delete conditions don't hide the rows we're about to
+	// (soft-)delete. Rows read as generic maps to stay model-agnostic.
 	sel := db.Session(&gorm.Session{NewDB: true, SkipHooks: true}).
 		WithContext(db.Statement.Context).
 		Unscoped().
 		Table(resourceType)
 
-	hasCondition := false
-	if db.Statement.Dest != nil {
-		sel = sel.Model(db.Statement.Dest)
-		hasCondition = true
-	}
-	if whereClause, ok := db.Statement.Clauses["WHERE"]; ok {
+	whereClause, hasWhere := db.Statement.Clauses["WHERE"]
+	switch {
+	case hasWhere:
+		if destHasKey(db) {
+			// Mixed shape: a keyed struct plus an explicit WHERE. The audit
+			// re-select can only reproduce one of the two conditions, so it
+			// might target different rows than the DELETE. Refuse loudly
+			// rather than write a misleading audit entry.
+			db.Logger.Error(db.Statement.Context,
+				"audit: delete on %s has both a keyed struct and an explicit WHERE; skipping audit to avoid mis-targeting", resourceType)
+			return
+		}
 		sel.Statement.Clauses["WHERE"] = whereClause
-		hasCondition = true
-	}
-	if !hasCondition {
+	case db.Statement.Dest != nil && destHasKey(db):
+		sel = sel.Model(db.Statement.Dest)
+	default:
 		// Neither a keyed struct nor a WHERE clause: refuse rather than
 		// audit-log an unbounded delete.
 		return
@@ -235,6 +248,33 @@ func beforeDeleteHook(db *gorm.DB) {
 			db.Logger.Error(db.Statement.Context, "audit: failed to create audit log: %v", err)
 		}
 	}
+}
+
+// destHasKey reports whether the delete's Dest struct carries a non-zero
+// primary key (an "ID" field). All audited models key on ID uuid.UUID, so a
+// non-nil ID means GORM will derive a PK WHERE from the struct (shape 2). A
+// zero ID means Dest is just a table marker and the real condition lives in an
+// explicit WHERE clause (shape 1).
+func destHasKey(db *gorm.DB) bool {
+	if db.Statement.Dest == nil {
+		return false
+	}
+	v := reflect.ValueOf(db.Statement.Dest)
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return false
+		}
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	idField := v.FieldByName("ID")
+	if !idField.IsValid() {
+		return false
+	}
+	id, ok := idField.Interface().(uuid.UUID)
+	return ok && id != uuid.Nil
 }
 
 // rowUUID coerces a scanned "id" column into a uuid.UUID. The pgx/database-sql
