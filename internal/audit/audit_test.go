@@ -486,6 +486,108 @@ func TestBeforeDeleteHook_BulkDelete(t *testing.T) {
 	assert.True(t, ids[s2.ID])
 }
 
+// TestBeforeDeleteHook_SoftDeleteSkipsPreviouslyDeleted is the regression guard
+// for the over-audit bug: a soft bulk delete must audit only the rows it
+// actually soft-deletes, not rows a previous operation already soft-deleted
+// under the same WHERE. Otherwise the hook writes a spurious delete entry for
+// an already-revoked share, which an admin could "restore" and thereby
+// silently un-revoke it.
+func TestBeforeDeleteHook_SoftDeleteSkipsPreviouslyDeleted(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	owner := &models.User{Email: "sdowner@example.com", PasswordHash: "h", FirstName: "S", LastName: "D"}
+	db.Create(owner)
+	u1 := &models.User{Email: "sdu1@example.com", PasswordHash: "h", FirstName: "U", LastName: "1"}
+	db.Create(u1)
+	u2 := &models.User{Email: "sdu2@example.com", PasswordHash: "h", FirstName: "U", LastName: "2"}
+	db.Create(u2)
+
+	voucher := &models.Voucher{
+		UserID:       &owner.ID,
+		MerchantName: "M",
+		Code:         "SDCODE-1",
+		Type:         "percentage",
+		Value:        10,
+		ValidFrom:    time.Now(),
+		ValidUntil:   time.Now().Add(24 * time.Hour),
+		BarcodeType:  "CODE128",
+	}
+	db.Create(voucher)
+
+	revoked := &models.VoucherShare{VoucherID: voucher.ID, SharedWithID: u1.ID}
+	active := &models.VoucherShare{VoucherID: voucher.ID, SharedWithID: u2.ID}
+	db.Create(revoked)
+	db.Create(active)
+
+	ctx := AddAuditContextToContext(context.Background(), owner.ID, "10.0.0.1", "TestAgent")
+
+	// Revoke the first share individually (soft delete).
+	require.NoError(t, db.WithContext(ctx).
+		Where("voucher_id = ? AND shared_with_id = ?", voucher.ID, u1.ID).
+		Delete(&models.VoucherShare{}).Error)
+
+	// Now a transfer soft-deletes remaining shares by voucher_id. The already-
+	// revoked share matches the WHERE but is already soft-deleted, so the
+	// DELETE does not touch it — and the audit must not re-log it.
+	require.NoError(t, db.WithContext(ctx).
+		Where("voucher_id = ?", voucher.ID).
+		Delete(&models.VoucherShare{}).Error)
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Exactly one audit entry per share id (the individual revoke for u1, the
+	// bulk delete for u2). The revoked share must NOT get a second entry from
+	// the bulk delete.
+	var revokedCount, activeCount int64
+	db.Model(&models.AuditLog{}).Where("resource_id = ?", revoked.ID).Count(&revokedCount)
+	db.Model(&models.AuditLog{}).Where("resource_id = ?", active.ID).Count(&activeCount)
+	assert.Equal(t, int64(1), revokedCount, "revoked share must be audited once, not re-audited by the bulk delete")
+	assert.Equal(t, int64(1), activeCount, "active share audited once by the bulk delete")
+}
+
+// TestBeforeDeleteHook_ResourceDataIsLegible asserts the stored resource_data
+// snapshot renders uuid columns as canonical strings, not driver-native
+// [16]byte number arrays.
+func TestBeforeDeleteHook_ResourceDataIsLegible(t *testing.T) {
+	db := testutil.NewTestDBDirect(t)
+	require.NoError(t, SetupAuditHooks(db))
+
+	merchant := &models.Merchant{Name: "Legible Merchant"}
+	db.Create(merchant)
+	user := &models.User{Email: "legible@example.com", PasswordHash: "h", FirstName: "L", LastName: "G"}
+	db.Create(user)
+
+	giftCard := &models.GiftCard{
+		UserID:         &user.ID,
+		MerchantID:     &merchant.ID,
+		MerchantName:   "Legible Merchant",
+		CardNumber:     "LG-1",
+		BarcodeType:    "CODE128",
+		Status:         "active",
+		Currency:       "CHF",
+		InitialBalance: 50,
+	}
+	db.Create(giftCard)
+
+	ctx := AddAuditContextToContext(context.Background(), user.ID, "10.0.0.1", "TestAgent")
+	require.NoError(t, db.WithContext(ctx).Delete(&models.GiftCard{}, "id = ?", giftCard.ID).Error)
+
+	time.Sleep(100 * time.Millisecond)
+
+	var auditLog models.AuditLog
+	require.NoError(t, db.Where("resource_type = ? AND resource_id = ?", "gift_cards", giftCard.ID).First(&auditLog).Error)
+
+	// user_id must be a UUID string, not a JSON number array like [52,18,...].
+	var parsed map[string]interface{}
+	require.NoError(t, json.Unmarshal([]byte(auditLog.ResourceData), &parsed))
+	uid, ok := parsed["user_id"].(string)
+	require.True(t, ok, "user_id should serialize as a string, got %T", parsed["user_id"])
+	assert.Equal(t, user.ID.String(), uid)
+	// id itself likewise legible.
+	assert.Equal(t, giftCard.ID.String(), parsed["id"])
+}
+
 // TestBeforeDeleteHook_InsideTransaction guards against the re-select running on
 // a different connection than the in-flight DELETE. The real transfer path
 // deletes shares inside db.Transaction(...); the hook's re-select must see the

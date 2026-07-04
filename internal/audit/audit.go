@@ -177,12 +177,21 @@ func beforeDeleteHook(db *gorm.DB) {
 	// grep), so the mixed case (keyed struct AND explicit WHERE) does not
 	// occur — but if one is ever added, we fail loud below instead of
 	// silently auditing the wrong rows.
-	// Unscoped so soft-delete conditions don't hide the rows we're about to
-	// (soft-)delete. Rows read as generic maps to stay model-agnostic.
+	// The re-select must mirror the DELETE's own scoping. A soft delete
+	// targets only rows with deleted_at IS NULL, so the re-select must be
+	// scoped too — otherwise it would also match rows a *previous* operation
+	// already soft-deleted under the same WHERE, and write a spurious audit
+	// entry for a row this DELETE never touched (which an admin could then
+	// "restore", silently un-revoking it). A hard delete (Unscoped, e.g. the
+	// GDPR purge) does target rows regardless of prior state, so there the
+	// re-select must be Unscoped as well. Rows read as generic maps to stay
+	// model-agnostic.
 	sel := db.Session(&gorm.Session{NewDB: true, SkipHooks: true}).
 		WithContext(db.Statement.Context).
-		Unscoped().
 		Table(resourceType)
+	if db.Statement.Unscoped {
+		sel = sel.Unscoped()
+	}
 
 	whereClause, hasWhere := db.Statement.Clauses["WHERE"]
 	switch {
@@ -230,7 +239,7 @@ func beforeDeleteHook(db *gorm.DB) {
 		if !ok {
 			continue
 		}
-		dataJSON, _ := json.Marshal(row)
+		dataJSON, _ := json.Marshal(normalizeRow(row))
 
 		var query string
 		var args []interface{}
@@ -295,6 +304,31 @@ func rowUUID(v interface{}) (uuid.UUID, bool) {
 	default:
 		return uuid.Nil, false
 	}
+}
+
+// normalizeRow makes a scanned row JSON-legible. Columns read into
+// interface{} via the pgx driver come back in driver-native form —
+// uuid columns as [16]byte, which json.Marshal would otherwise render as a
+// 16-element number array instead of the canonical UUID string. Convert those
+// (and 16-byte []byte values) to UUID strings so the stored resource_data
+// snapshot reads the way it did when it was marshalled from a typed struct.
+func normalizeRow(row map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(row))
+	for k, v := range row {
+		switch b := v.(type) {
+		case [16]byte:
+			out[k] = uuid.UUID(b).String()
+		case []byte:
+			if len(b) == 16 {
+				out[k] = uuid.UUID(b).String()
+			} else {
+				out[k] = string(b)
+			}
+		default:
+			out[k] = v
+		}
+	}
+	return out
 }
 
 // auditInfoFromContext pulls the acting user, IP, and user agent stashed on the
