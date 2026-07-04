@@ -32,6 +32,12 @@
       "matchPackageNames": ["ghcr.io/sbaerlocher/container/savvy"],
       "matchFileNames": ["deploy/kustomize/overlays/development/**"],
       "enabled": false
+    },
+    {
+      "description": "cookie: pin to v1.x — SvelteKit imports parse/serialize, removed in cookie v2 (ESM-only). Override floor stays for GHSA bounds-bypass fix.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["cookie"],
+      "allowedVersions": "<2.0.0"
     }
   ]
 }
