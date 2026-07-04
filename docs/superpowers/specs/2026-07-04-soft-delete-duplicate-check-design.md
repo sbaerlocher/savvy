@@ -91,8 +91,9 @@ RestoreCard(ctx, id, userID) error
   `FindDeletedDuplicate`. Twin gefunden → `409` mit
   `DuplicateWarning{Deleted: true, ExistingID}`.
 - Neuer `Restore`-Handler: `POST /api/v1/{cards,vouchers,gift-cards}/:id/restore`
-  → gibt die restaurierte DTO zurück (200). 404 wenn kein gelöschter Twin
-  des Users, 403 wenn nicht Owner.
+  → gibt die restaurierte DTO zurück (200). 404 wenn kein wiederherstellbarer
+  Twin des Users existiert — auch bei fremder Ressource (kein 403, um die
+  Existenz nicht preiszugeben).
 
 ### DTO
 
@@ -133,7 +134,7 @@ Backend (pro Ressource):
 1. Karte anlegen → soft-deleten → Neuanlage mit gleicher Nummer → 409
    `deleted:true`.
 2. Restore-Endpoint → gelöschte Karte wird aktiv, alte Daten intakt.
-3. Restore fremder Karte → 403/404.
+3. Restore fremder Karte → 404 (keine Existenz-Preisgabe, kein Cross-User-Read).
 4. Neuanlage mit Nummer eines aktiven Twins → weiterhin 409 `duplicate_barcode`
    (kein Restore-Angebot).
 5. Partial-Index: zwei User, gleiche Nummer → beide erlaubt.

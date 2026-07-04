@@ -57,7 +57,7 @@
 			<h3 class="warning-title">{tr('duplicate.warning_title')}</h3>
 			<p class="warning-message">
 				{#if warning.deleted}
-					{tr('duplicate.deletedMessage')}
+					{tr('duplicate.deleted_message')}
 				{:else}
 					{tr('duplicate.warning_message', {
 						resourceType: getResourceTypeLabel(resourceType),

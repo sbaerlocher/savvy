@@ -129,7 +129,7 @@
 	async function handleRestore() {
 		if (!duplicateWarning?.existing_id) return;
 		await giftCardsApi.restore(duplicateWarning.existing_id);
-		await goto(`/gift-cards/${duplicateWarning.existing_id}`);
+		await goto(resolve(`/gift-cards/${duplicateWarning.existing_id}`));
 	}
 
 	function handleCancel() {

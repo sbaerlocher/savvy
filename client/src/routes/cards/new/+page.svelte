@@ -64,7 +64,7 @@
 	async function handleRestore() {
 		if (!duplicateWarning?.existing_id) return;
 		await cardsApi.restore(duplicateWarning.existing_id);
-		await goto(`/cards/${duplicateWarning.existing_id}`);
+		await goto(resolve(`/cards/${duplicateWarning.existing_id}`));
 	}
 
 	function handleCancel() {

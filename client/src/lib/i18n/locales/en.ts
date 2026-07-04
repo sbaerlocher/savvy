@@ -123,7 +123,7 @@ export const en: TranslationKeys = {
 			'A similar {resourceType} for "{merchantName}" with the number "{resourceNumber}" already exists.',
 		view_existing: 'View existing',
 		restore: 'Restore deleted entry',
-		deletedMessage: 'A deleted entry with this number exists.'
+		deleted_message: 'A deleted entry with this number exists.'
 	},
 	aria: {
 		selectLanguage: 'Select language',

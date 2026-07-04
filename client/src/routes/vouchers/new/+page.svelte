@@ -108,7 +108,7 @@
 	async function handleRestore() {
 		if (!duplicateWarning?.existing_id) return;
 		await vouchersApi.restore(duplicateWarning.existing_id);
-		await goto(`/vouchers/${duplicateWarning.existing_id}`);
+		await goto(resolve(`/vouchers/${duplicateWarning.existing_id}`));
 	}
 
 	function handleCancel() {
