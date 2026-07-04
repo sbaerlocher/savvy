@@ -26,11 +26,7 @@ const DB_VERSION = 7; // v7: added merchants store
  * Type-safe store names
  */
 export type StoreName =
-	| 'cards'
-	| 'vouchers'
-	| 'gift_cards'
-	| 'dashboard'
-	| 'merchants';
+	'cards' | 'vouchers' | 'gift_cards' | 'dashboard' | 'merchants';
 
 /**
  * Custom error classes

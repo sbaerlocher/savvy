@@ -68,6 +68,22 @@ export const en: TranslationKeys = {
 		scanFormatWarningEan13: 'EAN-13 should have 13 digits',
 		scanFormatWarningEan8: 'EAN-8 should have 8 digits',
 		scanFormatWarningUpca: 'UPC-A should have 12 digits',
+		symbologyWarningEan13: 'EAN-13 requires exactly 13 digits',
+		symbologyWarningEan8: 'EAN-8 requires exactly 8 digits',
+		symbologyWarningUpca: 'UPC-A requires exactly 12 digits',
+		symbologyWarningUpce: 'UPC-E requires 6 to 8 digits',
+		symbologyWarningItf14: 'ITF-14 requires exactly 14 digits',
+		symbologyWarningIsbn13:
+			'ISBN-13 must start with 978 or 979 and have 13 digits',
+		symbologyWarningIsbn10:
+			'ISBN-10 requires 9 digits and a check digit (0-9 or X)',
+		symbologyWarningIssn:
+			'ISSN requires 8 characters (7 digits and a check digit 0-9 or X)',
+		symbologyWarningItf: 'ITF requires an even number of digits',
+		symbologyWarningCode39:
+			'CODE39 allows only digits, uppercase letters and - . $ / + % space',
+		symbologyWarningCodabar:
+			'CODABAR allows only digits, - $ : / . + and optional A-D start/stop characters',
 		scanTorchUnavailable: 'Flashlight not available',
 		scanTorchOn: 'Turn on flashlight',
 		scanTorchOff: 'Turn off flashlight',
