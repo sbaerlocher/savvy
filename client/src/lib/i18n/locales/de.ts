@@ -101,6 +101,10 @@ export const de: TranslationKeys = {
 		sort: 'Sortierung',
 		resetFilters: 'Filter zurücksetzen',
 		results: '{count} Ergebnisse',
+		shareResultAll: 'Mit {count} Empfängern geteilt',
+		shareResultPartial:
+			'An {success} von {total} geteilt, {failed} fehlgeschlagen',
+		shareResultNone: 'Teilen fehlgeschlagen ({count})',
 		found: 'gefunden',
 		rateLimitExceededSeconds:
 			'Zu viele Anfragen. Bitte warten Sie {seconds} Sekunden.',

@@ -88,6 +88,9 @@ export type TranslationKeys = {
 		sort: string;
 		resetFilters: string;
 		results: string;
+		shareResultAll: string;
+		shareResultPartial: string;
+		shareResultNone: string;
 		found: string;
 		rateLimitExceededSeconds: string;
 		rateLimitExceededMinutes: string;

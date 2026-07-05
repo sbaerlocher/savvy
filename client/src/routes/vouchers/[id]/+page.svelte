@@ -22,6 +22,7 @@
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
+	import { formatShareResult } from '$lib/utils/share-result';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
 
 	// Svelte 5 compatible translation wrapper
@@ -36,7 +37,7 @@
 	let isLoading = $state(true);
 	let isRefreshing = $state(false);
 	let showShareForm = $state(false);
-	let shareEmail = $state('');
+	let shareEmails = $state<string[]>([]);
 	let transferEmail = $state('');
 	let isEditing = $state(false);
 	let merchants = $state<MerchantDTO[]>([]);
@@ -259,12 +260,15 @@
 				toastStore.error(tr('vouchers.sharing.shareError'));
 				return;
 			}
+			if (shareEmails.length === 0) return;
 			const response = await vouchersApi.createShare(voucherId, {
-				email: shareEmail
+				emails: shareEmails
 			});
 			shares = response.shares || [];
-			toastStore.success(tr('vouchers.sharing.shareSuccess'));
-			shareEmail = '';
+			const { message, isError } = formatShareResult(response, tr);
+			if (isError) toastStore.error(message);
+			else toastStore.success(message);
+			shareEmails = [];
 			showShareForm = false;
 		} catch (err) {
 			const message = err instanceof Error ? err.message : '';
@@ -588,7 +592,8 @@
 							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
-								bind:value={shareEmail}
+								multiple
+								bind:values={shareEmails}
 								label={tr('vouchers.sharing.userEmail')}
 								hint={tr('vouchers.sharing.hint')}
 								inputId="share-email-input"
@@ -622,7 +627,7 @@
 								<button
 									onclick={() => {
 										showShareForm = false;
-										shareEmail = '';
+										shareEmails = [];
 									}}
 									class="btn btn-ghost"
 								>

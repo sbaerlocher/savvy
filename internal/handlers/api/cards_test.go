@@ -522,7 +522,7 @@ func TestCardsHandler_CreateShare_Success(t *testing.T) {
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _, _ := setupCardsTest()
 	cardID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com","can_edit":true,"can_delete":false}`
+	body := `{"emails":["shared@example.com"],"can_edit":true,"can_delete":false}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -540,6 +540,10 @@ func TestCardsHandler_CreateShare_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 1, resp.SuccessCount)
+	assert.Empty(t, resp.Failed)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
@@ -565,9 +569,9 @@ func TestCardsHandler_CreateShare_NotOwner(t *testing.T) {
 }
 
 func TestCardsHandler_CreateShare_UserNotFound(t *testing.T) {
-	handler, _, mockAuthzService, _, mockUserService, _, _, _, _ := setupCardsTest()
+	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _, _ := setupCardsTest()
 	cardID := uuid.New()
-	body := `{"email":"notfound@example.com"}`
+	body := `{"emails":["notfound@example.com"]}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -576,22 +580,25 @@ func TestCardsHandler_CreateShare_UserNotFound(t *testing.T) {
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
 	mockUserService.On("GetUserByEmail", mock.Anything, "notfound@example.com").Return((*models.User)(nil), errors.New("not found"))
+	mockShareService.On("GetCardShares", mock.Anything, cardID).Return([]models.CardShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	var response ErrorResponse
-	_ = json.Unmarshal(rec.Body.Bytes(), &response)
-	assert.Equal(t, "share_failed", response.Error)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
+	assert.Equal(t, "notfound@example.com", resp.Failed[0].ID)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 }
 
 func TestCardsHandler_CreateShare_SelfShare(t *testing.T) {
-	handler, _, mockAuthzService, _, mockUserService, _, _, _, _ := setupCardsTest()
+	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _, _ := setupCardsTest()
 	cardID := uuid.New()
-	body := `{"email":"test@example.com"}`
+	body := `{"emails":["test@example.com"]}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -600,11 +607,16 @@ func TestCardsHandler_CreateShare_SelfShare(t *testing.T) {
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
 	mockUserService.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
+	mockShareService.On("GetCardShares", mock.Anything, cardID).Return([]models.CardShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 }
@@ -770,7 +782,7 @@ func TestCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) {
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _, _ := setupCardsTest()
 	cardID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com","can_edit":true,"can_delete":false}`
+	body := `{"emails":["shared@example.com"],"can_edit":true,"can_delete":false}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -784,19 +796,23 @@ func TestCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) {
 	// Simulate a GORM error with internal DB details
 	mockShareService.On("CreateCardShare", mock.Anything, mock.Anything, cardID, sharedUserID, true, false).
 		Return(errors.New("ERROR: duplicate key value violates unique constraint \"card_shares_pkey\" (SQLSTATE 23505)"))
+	mockShareService.On("GetCardShares", mock.Anything, cardID).Return([]models.CardShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, http.StatusCreated, rec.Code)
 
-	var response ErrorResponse
-	_ = json.Unmarshal(rec.Body.Bytes(), &response)
-	assert.Equal(t, "server_error", response.Error)
-	assert.Equal(t, "Failed to share card", response.Message)
-	assert.NotContains(t, response.Message, "duplicate key")
-	assert.NotContains(t, response.Message, "card_shares_pkey")
-	assert.NotContains(t, response.Message, "SQLSTATE")
+	// Failed entries carry a generic reason, never the raw DB error.
+	body2 := rec.Body.String()
+	assert.NotContains(t, body2, "duplicate key")
+	assert.NotContains(t, body2, "card_shares_pkey")
+	assert.NotContains(t, body2, "SQLSTATE")
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
+	assert.Equal(t, "share failed", resp.Failed[0].Error)
 	mockShareService.AssertExpectations(t)
 }
 

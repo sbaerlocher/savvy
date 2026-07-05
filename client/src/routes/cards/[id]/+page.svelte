@@ -23,6 +23,7 @@
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import SharePermissions from '$lib/components/SharePermissions.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
+	import { formatShareResult } from '$lib/utils/share-result';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -36,7 +37,7 @@
 	let isLoading = $state(true);
 	let isRefreshing = $state(false);
 	let showShareForm = $state(false);
-	let shareEmail = $state('');
+	let shareEmails = $state<string[]>([]);
 	let canEdit = $state(false);
 	let canDelete = $state(false);
 	let transferEmail = $state('');
@@ -243,15 +244,18 @@
 	}
 
 	async function handleShare() {
+		if (shareEmails.length === 0) return;
 		try {
 			const response = await cardsApi.createShare(cardId, {
-				email: shareEmail,
+				emails: shareEmails,
 				can_edit: canEdit,
 				can_delete: canDelete
 			});
 			shares = response.shares || [];
-			toastStore.success(tr('cards.sharing.shareSuccess'));
-			shareEmail = '';
+			const { message, isError } = formatShareResult(response, tr);
+			if (isError) toastStore.error(message);
+			else toastStore.success(message);
+			shareEmails = [];
 			canEdit = false;
 			canDelete = false;
 			showShareForm = false;
@@ -579,7 +583,8 @@
 							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
-								bind:value={shareEmail}
+								multiple
+								bind:values={shareEmails}
 								label={tr('cards.sharing.userEmail')}
 								hint={tr('giftCards.sharing.userMustBeRegistered')}
 								inputId="share-email-input"
@@ -617,7 +622,7 @@
 								<button
 									onclick={() => {
 										showShareForm = false;
-										shareEmail = '';
+										shareEmails = [];
 										canEdit = false;
 										canDelete = false;
 									}}
