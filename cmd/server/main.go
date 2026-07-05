@@ -230,12 +230,9 @@ func run() int {
 
 	// Start notification archive goroutine (runs daily). Independent of expiry
 	// reminders so it archives even when reminders are disabled. 0 days disables it.
-	if cfg.NotificationArchiveAfterDays > 0 {
-		archiveRepo := repository.NewNotificationRepository(database.DB)
-		archiveAfter := time.Duration(cfg.NotificationArchiveAfterDays) * 24 * time.Hour
+	if cfg.NotificationArchiveAfterDays > 0 && serviceContainer.NotificationService != nil {
 		archiveOnce := func() {
-			cutoff := time.Now().Add(-archiveAfter)
-			count, err := archiveRepo.ArchiveOldRead(appCtx, cutoff)
+			count, err := serviceContainer.NotificationService.ArchiveOldRead(appCtx, cfg.NotificationArchiveAfterDays)
 			if err != nil {
 				slog.Error("Notification archive failed", "error", err)
 			} else if count > 0 {

@@ -111,12 +111,15 @@ func (r *notificationRepository) Delete(ctx context.Context, userID, notificatio
 	return nil
 }
 
-// ArchiveOldRead archives read notifications created before cutoff by stamping
-// archived_at. Archived rows drop out of the main list but stay in the table.
+// ArchiveOldRead archives notifications read before cutoff by stamping
+// archived_at. Keying on read_at (not created_at) means the archive window
+// counts from when the user read it, so an old notification just read stays
+// visible for the full window. Archived rows drop out of the main list but
+// stay in the table.
 func (r *notificationRepository) ArchiveOldRead(ctx context.Context, cutoff time.Time) (int64, error) {
 	result := r.db.WithContext(ctx).
 		Model(&models.Notification{}).
-		Where("is_read = TRUE AND archived_at IS NULL AND created_at < ?", cutoff).
+		Where("is_read = TRUE AND archived_at IS NULL AND read_at IS NOT NULL AND read_at < ?", cutoff).
 		Update("archived_at", gorm.Expr("CURRENT_TIMESTAMP"))
 	return result.RowsAffected, result.Error
 }

@@ -279,7 +279,8 @@ func TestNotificationRepository_ArchiveOldRead(t *testing.T) {
 	old := time.Now().Add(-40 * 24 * time.Hour)
 	recent := time.Now().Add(-1 * 24 * time.Hour)
 
-	mk := func(isRead bool, created time.Time) *models.Notification {
+	// readAt drives archiving; unread rows carry a zero readAt.
+	mk := func(isRead bool, readAt time.Time) *models.Notification {
 		n := &models.Notification{
 			UserID:       userID,
 			Type:         models.NotificationTypeShareReceived,
@@ -289,13 +290,14 @@ func TestNotificationRepository_ArchiveOldRead(t *testing.T) {
 			IsRead:       isRead,
 		}
 		db.Create(n)
-		// CreatedAt has a DB default, so force it after insert.
-		db.Model(n).Update("created_at", created)
+		if isRead {
+			db.Model(n).Update("read_at", readAt)
+		}
 		return n
 	}
 
 	oldRead := mk(true, old)
-	oldUnread := mk(false, old)
+	oldUnread := mk(false, time.Time{})
 	recentRead := mk(true, recent)
 
 	cutoff := time.Now().Add(-30 * 24 * time.Hour)

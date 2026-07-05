@@ -177,6 +177,63 @@ func (_c *MockNotificationServiceInterface_DeleteNotification_Call) RunAndReturn
 	return _c
 }
 
+// ArchiveOldRead provides a mock function with given fields: ctx, olderThanDays
+func (_m *MockNotificationServiceInterface) ArchiveOldRead(ctx context.Context, olderThanDays int) (int64, error) {
+	ret := _m.Called(ctx, olderThanDays)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ArchiveOldRead")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) (int64, error)); ok {
+		return rf(ctx, olderThanDays)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) int64); ok {
+		r0 = rf(ctx, olderThanDays)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, olderThanDays)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockNotificationServiceInterface_ArchiveOldRead_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ArchiveOldRead'
+type MockNotificationServiceInterface_ArchiveOldRead_Call struct {
+	*mock.Call
+}
+
+// ArchiveOldRead is a helper method to define mock.On call
+//   - ctx context.Context
+//   - olderThanDays int
+func (_e *MockNotificationServiceInterface_Expecter) ArchiveOldRead(ctx interface{}, olderThanDays interface{}) *MockNotificationServiceInterface_ArchiveOldRead_Call {
+	return &MockNotificationServiceInterface_ArchiveOldRead_Call{Call: _e.mock.On("ArchiveOldRead", ctx, olderThanDays)}
+}
+
+func (_c *MockNotificationServiceInterface_ArchiveOldRead_Call) Run(run func(ctx context.Context, olderThanDays int)) *MockNotificationServiceInterface_ArchiveOldRead_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *MockNotificationServiceInterface_ArchiveOldRead_Call) Return(_a0 int64, _a1 error) *MockNotificationServiceInterface_ArchiveOldRead_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockNotificationServiceInterface_ArchiveOldRead_Call) RunAndReturn(run func(context.Context, int) (int64, error)) *MockNotificationServiceInterface_ArchiveOldRead_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUnreadCount provides a mock function with given fields: ctx, userID
 func (_m *MockNotificationServiceInterface) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error) {
 	ret := _m.Called(ctx, userID)
