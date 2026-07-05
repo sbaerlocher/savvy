@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -57,6 +58,11 @@ func (m *MockNotificationRepository) MarkAllAsRead(ctx context.Context, userID u
 func (m *MockNotificationRepository) Delete(ctx context.Context, userID, notificationID uuid.UUID) error {
 	args := m.Called(ctx, userID, notificationID)
 	return args.Error(0)
+}
+
+func (m *MockNotificationRepository) ArchiveOldRead(ctx context.Context, cutoff time.Time) (int64, error) {
+	args := m.Called(ctx, cutoff)
+	return args.Get(0).(int64), args.Error(1)
 }
 
 // Ensure MockNotificationRepository implements NotificationRepository
