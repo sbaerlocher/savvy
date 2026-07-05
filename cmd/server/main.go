@@ -228,6 +228,36 @@ func run() int {
 		slog.Info("Session cleanup background job started", "interval", "1h")
 	}
 
+	// Start notification archive goroutine (runs daily). Independent of expiry
+	// reminders so it archives even when reminders are disabled. 0 days disables it.
+	if cfg.NotificationArchiveAfterDays > 0 {
+		archiveRepo := repository.NewNotificationRepository(database.DB)
+		archiveAfter := time.Duration(cfg.NotificationArchiveAfterDays) * 24 * time.Hour
+		archiveOnce := func() {
+			cutoff := time.Now().Add(-archiveAfter)
+			count, err := archiveRepo.ArchiveOldRead(appCtx, cutoff)
+			if err != nil {
+				slog.Error("Notification archive failed", "error", err)
+			} else if count > 0 {
+				slog.Info("Old notifications archived", "count", count, "older_than_days", cfg.NotificationArchiveAfterDays)
+			}
+		}
+		go func() {
+			archiveOnce() // run once at startup
+			ticker := time.NewTicker(24 * time.Hour)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					archiveOnce()
+				case <-appCtx.Done():
+					return
+				}
+			}
+		}()
+		slog.Info("Notification archive background job started", "interval", "24h", "archive_after_days", cfg.NotificationArchiveAfterDays)
+	}
+
 	// Start metrics collector goroutine with lifecycle context
 	setup.StartMetricsCollector(appCtx, database.DB)
 

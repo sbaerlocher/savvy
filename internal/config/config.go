@@ -40,34 +40,36 @@ type Config struct {
 	OAuthClientSecret      string
 	OAuthIssuer            string
 	OAuthRedirectURL       string
-	OAuthAdminEmails       []string       // Comma-separated list of admin emails
-	OAuthAdminGroup        string         // OIDC group name for admins
-	FrontendURL            string         // OAuth success redirect URL (OAUTH_SUCCESS_URL or deprecated FRONTEND_URL)
-	EnableCards            bool           // Enable/disable cards feature
-	EnableVouchers         bool           // Enable/disable vouchers feature
-	EnableGiftCards        bool           // Enable/disable gift cards feature
-	EnableLocalLogin       bool           // Enable/disable email/password login
-	EnableRegistration     bool           // Enable/disable user registration
-	CSPReportURI           string         // Optional CSP report-uri endpoint for violation reporting
-	SMTPHost               string         // SMTP server host
-	SMTPPort               int            // SMTP server port
-	SMTPUsername           string         // SMTP authentication username
-	SMTPPassword           string         // SMTP authentication password
-	SMTPFromEmail          string         // Sender email address
-	SMTPFromName           string         // Sender display name
-	SMTPUseTLS             bool           // Use TLS for SMTP connection
-	VAPIDPublicKey         string         // VAPID public key for Web Push
-	VAPIDPrivateKey        string         // VAPID private key for Web Push
-	VAPIDSubject           string         // VAPID subject (mailto: or URL)
-	EnableExpiryReminders  bool           // Enable/disable expiry reminders
-	ReminderDaysBefore     []int          // Days before expiry to send reminders (e.g., 7,3,1)
-	ReminderCheckTime      string         // Daily time for reminder check in HH:MM format (e.g., "08:00")
-	Enable2FA              bool           // Enable/disable two-factor authentication
-	TOTPIssuer             string         // TOTP issuer name shown in authenticator apps
-	TOTPEncryptionKey      string         // AES-256 encryption key for TOTP secrets
-	Timezone               string         // IANA timezone for date calculations (e.g., "Europe/Zurich")
-	Location               *time.Location // Parsed timezone location
-	CORSAllowedOrigins     []string       // Allowed CORS origins (comma-separated, development only)
+	OAuthAdminEmails       []string // Comma-separated list of admin emails
+	OAuthAdminGroup        string   // OIDC group name for admins
+	FrontendURL            string   // OAuth success redirect URL (OAUTH_SUCCESS_URL or deprecated FRONTEND_URL)
+	EnableCards            bool     // Enable/disable cards feature
+	EnableVouchers         bool     // Enable/disable vouchers feature
+	EnableGiftCards        bool     // Enable/disable gift cards feature
+	EnableLocalLogin       bool     // Enable/disable email/password login
+	EnableRegistration     bool     // Enable/disable user registration
+	CSPReportURI           string   // Optional CSP report-uri endpoint for violation reporting
+	SMTPHost               string   // SMTP server host
+	SMTPPort               int      // SMTP server port
+	SMTPUsername           string   // SMTP authentication username
+	SMTPPassword           string   // SMTP authentication password
+	SMTPFromEmail          string   // Sender email address
+	SMTPFromName           string   // Sender display name
+	SMTPUseTLS             bool     // Use TLS for SMTP connection
+	VAPIDPublicKey         string   // VAPID public key for Web Push
+	VAPIDPrivateKey        string   // VAPID private key for Web Push
+	VAPIDSubject           string   // VAPID subject (mailto: or URL)
+	EnableExpiryReminders  bool     // Enable/disable expiry reminders
+	ReminderDaysBefore     []int    // Days before expiry to send reminders (e.g., 7,3,1)
+	ReminderCheckTime      string   // Daily time for reminder check in HH:MM format (e.g., "08:00")
+
+	NotificationArchiveAfterDays int            // Auto-archive read notifications older than N days (0 disables)
+	Enable2FA                    bool           // Enable/disable two-factor authentication
+	TOTPIssuer                   string         // TOTP issuer name shown in authenticator apps
+	TOTPEncryptionKey            string         // AES-256 encryption key for TOTP secrets
+	Timezone                     string         // IANA timezone for date calculations (e.g., "Europe/Zurich")
+	Location                     *time.Location // Parsed timezone location
+	CORSAllowedOrigins           []string       // Allowed CORS origins (comma-separated, development only)
 }
 
 // Load reads configuration from environment variables and returns a Config instance
@@ -131,12 +133,14 @@ func Load() *Config {
 		EnableExpiryReminders:  getBoolEnv("ENABLE_EXPIRY_REMINDERS", true),
 		ReminderDaysBefore:     getIntSliceEnv("REMINDER_DAYS_BEFORE", []int{7, 3, 1}),
 		ReminderCheckTime:      getEnv("REMINDER_CHECK_TIME", "08:00"),
-		Enable2FA:              getBoolEnv("ENABLE_2FA", false),
-		TOTPIssuer:             getEnv("TOTP_ISSUER", "Savvy"),
-		TOTPEncryptionKey:      getEnv("TOTP_ENCRYPTION_KEY", ""),
-		Timezone:               timezone,
-		Location:               loc,
-		CORSAllowedOrigins:     getEnvSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:5173", "http://localhost:3000"}),
+
+		NotificationArchiveAfterDays: getIntEnv("NOTIFICATION_ARCHIVE_AFTER_DAYS", 30),
+		Enable2FA:                    getBoolEnv("ENABLE_2FA", false),
+		TOTPIssuer:                   getEnv("TOTP_ISSUER", "Savvy"),
+		TOTPEncryptionKey:            getEnv("TOTP_ENCRYPTION_KEY", ""),
+		Timezone:                     timezone,
+		Location:                     loc,
+		CORSAllowedOrigins:           getEnvSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:5173", "http://localhost:3000"}),
 	}
 }
 

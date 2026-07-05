@@ -979,6 +979,9 @@ ENABLE_EXPIRY_REMINDERS=true  # Default: true
 REMINDER_DAYS_BEFORE=7,3,1    # Days before expiry (comma-separated)
 REMINDER_CHECK_TIME=08:00         # Daily check time (HH:MM in configured TIMEZONE)
 
+# Notification Archive (optional)
+NOTIFICATION_ARCHIVE_AFTER_DAYS=30  # Auto-archive read notifications older than N days (0 disables)
+
 # Observability
 OTEL_ENABLED=false
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
