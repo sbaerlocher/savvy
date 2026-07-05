@@ -93,13 +93,21 @@
 	}
 
 	function onBlur() {
+		// Commit a fully-typed email synchronously so clicking "Share" (which
+		// blurs the input) sees the recipient on the *first* click. Skip while a
+		// suggestion dropdown is open — then the user is picking from the list and
+		// selectUser handles the commit, avoiding a duplicate chip.
+		if (
+			multiple &&
+			!showSuggestions &&
+			highlightedIndex < 0 &&
+			value.includes('@')
+		) {
+			addEmail(value);
+			value = '';
+		}
+		// Close the dropdown after the click on a suggestion button registers.
 		setTimeout(() => {
-			// Commit a fully-typed email on blur so clicking "Share" (which blurs
-			// the input) doesn't silently drop an uncommitted recipient.
-			if (multiple && highlightedIndex < 0 && value.includes('@')) {
-				addEmail(value);
-				value = '';
-			}
 			showSuggestions = false;
 			highlightedIndex = -1;
 		}, 200);
