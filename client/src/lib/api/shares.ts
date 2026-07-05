@@ -27,10 +27,7 @@ export const createShareApi = (resourcePath: string) => ({
 		id: string,
 		data: ShareCreateRequest
 	): Promise<ShareCreateResponse> {
-		return api.post<ShareCreateResponse>(
-			`/${resourcePath}/${id}/share`,
-			data
-		);
+		return api.post<ShareCreateResponse>(`/${resourcePath}/${id}/share`, data);
 	},
 
 	/**

@@ -102,7 +102,8 @@ export const fr: TranslationKeys = {
 		resetFilters: 'Réinitialiser les filtres',
 		results: '{count} Résultats',
 		shareResultAll: 'Partagé avec {count} destinataires',
-		shareResultPartial: 'Partagé avec {success} sur {total}, {failed} échoué(s)',
+		shareResultPartial:
+			'Partagé avec {success} sur {total}, {failed} échoué(s)',
 		shareResultNone: 'Échec du partage ({count})',
 		found: 'trouvé(s)',
 		rateLimitExceededSeconds:

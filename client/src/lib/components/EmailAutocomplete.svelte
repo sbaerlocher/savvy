@@ -99,6 +99,21 @@
 	}
 
 	function onKeydown(event: KeyboardEvent) {
+		// In multiple mode, Enter commits the typed email to a chip even when no
+		// autocomplete suggestion is open — must run before the suggestion guard.
+		if (
+			multiple &&
+			event.key === 'Enter' &&
+			highlightedIndex < 0 &&
+			value.trim()
+		) {
+			event.preventDefault();
+			addEmail(value);
+			value = '';
+			showSuggestions = false;
+			highlightedIndex = -1;
+			return;
+		}
 		if (!showSuggestions || suggestedUsers.length === 0) return;
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
@@ -112,11 +127,6 @@
 		} else if (event.key === 'Enter' && highlightedIndex >= 0) {
 			event.preventDefault();
 			selectUser(suggestedUsers[highlightedIndex]);
-		} else if (event.key === 'Enter' && multiple && value.trim()) {
-			event.preventDefault();
-			addEmail(value);
-			value = '';
-			showSuggestions = false;
 		} else if (event.key === 'Escape') {
 			showSuggestions = false;
 			highlightedIndex = -1;

@@ -15,10 +15,16 @@ export function formatShareResult(
 	const total = res.success_count + failedCount;
 
 	if (failedCount === 0) {
-		return { message: tr('common.shareResultAll', { count: res.success_count }), isError: false };
+		return {
+			message: tr('common.shareResultAll', { count: res.success_count }),
+			isError: false
+		};
 	}
 	if (res.success_count === 0) {
-		return { message: tr('common.shareResultNone', { count: failedCount }), isError: true };
+		return {
+			message: tr('common.shareResultNone', { count: failedCount }),
+			isError: true
+		};
 	}
 	return {
 		message: tr('common.shareResultPartial', {
