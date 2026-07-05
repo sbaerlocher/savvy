@@ -105,6 +105,7 @@ export const de: TranslationKeys = {
 		shareResultPartial:
 			'An {success} von {total} geteilt, {failed} fehlgeschlagen',
 		shareResultNone: 'Teilen fehlgeschlagen ({count})',
+		removeRecipient: '{email} entfernen',
 		found: 'gefunden',
 		rateLimitExceededSeconds:
 			'Zu viele Anfragen. Bitte warten Sie {seconds} Sekunden.',

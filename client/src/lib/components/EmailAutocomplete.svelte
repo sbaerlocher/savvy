@@ -3,6 +3,7 @@
 	import { sharedUsersApi } from '$lib/api';
 	import type { UserDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+	import { t } from '$lib/stores/i18n';
 
 	interface Props {
 		value?: string;
@@ -93,6 +94,12 @@
 
 	function onBlur() {
 		setTimeout(() => {
+			// Commit a fully-typed email on blur so clicking "Share" (which blurs
+			// the input) doesn't silently drop an uncommitted recipient.
+			if (multiple && highlightedIndex < 0 && value.includes('@')) {
+				addEmail(value);
+				value = '';
+			}
 			showSuggestions = false;
 			highlightedIndex = -1;
 		}, 200);
@@ -150,7 +157,7 @@
 						type="button"
 						onclick={() => removeEmail(email)}
 						{disabled}
-						aria-label="Remove {email}"
+						aria-label={$t('common.removeRecipient', { email })}
 						class="text-cyan-600 hover:text-cyan-900 leading-none"
 					>
 						&times;

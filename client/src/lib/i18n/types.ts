@@ -91,6 +91,7 @@ export type TranslationKeys = {
 		shareResultAll: string;
 		shareResultPartial: string;
 		shareResultNone: string;
+		removeRecipient: string;
 		found: string;
 		rateLimitExceededSeconds: string;
 		rateLimitExceededMinutes: string;
