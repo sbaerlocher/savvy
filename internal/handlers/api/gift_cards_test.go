@@ -730,7 +730,7 @@ func TestGiftCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T)
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 
 	// Failed entries carry a generic reason, never the raw DB error.
 	body2 := rec.Body.String()

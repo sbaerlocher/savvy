@@ -22,7 +22,10 @@
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
-	import { formatShareResult } from '$lib/utils/share-result';
+	import {
+		formatShareResult,
+		shareResponseFromError
+	} from '$lib/utils/share-result';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
 
 	// Svelte 5 compatible translation wrapper
@@ -271,6 +274,12 @@
 			shareEmails = [];
 			showShareForm = false;
 		} catch (err) {
+			const failed = shareResponseFromError(err);
+			if (failed) {
+				shares = failed.shares || shares;
+				toastStore.error(formatShareResult(failed, tr).message);
+				return;
+			}
 			const message = err instanceof Error ? err.message : '';
 			toastStore.error(message || tr('vouchers.sharing.shareError'));
 		}

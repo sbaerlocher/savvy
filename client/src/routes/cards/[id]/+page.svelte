@@ -23,7 +23,10 @@
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import SharePermissions from '$lib/components/SharePermissions.svelte';
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
-	import { formatShareResult } from '$lib/utils/share-result';
+	import {
+		formatShareResult,
+		shareResponseFromError
+	} from '$lib/utils/share-result';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -260,9 +263,15 @@
 			canDelete = false;
 			showShareForm = false;
 		} catch (err: unknown) {
-			toastStore.error(
-				err instanceof Error ? err.message : tr('cards.sharing.shareError')
-			);
+			const failed = shareResponseFromError(err);
+			if (failed) {
+				shares = failed.shares || shares;
+				toastStore.error(formatShareResult(failed, tr).message);
+			} else {
+				toastStore.error(
+					err instanceof Error ? err.message : tr('cards.sharing.shareError')
+				);
+			}
 		}
 	}
 

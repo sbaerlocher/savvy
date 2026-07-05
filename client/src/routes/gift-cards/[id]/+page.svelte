@@ -29,7 +29,10 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
-	import { formatShareResult } from '$lib/utils/share-result';
+	import {
+		formatShareResult,
+		shareResponseFromError
+	} from '$lib/utils/share-result';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -295,6 +298,12 @@
 			canEditTransactions = false;
 			showShareForm = false;
 		} catch (err: unknown) {
+			const failed = shareResponseFromError(err);
+			if (failed) {
+				shares = failed.shares || shares;
+				toastStore.error(formatShareResult(failed, tr).message);
+				return;
+			}
 			toastStore.error(
 				err instanceof Error ? err.message : tr('giftCards.sharing.shareError')
 			);

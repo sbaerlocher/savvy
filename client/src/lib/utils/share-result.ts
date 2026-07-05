@@ -1,4 +1,5 @@
 import type { ShareCreateResponse } from '$lib/types/api';
+import { ApiError } from '$lib/api/client';
 
 type Tr = (key: string, params?: Record<string, string | number>) => string;
 
@@ -34,4 +35,25 @@ export function formatShareResult(
 		}),
 		isError: true
 	};
+}
+
+/**
+ * Extracts a ShareCreateResponse from a rejected share call. When every
+ * recipient fails the backend returns 422 with the same body shape, which the
+ * client surfaces as ApiError.data — so the caller can still show a precise
+ * "N failed" toast instead of a generic error. Returns null for other errors.
+ */
+export function shareResponseFromError(
+	err: unknown
+): ShareCreateResponse | null {
+	if (
+		err instanceof ApiError &&
+		err.status === 422 &&
+		err.data &&
+		typeof err.data.success_count === 'number' &&
+		Array.isArray(err.data.failed)
+	) {
+		return err.data as ShareCreateResponse;
+	}
+	return null;
 }

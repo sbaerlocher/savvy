@@ -97,7 +97,7 @@ export const en: TranslationKeys = {
 		sort: 'Sort',
 		resetFilters: 'Reset Filters',
 		results: '{count} Results',
-		shareResultAll: 'Shared with {count} recipients',
+		shareResultAll: 'Shared successfully ({count})',
 		shareResultPartial: 'Shared with {success} of {total}, {failed} failed',
 		shareResultNone: 'Sharing failed ({count})',
 		removeRecipient: 'Remove {email}',

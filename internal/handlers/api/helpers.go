@@ -415,7 +415,13 @@ func handleResourceMultiShare(
 	}
 	resp.Shares = shares
 
-	return c.JSON(http.StatusCreated, resp)
+	// If every recipient failed, surface it as a 4xx so callers, logs and
+	// monitoring don't read a total failure as success. Partial success stays 201.
+	status := http.StatusCreated
+	if resp.SuccessCount == 0 && len(resp.Failed) > 0 {
+		status = http.StatusUnprocessableEntity
+	}
+	return c.JSON(status, resp)
 }
 
 // parseResourceID extracts the "id" path parameter as a UUID.
