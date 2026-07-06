@@ -29,6 +29,10 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
+	import {
+		formatShareResult,
+		shareResponseFromError
+	} from '$lib/utils/share-result';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -45,7 +49,7 @@
 	let isRefreshing = $state(false);
 	let showShareForm = $state(false);
 	let showTransactionForm = $state(false);
-	let shareEmail = $state('');
+	let shareEmails = $state<string[]>([]);
 	let canEdit = $state(false);
 	let canDelete = $state(false);
 	let canEditTransactions = $state(false);
@@ -277,20 +281,29 @@
 				toastStore.error(tr('giftCards.sharing.shareError'));
 				return;
 			}
+			if (shareEmails.length === 0) return;
 			const response = await giftCardsApi.createShare(giftCardId, {
-				email: shareEmail,
+				emails: shareEmails,
 				can_edit: canEdit,
 				can_delete: canDelete,
 				can_edit_transactions: canEditTransactions
 			});
 			shares = response.shares || [];
-			toastStore.success(tr('giftCards.sharing.shareSuccess'));
-			shareEmail = '';
+			const { message, isError } = formatShareResult(response, tr);
+			if (isError) toastStore.error(message);
+			else toastStore.success(message);
+			shareEmails = [];
 			canEdit = false;
 			canDelete = false;
 			canEditTransactions = false;
 			showShareForm = false;
 		} catch (err: unknown) {
+			const failed = shareResponseFromError(err);
+			if (failed) {
+				shares = failed.shares || shares;
+				toastStore.error(formatShareResult(failed, tr).message);
+				return;
+			}
 			toastStore.error(
 				err instanceof Error ? err.message : tr('giftCards.sharing.shareError')
 			);
@@ -913,7 +926,8 @@
 							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
-								bind:value={shareEmail}
+								multiple
+								bind:values={shareEmails}
 								label={tr('giftCards.sharing.userEmail')}
 								hint={tr('giftCards.sharing.userMustBeRegistered')}
 								inputId="share-email-input"
@@ -963,7 +977,7 @@
 								<button
 									onclick={() => {
 										showShareForm = false;
-										shareEmail = '';
+										shareEmails = [];
 										canEdit = false;
 										canDelete = false;
 										canEditTransactions = false;

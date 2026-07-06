@@ -101,6 +101,11 @@ export const fr: TranslationKeys = {
 		sort: 'Tri',
 		resetFilters: 'Réinitialiser les filtres',
 		results: '{count} Résultats',
+		shareResultAll: 'Partagé avec succès ({count})',
+		shareResultPartial:
+			'Partagé avec {success} sur {total}, {failed} échoué(s)',
+		shareResultNone: 'Échec du partage ({count})',
+		removeRecipient: 'Supprimer {email}',
 		found: 'trouvé(s)',
 		rateLimitExceededSeconds:
 			'Trop de requêtes. Veuillez attendre {seconds} secondes.',

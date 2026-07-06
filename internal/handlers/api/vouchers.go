@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -569,43 +570,16 @@ func (h *VouchersHandler) CreateShare(c *echo.Context) error {
 		})
 	}
 
-	// Find user by email
-	email := strings.ToLower(strings.TrimSpace(req.Email))
-	sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), email)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "share_failed",
-			Message: "Could not share with this email address",
-		})
-	}
-
-	// Prevent self-sharing
-	if sharedUser.ID == user.ID {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "self_share",
-			Message: "Cannot share with yourself",
-		})
-	}
-
-	// Create share (vouchers are always read-only)
-	if err := h.shareService.CreateVoucherShare(c.Request().Context(), user.ID, voucherID, sharedUser.ID); err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to create voucher share", "voucher_id", voucherID, "error", err)
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   "server_error",
-			Message: "Failed to share voucher",
-		})
-	}
-
-	// Return updated shares list
-	shares, err := h.shareService.GetVoucherShares(c.Request().Context(), voucherID)
-	if err != nil {
-		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "voucher", "resource_id", voucherID, "error", err)
-	}
-
-	return c.JSON(http.StatusCreated, map[string]any{
-		"message": "Voucher shared successfully (read-only)",
-		"shares":  ToVoucherShareDTOs(shares),
-	})
+	// Vouchers are always read-only: no permissions honored.
+	return handleResourceMultiShare(c, "voucher", voucherID, req, h.userService,
+		func(ctx context.Context, sharedWithID uuid.UUID) error {
+			return h.shareService.CreateVoucherShare(ctx, user.ID, voucherID, sharedWithID)
+		},
+		func(ctx context.Context) ([]ShareDTO, error) {
+			shares, err := h.shareService.GetVoucherShares(ctx, voucherID)
+			return ToVoucherShareDTOs(shares), err
+		},
+	)
 }
 
 // DeleteShare removes a share

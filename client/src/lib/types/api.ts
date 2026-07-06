@@ -301,10 +301,21 @@ export interface TransactionCreateRequest {
 }
 
 export interface ShareCreateRequest {
-	email: string;
+	emails: string[];
 	can_edit?: boolean;
 	can_delete?: boolean;
 	can_edit_transactions?: boolean;
+}
+
+export interface ShareFailedItem {
+	id: string;
+	error: string;
+}
+
+export interface ShareCreateResponse {
+	success_count: number;
+	failed: ShareFailedItem[];
+	shares: ShareDTO[];
 }
 
 export interface TransferRequest {

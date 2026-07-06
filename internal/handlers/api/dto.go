@@ -338,12 +338,21 @@ type ShareDTO struct {
 	CreatedAt           string  `json:"created_at"`
 }
 
-// ShareCreateRequest represents share creation data
+// ShareCreateRequest represents share creation data.
+// One or more recipients are given in Emails; shares are created for each with
+// the same permissions and a partial-success response is returned.
 type ShareCreateRequest struct {
-	Email               string `json:"email"`
-	CanEdit             *bool  `json:"can_edit,omitempty"`
-	CanDelete           *bool  `json:"can_delete,omitempty"`
-	CanEditTransactions *bool  `json:"can_edit_transactions,omitempty"`
+	Emails              []string `json:"emails"`
+	CanEdit             *bool    `json:"can_edit,omitempty"`
+	CanDelete           *bool    `json:"can_delete,omitempty"`
+	CanEditTransactions *bool    `json:"can_edit_transactions,omitempty"`
+}
+
+// ShareCreateResponse is the partial-success result of a multi-recipient share.
+type ShareCreateResponse struct {
+	SuccessCount int               `json:"success_count"`
+	Failed       []BatchFailedItem `json:"failed"`
+	Shares       []ShareDTO        `json:"shares"`
 }
 
 // ShareUpdateRequest represents share permission updates

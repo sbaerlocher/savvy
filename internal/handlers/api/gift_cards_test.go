@@ -343,7 +343,7 @@ func TestGiftCardsHandler_CreateShare_Success(t *testing.T) {
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _ := setupGiftCardsTest()
 	giftCardID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com","can_edit":true,"can_delete":false,"can_edit_transactions":true}`
+	body := `{"emails":["shared@example.com"],"can_edit":true,"can_delete":false,"can_edit_transactions":true}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -361,6 +361,10 @@ func TestGiftCardsHandler_CreateShare_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 1, resp.SuccessCount)
+	assert.Empty(t, resp.Failed)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
@@ -707,7 +711,7 @@ func TestGiftCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T)
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _ := setupGiftCardsTest()
 	giftCardID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com","can_edit":true,"can_delete":false,"can_edit_transactions":true}`
+	body := `{"emails":["shared@example.com"],"can_edit":true,"can_delete":false,"can_edit_transactions":true}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -721,19 +725,23 @@ func TestGiftCardsHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T)
 	// Simulate a GORM error with internal DB details
 	mockShareService.On("CreateGiftCardShare", mock.Anything, mock.Anything, giftCardID, sharedUserID, true, false, true).
 		Return(errors.New("ERROR: duplicate key value violates unique constraint \"gift_card_shares_pkey\" (SQLSTATE 23505)"))
+	mockShareService.On("GetGiftCardShares", mock.Anything, giftCardID).Return([]models.GiftCardShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 
-	var response ErrorResponse
-	_ = json.Unmarshal(rec.Body.Bytes(), &response)
-	assert.Equal(t, "server_error", response.Error)
-	assert.Equal(t, "Failed to share gift card", response.Message)
-	assert.NotContains(t, response.Message, "duplicate key")
-	assert.NotContains(t, response.Message, "gift_card_shares_pkey")
-	assert.NotContains(t, response.Message, "SQLSTATE")
+	// Failed entries carry a generic reason, never the raw DB error.
+	body2 := rec.Body.String()
+	assert.NotContains(t, body2, "duplicate key")
+	assert.NotContains(t, body2, "gift_card_shares_pkey")
+	assert.NotContains(t, body2, "SQLSTATE")
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
+	assert.Equal(t, "share failed", resp.Failed[0].Error)
 	mockShareService.AssertExpectations(t)
 }
 
