@@ -128,6 +128,8 @@ export class ResourceDetailPage extends BasePage {
 		const emailInput = this.page.locator('input#share-email-input');
 		await emailInput.waitFor({ state: 'visible', timeout: 5000 });
 		await emailInput.fill(email);
+		// Multi-recipient input: commit the typed email to a chip before sharing.
+		await emailInput.press('Enter');
 
 		const checkboxes = this.page.locator('input[type="checkbox"]');
 		if (options?.canEdit) {

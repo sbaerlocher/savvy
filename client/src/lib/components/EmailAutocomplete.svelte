@@ -3,9 +3,13 @@
 	import { sharedUsersApi } from '$lib/api';
 	import type { UserDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+	import { t } from '$lib/stores/i18n';
 
 	interface Props {
 		value?: string;
+		/** When multiple=true, selected recipients are bound here as a list of emails. */
+		values?: string[];
+		multiple?: boolean;
 		label: string;
 		hint?: string;
 		inputId?: string;
@@ -15,12 +19,24 @@
 
 	let {
 		value = $bindable(''),
+		values = $bindable([]),
+		multiple = false,
 		label,
 		hint,
 		inputId = 'email-autocomplete',
 		disabled = false,
 		required = true
 	}: Props = $props();
+
+	function addEmail(email: string) {
+		const trimmed = email.trim().toLowerCase();
+		if (!trimmed || values.includes(trimmed)) return;
+		values = [...values, trimmed];
+	}
+
+	function removeEmail(email: string) {
+		values = values.filter((e) => e !== email);
+	}
 
 	const componentLogger = logger.child('EmailAutocomplete');
 	let suggestedUsers = $state<UserDTO[]>([]);
@@ -53,7 +69,12 @@
 	}
 
 	function selectUser(user: UserDTO) {
-		value = user.email;
+		if (multiple) {
+			addEmail(user.email);
+			value = '';
+		} else {
+			value = user.email;
+		}
 		showSuggestions = false;
 		suggestedUsers = [];
 		highlightedIndex = -1;
@@ -72,6 +93,20 @@
 	}
 
 	function onBlur() {
+		// Commit a fully-typed email synchronously so clicking "Share" (which
+		// blurs the input) sees the recipient on the *first* click. Skip while a
+		// suggestion dropdown is open — then the user is picking from the list and
+		// selectUser handles the commit, avoiding a duplicate chip.
+		if (
+			multiple &&
+			!showSuggestions &&
+			highlightedIndex < 0 &&
+			value.includes('@')
+		) {
+			addEmail(value);
+			value = '';
+		}
+		// Close the dropdown after the click on a suggestion button registers.
 		setTimeout(() => {
 			showSuggestions = false;
 			highlightedIndex = -1;
@@ -79,6 +114,21 @@
 	}
 
 	function onKeydown(event: KeyboardEvent) {
+		// In multiple mode, Enter commits the typed email to a chip even when no
+		// autocomplete suggestion is open — must run before the suggestion guard.
+		if (
+			multiple &&
+			event.key === 'Enter' &&
+			highlightedIndex < 0 &&
+			value.trim()
+		) {
+			event.preventDefault();
+			addEmail(value);
+			value = '';
+			showSuggestions = false;
+			highlightedIndex = -1;
+			return;
+		}
 		if (!showSuggestions || suggestedUsers.length === 0) return;
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
@@ -104,6 +154,26 @@
 		{label}{#if required}
 			*{/if}
 	</label>
+	{#if multiple && values.length > 0}
+		<div class="flex flex-wrap gap-1 mb-2">
+			{#each values as email (email)}
+				<span
+					class="inline-flex items-center gap-1 rounded-full bg-cyan-100 text-cyan-800 text-xs px-2 py-1"
+				>
+					{email}
+					<button
+						type="button"
+						onclick={() => removeEmail(email)}
+						{disabled}
+						aria-label={$t('common.removeRecipient', { email })}
+						class="text-cyan-600 hover:text-cyan-900 leading-none"
+					>
+						&times;
+					</button>
+				</span>
+			{/each}
+		</div>
+	{/if}
 	<input
 		id={inputId}
 		type="email"
@@ -118,7 +188,7 @@
 		onfocus={onFocus}
 		onblur={onBlur}
 		onkeydown={onKeydown}
-		{required}
+		required={required && !multiple}
 		name="share-recipient"
 		placeholder="benutzer@example.com"
 		autocomplete="new-password"

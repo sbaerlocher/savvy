@@ -411,7 +411,7 @@ func TestVouchersHandler_CreateShare_Success(t *testing.T) {
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _ := setupVouchersTest()
 	voucherID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com"}`
+	body := `{"emails":["shared@example.com"]}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -429,6 +429,10 @@ func TestVouchersHandler_CreateShare_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 1, resp.SuccessCount)
+	assert.Empty(t, resp.Failed)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
@@ -454,9 +458,9 @@ func TestVouchersHandler_CreateShare_NotOwner(t *testing.T) {
 }
 
 func TestVouchersHandler_CreateShare_SelfShare(t *testing.T) {
-	handler, _, mockAuthzService, _, mockUserService, _, _, _ := setupVouchersTest()
+	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _ := setupVouchersTest()
 	voucherID := uuid.New()
-	body := `{"email":"test@example.com"}`
+	body := `{"emails":["test@example.com"]}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -465,11 +469,16 @@ func TestVouchersHandler_CreateShare_SelfShare(t *testing.T) {
 	perms := &services.ResourcePermissions{IsOwner: true}
 	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
 	mockUserService.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
+	mockShareService.On("GetVoucherShares", mock.Anything, voucherID).Return([]models.VoucherShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
 	mockAuthzService.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
 }
@@ -549,7 +558,7 @@ func TestVouchersHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) 
 	handler, _, mockAuthzService, _, mockUserService, _, mockShareService, _ := setupVouchersTest()
 	voucherID := uuid.New()
 	sharedUserID := uuid.New()
-	body := `{"email":"shared@example.com"}`
+	body := `{"emails":["shared@example.com"]}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers/:id/share", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -563,19 +572,23 @@ func TestVouchersHandler_CreateShare_ServiceError_NoLeakedDetails(t *testing.T) 
 	// Simulate a GORM error with internal DB details
 	mockShareService.On("CreateVoucherShare", mock.Anything, mock.Anything, voucherID, sharedUserID).
 		Return(errors.New("ERROR: duplicate key value violates unique constraint \"voucher_shares_pkey\" (SQLSTATE 23505)"))
+	mockShareService.On("GetVoucherShares", mock.Anything, voucherID).Return([]models.VoucherShare{}, nil)
 
 	err := handler.CreateShare(c)
 
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 
-	var response ErrorResponse
-	_ = json.Unmarshal(rec.Body.Bytes(), &response)
-	assert.Equal(t, "server_error", response.Error)
-	assert.Equal(t, "Failed to share voucher", response.Message)
-	assert.NotContains(t, response.Message, "duplicate key")
-	assert.NotContains(t, response.Message, "voucher_shares_pkey")
-	assert.NotContains(t, response.Message, "SQLSTATE")
+	// Failed entries carry a generic reason, never the raw DB error.
+	body2 := rec.Body.String()
+	assert.NotContains(t, body2, "duplicate key")
+	assert.NotContains(t, body2, "voucher_shares_pkey")
+	assert.NotContains(t, body2, "SQLSTATE")
+	var resp ShareCreateResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp.SuccessCount)
+	assert.Len(t, resp.Failed, 1)
+	assert.Equal(t, "share failed", resp.Failed[0].Error)
 	mockShareService.AssertExpectations(t)
 }
 

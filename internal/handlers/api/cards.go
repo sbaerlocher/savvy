@@ -4,6 +4,7 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 //
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -577,46 +578,18 @@ func (h *CardsHandler) CreateShare(c *echo.Context) error {
 		})
 	}
 
-	// Validate and find user by email
-	email := strings.ToLower(strings.TrimSpace(req.Email))
-	sharedUser, err := h.userService.GetUserByEmail(c.Request().Context(), email)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "share_failed",
-			Message: "Could not share with this email address",
-		})
-	}
-
-	// Prevent self-sharing
-	if sharedUser.ID == user.ID {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "self_share",
-			Message: "Cannot share with yourself",
-		})
-	}
-
-	// Create share
 	canEdit := req.CanEdit != nil && *req.CanEdit
 	canDelete := req.CanDelete != nil && *req.CanDelete
 
-	if err := h.shareService.CreateCardShare(c.Request().Context(), user.ID, cardID, sharedUser.ID, canEdit, canDelete); err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to create card share", "card_id", cardID, "error", err)
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Error:   "server_error",
-			Message: "Failed to share card",
-		})
-	}
-
-	// Return updated shares list
-	shares, err := h.shareService.GetCardShares(c.Request().Context(), cardID)
-	if err != nil {
-		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
-	}
-
-	return c.JSON(http.StatusCreated, map[string]any{
-		"message": "Card shared successfully",
-		"shares":  ToCardShareDTOs(shares),
-	})
+	return handleResourceMultiShare(c, "card", cardID, req, h.userService,
+		func(ctx context.Context, sharedWithID uuid.UUID) error {
+			return h.shareService.CreateCardShare(ctx, user.ID, cardID, sharedWithID, canEdit, canDelete)
+		},
+		func(ctx context.Context) ([]ShareDTO, error) {
+			shares, err := h.shareService.GetCardShares(ctx, cardID)
+			return ToCardShareDTOs(shares), err
+		},
+	)
 }
 
 // UpdateShare updates share permissions

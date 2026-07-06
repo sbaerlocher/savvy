@@ -2,6 +2,7 @@
 package api //nolint:revive // "api" is a meaningful package name for API handlers
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -341,6 +342,86 @@ func handleResourceTransfer(
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": capitalizeFirst(resourceType) + " transferred successfully"})
+}
+
+// maxShareRecipients caps recipients per multi-share call, matching maxBatchSize.
+const maxShareRecipients = 50
+
+// handleResourceMultiShare provides generic multi-recipient share handler logic for
+// cards, vouchers, and gift cards. It resolves each email to a user, calls createShare
+// once per recipient (with the permissions already captured in the closure), and returns
+// a partial-success response. Unknown emails, self-shares, and already-shared recipients
+// become failed[] entries rather than failing the whole request.
+func handleResourceMultiShare(
+	c *echo.Context,
+	resourceType string,
+	resourceID uuid.UUID,
+	req ShareCreateRequest,
+	userService services.UserServiceInterface,
+	createShare func(ctx context.Context, sharedWithID uuid.UUID) error,
+	loadShares func(ctx context.Context) ([]ShareDTO, error),
+) error {
+	user := c.Get("current_user").(*models.User)
+	ctx := c.Request().Context()
+
+	if len(req.Emails) == 0 {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "missing_recipients",
+			Message: "At least one recipient email is required",
+		})
+	}
+	if len(req.Emails) > maxShareRecipients {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "too_many_recipients",
+			Message: fmt.Sprintf("At most %d recipients per share request", maxShareRecipients),
+		})
+	}
+
+	resp := ShareCreateResponse{Failed: []BatchFailedItem{}}
+	seen := make(map[string]bool, len(req.Emails))
+
+	for _, raw := range req.Emails {
+		email := strings.ToLower(strings.TrimSpace(raw))
+		if email == "" || seen[email] {
+			continue
+		}
+		seen[email] = true
+
+		sharedUser, err := userService.GetUserByEmail(ctx, email)
+		if err != nil {
+			resp.Failed = append(resp.Failed, BatchFailedItem{ID: email, Error: "user not found"})
+			continue
+		}
+		if sharedUser.ID == user.ID {
+			resp.Failed = append(resp.Failed, BatchFailedItem{ID: email, Error: "cannot share with yourself"})
+			continue
+		}
+
+		if err := createShare(ctx, sharedUser.ID); err != nil {
+			if errors.Is(err, services.ErrAlreadyShared) {
+				resp.Failed = append(resp.Failed, BatchFailedItem{ID: email, Error: "already shared with this user"})
+				continue
+			}
+			slog.ErrorContext(ctx, "failed to create share", "resource_type", resourceType, "resource_id", resourceID, "error", err)
+			resp.Failed = append(resp.Failed, BatchFailedItem{ID: email, Error: "share failed"})
+			continue
+		}
+		resp.SuccessCount++
+	}
+
+	shares, err := loadShares(ctx)
+	if err != nil {
+		slog.WarnContext(ctx, "failed to load shares", "resource_type", resourceType, "resource_id", resourceID, "error", err)
+	}
+	resp.Shares = shares
+
+	// If every recipient failed, surface it as a 4xx so callers, logs and
+	// monitoring don't read a total failure as success. Partial success stays 201.
+	status := http.StatusCreated
+	if resp.SuccessCount == 0 && len(resp.Failed) > 0 {
+		status = http.StatusUnprocessableEntity
+	}
+	return c.JSON(status, resp)
 }
 
 // parseResourceID extracts the "id" path parameter as a UUID.

@@ -5,6 +5,7 @@ import { api } from './client';
 import type {
 	ShareDTO,
 	ShareCreateRequest,
+	ShareCreateResponse,
 	TransferRequest
 } from '$lib/types/api';
 
@@ -25,11 +26,8 @@ export const createShareApi = (resourcePath: string) => ({
 	async createShare(
 		id: string,
 		data: ShareCreateRequest
-	): Promise<{ message: string; shares: ShareDTO[] }> {
-		return api.post<{ message: string; shares: ShareDTO[] }>(
-			`/${resourcePath}/${id}/share`,
-			data
-		);
+	): Promise<ShareCreateResponse> {
+		return api.post<ShareCreateResponse>(`/${resourcePath}/${id}/share`, data);
 	},
 
 	/**
