@@ -55,11 +55,16 @@ go install github.com/air-verse/air@latest
 
 The repo ships [`lefthook.yml`](lefthook.yml) with pre-commit (prettier,
 eslint) and pre-push (format-check, lint, typecheck, go test) hooks. The
-frontend hooks shell out to `client/node_modules` — which is git-ignored and
-**not shared across git worktrees** (each worktree has its own working tree).
+frontend hooks run `npm run …` in `client/`, which needs `client/node_modules`
+— git-ignored and **not shared across git worktrees** (each worktree has its
+own working tree).
 
-A worktree created for frontend changes therefore has no `node_modules`, so the
-lefthook frontend commands silently do nothing and the gates only fire in CI.
+A worktree created for frontend changes therefore has no `node_modules`. When
+a push includes `client/` files, the frontend hooks can't resolve the
+prettier/eslint/svelte-check binaries and **fail the push with a
+missing-binary error** — the gate never actually runs and the check only
+happens later in CI. (lefthook only *skips* these `root: client/` commands
+when no pushed file falls under `client/`, i.e. when there's nothing to gate.)
 Before touching frontend files in a fresh worktree, install once:
 
 ```bash

@@ -14,8 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of typecheck alone, so prettier/eslint failures surface before the push rather
   than after a CI round-trip. Documented the git-worktree caveat in `DEVELOPMENT.md`:
   `client/node_modules` is git-ignored and not shared across worktrees, so a fresh
-  worktree needs `cd client && npm ci` once for the frontend hooks to fire. DB/E2E
-  gates stay CI-only.
+  worktree needs `cd client && npm ci` once, else the frontend hooks fail the
+  push with a missing-binary error and the check only runs in CI. DB/E2E gates
+  stay CI-only.
 
 ## [1.3.2] - 2026-06-21
 
