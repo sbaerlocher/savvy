@@ -257,7 +257,13 @@ export const en: TranslationKeys = {
 			removeConfirm: 'Really remove share?',
 			removeConfirmMessage: 'This will remove the share access for this user.',
 			removeSuccess: 'Share removed',
-			removeError: 'Remove failed'
+			removeError: 'Remove failed',
+			revokeAll: 'Revoke all shares',
+			revokeAllSuccess: 'All shares revoked',
+			revokeAllError: 'Revoke all failed',
+			revokeAllConfirm: 'Revoke all shares?',
+			revokeAllConfirmMessage:
+				'This removes share access for every user this card is shared with.'
 		},
 		transfer: {
 			title: 'Transfer Ownership',
@@ -453,6 +459,12 @@ export const en: TranslationKeys = {
 			removeConfirmMessage: 'This will remove the share access for this user.',
 			removeSuccess: 'Share removed',
 			removeError: 'Remove failed',
+			revokeAll: 'Revoke all shares',
+			revokeAllSuccess: 'All shares revoked',
+			revokeAllError: 'Revoke all failed',
+			revokeAllConfirm: 'Revoke all shares?',
+			revokeAllConfirmMessage:
+				'This removes share access for every user this gift card is shared with.',
 			notSharedYet: 'Card not shared yet',
 			readOnly: 'View Only',
 			permissionEdit: 'Edit',
@@ -629,7 +641,13 @@ export const en: TranslationKeys = {
 			alwaysReadOnly: 'Vouchers are always read-only',
 			canOnlyRemove:
 				'Shares can only be removed. Permissions cannot be changed.',
-			removeShare: 'Remove share'
+			removeShare: 'Remove share',
+			revokeAll: 'Revoke all shares',
+			revokeAllSuccess: 'All shares revoked',
+			revokeAllError: 'Revoke all failed',
+			revokeAllConfirm: 'Revoke all shares?',
+			revokeAllConfirmMessage:
+				'This removes share access for every user this voucher is shared with.'
 		}
 	},
 	auth: {

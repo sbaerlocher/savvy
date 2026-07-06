@@ -65,6 +65,7 @@
 	// Modal state
 	let showDeleteModal = $state(false);
 	let showDeleteShareModal = $state(false);
+	let showRevokeAllModal = $state(false);
 	let showTransferModal = $state(false);
 	let shareToDelete: string | null = null;
 
@@ -311,6 +312,24 @@
 		} finally {
 			shareToDelete = null;
 			showDeleteShareModal = false;
+		}
+	}
+
+	function promptRevokeAll() {
+		showRevokeAllModal = true;
+	}
+
+	async function confirmRevokeAll() {
+		if (!voucherId) return;
+		try {
+			await vouchersApi.deleteAllShares(voucherId);
+			toastStore.success(tr('vouchers.sharing.revokeAllSuccess'));
+			managingShareId = null;
+			await loadShares();
+		} catch {
+			toastStore.error(tr('vouchers.sharing.revokeAllError'));
+		} finally {
+			showRevokeAllModal = false;
 		}
 	}
 
@@ -674,6 +693,14 @@
 								</ShareListItem>
 							{/each}
 						</div>
+						<button
+							type="button"
+							onclick={promptRevokeAll}
+							disabled={isOffline}
+							class="btn btn-ghost text-red-600 mt-3 w-full disabled:opacity-50"
+						>
+							{tr('vouchers.sharing.revokeAll')}
+						</button>
 					{:else}
 						<p class="text-sm text-gray-500 text-center py-4">
 							{tr('vouchers.sharing.notSharedYet')}
@@ -705,6 +732,17 @@
 		variant="danger"
 		onconfirm={confirmDeleteShare}
 		oncancel={() => (showDeleteShareModal = false)}
+	/>
+
+	<ConfirmModal
+		isOpen={showRevokeAllModal}
+		title={tr('vouchers.sharing.revokeAllConfirm')}
+		message={tr('vouchers.sharing.revokeAllConfirmMessage')}
+		confirmText={tr('vouchers.sharing.revokeAll')}
+		cancelText={tr('common.cancel')}
+		variant="danger"
+		onconfirm={confirmRevokeAll}
+		oncancel={() => (showRevokeAllModal = false)}
 	/>
 
 	<ConfirmModal

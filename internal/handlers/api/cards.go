@@ -675,6 +675,12 @@ func (h *CardsHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "card", h.authzService.CheckCardAccess, h.shareService.DeleteCardShare)
 }
 
+// DeleteAllShares removes all shares for a card
+// DELETE /api/v1/cards/:id/shares
+func (h *CardsHandler) DeleteAllShares(c *echo.Context) error {
+	return handleResourceDeleteAllShares(c, "card", h.authzService.CheckCardAccess, h.shareService.DeleteAllCardShares)
+}
+
 // Transfer transfers ownership
 // POST /api/v1/cards/:id/transfer
 func (h *CardsHandler) Transfer(c *echo.Context) error {

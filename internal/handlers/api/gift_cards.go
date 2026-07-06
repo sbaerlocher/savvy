@@ -600,6 +600,12 @@ func (h *GiftCardsHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "gift card", h.authzService.CheckGiftCardAccess, h.shareService.DeleteGiftCardShare)
 }
 
+// DeleteAllShares removes all shares for a gift card
+// DELETE /api/v1/gift-cards/:id/shares
+func (h *GiftCardsHandler) DeleteAllShares(c *echo.Context) error {
+	return handleResourceDeleteAllShares(c, "gift card", h.authzService.CheckGiftCardAccess, h.shareService.DeleteAllGiftCardShares)
+}
+
 // Transfer transfers ownership
 // POST /api/v1/gift-cards/:id/transfer
 func (h *GiftCardsHandler) Transfer(c *echo.Context) error {

@@ -416,6 +416,7 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 	cardsAPI.POST("/:id/share", cardsAPIHandler.CreateShare)
 	cardsAPI.PATCH("/:id/share/:sharedWithID", cardsAPIHandler.UpdateShare)
 	cardsAPI.DELETE("/:id/share/:sharedWithID", cardsAPIHandler.DeleteShare)
+	cardsAPI.DELETE("/:id/shares", cardsAPIHandler.DeleteAllShares)
 	cardsAPI.POST("/:id/transfer", cardsAPIHandler.Transfer)
 	// Batch operations
 	cardsAPI.POST("/batch/delete", batchAPIHandler.DeleteCards)
@@ -435,6 +436,7 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 	vouchersAPI.POST("/:id/favorite", vouchersAPIHandler.ToggleFavorite)
 	vouchersAPI.POST("/:id/share", vouchersAPIHandler.CreateShare)
 	vouchersAPI.DELETE("/:id/share/:sharedWithID", vouchersAPIHandler.DeleteShare)
+	vouchersAPI.DELETE("/:id/shares", vouchersAPIHandler.DeleteAllShares)
 	vouchersAPI.POST("/:id/transfer", vouchersAPIHandler.Transfer)
 	// Batch operations
 	vouchersAPI.POST("/batch/delete", batchAPIHandler.DeleteVouchers)
@@ -455,6 +457,7 @@ func registerAPIRoutes(e *echo.Echo, cfg *config.Config, serviceContainer *servi
 	giftCardsAPI.POST("/:id/share", giftCardsAPIHandler.CreateShare)
 	giftCardsAPI.PATCH("/:id/share/:sharedWithID", giftCardsAPIHandler.UpdateShare)
 	giftCardsAPI.DELETE("/:id/share/:sharedWithID", giftCardsAPIHandler.DeleteShare)
+	giftCardsAPI.DELETE("/:id/shares", giftCardsAPIHandler.DeleteAllShares)
 	giftCardsAPI.POST("/:id/transfer", giftCardsAPIHandler.Transfer)
 	// Batch operations
 	giftCardsAPI.POST("/batch/delete", batchAPIHandler.DeleteGiftCards)
