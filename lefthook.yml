@@ -45,6 +45,18 @@ pre-push:
     go-test:
       run: go test ./internal/... ./cmd/...
 
+    # Frontend: mirror the client-ci job (ci-js.yml) locally before push —
+    # format-check, lint, typecheck. Non-mutating (check, not --write/--fix),
+    # unlike the pre-commit hooks. Requires client/node_modules; in a fresh
+    # worktree run `cd client && npm ci` once (see DEVELOPMENT.md).
+    prettier:
+      root: client/
+      run: npm run format:check
+
+    eslint:
+      root: client/
+      run: npm run lint
+
     # Frontend type check (svelte-check).
     typecheck:
       root: client/
