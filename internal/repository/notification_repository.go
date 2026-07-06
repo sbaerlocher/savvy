@@ -4,6 +4,7 @@ package repository
 import (
 	"context"
 	"savvy/internal/models"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,6 +19,8 @@ type NotificationRepository interface {
 	MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	Delete(ctx context.Context, userID, notificationID uuid.UUID) error
+	// ArchiveOldRead archives read notifications older than cutoff and returns the count.
+	ArchiveOldRead(ctx context.Context, cutoff time.Time) (int64, error)
 }
 
 // notificationRepository implements NotificationRepository
@@ -49,7 +52,7 @@ func (r *notificationRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 func (r *notificationRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.Notification, error) {
 	var notifications []models.Notification
 	err := r.db.WithContext(ctx).
-		Where("user_id = ?", userID).
+		Where("user_id = ? AND archived_at IS NULL", userID).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -62,7 +65,7 @@ func (r *notificationRepository) GetUnreadCount(ctx context.Context, userID uuid
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&models.Notification{}).
-		Where("user_id = ? AND is_read = FALSE", userID).
+		Where("user_id = ? AND is_read = FALSE AND archived_at IS NULL", userID).
 		Count(&count).Error
 	return count, err
 }
@@ -106,4 +109,17 @@ func (r *notificationRepository) Delete(ctx context.Context, userID, notificatio
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// ArchiveOldRead archives notifications read before cutoff by stamping
+// archived_at. Keying on read_at (not created_at) means the archive window
+// counts from when the user read it, so an old notification just read stays
+// visible for the full window. Archived rows drop out of the main list but
+// stay in the table.
+func (r *notificationRepository) ArchiveOldRead(ctx context.Context, cutoff time.Time) (int64, error) {
+	result := r.db.WithContext(ctx).
+		Model(&models.Notification{}).
+		Where("is_read = TRUE AND archived_at IS NULL AND read_at IS NOT NULL AND read_at < ?", cutoff).
+		Update("archived_at", gorm.Expr("CURRENT_TIMESTAMP"))
+	return result.RowsAffected, result.Error
 }

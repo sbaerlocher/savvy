@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -267,4 +268,57 @@ func TestNotificationRepository_Delete(t *testing.T) {
 	err = db.Unscoped().First(&found, "id = ?", notification.ID).Error
 	assert.NoError(t, err)
 	assert.NotNil(t, found.DeletedAt)
+}
+
+func TestNotificationRepository_ArchiveOldRead(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewNotificationRepository(db)
+	ctx := context.Background()
+
+	userID := createTestUser(t, db)
+	old := time.Now().Add(-40 * 24 * time.Hour)
+	recent := time.Now().Add(-1 * 24 * time.Hour)
+
+	// readAt drives archiving; unread rows carry a zero readAt.
+	mk := func(isRead bool, readAt time.Time) *models.Notification {
+		n := &models.Notification{
+			UserID:       userID,
+			Type:         models.NotificationTypeShareReceived,
+			ResourceType: "card",
+			ResourceID:   uuid.New(),
+			Metadata:     models.NotificationMetadata{},
+			IsRead:       isRead,
+		}
+		db.Create(n)
+		if isRead {
+			db.Model(n).Update("read_at", readAt)
+		}
+		return n
+	}
+
+	oldRead := mk(true, old)
+	oldUnread := mk(false, time.Time{})
+	recentRead := mk(true, recent)
+
+	cutoff := time.Now().Add(-30 * 24 * time.Hour)
+	count, err := repo.ArchiveOldRead(ctx, cutoff)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), count) // only the old, read one
+
+	fetch := func(id uuid.UUID) models.Notification {
+		var n models.Notification
+		assert.NoError(t, db.First(&n, "id = ?", id).Error)
+		return n
+	}
+	assert.NotNil(t, fetch(oldRead.ID).ArchivedAt) // old + read archived
+	assert.Nil(t, fetch(oldUnread.ID).ArchivedAt)  // unread stays
+	assert.Nil(t, fetch(recentRead.ID).ArchivedAt) // recent stays
+
+	// Archived notifications drop out of the main list.
+	list, err := repo.GetByUserID(ctx, userID, 10, 0)
+	assert.NoError(t, err)
+	for _, n := range list {
+		assert.NotEqual(t, oldRead.ID, n.ID)
+	}
+	assert.Len(t, list, 2)
 }

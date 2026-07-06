@@ -9,6 +9,7 @@ import (
 	"savvy/internal/i18n"
 	"savvy/internal/models"
 	"savvy/internal/repository"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,6 +23,7 @@ type NotificationServiceInterface interface {
 	MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	DeleteNotification(ctx context.Context, userID, notificationID uuid.UUID) error
+	ArchiveOldRead(ctx context.Context, olderThanDays int) (int64, error)
 	SetPushService(pushService PushServiceInterface)
 	SetEmailService(emailService email.ServiceInterface, emailTokenService EmailTokenServiceInterface, frontendURL string)
 }
@@ -202,6 +204,17 @@ func (s *NotificationService) DeleteNotification(ctx context.Context, userID, no
 		return fmt.Errorf("delete notification %s: %w", notificationID, err)
 	}
 	return nil
+}
+
+// ArchiveOldRead archives read notifications last read more than olderThanDays
+// ago and returns how many were archived.
+func (s *NotificationService) ArchiveOldRead(ctx context.Context, olderThanDays int) (int64, error) {
+	cutoff := time.Now().Add(-time.Duration(olderThanDays) * 24 * time.Hour)
+	count, err := s.repo.ArchiveOldRead(ctx, cutoff)
+	if err != nil {
+		return 0, fmt.Errorf("archive old notifications: %w", err)
+	}
+	return count, nil
 }
 
 // sendPush sends a push notification if the push service is configured.

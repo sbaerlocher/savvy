@@ -61,6 +61,7 @@ type Notification struct {
 	Metadata     NotificationMetadata `gorm:"type:jsonb;default:'{}'" json:"metadata"`
 	IsRead       bool                 `gorm:"default:false" json:"is_read"`
 	ReadAt       *time.Time           `gorm:"type:timestamp with time zone" json:"read_at,omitempty"`
+	ArchivedAt   *time.Time           `gorm:"type:timestamp with time zone;index" json:"archived_at,omitempty"`
 	CreatedAt    time.Time            `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time            `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt    gorm.DeletedAt       `gorm:"index" json:"deleted_at,omitempty"`

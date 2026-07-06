@@ -171,6 +171,9 @@ func (m *mockNotifRepoForReminder) GetUnreadCount(_ context.Context, _ uuid.UUID
 func (m *mockNotifRepoForReminder) MarkAsRead(_ context.Context, _, _ uuid.UUID) error { return nil }
 func (m *mockNotifRepoForReminder) MarkAllAsRead(_ context.Context, _ uuid.UUID) error { return nil }
 func (m *mockNotifRepoForReminder) Delete(_ context.Context, _, _ uuid.UUID) error     { return nil }
+func (m *mockNotifRepoForReminder) ArchiveOldRead(_ context.Context, _ time.Time) (int64, error) {
+	return 0, nil
+}
 
 // ==================== Mock Push Service (for Reminder) ====================
 

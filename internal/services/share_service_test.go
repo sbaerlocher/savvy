@@ -410,6 +410,10 @@ func (m *mockNotifService) MarkAllAsRead(ctx context.Context, userID uuid.UUID) 
 func (m *mockNotifService) DeleteNotification(ctx context.Context, userID, notifID uuid.UUID) error {
 	return m.Called(ctx, userID, notifID).Error(0)
 }
+func (m *mockNotifService) ArchiveOldRead(ctx context.Context, olderThanDays int) (int64, error) {
+	args := m.Called(ctx, olderThanDays)
+	return args.Get(0).(int64), args.Error(1)
+}
 func (m *mockNotifService) SetPushService(_ PushServiceInterface) {}
 func (m *mockNotifService) SetEmailService(_ email.ServiceInterface, _ EmailTokenServiceInterface, _ string) {
 }
