@@ -107,12 +107,9 @@
 				{#if data.recent_cards.length > 0 && (!data.has_favorites || data.has_card_favorites)}
 					{#each data.recent_cards.slice(0, 3) as card (card.id)}
 						<div
-							class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
+							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							style="border-left: 6px solid {card.merchant?.color || '#6B7280'}"
 						>
-							<div
-								class="w-1.5 flex-shrink-0"
-								style="background-color: {card.merchant?.color || '#6B7280'}"
-							></div>
 							<a href={resolve(`/cards/${card.id}`)} class="p-3 flex-1 min-w-0">
 								<p
 									class="font-semibold text-gray-900 text-sm truncate group-hover:text-cyan-600 transition"
@@ -163,12 +160,10 @@
 				{#if data.recent_vouchers.length > 0 && (!data.has_favorites || data.has_voucher_favorites)}
 					{#each data.recent_vouchers.slice(0, 3) as voucher (voucher.id)}
 						<div
-							class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
+							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							style="border-left: 6px solid {voucher.merchant?.color ||
+								'#6B7280'}"
 						>
-							<div
-								class="w-1.5 flex-shrink-0"
-								style="background-color: {voucher.merchant?.color || '#6B7280'}"
-							></div>
 							<a
 								href={resolve(`/vouchers/${voucher.id}`)}
 								class="p-3 flex-1 min-w-0"
@@ -241,13 +236,10 @@
 				{#if data.recent_gift_cards.length > 0 && (!data.has_favorites || data.has_gift_card_favorites)}
 					{#each data.recent_gift_cards.slice(0, 3) as giftCard (giftCard.id)}
 						<div
-							class="group flex rounded-xl border border-gray-100 bg-gray-50/60 overflow-hidden hover:shadow-md hover:bg-white transition"
+							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							style="border-left: 6px solid {giftCard.merchant?.color ||
+								'#6B7280'}"
 						>
-							<div
-								class="w-1.5 flex-shrink-0"
-								style="background-color: {giftCard.merchant?.color ||
-									'#6B7280'}"
-							></div>
 							<a
 								href={resolve(`/gift-cards/${giftCard.id}`)}
 								class="p-3 flex-1 min-w-0"
