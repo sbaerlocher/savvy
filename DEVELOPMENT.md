@@ -8,6 +8,7 @@
 ## 📚 Table of Contents
 
 - [Prerequisites](#prerequisites)
+- [Git Hooks in Worktrees](#git-hooks-in-worktrees)
 - [Quick Start](#quick-start)
 - [Hot Reload (Air)](#hot-reload-air)
 - [Testing](#testing)
@@ -47,6 +48,27 @@ npm --version
 # Air (only needed for local non-Docker development - NOT recommended)
 go install github.com/air-verse/air@latest
 ```
+
+---
+
+## Git Hooks in Worktrees
+
+The repo ships [`lefthook.yml`](lefthook.yml) with pre-commit (prettier,
+eslint) and pre-push (format-check, lint, typecheck, go test) hooks. The
+frontend hooks shell out to `client/node_modules` — which is git-ignored and
+**not shared across git worktrees** (each worktree has its own working tree).
+
+A worktree created for frontend changes therefore has no `node_modules`, so the
+lefthook frontend commands silently do nothing and the gates only fire in CI.
+Before touching frontend files in a fresh worktree, install once:
+
+```bash
+cd client && npm ci
+```
+
+Node/npm come from `.nvmrc`; Docker stays the canonical dev path. DB and E2E
+gates remain CI-only (they need Postgres/Playwright). lefthook is opt-in and
+skippable with `LEFTHOOK=0 git commit` or `--no-verify`.
 
 ---
 
