@@ -709,6 +709,47 @@ func TestCardsHandler_DeleteShare_NotOwner(t *testing.T) {
 	mockAuthzService.AssertExpectations(t)
 }
 
+// ==================== DeleteAllShares Tests ====================
+
+func TestCardsHandler_DeleteAllShares_Success(t *testing.T) {
+	handler, _, mockAuthzService, _, _, _, mockShareService, _, _ := setupCardsTest()
+	cardID := uuid.New()
+	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id/shares", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
+
+	perms := &services.ResourcePermissions{IsOwner: true}
+	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
+	mockShareService.On("DeleteAllCardShares", mock.Anything, mock.Anything, cardID).Return(nil)
+
+	err := handler.DeleteAllShares(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	mockAuthzService.AssertExpectations(t)
+	mockShareService.AssertExpectations(t)
+}
+
+func TestCardsHandler_DeleteAllShares_NotOwner(t *testing.T) {
+	handler, _, mockAuthzService, _, _, _, mockShareService, _, _ := setupCardsTest()
+	cardID := uuid.New()
+	c, rec := createTestContext(http.MethodDelete, "/api/v1/cards/:id/shares", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: cardID.String()}})
+
+	perms := &services.ResourcePermissions{IsOwner: false}
+	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, cardID).Return(perms, nil)
+
+	err := handler.DeleteAllShares(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	mockAuthzService.AssertExpectations(t)
+	mockShareService.AssertNotCalled(t, "DeleteAllCardShares", mock.Anything, mock.Anything, cardID)
+}
+
 // ==================== Transfer Tests ====================
 
 func TestCardsHandler_Transfer_Success(t *testing.T) {

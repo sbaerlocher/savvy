@@ -269,6 +269,44 @@ func handleResourceDeleteShare(
 	return c.JSON(http.StatusOK, map[string]string{"message": "Share removed successfully"})
 }
 
+// handleResourceDeleteAllShares provides generic bulk-revoke handler logic:
+// removes every share for a resource. Only the owner may bulk-revoke.
+func handleResourceDeleteAllShares(
+	c *echo.Context,
+	resourceType string,
+	checkAccess func(context.Context, uuid.UUID, uuid.UUID) (*services.ResourcePermissions, error),
+	deleteAllShares func(context.Context, uuid.UUID, uuid.UUID) error,
+) error {
+	user := c.Get("current_user").(*models.User)
+
+	resourceID, err := parseResourceID(c, resourceType)
+	if err != nil {
+		return err
+	}
+
+	// Check authorization - only owner can unshare
+	perms, err := checkAccess(c.Request().Context(), user.ID, resourceID)
+	if err != nil || !perms.IsOwner {
+		return c.JSON(http.StatusForbidden, ErrorResponse{
+			Error:   "forbidden",
+			Message: "Only the owner can unshare this " + resourceType,
+		})
+	}
+
+	// Add audit context (user ID, IP address, user agent) for audit logging
+	ctx := audit.AddAuditContextToContext(c.Request().Context(), user.ID, c.RealIP(), c.Request().UserAgent())
+
+	// Delete all shares (callerUserID passed for defense-in-depth ownership check in service layer)
+	if err := deleteAllShares(ctx, user.ID, resourceID); err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "server_error",
+			Message: "Failed to delete shares",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "All shares removed successfully"})
+}
+
 // handleResourceTransfer provides generic transfer handler logic for resources
 // This eliminates code duplication in Transfer handlers for cards, vouchers, and gift cards
 func handleResourceTransfer(

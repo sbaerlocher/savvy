@@ -1741,3 +1741,100 @@ func TestGetGiftCardShares_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+// ==================== DeleteAllShares (bulk revoke) Tests ====================
+
+func TestDeleteAllCardShares_Success(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	cardID := uuid.New()
+
+	card := &models.Card{ID: cardID, UserID: ptrUUID(ownerID)}
+	d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
+	d.cardShareRepo.On("DeleteByCardID", ctx, cardID).Return(nil)
+
+	err := d.service.DeleteAllCardShares(ctx, ownerID, cardID)
+	assert.NoError(t, err)
+	d.cardShareRepo.AssertExpectations(t)
+}
+
+func TestDeleteAllCardShares_NotOwner(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	cardID := uuid.New()
+
+	card := &models.Card{ID: cardID, UserID: ptrUUID(ownerID)}
+	d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
+
+	err := d.service.DeleteAllCardShares(ctx, uuid.New(), cardID)
+	assert.ErrorIs(t, err, ErrNotOwner)
+	d.cardShareRepo.AssertNotCalled(t, "DeleteByCardID", ctx, cardID)
+}
+
+func TestDeleteAllCardShares_NotFound(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	cardID := uuid.New()
+	d.cardRepo.On("GetByID", ctx, cardID).Return(nil, gorm.ErrRecordNotFound)
+
+	err := d.service.DeleteAllCardShares(ctx, uuid.New(), cardID)
+	assert.EqualError(t, err, "card not found")
+}
+
+func TestDeleteAllVoucherShares_Success(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	vID := uuid.New()
+
+	voucher := &models.Voucher{ID: vID, UserID: ptrUUID(ownerID)}
+	d.voucherRepo.On("GetByID", ctx, vID).Return(voucher, nil)
+	d.voucherShareRepo.On("DeleteByVoucherID", ctx, vID).Return(nil)
+
+	err := d.service.DeleteAllVoucherShares(ctx, ownerID, vID)
+	assert.NoError(t, err)
+	d.voucherShareRepo.AssertExpectations(t)
+}
+
+func TestDeleteAllVoucherShares_NotOwner(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	vID := uuid.New()
+
+	voucher := &models.Voucher{ID: vID, UserID: ptrUUID(ownerID)}
+	d.voucherRepo.On("GetByID", ctx, vID).Return(voucher, nil)
+
+	err := d.service.DeleteAllVoucherShares(ctx, uuid.New(), vID)
+	assert.ErrorIs(t, err, ErrNotOwner)
+}
+
+func TestDeleteAllGiftCardShares_Success(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	gcID := uuid.New()
+
+	giftCard := &models.GiftCard{ID: gcID, UserID: ptrUUID(ownerID)}
+	d.giftCardRepo.On("GetByID", ctx, gcID).Return(giftCard, nil)
+	d.gcShareRepo.On("DeleteByGiftCardID", ctx, gcID).Return(nil)
+
+	err := d.service.DeleteAllGiftCardShares(ctx, ownerID, gcID)
+	assert.NoError(t, err)
+	d.gcShareRepo.AssertExpectations(t)
+}
+
+func TestDeleteAllGiftCardShares_NotOwner(t *testing.T) {
+	d := setupShareService()
+	ctx := context.Background()
+	ownerID := uuid.New()
+	gcID := uuid.New()
+
+	giftCard := &models.GiftCard{ID: gcID, UserID: ptrUUID(ownerID)}
+	d.giftCardRepo.On("GetByID", ctx, gcID).Return(giftCard, nil)
+
+	err := d.service.DeleteAllGiftCardShares(ctx, uuid.New(), gcID)
+	assert.ErrorIs(t, err, ErrNotOwner)
+}

@@ -225,6 +225,150 @@ func (_c *MockShareServiceInterface_DeleteCardShare_Call) RunAndReturn(run func(
 	return _c
 }
 
+// DeleteAllCardShares provides a mock function with given fields: ctx, callerUserID, cardID
+func (_m *MockShareServiceInterface) DeleteAllCardShares(ctx context.Context, callerUserID uuid.UUID, cardID uuid.UUID) error {
+	ret := _m.Called(ctx, callerUserID, cardID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllCardShares")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = rf(ctx, callerUserID, cardID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockShareServiceInterface_DeleteAllCardShares_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAllCardShares'
+type MockShareServiceInterface_DeleteAllCardShares_Call struct {
+	*mock.Call
+}
+
+// DeleteAllCardShares is a helper method to define mock.On call
+//   - ctx context.Context
+//   - callerUserID uuid.UUID
+//   - cardID uuid.UUID
+func (_e *MockShareServiceInterface_Expecter) DeleteAllCardShares(ctx interface{}, callerUserID interface{}, cardID interface{}) *MockShareServiceInterface_DeleteAllCardShares_Call {
+	return &MockShareServiceInterface_DeleteAllCardShares_Call{Call: _e.mock.On("DeleteAllCardShares", ctx, callerUserID, cardID)}
+}
+
+func (_c *MockShareServiceInterface_DeleteAllCardShares_Call) Run(run func(ctx context.Context, callerUserID uuid.UUID, cardID uuid.UUID)) *MockShareServiceInterface_DeleteAllCardShares_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllCardShares_Call) Return(_a0 error) *MockShareServiceInterface_DeleteAllCardShares_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllCardShares_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockShareServiceInterface_DeleteAllCardShares_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteAllVoucherShares provides a mock function with given fields: ctx, callerUserID, voucherID
+func (_m *MockShareServiceInterface) DeleteAllVoucherShares(ctx context.Context, callerUserID uuid.UUID, voucherID uuid.UUID) error {
+	ret := _m.Called(ctx, callerUserID, voucherID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllVoucherShares")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = rf(ctx, callerUserID, voucherID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockShareServiceInterface_DeleteAllVoucherShares_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAllVoucherShares'
+type MockShareServiceInterface_DeleteAllVoucherShares_Call struct {
+	*mock.Call
+}
+
+// DeleteAllVoucherShares is a helper method to define mock.On call
+//   - ctx context.Context
+//   - callerUserID uuid.UUID
+//   - voucherID uuid.UUID
+func (_e *MockShareServiceInterface_Expecter) DeleteAllVoucherShares(ctx interface{}, callerUserID interface{}, voucherID interface{}) *MockShareServiceInterface_DeleteAllVoucherShares_Call {
+	return &MockShareServiceInterface_DeleteAllVoucherShares_Call{Call: _e.mock.On("DeleteAllVoucherShares", ctx, callerUserID, voucherID)}
+}
+
+func (_c *MockShareServiceInterface_DeleteAllVoucherShares_Call) Run(run func(ctx context.Context, callerUserID uuid.UUID, voucherID uuid.UUID)) *MockShareServiceInterface_DeleteAllVoucherShares_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllVoucherShares_Call) Return(_a0 error) *MockShareServiceInterface_DeleteAllVoucherShares_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllVoucherShares_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockShareServiceInterface_DeleteAllVoucherShares_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteAllGiftCardShares provides a mock function with given fields: ctx, callerUserID, giftCardID
+func (_m *MockShareServiceInterface) DeleteAllGiftCardShares(ctx context.Context, callerUserID uuid.UUID, giftCardID uuid.UUID) error {
+	ret := _m.Called(ctx, callerUserID, giftCardID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllGiftCardShares")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = rf(ctx, callerUserID, giftCardID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockShareServiceInterface_DeleteAllGiftCardShares_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAllGiftCardShares'
+type MockShareServiceInterface_DeleteAllGiftCardShares_Call struct {
+	*mock.Call
+}
+
+// DeleteAllGiftCardShares is a helper method to define mock.On call
+//   - ctx context.Context
+//   - callerUserID uuid.UUID
+//   - giftCardID uuid.UUID
+func (_e *MockShareServiceInterface_Expecter) DeleteAllGiftCardShares(ctx interface{}, callerUserID interface{}, giftCardID interface{}) *MockShareServiceInterface_DeleteAllGiftCardShares_Call {
+	return &MockShareServiceInterface_DeleteAllGiftCardShares_Call{Call: _e.mock.On("DeleteAllGiftCardShares", ctx, callerUserID, giftCardID)}
+}
+
+func (_c *MockShareServiceInterface_DeleteAllGiftCardShares_Call) Run(run func(ctx context.Context, callerUserID uuid.UUID, giftCardID uuid.UUID)) *MockShareServiceInterface_DeleteAllGiftCardShares_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllGiftCardShares_Call) Return(_a0 error) *MockShareServiceInterface_DeleteAllGiftCardShares_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockShareServiceInterface_DeleteAllGiftCardShares_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockShareServiceInterface_DeleteAllGiftCardShares_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteGiftCardShare provides a mock function with given fields: ctx, callerUserID, giftCardID, sharedWithID
 func (_m *MockShareServiceInterface) DeleteGiftCardShare(ctx context.Context, callerUserID uuid.UUID, giftCardID uuid.UUID, sharedWithID uuid.UUID) error {
 	ret := _m.Called(ctx, callerUserID, giftCardID, sharedWithID)

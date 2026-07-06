@@ -43,6 +43,13 @@ export const createShareApi = (resourcePath: string) => ({
 	},
 
 	/**
+	 * Delete all shares for resource (bulk revoke)
+	 */
+	async deleteAllShares(id: string): Promise<{ message: string }> {
+		return api.delete<{ message: string }>(`/${resourcePath}/${id}/shares`);
+	},
+
+	/**
 	 * Transfer ownership
 	 */
 	async transfer(

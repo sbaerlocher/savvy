@@ -263,7 +263,13 @@ export const fr: TranslationKeys = {
 			removeConfirmMessage:
 				"Cela supprimera l'accès partagé pour cet utilisateur.",
 			removeSuccess: 'Partage supprimé',
-			removeError: 'Échec de la suppression'
+			removeError: 'Échec de la suppression',
+			revokeAll: 'Révoquer tous les partages',
+			revokeAllSuccess: 'Tous les partages révoqués',
+			revokeAllError: 'Échec de la révocation',
+			revokeAllConfirm: 'Révoquer tous les partages ?',
+			revokeAllConfirmMessage:
+				"Cela supprime l'accès partagé pour tous les utilisateurs avec qui cette carte est partagée."
 		},
 		transfer: {
 			title: 'Transférer la propriété',
@@ -465,6 +471,12 @@ export const fr: TranslationKeys = {
 				"Cela supprimera l'accès partagé pour cet utilisateur.",
 			removeSuccess: 'Partage supprimé',
 			removeError: 'Échec de la suppression',
+			revokeAll: 'Révoquer tous les partages',
+			revokeAllSuccess: 'Tous les partages révoqués',
+			revokeAllError: 'Échec de la révocation',
+			revokeAllConfirm: 'Révoquer tous les partages ?',
+			revokeAllConfirmMessage:
+				"Cela supprime l'accès partagé pour tous les utilisateurs avec qui cette carte cadeau est partagée.",
 			notSharedYet: 'Carte pas encore partagée',
 			readOnly: 'Lecture seule',
 			permissionEdit: 'Modifier',
@@ -644,7 +656,13 @@ export const fr: TranslationKeys = {
 			alwaysReadOnly: 'Les bons sont toujours en lecture seule',
 			canOnlyRemove:
 				'Les partages peuvent uniquement être supprimés. Les permissions ne peuvent pas être modifiées.',
-			removeShare: 'Supprimer le partage'
+			removeShare: 'Supprimer le partage',
+			revokeAll: 'Révoquer tous les partages',
+			revokeAllSuccess: 'Tous les partages révoqués',
+			revokeAllError: 'Échec de la révocation',
+			revokeAllConfirm: 'Révoquer tous les partages ?',
+			revokeAllConfirmMessage:
+				"Cela supprime l'accès partagé pour tous les utilisateurs avec qui ce bon est partagé."
 		}
 	},
 	auth: {

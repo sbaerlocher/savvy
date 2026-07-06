@@ -588,6 +588,12 @@ func (h *VouchersHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "voucher", h.authzService.CheckVoucherAccess, h.shareService.DeleteVoucherShare)
 }
 
+// DeleteAllShares removes all shares for a voucher
+// DELETE /api/v1/vouchers/:id/shares
+func (h *VouchersHandler) DeleteAllShares(c *echo.Context) error {
+	return handleResourceDeleteAllShares(c, "voucher", h.authzService.CheckVoucherAccess, h.shareService.DeleteAllVoucherShares)
+}
+
 // Transfer transfers ownership
 // POST /api/v1/vouchers/:id/transfer
 func (h *VouchersHandler) Transfer(c *echo.Context) error {

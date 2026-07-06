@@ -265,7 +265,13 @@ export const de: TranslationKeys = {
 			removeConfirmMessage:
 				'Der Benutzer verliert den Zugriff auf diese Karte.',
 			removeSuccess: 'Freigabe entfernt',
-			removeError: 'Entfernen fehlgeschlagen'
+			removeError: 'Entfernen fehlgeschlagen',
+			revokeAll: 'Alle Freigaben entziehen',
+			revokeAllSuccess: 'Alle Freigaben entzogen',
+			revokeAllError: 'Entziehen fehlgeschlagen',
+			revokeAllConfirm: 'Alle Freigaben entziehen?',
+			revokeAllConfirmMessage:
+				'Dies entfernt den Freigabe-Zugriff für alle Benutzer, mit denen diese Karte geteilt ist.'
 		},
 		transfer: {
 			title: 'Eigentümer übertragen',
@@ -467,6 +473,12 @@ export const de: TranslationKeys = {
 				'Der Benutzer verliert den Zugriff auf diese Geschenkkarte.',
 			removeSuccess: 'Freigabe entfernt',
 			removeError: 'Entfernen fehlgeschlagen',
+			revokeAll: 'Alle Freigaben entziehen',
+			revokeAllSuccess: 'Alle Freigaben entzogen',
+			revokeAllError: 'Entziehen fehlgeschlagen',
+			revokeAllConfirm: 'Alle Freigaben entziehen?',
+			revokeAllConfirmMessage:
+				'Dies entfernt den Freigabe-Zugriff für alle Benutzer, mit denen diese Geschenkkarte geteilt ist.',
 			notSharedYet: 'Karte wurde noch nicht geteilt',
 			readOnly: 'Nur Ansehen',
 			permissionEdit: 'Bearbeiten',
@@ -646,7 +658,13 @@ export const de: TranslationKeys = {
 			alwaysReadOnly: 'Gutscheine sind immer nur lesbar',
 			canOnlyRemove:
 				'Freigaben können nur entfernt werden. Berechtigungen können nicht geändert werden.',
-			removeShare: 'Freigabe entfernen'
+			removeShare: 'Freigabe entfernen',
+			revokeAll: 'Alle Freigaben entziehen',
+			revokeAllSuccess: 'Alle Freigaben entzogen',
+			revokeAllError: 'Entziehen fehlgeschlagen',
+			revokeAllConfirm: 'Alle Freigaben entziehen?',
+			revokeAllConfirmMessage:
+				'Dies entfernt den Freigabe-Zugriff für alle Benutzer, mit denen dieser Gutschein geteilt ist.'
 		}
 	},
 	auth: {

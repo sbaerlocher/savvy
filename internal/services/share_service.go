@@ -42,6 +42,9 @@ type ShareServiceInterface interface {
 	DeleteCardShare(ctx context.Context, callerUserID, cardID, sharedWithID uuid.UUID) error
 	DeleteVoucherShare(ctx context.Context, callerUserID, voucherID, sharedWithID uuid.UUID) error
 	DeleteGiftCardShare(ctx context.Context, callerUserID, giftCardID, sharedWithID uuid.UUID) error
+	DeleteAllCardShares(ctx context.Context, callerUserID, cardID uuid.UUID) error
+	DeleteAllVoucherShares(ctx context.Context, callerUserID, voucherID uuid.UUID) error
+	DeleteAllGiftCardShares(ctx context.Context, callerUserID, giftCardID uuid.UUID) error
 	GetSharedUsers(ctx context.Context, userID uuid.UUID, searchQuery string) ([]models.User, error)
 }
 
@@ -429,6 +432,51 @@ func (s *ShareService) DeleteGiftCardShare(ctx context.Context, callerUserID, gi
 		return ErrNotOwner
 	}
 	return s.giftCardShareRepo.DeleteByGiftCardAndUser(ctx, giftCardID, sharedWithID)
+}
+
+// DeleteAllCardShares removes all shares for a card. callerUserID must be the resource owner.
+func (s *ShareService) DeleteAllCardShares(ctx context.Context, callerUserID, cardID uuid.UUID) error {
+	card, err := s.cardRepo.GetByID(ctx, cardID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("card not found")
+		}
+		return err
+	}
+	if card.UserID == nil || *card.UserID != callerUserID {
+		return ErrNotOwner
+	}
+	return s.cardShareRepo.DeleteByCardID(ctx, cardID)
+}
+
+// DeleteAllVoucherShares removes all shares for a voucher. callerUserID must be the resource owner.
+func (s *ShareService) DeleteAllVoucherShares(ctx context.Context, callerUserID, voucherID uuid.UUID) error {
+	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("voucher not found")
+		}
+		return err
+	}
+	if voucher.UserID == nil || *voucher.UserID != callerUserID {
+		return ErrNotOwner
+	}
+	return s.voucherShareRepo.DeleteByVoucherID(ctx, voucherID)
+}
+
+// DeleteAllGiftCardShares removes all shares for a gift card. callerUserID must be the resource owner.
+func (s *ShareService) DeleteAllGiftCardShares(ctx context.Context, callerUserID, giftCardID uuid.UUID) error {
+	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("gift card not found")
+		}
+		return err
+	}
+	if giftCard.UserID == nil || *giftCard.UserID != callerUserID {
+		return ErrNotOwner
+	}
+	return s.giftCardShareRepo.DeleteByGiftCardID(ctx, giftCardID)
 }
 
 // UpdateCardShare updates card share permissions. callerUserID must be the resource owner.

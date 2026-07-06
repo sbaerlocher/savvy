@@ -245,6 +245,11 @@ export type TranslationKeys = {
 			removeConfirmMessage: string;
 			removeSuccess: string;
 			removeError: string;
+			revokeAll: string;
+			revokeAllSuccess: string;
+			revokeAllError: string;
+			revokeAllConfirm: string;
+			revokeAllConfirmMessage: string;
 		};
 		transfer: {
 			title: string;
@@ -432,6 +437,11 @@ export type TranslationKeys = {
 			removeConfirmMessage: string;
 			removeSuccess: string;
 			removeError: string;
+			revokeAll: string;
+			revokeAllSuccess: string;
+			revokeAllError: string;
+			revokeAllConfirm: string;
+			revokeAllConfirmMessage: string;
 			notSharedYet: string;
 			readOnly: string;
 			permissionEdit: string;
@@ -604,6 +614,11 @@ export type TranslationKeys = {
 			alwaysReadOnly: string;
 			canOnlyRemove: string;
 			removeShare: string;
+			revokeAll: string;
+			revokeAllSuccess: string;
+			revokeAllError: string;
+			revokeAllConfirm: string;
+			revokeAllConfirmMessage: string;
 		};
 	};
 	auth: {

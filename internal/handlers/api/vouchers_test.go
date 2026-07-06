@@ -506,6 +506,47 @@ func TestVouchersHandler_DeleteShare_Success(t *testing.T) {
 	mockShareService.AssertExpectations(t)
 }
 
+// ==================== DeleteAllShares Tests ====================
+
+func TestVouchersHandler_DeleteAllShares_Success(t *testing.T) {
+	handler, _, mockAuthzService, _, _, _, mockShareService, _ := setupVouchersTest()
+	voucherID := uuid.New()
+	c, rec := createTestContext(http.MethodDelete, "/api/v1/vouchers/:id/shares", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
+
+	perms := &services.ResourcePermissions{IsOwner: true}
+	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
+	mockShareService.On("DeleteAllVoucherShares", mock.Anything, mock.Anything, voucherID).Return(nil)
+
+	err := handler.DeleteAllShares(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	mockAuthzService.AssertExpectations(t)
+	mockShareService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_DeleteAllShares_NotOwner(t *testing.T) {
+	handler, _, mockAuthzService, _, _, _, mockShareService, _ := setupVouchersTest()
+	voucherID := uuid.New()
+	c, rec := createTestContext(http.MethodDelete, "/api/v1/vouchers/:id/shares", "")
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: voucherID.String()}})
+
+	perms := &services.ResourcePermissions{IsOwner: false}
+	mockAuthzService.On("CheckVoucherAccess", mock.Anything, user.ID, voucherID).Return(perms, nil)
+
+	err := handler.DeleteAllShares(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	mockAuthzService.AssertExpectations(t)
+	mockShareService.AssertNotCalled(t, "DeleteAllVoucherShares", mock.Anything, mock.Anything, voucherID)
+}
+
 // ==================== Transfer Tests ====================
 
 func TestVouchersHandler_Transfer_Success(t *testing.T) {
