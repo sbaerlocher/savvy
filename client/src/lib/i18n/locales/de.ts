@@ -133,7 +133,9 @@ export const de: TranslationKeys = {
 			'Ein ähnlicher {resourceType} für "{merchantName}" mit der Nummer "{resourceNumber}" existiert bereits.',
 		view_existing: 'Bestehendes anzeigen',
 		restore: 'Gelöschten Eintrag wiederherstellen',
-		deleted_message: 'Ein gelöschter Eintrag mit dieser Nummer existiert.'
+		deleted_message: 'Ein gelöschter Eintrag mit dieser Nummer existiert.',
+		shared_message:
+			'Diese Karte wurde bereits mit dir geteilt von {sharedByName} ({sharedByEmail}).'
 	},
 	aria: {
 		selectLanguage: 'Sprache wählen',

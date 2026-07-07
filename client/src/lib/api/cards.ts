@@ -5,7 +5,8 @@ import type {
 	CardCreateRequest,
 	CardUpdateRequest,
 	PermissionDTO,
-	ShareDTO
+	ShareDTO,
+	DuplicateWarning
 } from '$lib/types/api';
 import { offlineDB } from '$lib/stores/offline-db';
 import { browser } from '$app/environment';
@@ -151,12 +152,15 @@ export const cardsApi = {
 	/**
 	 * Create new card
 	 */
-	async create(
-		data: CardCreateRequest
-	): Promise<{ card: CardDTO; permissions: PermissionDTO }> {
+	async create(data: CardCreateRequest): Promise<{
+		card: CardDTO;
+		permissions: PermissionDTO;
+		duplicate_warning?: DuplicateWarning;
+	}> {
 		const result = await api.post<{
 			card: CardDTO;
 			permissions: PermissionDTO;
+			duplicate_warning?: DuplicateWarning;
 		}>('/cards', data);
 
 		if (browser) {

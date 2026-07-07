@@ -84,6 +84,35 @@ func (r *GormCardRepository) FindByCardNumber(ctx context.Context, cardNumber st
 	return &card, nil
 }
 
+// FindSharedByCardNumber finds a card with the given number and merchant shared with
+// the user (owned by another user) via card_shares.shared_with_id. The owner is
+// preloaded. Matching is scoped to merchantID so a coincidental same number under a
+// different merchant does not produce a false-positive duplicate. A nil merchantID
+// matches cards that also have no merchant (free-text merchant name only).
+func (r *GormCardRepository) FindSharedByCardNumber(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error) {
+	var card models.Card
+	query := r.db.WithContext(ctx).
+		Preload("User").
+		Joins("JOIN card_shares ON card_shares.card_id = cards.id AND card_shares.deleted_at IS NULL").
+		Where("cards.card_number = ? AND card_shares.shared_with_id = ?", cardNumber, userID)
+
+	if merchantID != nil {
+		query = query.Where("cards.merchant_id = ?", *merchantID)
+	} else {
+		query = query.Where("cards.merchant_id IS NULL")
+	}
+
+	err := query.First(&card).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil // No shared duplicate found
+		}
+		return nil, err
+	}
+
+	return &card, nil
+}
+
 // FindDeletedByCardNumber finds a soft-deleted card by card number for a specific user.
 func (r *GormCardRepository) FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
 	var card models.Card

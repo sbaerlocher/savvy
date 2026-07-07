@@ -128,7 +128,9 @@ export const en: TranslationKeys = {
 			'A similar {resourceType} for "{merchantName}" with the number "{resourceNumber}" already exists.',
 		view_existing: 'View existing',
 		restore: 'Restore deleted entry',
-		deleted_message: 'A deleted entry with this number exists.'
+		deleted_message: 'A deleted entry with this number exists.',
+		shared_message:
+			'This card was already shared with you by {sharedByName} ({sharedByEmail}).'
 	},
 	aria: {
 		selectLanguage: 'Select language',

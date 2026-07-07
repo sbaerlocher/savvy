@@ -56,6 +56,9 @@ func (m *mockImportCardService) CanUserAccessCard(_ context.Context, _, _ uuid.U
 func (m *mockImportCardService) CheckDuplicate(_ context.Context, _ string, _ uuid.UUID, _ *uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
+func (m *mockImportCardService) CheckSharedDuplicate(_ context.Context, _ string, _ *uuid.UUID, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
 
 func (m *mockImportCardService) FindDeletedDuplicate(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
@@ -1441,6 +1444,9 @@ func TestNewImportService_ReturnsNonNil(t *testing.T) {
 
 // FindByCardNumber stub for mockImportCardService
 func (m *mockImportCardService) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
+func (m *mockImportCardService) FindSharedByCardNumber(_ context.Context, _ string, _ *uuid.UUID, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
 

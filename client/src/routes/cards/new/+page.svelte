@@ -45,6 +45,24 @@
 				share_can_delete: shareEmail ? canDelete : undefined
 			});
 			toastStore.success(tr('cards.createSuccess'));
+			// Advisory: a same-numbered card is already shared with the user. Creation is
+			// intentionally allowed (family cards), so surface it as an info toast rather
+			// than blocking — the warning is lost on redirect otherwise.
+			const shared = response.duplicate_warning;
+			if (shared?.is_shared) {
+				const name =
+					[shared.shared_by?.first_name, shared.shared_by?.last_name]
+						.filter(Boolean)
+						.join(' ') ||
+					shared.shared_by?.email ||
+					tr('common.unknown');
+				toastStore.info(
+					tr('duplicate.shared_message', {
+						sharedByName: name,
+						sharedByEmail: shared.shared_by?.email || ''
+					})
+				);
+			}
 			// Force full page reload to ensure fresh data in lists
 			window.location.href = `/cards/${response.card.id}`;
 		} catch (err: unknown) {

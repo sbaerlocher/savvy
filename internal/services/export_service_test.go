@@ -97,6 +97,9 @@ func (m *mockExportCardRepo) GetAllForUserPaginated(_ context.Context, _ uuid.UU
 func (m *mockExportCardRepo) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
+func (m *mockExportCardRepo) FindSharedByCardNumber(_ context.Context, _ string, _ *uuid.UUID, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
 func (m *mockExportCardRepo) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }

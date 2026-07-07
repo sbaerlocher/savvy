@@ -58,6 +58,16 @@
 			<p class="warning-message">
 				{#if warning.deleted}
 					{tr('duplicate.deleted_message')}
+				{:else if warning.is_shared}
+					{tr('duplicate.shared_message', {
+						sharedByName:
+							[warning.shared_by?.first_name, warning.shared_by?.last_name]
+								.filter(Boolean)
+								.join(' ') ||
+							warning.shared_by?.email ||
+							tr('common.unknown'),
+						sharedByEmail: warning.shared_by?.email || ''
+					})}
 				{:else}
 					{tr('duplicate.warning_message', {
 						resourceType: getResourceTypeLabel(resourceType),
