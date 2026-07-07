@@ -41,6 +41,8 @@ export interface DuplicateWarning {
 	resource_number?: string;
 	existing_id?: string;
 	deleted?: boolean;
+	is_shared?: boolean;
+	shared_by?: UserDTO;
 }
 
 // API Response Types

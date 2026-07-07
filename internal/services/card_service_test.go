@@ -86,6 +86,14 @@ func (m *MockCardRepository) Search(ctx context.Context, userID uuid.UUID, query
 	return args.Get(0).([]models.Card), args.Error(1)
 }
 
+func (m *MockCardRepository) FindSharedByCardNumber(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error) {
+	args := m.Called(ctx, cardNumber, merchantID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Card), args.Error(1)
+}
+
 func (m *MockCardRepository) FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
 	args := m.Called(ctx, cardNumber, userID)
 	if args.Get(0) == nil {
@@ -446,6 +454,47 @@ func TestCardService_CheckDuplicate_DuplicateFound(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, existingCard.ID, result.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_CheckSharedDuplicate_Found(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	ownerID := uuid.New()
+	merchantID := uuid.New()
+	sharedCard := &models.Card{
+		ID:         uuid.New(),
+		UserID:     &ownerID,
+		CardNumber: "1234567890",
+		User:       &models.User{ID: ownerID, FirstName: "Owner"},
+	}
+
+	mockRepo.On("FindSharedByCardNumber", ctx, "1234567890", &merchantID, userID).Return(sharedCard, nil)
+
+	result, err := service.CheckSharedDuplicate(ctx, "1234567890", &merchantID, userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, sharedCard.ID, result.ID)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCardService_CheckSharedDuplicate_NotFound(t *testing.T) {
+	mockRepo := new(MockCardRepository)
+	service := NewCardService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	merchantID := uuid.New()
+	mockRepo.On("FindSharedByCardNumber", ctx, "9999999999", &merchantID, userID).Return(nil, nil)
+
+	result, err := service.CheckSharedDuplicate(ctx, "9999999999", &merchantID, userID)
+
+	assert.NoError(t, err)
+	assert.Nil(t, result)
 	mockRepo.AssertExpectations(t)
 }
 

@@ -289,7 +289,9 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
+	// Soft-deleted twin owned by this user → offer restore instead of a hard failure.
+	// Checked before the shared-duplicate advisory: restoring one's own card is the
+	// more actionable path and must not be shadowed by a same-numbered shared card.
 	deletedDup, err := h.cardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
 	if err != nil {
 		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
@@ -306,6 +308,29 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 				Deleted:        true,
 			},
 		})
+	}
+
+	// Shared duplicate: a card with this number was already shared with the user by
+	// another owner. This is advisory only — a shared card belongs to a different
+	// user_id and violates no unique constraint, so creation proceeds (family cards
+	// are intentionally allowed). The warning is attached to the created response.
+	var sharedWarning *DuplicateWarning
+	sharedDup, err := h.cardService.CheckSharedDuplicate(c.Request().Context(), req.CardNumber, merchantID, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check shared duplicate", "error", err)
+	}
+	if sharedDup != nil {
+		sharedWarning = &DuplicateWarning{
+			HasDuplicate:   true,
+			MerchantName:   sharedDup.MerchantName,
+			ResourceNumber: sharedDup.CardNumber,
+			ExistingID:     sharedDup.ID.String(),
+			IsShared:       true,
+		}
+		if sharedDup.User != nil {
+			owner := ToUserDTO(sharedDup.User)
+			sharedWarning.SharedBy = &owner
+		}
 	}
 
 	// Create card
@@ -382,8 +407,9 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	cardDTO.Permissions = &permDTO
 
 	return c.JSON(http.StatusCreated, CardDetailResponse{
-		Card:        cardDTO,
-		Permissions: permDTO,
+		Card:             cardDTO,
+		Permissions:      permDTO,
+		DuplicateWarning: sharedWarning, // advisory: same number already shared with the user
 	})
 }
 

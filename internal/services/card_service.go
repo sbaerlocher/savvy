@@ -24,6 +24,7 @@ type CardServiceInterface interface {
 	CountUserCards(ctx context.Context, userID uuid.UUID) (int64, error)
 	CanUserAccessCard(ctx context.Context, cardID, userID uuid.UUID) (bool, error)
 	CheckDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID, excludeID *uuid.UUID) (*models.Card, error)
+	CheckSharedDuplicate(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error)
 	FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
 	RestoreCard(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Card, error)
 }
@@ -200,4 +201,15 @@ func (s *CardService) CheckDuplicate(ctx context.Context, cardNumber string, use
 
 	// Duplicate found
 	return existing, nil
+}
+
+// CheckSharedDuplicate checks whether a card with the same number and merchant was
+// already shared with the user (owned by someone else). Returns the shared card with
+// its owner preloaded (as User) if found, nil otherwise.
+func (s *CardService) CheckSharedDuplicate(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error) {
+	shared, err := s.repo.FindSharedByCardNumber(ctx, cardNumber, merchantID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("check shared duplicate: %w", err)
+	}
+	return shared, nil
 }

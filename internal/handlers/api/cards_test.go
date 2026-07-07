@@ -221,6 +221,7 @@ func TestCardsHandler_Create_Success(t *testing.T) {
 	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
 	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
@@ -268,6 +269,7 @@ func TestCardsHandler_Create_WithNewMerchant(t *testing.T) {
 
 	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
 	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
@@ -880,7 +882,8 @@ func TestCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *testi
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	// No active duplicate
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
-	// Soft-deleted duplicate found
+	// Soft-deleted duplicate found — this check runs before the shared-duplicate
+	// advisory and short-circuits, so CheckSharedDuplicate is never reached.
 	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(deletedCard, nil)
 
 	err := handler.Create(c)
@@ -894,6 +897,49 @@ func TestCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *testi
 	assert.NotNil(t, response.Duplicate)
 	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
 	assert.Equal(t, deletedCard.ID.String(), response.Duplicate.ExistingID)
+	mockMerchantService.AssertExpectations(t)
+	mockCardService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Create_SharedDuplicate_Returns201WithAdvisoryWarning(t *testing.T) {
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	merchantID := uuid.New()
+	body := `{"merchant_id":"` + merchantID.String() + `","card_number":"1234567890","barcode_type":"CODE128"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	ownerID := uuid.New()
+	sharedCard := &models.Card{
+		ID:           uuid.New(),
+		UserID:       &ownerID,
+		MerchantName: "Test Merchant",
+		CardNumber:   "1234567890",
+		User:         &models.User{ID: ownerID, Email: "owner@example.com", FirstName: "Owner", LastName: "Person"},
+	}
+
+	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
+	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
+	// No owned or deleted duplicate, but a shared one exists — creation proceeds and
+	// the warning is attached as advisory (family cards are intentionally allowed).
+	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
+	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return(sharedCard, nil)
+	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
+	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+
+	var response CardDetailResponse
+	_ = json.Unmarshal(rec.Body.Bytes(), &response)
+	assert.NotNil(t, response.DuplicateWarning)
+	assert.True(t, response.DuplicateWarning.IsShared, "expected duplicate.is_shared == true")
+	assert.Equal(t, sharedCard.ID.String(), response.DuplicateWarning.ExistingID)
+	assert.NotNil(t, response.DuplicateWarning.SharedBy)
+	assert.Equal(t, "owner@example.com", response.DuplicateWarning.SharedBy.Email)
 	mockMerchantService.AssertExpectations(t)
 	mockCardService.AssertExpectations(t)
 }

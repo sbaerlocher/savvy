@@ -117,6 +117,7 @@ export type TranslationKeys = {
 		view_existing: string;
 		restore: string;
 		deleted_message: string;
+		shared_message: string;
 	};
 	aria: {
 		selectLanguage: string;

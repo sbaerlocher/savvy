@@ -41,11 +41,13 @@ type PermissionDTO struct {
 
 // DuplicateWarning indicates a potential duplicate resource
 type DuplicateWarning struct {
-	HasDuplicate   bool   `json:"has_duplicate"`
-	MerchantName   string `json:"merchant_name,omitempty"`
-	ResourceNumber string `json:"resource_number,omitempty"` // Card number, voucher code, etc.
-	ExistingID     string `json:"existing_id,omitempty"`
-	Deleted        bool   `json:"deleted"` // true = existing_id refers to a soft-deleted resource that can be restored
+	HasDuplicate   bool     `json:"has_duplicate"`
+	MerchantName   string   `json:"merchant_name,omitempty"`
+	ResourceNumber string   `json:"resource_number,omitempty"` // Card number, voucher code, etc.
+	ExistingID     string   `json:"existing_id,omitempty"`
+	Deleted        bool     `json:"deleted"`             // true = existing_id refers to a soft-deleted resource that can be restored
+	IsShared       bool     `json:"is_shared,omitempty"` // true = the duplicate is a resource shared with the user, not owned
+	SharedBy       *UserDTO `json:"shared_by,omitempty"` // owner who shared the duplicate (only set when IsShared)
 }
 
 // ==================== User DTOs ====================

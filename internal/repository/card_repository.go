@@ -37,6 +37,12 @@ type CardRepository interface {
 	// FindByCardNumber finds a card by card number for a specific user
 	FindByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
 
+	// FindSharedByCardNumber finds a card with the given number and merchant that was
+	// shared with the user (owned by someone else). Matching is scoped to merchantID
+	// to avoid coincidental cross-merchant number collisions. The owner is preloaded
+	// as User.
+	FindSharedByCardNumber(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error)
+
 	// FindDeletedByCardNumber finds a soft-deleted card by card number for a specific user
 	FindDeletedByCardNumber(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error)
 

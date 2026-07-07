@@ -110,6 +110,9 @@ func (m *MockCardRepositoryFav) GetAllForUserPaginated(_ context.Context, _ uuid
 func (m *MockCardRepositoryFav) FindByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }
+func (m *MockCardRepositoryFav) FindSharedByCardNumber(_ context.Context, _ string, _ *uuid.UUID, _ uuid.UUID) (*models.Card, error) {
+	return nil, nil
+}
 func (m *MockCardRepositoryFav) FindDeletedByCardNumber(_ context.Context, _ string, _ uuid.UUID) (*models.Card, error) {
 	return nil, nil
 }

@@ -463,6 +463,26 @@ func (m *MockCardServiceInterface) CheckDuplicate(ctx context.Context, cardNumbe
 	return r0, r1
 }
 
+// CheckSharedDuplicate provides a mock function with given fields: ctx, cardNumber, merchantID, userID
+func (m *MockCardServiceInterface) CheckSharedDuplicate(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) (*models.Card, error) {
+	ret := m.Called(ctx, cardNumber, merchantID, userID)
+	var r0 *models.Card
+	if rf, ok := ret.Get(0).(func(context.Context, string, *uuid.UUID, uuid.UUID) *models.Card); ok {
+		r0 = rf(ctx, cardNumber, merchantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Card)
+		}
+	}
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string, *uuid.UUID, uuid.UUID) error); ok {
+		r1 = rf(ctx, cardNumber, merchantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
 // FindDeletedDuplicate provides a mock function with given fields: ctx, cardNumber, userID
 func (m *MockCardServiceInterface) FindDeletedDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) (*models.Card, error) {
 	ret := m.Called(ctx, cardNumber, userID)

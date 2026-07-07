@@ -284,6 +284,59 @@ func TestCardRepository_FindDeletedByCardNumber(t *testing.T) {
 	require.NotNil(t, active2)
 }
 
+func TestCardRepository_FindSharedByCardNumber(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewCardRepository(db)
+	ctx := context.Background()
+
+	ownerID := createTestUser(t, db)
+	recipientID := createTestUser(t, db)
+
+	merchantA := &models.Merchant{Name: "Merchant A"}
+	require.NoError(t, db.Create(merchantA).Error)
+	merchantB := &models.Merchant{Name: "Merchant B"}
+	require.NoError(t, db.Create(merchantB).Error)
+
+	// Owner's card for merchant A, shared with recipient.
+	card := &models.Card{UserID: &ownerID, MerchantID: &merchantA.ID, Program: "P", CardNumber: "SHARED-1"}
+	require.NoError(t, repo.Create(ctx, card))
+	require.NoError(t, db.Create(&models.CardShare{CardID: card.ID, SharedWithID: recipientID}).Error)
+
+	// Recipient's owned-only lookup does not see it (owned by someone else).
+	owned, err := repo.FindByCardNumber(ctx, "SHARED-1", recipientID)
+	require.NoError(t, err)
+	require.Nil(t, owned)
+
+	// Shared lookup with matching merchant finds it and preloads the owner.
+	found, err := repo.FindSharedByCardNumber(ctx, "SHARED-1", &merchantA.ID, recipientID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	assert.Equal(t, card.ID, found.ID)
+	require.NotNil(t, found.User)
+	assert.Equal(t, ownerID, found.User.ID)
+
+	// Same number under a different merchant is not a shared duplicate.
+	crossMerchant, err := repo.FindSharedByCardNumber(ctx, "SHARED-1", &merchantB.ID, recipientID)
+	require.NoError(t, err)
+	require.Nil(t, crossMerchant)
+
+	// A nil merchant does not match a card that has a merchant.
+	nilMerchant, err := repo.FindSharedByCardNumber(ctx, "SHARED-1", nil, recipientID)
+	require.NoError(t, err)
+	require.Nil(t, nilMerchant)
+
+	// A different number is not a shared duplicate.
+	none, err := repo.FindSharedByCardNumber(ctx, "OTHER", &merchantA.ID, recipientID)
+	require.NoError(t, err)
+	require.Nil(t, none)
+
+	// Soft-deleted share is ignored.
+	require.NoError(t, db.Where("card_id = ?", card.ID).Delete(&models.CardShare{}).Error)
+	gone, err := repo.FindSharedByCardNumber(ctx, "SHARED-1", &merchantA.ID, recipientID)
+	require.NoError(t, err)
+	require.Nil(t, gone)
+}
+
 // TestCardRepository_ReinsertAfterSoftDelete is the core regression for this
 // feature: the partial unique index must exclude soft-deleted rows so a user can
 // create a new card whose number matches one they previously soft-deleted.
