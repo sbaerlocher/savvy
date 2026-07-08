@@ -11,7 +11,7 @@
 # ==============================================================================
 # BASE STAGE - Shared dependencies for dev targets
 # ==============================================================================
-FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS base-dev
+FROM golang:1.26-alpine@sha256:9097beb5536220f7857bdcb65c1b4b340630dd7a70b85f03d5af29640b06693d AS base-dev
 
 # Install build tools and utilities
 RUN apk add --no-cache \
@@ -114,7 +114,7 @@ RUN ls -la build/ && echo "✅ Frontend build complete"
 # ==============================================================================
 # GO BUILDER STAGE (Build Go Binaries)
 # ==============================================================================
-FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS go-builder
+FROM golang:1.26-alpine@sha256:9097beb5536220f7857bdcb65c1b4b340630dd7a70b85f03d5af29640b06693d AS go-builder
 
 ARG VERSION=dev
 
