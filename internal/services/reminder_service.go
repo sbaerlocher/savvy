@@ -424,7 +424,11 @@ func (s *ReminderService) formatVoucherValue(v *models.Voucher) string {
 	case "bonus_points":
 		return fmt.Sprintf("+%.0f", v.Value)
 	case "free":
-		return "Gratis"
+		lang := ""
+		if v.User != nil {
+			lang = v.User.Language
+		}
+		return i18n.T(i18nCtx(lang), "voucher.type.free")
 	default:
 		return ""
 	}

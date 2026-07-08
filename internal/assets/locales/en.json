@@ -315,6 +315,10 @@
     "translation": "voucher"
   },
   {
+    "id": "voucher.type.free",
+    "translation": "Free"
+  },
+  {
     "id": "push.share.body",
     "translation": "{{.User}} shared a {{.Resource}} with you"
   },
