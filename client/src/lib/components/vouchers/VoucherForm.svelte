@@ -230,59 +230,62 @@
 					>{$t('vouchers.typePointsMultiplier')}</option
 				>
 				<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
+				<option value="free">{$t('vouchers.typeFree')}</option>
 			</select>
 		</div>
 
-		<div>
-			<label for="value" class="label">{$t('vouchers.value')} *</label>
-			<div
-				class="flex gap-2 {$locale?.startsWith('en')
-					? 'flex-row-reverse'
-					: 'flex-row'}"
-			>
-				<input
-					id="value"
-					type="number"
-					step="0.01"
-					min="0"
-					required
-					bind:value
-					oninput={() => {
-						if (errors) errors = { ...errors, value: undefined };
-					}}
-					class="flex-1 input {errors?.value
-						? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-						: ''}"
-					placeholder="10.00"
-				/>
-				{#if type === 'fixed_amount'}
-					<select
-						id="currency"
-						bind:value={currency}
+		{#if type !== 'free'}
+			<div>
+				<label for="value" class="label">{$t('vouchers.value')} *</label>
+				<div
+					class="flex gap-2 {$locale?.startsWith('en')
+						? 'flex-row-reverse'
+						: 'flex-row'}"
+				>
+					<input
+						id="value"
+						type="number"
+						step="0.01"
+						min="0"
 						required
-						class="w-28 input"
-						style="font-size: 16px;"
-					>
-						{#each SUPPORTED_CURRENCIES as c (c)}
-							<option value={c}>{c}</option>
-						{/each}
-					</select>
+						bind:value
+						oninput={() => {
+							if (errors) errors = { ...errors, value: undefined };
+						}}
+						class="flex-1 input {errors?.value
+							? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+							: ''}"
+						placeholder="10.00"
+					/>
+					{#if type === 'fixed_amount'}
+						<select
+							id="currency"
+							bind:value={currency}
+							required
+							class="w-28 input"
+							style="font-size: 16px;"
+						>
+							{#each SUPPORTED_CURRENCIES as c (c)}
+								<option value={c}>{c}</option>
+							{/each}
+						</select>
+					{/if}
+				</div>
+				{#if errors?.value}
+					<p class="text-red-600 text-sm mt-1">{errors.value}</p>
+				{:else}
+					<p class="text-sm text-gray-500 mt-1">
+						{type === 'percentage'
+							? $t('vouchers.valueHintPercentage')
+							: type === 'points_multiplier'
+								? $t('vouchers.valueHintMultiplier')
+								: type === 'bonus_points'
+									? $t('vouchers.valueHintBonusPoints')
+									: $t('vouchers.valueHintAmount')}
+					</p>
 				{/if}
 			</div>
-			{#if errors?.value}
-				<p class="text-red-600 text-sm mt-1">{errors.value}</p>
-			{:else}
-				<p class="text-sm text-gray-500 mt-1">
-					{type === 'percentage'
-						? $t('vouchers.valueHintPercentage')
-						: type === 'points_multiplier'
-							? $t('vouchers.valueHintMultiplier')
-							: type === 'bonus_points'
-								? $t('vouchers.valueHintBonusPoints')
-								: $t('vouchers.valueHintAmount')}
-				</p>
-			{/if}
-		</div>
+		{/if}
 	</div>
 
 	<!-- Mindesteinkauf / Verwendungsart -->

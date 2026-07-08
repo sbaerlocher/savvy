@@ -219,6 +219,29 @@ func TestVoucherService_CreateVoucher_InvalidValue(t *testing.T) {
 	assert.Contains(t, err.Error(), "voucher value must be positive")
 }
 
+func TestVoucherService_CreateVoucher_FreeTypeExemptFromValue(t *testing.T) {
+	mockRepo := new(MockVoucherRepository)
+	service := NewVoucherService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	voucher := &models.Voucher{
+		UserID:       &userID,
+		Code:         "FREEGIFT",
+		MerchantName: "Test Merchant",
+		Type:         "free",
+		Value:        0, // allowed for free vouchers
+	}
+
+	mockRepo.On("Create", ctx, voucher).Return(nil)
+
+	err := service.CreateVoucher(ctx, voucher)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 0.0, voucher.Value, "free voucher value should be forced to 0")
+	mockRepo.AssertExpectations(t)
+}
+
 func TestVoucherService_CreateVoucher_InvalidDateRange(t *testing.T) {
 	mockRepo := new(MockVoucherRepository)
 	service := NewVoucherService(mockRepo)

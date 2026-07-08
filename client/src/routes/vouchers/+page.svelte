@@ -855,7 +855,9 @@
 										class="text-2xl font-bold row-span-2"
 										style="color: {voucher.merchant?.color || '#6B7280'}"
 									>
-										{#if voucher.type === 'percentage'}
+										{#if voucher.type === 'free'}
+											{tr('vouchers.types.freeDisplay')}
+										{:else if voucher.type === 'percentage'}
 											{voucher.value}{tr('vouchers.types.percentageDisplay')}
 										{:else if voucher.type === 'fixed_amount'}
 											{formatCurrency(voucher.value, voucher.currency, $locale)}

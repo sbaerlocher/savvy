@@ -378,7 +378,9 @@
 	}
 
 	function formatValue(value: number, type: string, currency?: string): string {
-		if (type === 'percentage') {
+		if (type === 'free') {
+			return tr('vouchers.types.freeDisplay');
+		} else if (type === 'percentage') {
 			return `${value}%`;
 		} else if (type === 'fixed_amount') {
 			return formatCurrency(value, currency || 'CHF', $locale);

@@ -39,11 +39,13 @@
 		e.preventDefault();
 		e.stopPropagation();
 		const displayValue =
-			voucher.type === 'percentage'
-				? `${voucher.value}%`
-				: voucher.type === 'fixed_amount'
-					? formatCurrency(voucher.value, voucher.currency, $locale)
-					: `${voucher.value}x Punkte`;
+			voucher.type === 'free'
+				? $t('vouchers.types.freeDisplay')
+				: voucher.type === 'percentage'
+					? `${voucher.value}%`
+					: voucher.type === 'fixed_amount'
+						? formatCurrency(voucher.value, voucher.currency, $locale)
+						: `${voucher.value}x Punkte`;
 
 		onShowBarcode({
 			type: 'voucher',
@@ -175,7 +177,9 @@
 								</p>
 								<div class="flex items-baseline justify-between gap-2 mt-1">
 									<p class="text-xs text-gray-600 font-medium">
-										{#if voucher.type === 'percentage'}
+										{#if voucher.type === 'free'}
+											{$t('vouchers.types.freeDisplay')}
+										{:else if voucher.type === 'percentage'}
 											{voucher.value}%
 										{:else if voucher.type === 'fixed_amount'}
 											{formatCurrency(voucher.value, voucher.currency, $locale)}

@@ -51,7 +51,10 @@ func (s *VoucherService) CreateVoucher(ctx context.Context, voucher *models.Vouc
 		return errors.New("voucher type is required")
 	}
 
-	if voucher.Value <= 0 {
+	// Free vouchers carry no monetary value; other types require a positive one.
+	if voucher.Type == "free" {
+		voucher.Value = 0
+	} else if voucher.Value <= 0 {
 		return errors.New("voucher value must be positive")
 	}
 
@@ -117,7 +120,10 @@ func (s *VoucherService) UpdateVoucher(ctx context.Context, voucher *models.Vouc
 		return errors.New("voucher type is required")
 	}
 
-	if voucher.Value <= 0 {
+	// Free vouchers carry no monetary value; other types require a positive one.
+	if voucher.Type == "free" {
+		voucher.Value = 0
+	} else if voucher.Value <= 0 {
 		return errors.New("voucher value must be positive")
 	}
 

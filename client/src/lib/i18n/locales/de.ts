@@ -523,6 +523,7 @@ export const de: TranslationKeys = {
 		typeFixedAmount: 'Fester Betrag',
 		typePointsMultiplier: 'Punkte-Multiplikator',
 		typeBonusPoints: 'Bonuspunkte (fest)',
+		typeFree: 'Gratis',
 		value: 'Wert',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Prozentsatz (z.B. 20 für 20%)',
@@ -601,7 +602,9 @@ export const de: TranslationKeys = {
 			pointsMultiplierDisplay: 'x Punkte',
 			bonusPoints: 'Bonuspunkte (fest)',
 			bonusPointsHint: 'Anzahl Bonuspunkte (z.B. 222)',
-			bonusPointsDisplay: ' Punkte'
+			bonusPointsDisplay: ' Punkte',
+			free: 'Gratis',
+			freeDisplay: 'Gratis'
 		},
 		transfer: {
 			title: 'Besitzerwechsel',

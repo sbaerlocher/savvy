@@ -521,6 +521,7 @@ export const fr: TranslationKeys = {
 		typeFixedAmount: 'Montant fixe',
 		typePointsMultiplier: 'Multiplicateur de points',
 		typeBonusPoints: 'Points bonus (fixe)',
+		typeFree: 'Gratuit',
 		value: 'Valeur',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Pourcentage (par ex. 20 pour 20%)',
@@ -599,7 +600,9 @@ export const fr: TranslationKeys = {
 			pointsMultiplierDisplay: 'x Points',
 			bonusPoints: 'Points bonus (fixe)',
 			bonusPointsHint: 'Nombre de points bonus (par ex. 222)',
-			bonusPointsDisplay: ' Points'
+			bonusPointsDisplay: ' Points',
+			free: 'Gratuit',
+			freeDisplay: 'Gratuit'
 		},
 		transfer: {
 			title: 'Transfert de propriété',

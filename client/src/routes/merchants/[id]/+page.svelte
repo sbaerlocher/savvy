@@ -1055,7 +1055,9 @@
 												class="text-2xl font-bold row-span-2"
 												style="color: {merchant.color || '#6B7280'}"
 											>
-												{#if voucher.type === 'percentage'}
+												{#if voucher.type === 'free'}
+													{tr('vouchers.types.freeDisplay')}
+												{:else if voucher.type === 'percentage'}
 													{voucher.value}{tr(
 														'vouchers.types.percentageDisplay'
 													)}

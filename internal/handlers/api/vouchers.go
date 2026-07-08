@@ -220,8 +220,8 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Validate value > 0
-	if req.Value <= 0 {
+	// Validate value > 0 (free vouchers carry no value and are exempt)
+	if req.Type != "free" && req.Value <= 0 {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_value",
 			Message: "Value must be greater than 0",
