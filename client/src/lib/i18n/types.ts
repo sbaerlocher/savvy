@@ -485,6 +485,7 @@ export type TranslationKeys = {
 		typeFixedAmount: string;
 		typePointsMultiplier: string;
 		typeBonusPoints: string;
+		typeFree: string;
 		value: string;
 		valuePlaceholder: string;
 		valueHintPercentage: string;
@@ -564,6 +565,7 @@ export type TranslationKeys = {
 			bonusPoints: string;
 			bonusPointsHint: string;
 			bonusPointsDisplay: string; // "+{value} Punkte"
+			freeDisplay: string; // "Gratis"
 		};
 		transfer: {
 			title: string;

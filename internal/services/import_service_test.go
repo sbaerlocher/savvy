@@ -381,6 +381,30 @@ func TestImportService_ImportJSON_NilData(t *testing.T) {
 	assert.Contains(t, err.Error(), "no data provided")
 }
 
+func TestImportService_ImportJSON_FreeVoucherZeroValue(t *testing.T) {
+	s := newImportTestSetup()
+	ctx := context.Background()
+	userID := uuid.New()
+	merchantID := uuid.New()
+
+	s.setupMerchantFound("Coop", merchantID)
+	s.voucherService.On("CreateVoucher", ctx, mock.AnythingOfType("*models.Voucher")).Return(nil)
+
+	// A free voucher with value 0 must not be rejected by validateVoucher.
+	data := &ExportData{
+		Vouchers: []ExportVoucher{{Code: "FREEBIE", MerchantName: "Coop", Type: "free", Value: 0}},
+	}
+
+	result, err := s.service.ImportJSON(ctx, userID, data)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 1, result.VouchersImported)
+	assert.Equal(t, 0, result.Skipped)
+	assert.Empty(t, result.Errors)
+	s.voucherService.AssertExpectations(t)
+}
+
 func TestImportService_ImportJSON_EmptyData(t *testing.T) {
 	s := newImportTestSetup()
 	ctx := context.Background()

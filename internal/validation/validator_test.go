@@ -293,6 +293,9 @@ func TestValidateStruct_VoucherRequest(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			// Struct-level validation accepts value 0 (omitempty,gte=0); the
+			// type-dependent "must be positive" rule lives in VoucherValueRequired,
+			// enforced in the service/handler, not this tag.
 			name: "zero value",
 			request: VoucherRequest{
 				MerchantName:   "Target",
@@ -303,7 +306,20 @@ func TestValidateStruct_VoucherRequest(t *testing.T) {
 				BarcodeType:    "QR",
 				Status:         "active",
 			},
-			wantErr: true,
+			wantErr: false,
+		},
+		{
+			name: "free voucher with zero value",
+			request: VoucherRequest{
+				MerchantName:   "Target",
+				Code:           "FREEBIE",
+				VoucherType:    "free",
+				Value:          0,
+				UsageLimitType: "single_use",
+				BarcodeType:    "QR",
+				Status:         "active",
+			},
+			wantErr: false,
 		},
 		{
 			name: "negative value",

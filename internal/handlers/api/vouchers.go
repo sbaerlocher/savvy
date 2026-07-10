@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"savvy/internal/models"
 	"savvy/internal/services"
+	"savvy/internal/validation"
 	"strings"
 	"time"
 
@@ -220,8 +221,8 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Validate value > 0
-	if req.Value <= 0 {
+	// Validate value > 0 (free vouchers are gratis and carry no value)
+	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_value",
 			Message: "Value must be greater than 0",

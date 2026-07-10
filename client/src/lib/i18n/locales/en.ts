@@ -509,6 +509,7 @@ export const en: TranslationKeys = {
 		typeFixedAmount: 'Fixed Amount',
 		typePointsMultiplier: 'Points Multiplier',
 		typeBonusPoints: 'Bonus Points (Fixed)',
+		typeFree: 'Free',
 		value: 'Value',
 		valuePlaceholder: '10.00',
 		valueHintPercentage: 'Percentage (e.g. 20 for 20%)',
@@ -587,7 +588,8 @@ export const en: TranslationKeys = {
 			pointsMultiplierDisplay: 'x Points',
 			bonusPoints: 'Bonus Points (Fixed)',
 			bonusPointsHint: 'Number of bonus points (e.g. 222)',
-			bonusPointsDisplay: ' Points'
+			bonusPointsDisplay: ' Points',
+			freeDisplay: 'Free'
 		},
 		transfer: {
 			title: 'Transfer Ownership',

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"savvy/internal/models"
 	"savvy/internal/repository"
+	"savvy/internal/validation"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -51,8 +52,14 @@ func (s *VoucherService) CreateVoucher(ctx context.Context, voucher *models.Vouc
 		return errors.New("voucher type is required")
 	}
 
-	if voucher.Value <= 0 {
-		return errors.New("voucher value must be positive")
+	if validation.VoucherValueRequired(voucher.Type) {
+		if voucher.Value <= 0 {
+			return errors.New("voucher value must be positive")
+		}
+	} else {
+		// Free vouchers are gratis; enforce the value-0 invariant server-side
+		// so a client or import cannot persist a hidden non-zero value.
+		voucher.Value = 0
 	}
 
 	if !voucher.ValidFrom.IsZero() && !voucher.ValidUntil.IsZero() {
@@ -117,8 +124,14 @@ func (s *VoucherService) UpdateVoucher(ctx context.Context, voucher *models.Vouc
 		return errors.New("voucher type is required")
 	}
 
-	if voucher.Value <= 0 {
-		return errors.New("voucher value must be positive")
+	if validation.VoucherValueRequired(voucher.Type) {
+		if voucher.Value <= 0 {
+			return errors.New("voucher value must be positive")
+		}
+	} else {
+		// Free vouchers are gratis; enforce the value-0 invariant server-side
+		// so a client or import cannot persist a hidden non-zero value.
+		voucher.Value = 0
 	}
 
 	if !voucher.ValidFrom.IsZero() && !voucher.ValidUntil.IsZero() {

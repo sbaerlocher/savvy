@@ -219,6 +219,61 @@ func TestVoucherService_CreateVoucher_InvalidValue(t *testing.T) {
 	assert.Contains(t, err.Error(), "voucher value must be positive")
 }
 
+func TestVoucherService_CreateVoucher_FreeAllowsZeroValue(t *testing.T) {
+	mockRepo := new(MockVoucherRepository)
+	service := NewVoucherService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	validFrom := time.Now()
+	validUntil := validFrom.Add(30 * 24 * time.Hour)
+
+	voucher := &models.Voucher{
+		UserID:       &userID,
+		Code:         "FREEBIE",
+		MerchantName: "Test Merchant",
+		Type:         "free",
+		Value:        0, // gratis: no value required
+		ValidFrom:    validFrom,
+		ValidUntil:   validUntil,
+	}
+
+	mockRepo.On("Create", ctx, voucher).Return(nil)
+
+	err := service.CreateVoucher(ctx, voucher)
+
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestVoucherService_CreateVoucher_FreeCoercesValueToZero(t *testing.T) {
+	mockRepo := new(MockVoucherRepository)
+	service := NewVoucherService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	validFrom := time.Now()
+	validUntil := validFrom.Add(30 * 24 * time.Hour)
+
+	voucher := &models.Voucher{
+		UserID:       &userID,
+		Code:         "FREEBIE",
+		MerchantName: "Test Merchant",
+		Type:         "free",
+		Value:        50, // hidden non-zero value must be coerced to 0
+		ValidFrom:    validFrom,
+		ValidUntil:   validUntil,
+	}
+
+	mockRepo.On("Create", ctx, voucher).Return(nil)
+
+	err := service.CreateVoucher(ctx, voucher)
+
+	assert.NoError(t, err)
+	assert.Equal(t, float64(0), voucher.Value, "free voucher value must be coerced to 0")
+	mockRepo.AssertExpectations(t)
+}
+
 func TestVoucherService_CreateVoucher_InvalidDateRange(t *testing.T) {
 	mockRepo := new(MockVoucherRepository)
 	service := NewVoucherService(mockRepo)
@@ -330,6 +385,30 @@ func TestVoucherService_UpdateVoucher_Success(t *testing.T) {
 	err := service.UpdateVoucher(ctx, voucher)
 
 	assert.NoError(t, err)
+}
+
+func TestVoucherService_UpdateVoucher_FreeCoercesValueToZero(t *testing.T) {
+	mockRepo := new(MockVoucherRepository)
+	service := NewVoucherService(mockRepo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	voucher := &models.Voucher{
+		ID:           uuid.New(),
+		UserID:       &userID,
+		Code:         "FREEBIE",
+		MerchantName: "Test Merchant",
+		Type:         "free",
+		Value:        50, // hidden non-zero value must be coerced to 0 on update too
+	}
+
+	mockRepo.On("Update", ctx, voucher).Return(nil)
+
+	err := service.UpdateVoucher(ctx, voucher)
+
+	assert.NoError(t, err)
+	assert.Equal(t, float64(0), voucher.Value, "free voucher value must be coerced to 0 on update")
+	mockRepo.AssertExpectations(t)
 }
 
 func TestVoucherService_UpdateVoucher_ValidationError(t *testing.T) {

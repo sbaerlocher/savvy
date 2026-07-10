@@ -386,6 +386,8 @@
 			return `${value}${tr('vouchers.types.pointsMultiplierDisplay').trim()}`;
 		} else if (type === 'bonus_points') {
 			return `+${value}${tr('vouchers.types.bonusPointsDisplay')}`;
+		} else if (type === 'free') {
+			return tr('vouchers.types.freeDisplay');
 		}
 		return `${value.toFixed(2)}`;
 	}

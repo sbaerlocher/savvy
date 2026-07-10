@@ -43,7 +43,9 @@
 				? `${voucher.value}%`
 				: voucher.type === 'fixed_amount'
 					? formatCurrency(voucher.value, voucher.currency, $locale)
-					: `${voucher.value}x Punkte`;
+					: voucher.type === 'free'
+						? $t('vouchers.types.freeDisplay')
+						: `${voucher.value}x Punkte`;
 
 		onShowBarcode({
 			type: 'voucher',
@@ -185,6 +187,8 @@
 											)}
 										{:else if voucher.type === 'bonus_points'}
 											+{voucher.value}{$t('vouchers.types.bonusPointsDisplay')}
+										{:else if voucher.type === 'free'}
+											{$t('vouchers.types.freeDisplay')}
 										{/if}
 									</p>
 									{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
