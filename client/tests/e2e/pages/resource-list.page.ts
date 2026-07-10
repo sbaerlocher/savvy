@@ -110,12 +110,8 @@ export class ResourceListPage extends BasePage {
 	async clickNewButton() {
 		await this.newButton.waitFor({ state: 'visible', timeout: 5000 });
 		await this.newButton.click();
-		const resourceSingular = this.resourceType.replace(
-			'gift-cards',
-			'gift-cards'
-		);
 		await expect(this.page).toHaveURL(
-			new RegExp(`\\/${resourceSingular}\\/new`)
+			new RegExp(`\\/${this.resourceType}\\/new`)
 		);
 		await this.waitForPageReady();
 	}
