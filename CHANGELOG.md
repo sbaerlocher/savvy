@@ -7,8 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-11
+
+### Added
+
+- **Free voucher type (#225)** - New `free` voucher type whose value stays 0. The
+  value field is hidden and no longer required; detail, list, merchant and favorite
+  views render it as "Free" instead of a bare 0. Expiry reminder emails resolve the
+  localized "Free" label instead of a blank value (#231).
+- **Inline favorite barcodes on the dashboard (#221)** - Favorite cards, vouchers and
+  gift cards render their barcode directly in the dashboard tile, scannable at the till
+  without opening the detail page. Tapping still opens the enlarge modal.
+- **Multi-recipient sharing (#208)** - The share action on card, voucher and gift-card
+  detail pages now shares with several recipients in one call. New `emails[]` endpoint
+  returns a partial-success response (`success_count`, `failed[]`, `shares`); unknown
+  email, self-share and already-shared become `failed[]` entries instead of a 4xx/5xx.
+  422 when all recipients fail, 201 on partial success. `EmailAutocomplete` gains a
+  chip-based multiple mode. Limit 50 recipients.
+- **Revoke all shares per resource (#212)** - "Revoke all shares" action for cards,
+  vouchers and gift cards (one `DELETE /:id/shares` endpoint each) with a confirmation
+  dialog on the detail pages. Reuses existing repo queries; no schema change. i18n
+  DE/EN/FR.
+- **Auto-archive read notifications (#209)** - Read in-app notifications are archived
+  out of the main list after a configurable period (`NOTIFICATION_ARCHIVE_AFTER_DAYS`,
+  default 30, 0 disables) without data loss (`archived_at` stamped, rows kept). A
+  dedicated 24h background goroutine runs independently of expiry reminders. Migration
+  0032 adds the column and index; the archive window counts from `read_at`.
+- **Restore soft-deleted resources on re-create (#204)** - Re-creating a card, voucher
+  or gift card whose number matches a soft-deleted one the user owns now returns a 409
+  offering restore instead of a 500. Backed by per-user partial unique indexes that
+  exclude soft-deleted rows and a user-scoped restore endpoint. `DuplicateWarningBanner`
+  offers the restore action. i18n DE/EN/FR.
+- **Symbology-content warning (#190)** - A reactive warning under the barcode-type select
+  in the card, voucher and gift-card forms flags content unsuitable for the chosen
+  symbology (e.g. non-numeric content with EAN-13) before saving.
+
 ### Changed
 
+- **Barcodes hidden on mobile list views (#230)** - The barcode block is hidden below
+  the `sm` breakpoint on the cards, vouchers, gift cards and merchant detail overview
+  lists, saving screen space and render time; the barcode stays on each item's detail
+  page.
+- **Dashboard page split into components (#211)** - The 897-line dashboard page moved
+  into five focused components under `client/src/lib/components/dashboard/` (header,
+  favorites, quick actions, tips, barcode modal); favorite tiles restyled to match the
+  list pages. No behavior or API change.
+- **Oversized API handlers split (#192)** - `gift_cards.go`, `auth.go` and `admin.go`
+  each had their most self-contained endpoint cluster extracted into a new file in the
+  same package (transactions, auth tokens, admin diagnostics); all now under 700 lines.
+  Pure relocation, no behavior change.
 - **Frontend quality gates run locally in worktrees** - `lefthook.yml` `pre-push`
   now mirrors the CI `client-ci` job (`format:check`, `lint`, `typecheck`) instead
   of typecheck alone, so prettier/eslint failures surface before the push rather
@@ -17,6 +64,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   worktree needs `cd client && npm ci` once, else the frontend hooks fail the
   push with a missing-binary error and the check only runs in CI. DB/E2E gates
   stay CI-only.
+
+### Fixed
+
+- **Code-scanning findings in SW and E2E helper (#232)** - The service worker message
+  handler now rejects cross-origin senders before acting on `SKIP_WAITING`, so an
+  embedded third-party frame cannot force an early activation (CodeQL
+  `js/missing-origin-check`). Dropped a no-op identity `.replace()` in the resource
+  list page object (CodeQL `js/identity-replacement`).
+- **White screen on Android homescreen shortcut launch (#224)** - Added
+  `launch_handler` `navigate-existing` to both manifest sources so Android reuses an
+  existing client, and warm the app shell (`/`) into the navigation cache on install so
+  a cold first launch finds the shell instead of rendering nothing.
+- **Shared cards detected as duplicates (#215)** - Creating a card with a number already
+  shared with the user now attaches an advisory duplicate warning naming the sharer,
+  instead of silently creating an indistinguishable copy. Creation still proceeds
+  (family cards are intentionally allowed); matching is scoped to the merchant.
+- **Audit resource id on conditional deletes (#205)** - The delete audit hook read the
+  id from `Statement.Dest`, which was zero for `WHERE`-clause deletes (gift cards,
+  merchants, transactions, all `*_share`), writing `uuid.Nil` and making those entries
+  unrestorable. The hook now re-selects the targeted rows (mirroring the DELETE's own
+  scoping) and writes one entry per row with its real id and legible `resource_data`.
+  Also fixes bulk deletes producing a single nil entry.
+- **Gift-card `barcode_type` dropped (#203)** - The barcode type was missing from the
+  create request, response DTO and its mapper, so every gift card fell back to CODE128
+  regardless of input. Wired through all four paths and validated on create like cards.
+
+### Tests
+
+- **Full-stack cards handler integration tests (#191)** - New tests drive the cards
+  handler through real services, repositories and PostgreSQL (via `testutil.NewTestDB`)
+  to verify end-to-end wiring (list round-trip, ownership/forbidden authorization,
+  create persistence with auto-created merchant); skip when no test DB is reachable.
+
+### Dependencies
+
+- Updated all non-major dependencies (#189, #193, #195, #198, #199, #206, #214, #219,
+  #228), `@sveltejs/kit` 2.69.1 (#210), `cookie` v2 (#202), Prettier 3.9.1 (#201),
+  Node.js 24.18.0 (#200).
+- Updated Docker images (#188, #196): Prometheus v3.13.1 (#229, #207), golang:1.26-alpine
+  digests (#216, #223), distroless static-debian12 (#222-range), otel-collector-contrib
+  (#218-range).
+- Updated `sbaerlocher/.github` reusables to 2026-07-10 (#227) and action to v2026-06-26
+  (#197).
+
+### Docs
+
+- **Self-hosted scope documented (#194)** - Added a Project Scope section to the README
+  (self-hosted OSS only, PWA-only client, core-vs-optional feature table driven by
+  `ENABLE_*` toggles) and recorded the maintainability-audit decision in GOVERNANCE:
+  keep the full feature set, manage scope via configuration.
 
 ## [1.3.2] - 2026-06-21
 
@@ -401,7 +498,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/sbaerlocher/savvy/compare/v1.3.2...v1.4.0
+[1.3.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.2
 [1.3.1]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.1
 [1.3.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.0
 [1.2.0]: https://github.com/sbaerlocher/savvy/releases/tag/v1.2.0
