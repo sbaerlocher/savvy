@@ -226,6 +226,10 @@ self.addEventListener('activate', (event) => {
 // ========================================================================
 
 self.addEventListener('message', (event) => {
+	// Only accept control messages from our own origin; reject cross-origin
+	// senders (e.g. an embedded third-party frame) that could otherwise force
+	// an early activation.
+	if (event.origin && event.origin !== self.location.origin) return;
 	if (event.data && event.data.type === 'SKIP_WAITING') {
 		console.log(
 			'[SW] Received SKIP_WAITING message - activating new Service Worker'
