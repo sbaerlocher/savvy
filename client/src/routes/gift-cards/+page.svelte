@@ -910,10 +910,10 @@
 									</p>
 								</div>
 
-								<!-- Barcode -->
 								<div class="mt-auto">
+									<!-- Barcode (hidden on mobile: ponytail: CSS breakpoint, add a user toggle if per-user control is needed) -->
 									<div
-										class="bg-gray-50 rounded-lg p-4 border border-gray-200 h-[120px] flex flex-col justify-center"
+										class="bg-gray-50 rounded-lg p-4 border border-gray-200 h-[120px] hidden sm:flex flex-col justify-center"
 									>
 										<div class="flex justify-center mb-2">
 											<Barcode
