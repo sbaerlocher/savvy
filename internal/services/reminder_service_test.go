@@ -1147,6 +1147,16 @@ func TestReminderService_FormatVoucherValue(t *testing.T) {
 		assert.Equal(t, "+100", result) // %.0f rounds 99.5 to 100
 	})
 
+	t.Run("free type returns localized label", func(t *testing.T) {
+		// Without i18n.Init the bundle falls back to the message ID; the point
+		// of the test is that free resolves via i18n (locale-driven) and is not
+		// the hardcoded German string nor the empty default.
+		v := &models.Voucher{Type: "free", Value: 0}
+		result := svc.formatVoucherValue(v)
+		assert.NotEmpty(t, result)
+		assert.Equal(t, "voucher.type.free", result)
+	})
+
 	t.Run("default/unknown type returns empty", func(t *testing.T) {
 		v := &models.Voucher{Type: "points_multiplier", Value: 2}
 		result := svc.formatVoucherValue(v)

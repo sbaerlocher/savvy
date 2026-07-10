@@ -315,6 +315,10 @@
     "translation": "Gutschein"
   },
   {
+    "id": "voucher.type.free",
+    "translation": "Gratis"
+  },
+  {
     "id": "push.share.body",
     "translation": "{{.User}} hat {{.Article}} {{.Resource}} mit dir geteilt"
   },
