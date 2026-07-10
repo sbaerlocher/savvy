@@ -27,8 +27,15 @@ var ValidBarcodeTypes = map[string]bool{
 }
 
 // ValidVoucherTypes defines the allowed voucher type values.
+// "free" is a gratis voucher carrying no monetary value (value stays 0).
 var ValidVoucherTypes = map[string]bool{
-	"percentage": true, "fixed_amount": true, "points_multiplier": true, "bonus_points": true,
+	"percentage": true, "fixed_amount": true, "points_multiplier": true, "bonus_points": true, "free": true,
+}
+
+// VoucherValueRequired reports whether a voucher of the given type needs a
+// positive value. The "free" type is gratis, so its value is always 0.
+func VoucherValueRequired(voucherType string) bool {
+	return voucherType != "free"
 }
 
 // ValidUsageLimitTypes defines the allowed usage limit type values.
@@ -126,11 +133,14 @@ type CardRequest struct {
 
 // VoucherRequest represents voucher creation/update validation
 type VoucherRequest struct {
-	MerchantID        string  `validate:"omitempty,uuid"`
-	MerchantName      string  `validate:"required_without=MerchantID,max=255"`
-	Code              string  `validate:"required,max=255"`
-	VoucherType       string  `validate:"required,oneof=percentage fixed_amount points_multiplier bonus_points"`
-	Value             float64 `validate:"required,gt=0"`
+	MerchantID   string `validate:"omitempty,uuid"`
+	MerchantName string `validate:"required_without=MerchantID,max=255"`
+	Code         string `validate:"required,max=255"`
+	VoucherType  string `validate:"required,oneof=percentage fixed_amount points_multiplier bonus_points free"`
+	// Value: the "must be positive" rule is intentionally NOT a struct tag. It is
+	// type-dependent (free vouchers carry 0) and lives in VoucherValueRequired,
+	// enforced in the service/handler layer. The tag only bounds it to >= 0.
+	Value             float64 `validate:"omitempty,gte=0"`
 	MinPurchaseAmount float64 `validate:"omitempty,gte=0"`
 	UsageLimitType    string  `validate:"required,oneof=single_use one_per_customer multiple_use_with_card multiple_use_without_card"`
 	MaxUses           int     `validate:"omitempty,gte=1"`

@@ -561,7 +561,7 @@ func validateVoucher(code, voucherType, barcodeType, usageLimitType, description
 	if err := validation.ValidateEnum(usageLimitType, validation.ValidUsageLimitTypes, "usage_limit_type"); err != nil {
 		errs = append(errs, err.Error())
 	}
-	if value <= 0 {
+	if validation.VoucherValueRequired(voucherType) && value <= 0 {
 		errs = append(errs, "value must be greater than 0")
 	}
 	return errs

@@ -1073,6 +1073,8 @@
 													+{voucher.value}{tr(
 														'vouchers.types.bonusPointsDisplay'
 													)}
+												{:else if voucher.type === 'free'}
+													{tr('vouchers.types.freeDisplay')}
 												{:else}
 													{voucher.value}
 												{/if}

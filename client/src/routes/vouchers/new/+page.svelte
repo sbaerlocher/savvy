@@ -61,7 +61,7 @@
 			hasErrors = true;
 		}
 
-		if (value <= 0) {
+		if (type !== 'free' && value <= 0) {
 			errors = { ...errors, value: tr('vouchers.errors.valueRequired') };
 			hasErrors = true;
 		}
