@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { formatCurrency } from '$lib/utils/currency';
 	import { logger } from '$lib/utils/logger';
+	import Barcode from '$lib/components/Barcode.svelte';
 	import type {
 		DashboardResponse,
 		CardDTO,
@@ -109,10 +110,10 @@
 				{#if data.recent_cards.length > 0 && (!data.has_favorites || data.has_card_favorites)}
 					{#each data.recent_cards.slice(0, 3) as card (card.id)}
 						<div
-							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
 							style="border-left: 6px solid {card.merchant?.color || '#6B7280'}"
 						>
-							<a href={resolve(`/cards/${card.id}`)} class="p-3 flex-1 min-w-0">
+							<a href={resolve(`/cards/${card.id}`)} class="p-3 min-w-0">
 								<p
 									class="font-semibold text-gray-900 text-sm truncate group-hover:text-cyan-600 transition"
 								>
@@ -134,26 +135,17 @@
 									{/if}
 								</div>
 							</a>
-							<button
-								onclick={(e) => showCardBarcode(card, e)}
-								class="p-3 flex-shrink-0 text-gray-400 hover:text-cyan-600 hover:bg-cyan-50 transition"
-								title={$t('dashboard.showBarcode')}
-								aria-label={$t('dashboard.showBarcode')}
-							>
-								<svg
-									class="w-5 h-5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							{#if card.card_number}
+								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
+								<button
+									onclick={(e) => showCardBarcode(card, e)}
+									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-cyan-50 transition"
+									title={$t('dashboard.tapToEnlarge')}
+									aria-label={$t('dashboard.showBarcode')}
 								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-									/>
-								</svg>
-							</button>
+									<Barcode value={card.card_number} type={card.barcode_type} />
+								</button>
+							{/if}
 						</div>
 					{/each}
 				{/if}
@@ -162,14 +154,11 @@
 				{#if data.recent_vouchers.length > 0 && (!data.has_favorites || data.has_voucher_favorites)}
 					{#each data.recent_vouchers.slice(0, 3) as voucher (voucher.id)}
 						<div
-							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
 							style="border-left: 6px solid {voucher.merchant?.color ||
 								'#6B7280'}"
 						>
-							<a
-								href={resolve(`/vouchers/${voucher.id}`)}
-								class="p-3 flex-1 min-w-0"
-							>
+							<a href={resolve(`/vouchers/${voucher.id}`)} class="p-3 min-w-0">
 								<p
 									class="font-semibold text-gray-900 text-sm truncate group-hover:text-green-600 transition"
 								>
@@ -212,26 +201,17 @@
 									{/if}
 								</div>
 							</a>
-							<button
-								onclick={(e) => showVoucherBarcode(voucher, e)}
-								class="p-3 flex-shrink-0 text-gray-400 hover:text-green-600 hover:bg-green-50 transition"
-								title={$t('dashboard.showBarcode')}
-								aria-label={$t('dashboard.showBarcode')}
-							>
-								<svg
-									class="w-5 h-5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							{#if voucher.code}
+								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
+								<button
+									onclick={(e) => showVoucherBarcode(voucher, e)}
+									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-green-50 transition"
+									title={$t('dashboard.tapToEnlarge')}
+									aria-label={$t('dashboard.showBarcode')}
 								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-									/>
-								</svg>
-							</button>
+									<Barcode value={voucher.code} type={voucher.barcode_type} />
+								</button>
+							{/if}
 						</div>
 					{/each}
 				{/if}
@@ -240,13 +220,13 @@
 				{#if data.recent_gift_cards.length > 0 && (!data.has_favorites || data.has_gift_card_favorites)}
 					{#each data.recent_gift_cards.slice(0, 3) as giftCard (giftCard.id)}
 						<div
-							class="group flex rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
+							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
 							style="border-left: 6px solid {giftCard.merchant?.color ||
 								'#6B7280'}"
 						>
 							<a
 								href={resolve(`/gift-cards/${giftCard.id}`)}
-								class="p-3 flex-1 min-w-0"
+								class="p-3 min-w-0"
 							>
 								<p
 									class="font-semibold text-gray-900 text-sm truncate group-hover:text-red-600 transition"
@@ -282,26 +262,20 @@
 									{/if}
 								</div>
 							</a>
-							<button
-								onclick={(e) => showGiftCardBarcode(giftCard, e)}
-								class="p-3 flex-shrink-0 text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
-								title={$t('dashboard.showBarcode')}
-								aria-label={$t('dashboard.showBarcode')}
-							>
-								<svg
-									class="w-5 h-5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							{#if giftCard.card_number}
+								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
+								<button
+									onclick={(e) => showGiftCardBarcode(giftCard, e)}
+									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-red-50 transition"
+									title={$t('dashboard.tapToEnlarge')}
+									aria-label={$t('dashboard.showBarcode')}
 								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+									<Barcode
+										value={giftCard.card_number}
+										type={giftCard.barcode_type}
 									/>
-								</svg>
-							</button>
+								</button>
+							{/if}
 						</div>
 					{/each}
 				{/if}
