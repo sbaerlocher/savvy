@@ -41,18 +41,15 @@ registerRoute(
 				new CacheableResponsePlugin({ statuses: [200] }),
 				{
 					// Hard fallback: if StaleWhileRevalidate yields neither cache
-					// nor network (e.g. cold Android homescreen-shortcut start
-					// before the shell is cached), serve the app shell from the
-					// navigation cache — any URL, or `/` — so the launch renders
-					// instead of a white screen.
+					// nor network (e.g. cold Android homescreen-shortcut start, or
+					// a deep-link navigation that misses its route-specific key),
+					// serve the app shell (`/`) so the launch renders instead of a
+					// white screen. `/` is warmed into this cache on install (see
+					// the install handler below), so it is present even on a true
+					// first cold launch before any navigation has been cached.
 					handlerDidError: async () => {
 						const cache = await caches.open('navigation-pages');
-						return (
-							(await cache.match('/')) ||
-							(await cache.match('/index.html')) ||
-							(await caches.match('/')) ||
-							Response.error()
-						);
+						return (await cache.match('/')) || Response.error();
 					}
 				}
 			]
@@ -187,9 +184,22 @@ self.addEventListener('fetch', (event) => {
 // SERVICE WORKER LIFECYCLE EVENTS
 // ========================================================================
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
 	console.log('[SW] Installing Service Worker...');
 	// Note: Cannot reference __WB_MANIFEST here (injectManifest allows only one match)
+	// Warm the app shell (`/`) into the navigation cache so the very first cold
+	// launch — e.g. an Android homescreen-shortcut start to start_url `/` before
+	// any navigation has been cached — can serve the shell from the
+	// handlerDidError fallback instead of showing a white screen. index.html is
+	// not precached (see vite.config.ts), so this network fetch is the only way
+	// the shell reaches navigation-pages ahead of the first navigation. Best
+	// effort: swallow failure (offline install) so it never blocks activation.
+	event.waitUntil(
+		caches
+			.open('navigation-pages')
+			.then((cache) => cache.add('/'))
+			.catch((err) => console.warn('[SW] Shell warmup failed:', err))
+	);
 	// Skip waiting immediately so security/bug fixes reach users without delay
 	self.skipWaiting();
 });
