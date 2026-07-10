@@ -21,7 +21,7 @@ jobs:
     uses: sbaerlocher/.github/.github/workflows/security-code.yml@2026-07-10
     with:
       languages: '["go", "javascript"]'
-      go-version: "1.26"
+      go-version: "1.26.5"
       concurrency-suffix: code
 
   dependency-scan:
