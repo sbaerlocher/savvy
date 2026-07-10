@@ -37,7 +37,25 @@ registerRoute(
 	new NavigationRoute(
 		new StaleWhileRevalidate({
 			cacheName: 'navigation-pages',
-			plugins: [new CacheableResponsePlugin({ statuses: [200] })]
+			plugins: [
+				new CacheableResponsePlugin({ statuses: [200] }),
+				{
+					// Hard fallback: if StaleWhileRevalidate yields neither cache
+					// nor network (e.g. cold Android homescreen-shortcut start
+					// before the shell is cached), serve the app shell from the
+					// navigation cache — any URL, or `/` — so the launch renders
+					// instead of a white screen.
+					handlerDidError: async () => {
+						const cache = await caches.open('navigation-pages');
+						return (
+							(await cache.match('/')) ||
+							(await cache.match('/index.html')) ||
+							(await caches.match('/')) ||
+							Response.error()
+						);
+					}
+				}
+			]
 		}),
 		{
 			denylist: [

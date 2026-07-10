@@ -51,6 +51,10 @@ export default defineConfig({
 				display: 'standalone',
 				start_url: '/',
 				scope: '/',
+				handle_links: 'preferred',
+				launch_handler: {
+					client_mode: ['navigate-existing', 'auto']
+				},
 				icons: [
 					{
 						src: '/icon-192.png',

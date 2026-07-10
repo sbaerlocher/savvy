@@ -6,6 +6,9 @@
 	"scope": "/",
 	"display": "standalone",
 	"handle_links": "preferred",
+	"launch_handler": {
+		"client_mode": ["navigate-existing", "auto"]
+	},
 	"background_color": "#f3f4f6",
 	"theme_color": "#2b808d",
 	"icons": [
