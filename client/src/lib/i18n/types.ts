@@ -129,6 +129,7 @@ export type TranslationKeys = {
 		vouchers: string;
 		giftCards: string;
 		merchants: string;
+		wallet: string;
 		dashboard: string;
 		profile: string;
 		security: string;

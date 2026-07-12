@@ -147,6 +147,7 @@ export const de: TranslationKeys = {
 		vouchers: 'Gutscheine',
 		giftCards: 'Geschenkkarten',
 		merchants: 'Händler',
+		wallet: 'Wallet',
 		dashboard: 'Dashboard',
 		profile: 'Profil',
 		security: 'Sicherheit',

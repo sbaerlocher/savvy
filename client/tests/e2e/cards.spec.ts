@@ -98,7 +98,7 @@ test.describe('Cards Management', () => {
 		await cardDetailPage.enterEditMode();
 		await cardDetailPage.deleteResource();
 
-		await expect(page).toHaveURL(/\/cards\/?$/);
+		await expect(page).toHaveURL(/(\/cards\/?$|\/wallet\?type=cards)/);
 	});
 
 	test('should search/filter cards', async ({

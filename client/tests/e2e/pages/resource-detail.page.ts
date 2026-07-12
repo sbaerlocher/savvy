@@ -78,9 +78,14 @@ export class ResourceDetailPage extends BasePage {
 		await expect(this.deleteButton).toBeVisible({ timeout: 3000 });
 		await this.deleteButton.click();
 		await this.confirmDeletion(this.apiPath);
-		await this.page.waitForURL(new RegExp(`\\/${this.resourceType}\\/?$`), {
-			timeout: 10000
-		});
+		// After delete the detail page navigates to the legacy list route, which
+		// redirects to /wallet?type=<resource>. Accept either as the end state.
+		await this.page.waitForURL(
+			new RegExp(
+				`(\\/${this.resourceType}\\/?$|\\/wallet\\?type=${this.resourceType})`
+			),
+			{ timeout: 10000 }
+		);
 	}
 
 	async toggleFavorite(expectedIcon: '★' | '☆') {

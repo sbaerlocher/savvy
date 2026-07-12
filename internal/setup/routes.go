@@ -116,6 +116,9 @@ func RegisterRoutes(rc *RouteConfig) {
 
 		// Search
 
+		// Wallet Route (unified cards/vouchers/gift-cards overview)
+		spaProtected.GET("/wallet", spaHandler.ServeSPA)
+
 		// Cards Routes
 		spaProtected.GET("/cards", spaHandler.ServeSPA)
 		spaProtected.GET("/cards/new", spaHandler.ServeSPA)

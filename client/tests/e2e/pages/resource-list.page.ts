@@ -80,6 +80,7 @@ export class ResourceListPage extends BasePage {
 		);
 
 		try {
+			// The legacy list route redirects to /wallet?type=<resource>.
 			await this.page.goto(`/${this.resourceType}`, {
 				waitUntil: 'domcontentloaded',
 				timeout: 10000
@@ -91,15 +92,21 @@ export class ResourceListPage extends BasePage {
 				throw error;
 			}
 		}
-		await this.page.waitForURL(new RegExp(`\\/${this.resourceType}`), {
-			timeout: 5000
-		});
+		await this.page.waitForURL(
+			new RegExp(`\\/wallet\\?type=${this.resourceType}`),
+			{ timeout: 5000 }
+		);
 		await apiResponsePromise;
 		await this.waitForPageReady();
 	}
 
 	async expectHeading() {
-		await expect(this.heading).toContainText(this.config.headingPattern);
+		// Wallet renders a single "Wallet" heading; the active resource is
+		// reflected by the ?type= query. Assert we landed on the filtered view.
+		await expect(this.page).toHaveURL(
+			new RegExp(`\\/wallet\\?type=${this.resourceType}`)
+		);
+		await expect(this.heading).toContainText(/Wallet/i);
 	}
 
 	async clickFirstItem() {
@@ -111,8 +118,12 @@ export class ResourceListPage extends BasePage {
 	}
 
 	async clickNewButton() {
-		await this.newButton.waitFor({ state: 'visible', timeout: 5000 });
-		await this.newButton.click();
+		// The unified wallet toolbar no longer carries a per-type "New" button
+		// (creation is reached via the nav). Navigate to the create route directly.
+		await this.page.goto(`/${this.resourceType}/new`, {
+			waitUntil: 'domcontentloaded',
+			timeout: 10000
+		});
 		await expect(this.page).toHaveURL(
 			new RegExp(`\\/${this.resourceType}\\/new`)
 		);

@@ -34,7 +34,7 @@ test.describe('Dashboard', () => {
 		const cardsLink = page.locator('a[href="/cards"]').first();
 		await expect(cardsLink).toBeVisible({ timeout: 5000 });
 		await cardsLink.click();
-		await expect(page).toHaveURL(/\/cards\/?$/);
+		await expect(page).toHaveURL(/(\/cards\/?$|\/wallet\?type=cards)/);
 	});
 
 	test('should navigate to vouchers from dashboard', async ({
@@ -48,7 +48,7 @@ test.describe('Dashboard', () => {
 		const vouchersLink = page.locator('a[href="/vouchers"]').first();
 		await expect(vouchersLink).toBeVisible({ timeout: 5000 });
 		await vouchersLink.click();
-		await expect(page).toHaveURL(/\/vouchers\/?$/);
+		await expect(page).toHaveURL(/(\/vouchers\/?$|\/wallet\?type=vouchers)/);
 	});
 
 	test('should navigate to gift cards from dashboard', async ({
@@ -62,7 +62,7 @@ test.describe('Dashboard', () => {
 		const giftCardsLink = page.locator('a[href="/gift-cards"]').first();
 		await expect(giftCardsLink).toBeVisible({ timeout: 5000 });
 		await giftCardsLink.click();
-		await expect(page).toHaveURL(/\/gift-cards\/?$/);
+		await expect(page).toHaveURL(/(\/gift-cards\/?$|\/wallet\?type=gift-cards)/);
 	});
 
 	test('should display recent items', async ({
