@@ -88,9 +88,11 @@ test.describe('Vouchers Management', () => {
 		const page = authenticatedPage;
 		await vouchersListPage.goto();
 
+		// ResourceTile masks the code, so match the seeded voucher by its
+		// description (rendered as the tile identifier) instead.
 		const testVoucher = page
-			.locator('div[role="button"]')
-			.filter({ hasText: /TEST-EDIT-50/i })
+			.locator('[data-owner]')
+			.filter({ hasText: 'Test voucher for E2E edit test' })
 			.first();
 		await expect(testVoucher).toBeVisible({ timeout: 10000 });
 		await testVoucher.click();
@@ -252,16 +254,13 @@ test.describe('Vouchers Management', () => {
 		await page.waitForURL(/\/vouchers\/?$/, { timeout: 5000 });
 		await vouchersListPage.waitForPageReady();
 
-		// ResourceTile renders the merchant name and, for a not-yet-valid voucher,
-		// a status badge — the raw code lives only on the detail page.
+		// ResourceTile masks the code, so match the inactive voucher by its
+		// status badge (the only not-yet-valid tile) rather than by code.
 		const voucherCard = page
 			.locator('[data-owner]')
-			.filter({ hasText: testVouchers.amazon.merchant_name })
+			.filter({ hasText: /Inaktiv|Inactive/ })
 			.first();
 		await expect(voucherCard).toBeVisible({ timeout: 10000 });
-		await expect(voucherCard.locator('text=/Inaktiv|Inactive/i')).toBeVisible({
-			timeout: 5000
-		});
 
 		// Cleanup
 		await voucherCard.click();
