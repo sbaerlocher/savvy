@@ -142,7 +142,7 @@
 			<!-- At-checkout favorites: barcode always visible (register quick access) -->
 			<section class="order-2 lg:col-span-2 lg:row-start-2">
 				<h2
-					class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+					class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500"
 				>
 					{$t('dashboard.atCheckout')}
 				</h2>

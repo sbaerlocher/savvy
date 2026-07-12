@@ -5,11 +5,11 @@ import { BasePage } from './base.page';
 export class DashboardPage extends BasePage {
 	// Dashboard h1 is now the "Deine Favoriten" / "Your favorites" title
 	// (Direction B redesign); the greeting moved to the eyebrow line.
-	readonly welcomeHeading = this.page
-		.locator('h1')
-		.filter({ hasText: /Favoriten|Favorites/i });
+	readonly welcomeHeading = this.page.locator('h1').first();
+	// Distinct from the h1 title: target the favorites section itself so the
+	// two locators stay semantically separate and locale-independent.
 	readonly favoritesHeading = this.page
-		.locator('text=/Favorites|Favoriten/i')
+		.locator('[data-testid="favorites-section"]')
 		.first();
 	readonly favoritesList = this.page
 		.locator('[data-testid="favorites-list"], .favorites-section')

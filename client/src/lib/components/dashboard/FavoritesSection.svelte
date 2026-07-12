@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { t, locale } from '$lib/stores/i18n';
 	import { authStore } from '$lib/stores/auth';
+	import { isOnline } from '$lib/stores/offline';
 	import { resolve } from '$app/paths';
 	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
 	import {
@@ -58,7 +59,12 @@
 				</p>
 				<a
 					href={resolve('/cards/new')}
-					class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 transition hover:text-cyan-800"
+					onclick={(e) => {
+						if (!$isOnline) e.preventDefault();
+					}}
+					class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 transition hover:text-cyan-800 {!$isOnline
+						? 'pointer-events-none opacity-50'
+						: ''}"
 				>
 					{$t('dashboard.getStarted')} →
 				</a>
