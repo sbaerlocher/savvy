@@ -92,25 +92,31 @@
 			>
 		</div>
 	{:else if data}
-		<!-- Header row: greeting + title on the left, compact stats top-right
-		     on desktop (prototype "03 — START · DESKTOP"). -->
-		<div
-			class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
-		>
-			<PageHeader
-				eyebrow={$t('dashboard.greeting', { name: firstName })}
-				title={$t('dashboard.yourFavorites')}
-			>
-				{#snippet actions()}
-					{#if isRefreshing}
-						<span class="animate-pulse text-xs text-gray-400"
-							>{$t('common.refreshing')}</span
-						>
-					{/if}
-				{/snippet}
-			</PageHeader>
+		<!-- Grid gives the two layouts from the same markup:
+		     mobile (1 col) stacks via `order` — header → favorites → stats
+		     (prototype "02 — START"); desktop (2 cols) puts the header top-left
+		     and stats top-right, favorites spanning the full width below
+		     (prototype "03 — START · DESKTOP"). -->
+		<div class="grid grid-cols-1 gap-x-4 lg:grid-cols-[1fr_auto]">
+			<div class="order-1 lg:col-start-1 lg:row-start-1">
+				<PageHeader
+					eyebrow={$t('dashboard.greeting', { name: firstName })}
+					title={$t('dashboard.yourFavorites')}
+				>
+					{#snippet actions()}
+						{#if isRefreshing}
+							<span class="animate-pulse text-xs text-gray-400"
+								>{$t('common.refreshing')}</span
+							>
+						{/if}
+					{/snippet}
+				</PageHeader>
+			</div>
 
-			<div class="mb-8 grid shrink-0 grid-cols-2 gap-3 lg:w-auto">
+			<!-- Stats: after favorites on mobile (order-3), top-right on desktop. -->
+			<div
+				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
+			>
 				<div
 					data-testid="dashboard-stat-balance"
 					class="rounded-xl border border-gray-200/80 bg-white px-4 py-3 lg:min-w-32"
@@ -132,20 +138,20 @@
 					<p class="text-sm text-gray-500">{$t('dashboard.entries')}</p>
 				</div>
 			</div>
-		</div>
 
-		<!-- At-checkout favorites: barcode always visible (register quick access) -->
-		<section>
-			<h2
-				class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
-			>
-				{$t('dashboard.atCheckout')}
-			</h2>
-			<FavoritesSection
-				{data}
-				onShowBarcode={(item) => (barcodeModalItem = item)}
-			/>
-		</section>
+			<!-- At-checkout favorites: barcode always visible (register quick access) -->
+			<section class="order-2 lg:col-span-2 lg:row-start-2">
+				<h2
+					class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+				>
+					{$t('dashboard.atCheckout')}
+				</h2>
+				<FavoritesSection
+					{data}
+					onShowBarcode={(item) => (barcodeModalItem = item)}
+				/>
+			</section>
+		</div>
 	{/if}
 </div>
 
