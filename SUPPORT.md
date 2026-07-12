@@ -99,10 +99,7 @@ See [SECURITY.md](SECURITY.md) for our security policy and responsible disclosur
 **Solution**:
 
 ```bash
-# Find and kill process using port 3000
-make clean-port
-
-# Or manually
+# Find and kill process using the port
 lsof -ti:3000 | xargs kill -9
 ```
 
