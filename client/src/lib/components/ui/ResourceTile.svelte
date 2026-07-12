@@ -89,7 +89,7 @@
 		<button
 			type="button"
 			class={contentClass}
-			data-owner={model.isShared ? 'shared' : 'owned'}
+			data-owner={model.shareState.kind === 'sharedFrom' ? 'shared' : 'owned'}
 			data-resource-type={model.type}
 			onclick={() => onSelect?.(model.id)}
 		>
@@ -100,7 +100,7 @@
 		<a
 			{href}
 			class={contentClass}
-			data-owner={model.isShared ? 'shared' : 'owned'}
+			data-owner={model.shareState.kind === 'sharedFrom' ? 'shared' : 'owned'}
 			data-resource-type={model.type}
 		>
 			{@render tileBody()}
@@ -131,11 +131,56 @@
 			</div>
 
 			<div class="min-w-0 flex-1">
-				<p
-					class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+				<!-- Type label + compact share status share one row (prototype:
+				     lock private / people + N shared-out / people + first name
+				     received). Full text stays on the detail page. -->
+				<div
+					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
 				>
-					{typeLabel}
-				</p>
+					<span>{typeLabel}</span>
+					<span class="flex items-center gap-1 normal-case tracking-normal">
+						{#if model.shareState.kind === 'private'}
+							<svg
+								class="h-3.5 w-3.5 shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+								/>
+							</svg>
+						{:else}
+							<svg
+								class="h-3.5 w-3.5 shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 00-3-6.85"
+								/>
+							</svg>
+							{#if model.shareState.kind === 'sharedWith'}
+								<span class="tabular-nums">{model.shareState.count}</span>
+							{:else}
+								<span class="truncate"
+									>{$t('tile.sharedFrom', {
+										name: model.shareState.firstName
+									})}</span
+								>
+							{/if}
+						{/if}
+					</span>
+				</div>
 				<p
 					class="truncate font-semibold text-gray-900 transition group-hover:text-cyan-700"
 				>
@@ -169,34 +214,6 @@
 					</span>
 				{/if}
 			</div>
-		</div>
-
-		<!-- Share slot (ALWAYS present) -->
-		<div class="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
-			<svg
-				class="h-3.5 w-3.5 shrink-0"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				aria-hidden="true"
-			>
-				{#if model.isShared}
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-					/>
-				{:else}
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-					/>
-				{/if}
-			</svg>
-			<span class="truncate">{model.shareLabel}</span>
 		</div>
 
 		<!-- Footer: masked number | usage marker -->

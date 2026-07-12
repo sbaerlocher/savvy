@@ -21,7 +21,14 @@ type Translate = (
 
 export type TileResourceType = 'card' | 'voucher' | 'gift_card';
 
-export type ShareLabelKind = 'sharedBy' | 'sharedWithCount' | 'sharedWithNone';
+/**
+ * Compact share state for the tile's icon row. The full-text label
+ * ("mit niemandem geteilt" etc.) lives only on the detail page.
+ */
+export type ShareState =
+	| { kind: 'private' }
+	| { kind: 'sharedWith'; count: number }
+	| { kind: 'sharedFrom'; firstName: string };
 
 export interface TileModel {
 	id: string;
@@ -57,8 +64,7 @@ export interface TileModel {
 	statusBadge?: string;
 
 	/** Share slot — ALWAYS present (part of the fixed grid). */
-	shareLabel: string;
-	isShared: boolean;
+	shareState: ShareState;
 
 	/** Values needed to render / enlarge the barcode. */
 	barcodeValue?: string;
@@ -88,33 +94,25 @@ function localeString(locale: string): string {
 }
 
 /**
- * Builds the always-present share label. Fremdes Item → "von {Name} geteilt";
- * eigenes geteiltes → "mit {N} geteilt"; sonst → "mit niemandem geteilt".
+ * Derives the compact share state. Received item (owner ≠ user) → sharedFrom
+ * with the owner's first name; own shared-out item → sharedWith count; else
+ * private. The tile renders these as an icon row; full text is detail-only.
  */
-function shareInfo(
-	tr: Translate,
-	prefix: 'cards' | 'vouchers' | 'giftCards',
+function shareState(
 	owner: Owner,
 	sharedWithCount: number,
 	currentUserId: string | undefined
-): { shareLabel: string; isShared: boolean } {
+): ShareState {
 	if (owner && owner.id && owner.id !== currentUserId) {
 		return {
-			shareLabel: tr(`${prefix}.sharedBy`, {
-				name: owner.first_name || owner.email || 'User'
-			}),
-			isShared: true
+			kind: 'sharedFrom',
+			firstName: owner.first_name || owner.email || 'User'
 		};
 	}
 	if (sharedWithCount > 0) {
-		return {
-			shareLabel: tr(`${prefix}.sharedWithCount`, {
-				count: String(sharedWithCount)
-			}),
-			isShared: false
-		};
+		return { kind: 'sharedWith', count: sharedWithCount };
 	}
-	return { shareLabel: tr(`${prefix}.sharedWithNone`), isShared: false };
+	return { kind: 'private' };
 }
 
 /** Formats an expiry date into a compact badge; flags urgency when ≤ 7 days. */
@@ -143,13 +141,7 @@ export function cardToTileModel(
 	_locale: string
 ): TileModel {
 	const tr = get(t);
-	const share = shareInfo(
-		tr,
-		'cards',
-		card.owner,
-		card.shared_with_count,
-		currentUserId
-	);
+	const share = shareState(card.owner, card.shared_with_count, currentUserId);
 	const barcodeType = card.barcode_type || 'CODE128';
 	return {
 		id: card.id,
@@ -162,8 +154,7 @@ export function cardToTileModel(
 		isActive: card.status === 'active',
 		statusBadge:
 			card.status === 'active' ? undefined : tr(`cards.status.${card.status}`),
-		shareLabel: share.shareLabel,
-		isShared: share.isShared,
+		shareState: share,
 		barcodeValue: card.card_number || undefined,
 		barcodeType,
 		barcodeModalItem: {
@@ -203,9 +194,7 @@ export function voucherToTileModel(
 	locale: string
 ): TileModel {
 	const tr = get(t);
-	const share = shareInfo(
-		tr,
-		'vouchers',
+	const share = shareState(
 		voucher.owner,
 		voucher.shared_with_count,
 		currentUserId
@@ -248,8 +237,7 @@ export function voucherToTileModel(
 		usageMarker,
 		isActive: voucher.status === 'valid',
 		statusBadge: voucher.status === 'valid' ? undefined : tr('tile.expired'),
-		shareLabel: share.shareLabel,
-		isShared: share.isShared,
+		shareState: share,
 		barcodeValue: voucher.code || undefined,
 		barcodeType,
 		barcodeModalItem: {
@@ -283,9 +271,7 @@ export function giftCardToTileModel(
 	locale: string
 ): TileModel {
 	const tr = get(t);
-	const share = shareInfo(
-		tr,
-		'giftCards',
+	const share = shareState(
 		giftCard.owner,
 		giftCard.shared_with_count,
 		currentUserId
@@ -310,8 +296,7 @@ export function giftCardToTileModel(
 		isActive: status === 'active',
 		statusBadge:
 			status === 'active' ? undefined : tr(`tile.status.${status}` as string),
-		shareLabel: share.shareLabel,
-		isShared: share.isShared,
+		shareState: share,
 		barcodeValue: giftCard.card_number || undefined,
 		barcodeType,
 		barcodeModalItem: {

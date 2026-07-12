@@ -183,6 +183,7 @@ export type TranslationKeys = {
 		expiresToday: string;
 		daysRemaining: string;
 		notYetValid: string;
+		sharedFrom: string;
 		usageSingle: string;
 		usageMultiple: string;
 		inactive: string;

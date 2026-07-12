@@ -201,6 +201,7 @@ export const fr: TranslationKeys = {
 		expiresToday: "Aujourd'hui",
 		daysRemaining: '{count} jours',
 		notYetValid: 'valable dès le {date}',
+		sharedFrom: 'de {name}',
 		usageSingle: 'Usage unique',
 		usageMultiple: 'Usage multiple',
 		inactive: 'Inactif',
