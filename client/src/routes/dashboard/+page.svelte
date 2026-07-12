@@ -1,17 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth';
-	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
 	import { dashboardApi } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import DashboardHeader from '$lib/components/dashboard/DashboardHeader.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
-	import QuickActions from '$lib/components/dashboard/QuickActions.svelte';
-	import DashboardTips from '$lib/components/dashboard/DashboardTips.svelte';
 	import BarcodeModal, {
 		type BarcodeModalItem
 	} from '$lib/components/dashboard/BarcodeModal.svelte';
@@ -25,6 +22,16 @@
 	let error = $state<string | null>(null);
 
 	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
+
+	const firstName = $derived($authStore.user?.first_name || '');
+	// Total entries across all resource types (drives the "Einträge" stat).
+	const entriesCount = $derived(
+		data
+			? data.stats.cards_count +
+					data.stats.vouchers_count +
+					data.stats.gift_cards_count
+			: 0
+	);
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
@@ -68,42 +75,77 @@
 			isRefreshing = false;
 		}
 	}
-
-	const isOffline = $derived(!$isOnline);
 </script>
 
 <svelte:head>
 	<title>{$t('dashboard.title')} - {$t('common.appName')}</title>
 </svelte:head>
 
-<div class="px-4 max-w-7xl mx-auto">
+<div class="mx-auto max-w-7xl px-4">
 	{#if isLoading}
 		<LoadingSpinner />
 	{:else if error}
-		<div class="bg-white rounded-lg shadow-md p-6 text-center">
-			<p class="text-red-600 mb-4">{error}</p>
+		<div class="rounded-xl border border-gray-200/80 bg-white p-6 text-center">
+			<p class="mb-4 text-red-600">{error}</p>
 			<button onclick={loadDashboard} class="btn btn-primary"
 				>{$t('common.retry')}</button
 			>
 		</div>
 	{:else if data}
-		<DashboardHeader stats={data.stats} {isRefreshing} />
+		<!-- Header row: greeting + title on the left, compact stats top-right
+		     on desktop (prototype "03 — START · DESKTOP"). -->
+		<div
+			class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+		>
+			<PageHeader
+				eyebrow={$t('dashboard.greeting', { name: firstName })}
+				title={$t('dashboard.yourFavorites')}
+			>
+				{#snippet actions()}
+					{#if isRefreshing}
+						<span class="animate-pulse text-xs text-gray-400"
+							>{$t('common.refreshing')}</span
+						>
+					{/if}
+				{/snippet}
+			</PageHeader>
 
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-			<!-- Left column: Favorites (2/3 width) -->
-			<div class="lg:col-span-2 space-y-6">
-				<FavoritesSection
-					{data}
-					onShowBarcode={(item) => (barcodeModalItem = item)}
-				/>
-			</div>
-
-			<!-- Right column: Quick Actions + Tips (1/3 width) -->
-			<div class="lg:col-span-1 space-y-6">
-				<QuickActions {isOffline} />
-				<DashboardTips />
+			<div class="mb-8 grid shrink-0 grid-cols-2 gap-3 lg:w-auto">
+				<div
+					data-testid="dashboard-stat-balance"
+					class="rounded-xl border border-gray-200/80 bg-white px-4 py-3 lg:min-w-32"
+				>
+					<p class="text-2xl font-bold tabular-nums text-gray-900">
+						CHF {Math.round(data.stats.total_balance)}
+					</p>
+					<p class="text-sm text-gray-500">
+						{$t('dashboard.totalBalanceShort')}
+					</p>
+				</div>
+				<div
+					data-testid="dashboard-stat-entries"
+					class="rounded-xl border border-gray-200/80 bg-white px-4 py-3 lg:min-w-32"
+				>
+					<p class="text-2xl font-bold tabular-nums text-gray-900">
+						{entriesCount}
+					</p>
+					<p class="text-sm text-gray-500">{$t('dashboard.entries')}</p>
+				</div>
 			</div>
 		</div>
+
+		<!-- At-checkout favorites: barcode always visible (register quick access) -->
+		<section>
+			<h2
+				class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400"
+			>
+				{$t('dashboard.atCheckout')}
+			</h2>
+			<FavoritesSection
+				{data}
+				onShowBarcode={(item) => (barcodeModalItem = item)}
+			/>
+		</section>
 	{/if}
 </div>
 

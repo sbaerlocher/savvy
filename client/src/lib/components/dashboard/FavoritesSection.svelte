@@ -22,65 +22,60 @@
 	const currentUserId = $derived($authStore.user?.id);
 	const currentLocale = $derived($locale || 'de');
 
+	// Show all favorites (no slice) — dashboard is the checkout quick-access.
 	const cardTiles = $derived(
-		data.recent_cards
-			.slice(0, 3)
-			.map((c) => cardToTileModel(c, currentUserId, currentLocale))
+		data.recent_cards.map((c) =>
+			cardToTileModel(c, currentUserId, currentLocale)
+		)
 	);
 	const voucherTiles = $derived(
-		data.recent_vouchers
-			.slice(0, 3)
-			.map((v) => voucherToTileModel(v, currentUserId, currentLocale))
+		data.recent_vouchers.map((v) =>
+			voucherToTileModel(v, currentUserId, currentLocale)
+		)
 	);
 	const giftCardTiles = $derived(
-		data.recent_gift_cards
-			.slice(0, 3)
-			.map((g) => giftCardToTileModel(g, currentUserId, currentLocale))
+		data.recent_gift_cards.map((g) =>
+			giftCardToTileModel(g, currentUserId, currentLocale)
+		)
+	);
+
+	const isEmpty = $derived(
+		data.recent_cards.length === 0 &&
+			data.recent_vouchers.length === 0 &&
+			data.recent_gift_cards.length === 0
 	);
 </script>
 
-<div class="bg-white rounded-lg shadow-md p-6" data-testid="favorites-section">
-	<h2 class="text-xl font-semibold text-gray-900 mb-4">
-		{#if data.has_favorites}
-			{$t('dashboard.favorites')}
-		{:else}
-			{$t('dashboard.recentlyAdded')}
-		{/if}
-	</h2>
+<div data-testid="favorites-section">
 	<div data-testid="favorites-list">
-		{#if data.recent_cards.length === 0 && data.recent_vouchers.length === 0 && data.recent_gift_cards.length === 0}
-			<div class="text-center py-8">
-				<p class="text-gray-500 text-sm">
-					{$t('dashboard.noActivity')}
-				</p>
-				<p class="text-gray-400 text-xs mt-1 mb-4">
+		{#if isEmpty}
+			<div
+				class="rounded-xl border border-gray-200/80 bg-white py-8 text-center"
+			>
+				<p class="text-sm text-gray-500">{$t('dashboard.noActivity')}</p>
+				<p class="mt-1 mb-4 text-xs text-gray-400">
 					{$t('dashboard.noActivityHint')}
 				</p>
 				<a
 					href={resolve('/cards/new')}
-					class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 hover:text-cyan-800 transition"
+					class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 transition hover:text-cyan-800"
 				>
 					{$t('dashboard.getStarted')} →
 				</a>
 			</div>
 		{:else}
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-				<!-- Cards -->
-				{#if data.recent_cards.length > 0 && (!data.has_favorites || data.has_card_favorites)}
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+				{#if !data.has_favorites || data.has_card_favorites}
 					{#each cardTiles as model (model.id)}
 						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
-
-				<!-- Vouchers -->
-				{#if data.recent_vouchers.length > 0 && (!data.has_favorites || data.has_voucher_favorites)}
+				{#if !data.has_favorites || data.has_voucher_favorites}
 					{#each voucherTiles as model (model.id)}
 						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
-
-				<!-- Gift Cards -->
-				{#if data.recent_gift_cards.length > 0 && (!data.has_favorites || data.has_gift_card_favorites)}
+				{#if !data.has_favorites || data.has_gift_card_favorites}
 					{#each giftCardTiles as model (model.id)}
 						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}

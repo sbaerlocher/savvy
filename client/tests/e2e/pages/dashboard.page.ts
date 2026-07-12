@@ -3,12 +3,11 @@ import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
 export class DashboardPage extends BasePage {
+	// Dashboard h1 is now the "Deine Favoriten" / "Your favorites" title
+	// (Direction B redesign); the greeting moved to the eyebrow line.
 	readonly welcomeHeading = this.page
 		.locator('h1')
-		.filter({ hasText: /Willkommen|Welcome/i });
-	readonly statCards = this.page.getByTestId('dashboard-stat-cards');
-	readonly statVouchers = this.page.getByTestId('dashboard-stat-vouchers');
-	readonly statGiftCards = this.page.getByTestId('dashboard-stat-gift-cards');
+		.filter({ hasText: /Favoriten|Favorites/i });
 	readonly favoritesHeading = this.page
 		.locator('text=/Favorites|Favoriten/i')
 		.first();
@@ -33,10 +32,12 @@ export class DashboardPage extends BasePage {
 		);
 	}
 
+	readonly statTotalBalance = this.page.getByTestId('dashboard-stat-balance');
+	readonly statEntries = this.page.getByTestId('dashboard-stat-entries');
+
 	async expectStatsVisible() {
-		await expect(this.statCards).toBeVisible();
-		await expect(this.statVouchers).toBeVisible();
-		await expect(this.statGiftCards).toBeVisible();
+		await expect(this.statTotalBalance).toBeVisible();
+		await expect(this.statEntries).toBeVisible();
 	}
 
 	get favoriteItems(): Locator {
