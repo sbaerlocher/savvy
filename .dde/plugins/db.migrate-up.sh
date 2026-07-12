@@ -15,4 +15,8 @@ if [ -z "$(docker compose ps -q api 2>/dev/null || true)" ]; then
 	exit 1
 fi
 
+# The database must exist before migrations can run; the app can't create it
+# itself (it connects straight to it). db:ensure is idempotent.
+"$plugin_dir/db.ensure.sh"
+
 exec docker compose exec -T api go run -mod=mod /app/cmd/migrate/main.go up

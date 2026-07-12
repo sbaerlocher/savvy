@@ -3,14 +3,13 @@ import { expect } from '@playwright/test';
 import { BasePage } from './base.page';
 
 export class DashboardPage extends BasePage {
-	readonly welcomeHeading = this.page
-		.locator('h1')
-		.filter({ hasText: /Willkommen|Welcome/i });
-	readonly statCards = this.page.getByTestId('dashboard-stat-cards');
-	readonly statVouchers = this.page.getByTestId('dashboard-stat-vouchers');
-	readonly statGiftCards = this.page.getByTestId('dashboard-stat-gift-cards');
+	// Dashboard h1 is now the "Deine Favoriten" / "Your favorites" title
+	// (dashboard redesign); the greeting moved to the eyebrow line.
+	readonly welcomeHeading = this.page.locator('h1').first();
+	// Distinct from the h1 title: target the favorites section itself so the
+	// two locators stay semantically separate and locale-independent.
 	readonly favoritesHeading = this.page
-		.locator('text=/Favorites|Favoriten/i')
+		.locator('[data-testid="favorites-section"]')
 		.first();
 	readonly favoritesList = this.page
 		.locator('[data-testid="favorites-list"], .favorites-section')
@@ -33,10 +32,12 @@ export class DashboardPage extends BasePage {
 		);
 	}
 
+	readonly statTotalBalance = this.page.getByTestId('dashboard-stat-balance');
+	readonly statEntries = this.page.getByTestId('dashboard-stat-entries');
+
 	async expectStatsVisible() {
-		await expect(this.statCards).toBeVisible();
-		await expect(this.statVouchers).toBeVisible();
-		await expect(this.statGiftCards).toBeVisible();
+		await expect(this.statTotalBalance).toBeVisible();
+		await expect(this.statEntries).toBeVisible();
 	}
 
 	get favoriteItems(): Locator {

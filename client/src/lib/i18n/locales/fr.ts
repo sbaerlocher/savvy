@@ -163,6 +163,11 @@ export const fr: TranslationKeys = {
 	dashboard: {
 		title: 'Tableau de bord',
 		welcome: 'Bienvenue, {name}!',
+		greeting: 'Bonjour {name}',
+		yourFavorites: 'Vos favoris',
+		atCheckout: 'En caisse',
+		totalBalanceShort: 'Solde total',
+		entries: 'Entrées',
 		overview: 'Voici un aperçu de vos cartes et bons.',
 		favorites: '⭐ Favoris',
 		recentlyAdded: 'Récemment ajouté',

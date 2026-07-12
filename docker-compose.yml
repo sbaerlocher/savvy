@@ -104,9 +104,9 @@ services:
             - 'no-new-privileges:true'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.savvy-client.rule=Host(`savvy.test`)'
-            - 'traefik.http.routers.savvy-client.tls=true'
-            - 'traefik.http.services.savvy-client.loadbalancer.server.port=5173'
+            - 'traefik.http.routers.savvy-test-client.rule=Host(`savvy.test`)'
+            - 'traefik.http.routers.savvy-test-client.tls=true'
+            - 'traefik.http.services.savvy-test-client.loadbalancer.server.port=5173'
     app-e2e:
         profiles:
             - e2e
@@ -164,9 +164,9 @@ services:
             - 'no-new-privileges:true'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.savvy-app-e2e.rule=Host(`e2e.savvy.test`)'
-            - 'traefik.http.routers.savvy-app-e2e.tls=true'
-            - 'traefik.http.services.savvy-app-e2e.loadbalancer.server.port=8080'
+            - 'traefik.http.routers.e2e-savvy-test-app-e2e.rule=Host(`e2e.savvy.test`)'
+            - 'traefik.http.routers.e2e-savvy-test-app-e2e.tls=true'
+            - 'traefik.http.services.e2e-savvy-test-app-e2e.loadbalancer.server.port=8080'
         networks:
             default:
             services:
@@ -181,9 +181,9 @@ services:
             - './deploy/observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.savvy-otel.rule=Host(`otel.savvy.test`)'
-            - 'traefik.http.routers.savvy-otel.tls=true'
-            - 'traefik.http.services.savvy-otel.loadbalancer.server.port=4318'
+            - 'traefik.http.routers.otel-savvy-test-otel-collector.rule=Host(`otel.savvy.test`)'
+            - 'traefik.http.routers.otel-savvy-test-otel-collector.tls=true'
+            - 'traefik.http.services.otel-savvy-test-otel-collector.loadbalancer.server.port=4318'
     loki:
         profiles:
             - observability
@@ -251,9 +251,9 @@ services:
             - 'prometheus_data:/prometheus'
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.savvy-prometheus.rule=Host(`prometheus.savvy.test`)'
-            - 'traefik.http.routers.savvy-prometheus.tls=true'
-            - 'traefik.http.services.savvy-prometheus.loadbalancer.server.port=9090'
+            - 'traefik.http.routers.prometheus-savvy-test-prometheus.rule=Host(`prometheus.savvy.test`)'
+            - 'traefik.http.routers.prometheus-savvy-test-prometheus.tls=true'
+            - 'traefik.http.services.prometheus-savvy-test-prometheus.loadbalancer.server.port=9090'
         healthcheck:
             test:
                 - CMD
@@ -287,9 +287,9 @@ services:
             - prometheus
         labels:
             - 'traefik.enable=true'
-            - 'traefik.http.routers.savvy-grafana.rule=Host(`grafana.savvy.test`)'
-            - 'traefik.http.routers.savvy-grafana.tls=true'
-            - 'traefik.http.services.savvy-grafana.loadbalancer.server.port=3000'
+            - 'traefik.http.routers.grafana-savvy-test-grafana.rule=Host(`grafana.savvy.test`)'
+            - 'traefik.http.routers.grafana-savvy-test-grafana.tls=true'
+            - 'traefik.http.services.grafana-savvy-test-grafana.loadbalancer.server.port=3000'
         healthcheck:
             test:
                 - CMD

@@ -145,6 +145,11 @@ export type TranslationKeys = {
 	dashboard: {
 		title: string;
 		welcome: string;
+		greeting: string;
+		yourFavorites: string;
+		atCheckout: string;
+		totalBalanceShort: string;
+		entries: string;
 		overview: string;
 		favorites: string;
 		recentlyAdded: string;

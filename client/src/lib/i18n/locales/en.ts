@@ -158,6 +158,11 @@ export const en: TranslationKeys = {
 	dashboard: {
 		title: 'Dashboard',
 		welcome: 'Welcome, {name}!',
+		greeting: 'Hello {name}',
+		yourFavorites: 'Your favorites',
+		atCheckout: 'At checkout',
+		totalBalanceShort: 'Total balance',
+		entries: 'Entries',
 		overview: 'Here is an overview of your cards and vouchers.',
 		favorites: '⭐ Favorites',
 		recentlyAdded: 'Recently Added',
