@@ -1,0 +1,240 @@
+<script lang="ts">
+	import { t } from '$lib/stores/i18n';
+	import { resolve } from '$app/paths';
+	import Barcode from '$lib/components/Barcode.svelte';
+	import type { TileModel } from '$lib/utils/tile-model';
+	import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
+
+	let {
+		model,
+		showBarcode = false,
+		compact = false,
+		selectMode = false,
+		selected = false,
+		onSelect,
+		onShowBarcode
+	}: {
+		model: TileModel;
+		showBarcode?: boolean;
+		compact?: boolean;
+		selectMode?: boolean;
+		selected?: boolean;
+		onSelect?: (id: string) => void;
+		onShowBarcode?: (item: BarcodeModalItem) => void;
+	} = $props();
+
+	// Per-type icon (neutral line icons, Direction B — no emoji).
+	const iconPaths: Record<TileModel['type'], string> = {
+		card: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+		voucher:
+			'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 010 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 010-4V7a2 2 0 00-2-2H5z',
+		gift_card:
+			'M12 8v13m0-13V6a2 2 0 112-2 2 2 0 01-2 2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
+	};
+
+	const typeLabel = $derived(
+		model.type === 'card'
+			? $t('dashboard.cardType')
+			: model.type === 'voucher'
+				? $t('dashboard.voucherType')
+				: $t('dashboard.giftCardType')
+	);
+
+	// Resolve-friendly literal per type (resolve needs the concrete [id] route).
+	const href = $derived(
+		model.type === 'card'
+			? resolve(`/cards/${model.id}`)
+			: model.type === 'voucher'
+				? resolve(`/vouchers/${model.id}`)
+				: resolve(`/gift-cards/${model.id}`)
+	);
+
+	const contentClass = $derived(
+		`flex flex-col text-left ${compact ? 'p-3' : 'p-4'} ${
+			model.isActive ? '' : 'opacity-50 grayscale'
+		}`
+	);
+
+	function handleBarcodeClick(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		onShowBarcode?.(model.barcodeModalItem);
+	}
+</script>
+
+<div
+	class="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-white transition hover:border-gray-300 {selectMode &&
+	selected
+		? 'ring-2 ring-cyan-600'
+		: ''}"
+	style="border-left: 6px solid {model.merchantColor}"
+>
+	<!-- Status overlay (centered) when not active — sits OUTSIDE the dimmed
+	     content so the badge stays at full opacity, like the prototype. -->
+	{#if !model.isActive && model.statusBadge}
+		<div
+			class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+		>
+			<span
+				class="rounded-full border border-gray-300 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700 shadow-sm"
+			>
+				{model.statusBadge}
+			</span>
+		</div>
+	{/if}
+
+	<!-- Info area: a real link for navigation; a toggle button in select mode.
+	     The barcode is a sibling button so no interactive element is nested. -->
+	{#if selectMode}
+		<button
+			type="button"
+			class={contentClass}
+			data-owner={model.isShared ? 'shared' : 'owned'}
+			data-resource-type={model.type}
+			onclick={() => onSelect?.(model.id)}
+		>
+			{@render tileBody()}
+		</button>
+	{:else}
+		<!-- eslint-disable svelte/no-navigation-without-resolve -- href is already produced by resolve() above -->
+		<a
+			{href}
+			class={contentClass}
+			data-owner={model.isShared ? 'shared' : 'owned'}
+			data-resource-type={model.type}
+		>
+			{@render tileBody()}
+		</a>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
+	{/if}
+
+	{#snippet tileBody()}
+		<!-- Header: icon + type label + merchant name | amount + expiry -->
+		<div class="flex items-start gap-3">
+			<div
+				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500"
+			>
+				<svg
+					class="h-5 w-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="1.75"
+						d={iconPaths[model.type]}
+					/>
+				</svg>
+			</div>
+
+			<div class="min-w-0 flex-1">
+				<p
+					class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+				>
+					{typeLabel}
+				</p>
+				<p
+					class="truncate font-semibold text-gray-900 transition group-hover:text-cyan-700"
+				>
+					{model.merchantName}
+				</p>
+				{#if model.identifier}
+					<p class="truncate text-sm text-gray-500">{model.identifier}</p>
+				{/if}
+			</div>
+
+			<!-- Kennzahl + expiry badge (fixed top-right slot) -->
+			<div class="flex shrink-0 flex-col items-end gap-1 text-right">
+				{#if model.amount}
+					<p class="text-lg font-bold tabular-nums text-gray-900">
+						{model.amount}
+					</p>
+				{/if}
+				{#if model.expiryBadge}
+					<span
+						class="rounded-full px-2 py-0.5 text-[0.7rem] font-medium {model.expiryUrgent
+							? 'bg-amber-50 text-amber-700'
+							: 'bg-gray-100 text-gray-500'}"
+					>
+						{model.expiryBadge}
+					</span>
+				{:else if model.notYetValid}
+					<span
+						class="rounded-full bg-gray-100 px-2 py-0.5 text-[0.7rem] font-medium text-gray-500"
+					>
+						{model.notYetValid}
+					</span>
+				{/if}
+			</div>
+		</div>
+
+		<!-- Share slot (ALWAYS present) -->
+		<div class="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+			<svg
+				class="h-3.5 w-3.5 shrink-0"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+				aria-hidden="true"
+			>
+				{#if model.isShared}
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+					/>
+				{:else}
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+					/>
+				{/if}
+			</svg>
+			<span class="truncate">{model.shareLabel}</span>
+		</div>
+
+		<!-- Footer: masked number | usage marker -->
+		<div class="mt-1 flex items-center justify-between gap-2">
+			<p class="font-mono text-xs text-gray-400">
+				{#if model.maskedNumber}{model.maskedNumber}{:else}&nbsp;{/if}
+			</p>
+			{#if model.usageMarker}
+				<span
+					class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+				>
+					{model.usageMarker}
+				</span>
+			{/if}
+		</div>
+	{/snippet}
+
+	<!-- Barcode box (optional, context-driven via showBarcode). Sibling of the
+	     info link so it stays independently tappable (enlarge via modal). -->
+	{#if showBarcode && model.barcodeValue}
+		<button
+			type="button"
+			onclick={handleBarcodeClick}
+			class="mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:bg-cyan-50 {model.isActive
+				? ''
+				: 'opacity-50 grayscale'}"
+			title={$t('dashboard.tapToEnlarge')}
+			aria-label={$t('dashboard.showBarcode')}
+		>
+			<Barcode
+				value={model.barcodeValue}
+				type={model.barcodeType}
+				height={compact ? 50 : 64}
+				maxHeight={compact ? 50 : 64}
+			/>
+			<span class="break-all text-center font-mono text-[0.7rem] text-gray-500">
+				{model.barcodeValue}
+			</span>
+		</button>
+	{/if}
+</div>

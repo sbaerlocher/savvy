@@ -31,11 +31,14 @@ export class ResourceListPage extends BasePage {
 	}
 
 	get items(): Locator {
-		return this.page.locator('div[role="button"][data-owner]');
+		// Migrated lists render the ResourceTile clickable as <a>/<button>;
+		// not-yet-migrated lists still use div[role="button"]. Both carry
+		// data-owner, so match on that alone.
+		return this.page.locator('[data-owner]');
 	}
 
 	get ownedItems(): Locator {
-		return this.page.locator('div[role="button"][data-owner="owned"]');
+		return this.page.locator('[data-owner="owned"]');
 	}
 
 	get firstItem(): Locator {

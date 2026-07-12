@@ -196,6 +196,23 @@ export const fr: TranslationKeys = {
 		tapToClose: 'Appuyez pour fermer',
 		tapToEnlarge: 'Appuyez pour agrandir'
 	},
+	tile: {
+		expired: 'Expiré',
+		expiresToday: "Aujourd'hui",
+		daysRemaining: '{count} jours',
+		notYetValid: 'valable dès le {date}',
+		usageSingle: 'Usage unique',
+		usageMultiple: 'Usage multiple',
+		inactive: 'Inactif',
+		status: {
+			depleted: 'Épuisé',
+			expired: 'Expiré'
+		}
+	},
+	barcodeToggle: {
+		show: 'Afficher les codes-barres',
+		hide: 'Masquer les codes-barres'
+	},
 	cards: {
 		title: 'Cartes',
 		noCards: 'Aucune carte',

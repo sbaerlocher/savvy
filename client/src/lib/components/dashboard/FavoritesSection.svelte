@@ -2,15 +2,13 @@
 	import { t, locale } from '$lib/stores/i18n';
 	import { authStore } from '$lib/stores/auth';
 	import { resolve } from '$app/paths';
-	import { formatCurrency } from '$lib/utils/currency';
-	import { logger } from '$lib/utils/logger';
-	import Barcode from '$lib/components/Barcode.svelte';
-	import type {
-		DashboardResponse,
-		CardDTO,
-		VoucherDTO,
-		GiftCardDTO
-	} from '$lib/types/api';
+	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import {
+		cardToTileModel,
+		voucherToTileModel,
+		giftCardToTileModel
+	} from '$lib/utils/tile-model';
+	import type { DashboardResponse } from '$lib/types/api';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
 	let {
@@ -21,63 +19,24 @@
 		onShowBarcode: (item: BarcodeModalItem) => void;
 	} = $props();
 
-	const pageLogger = logger.child('FavoritesSection');
-	const currentLocale = $derived($locale || 'de-DE');
+	const currentUserId = $derived($authStore.user?.id);
+	const currentLocale = $derived($locale || 'de');
 
-	function showCardBarcode(card: CardDTO, e: MouseEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		onShowBarcode({
-			type: 'card',
-			value: card.card_number,
-			barcodeType: card.barcode_type,
-			merchantName: card.merchant?.name
-		});
-		pageLogger.debug('Opening barcode modal for card:', card.id);
-	}
-
-	function showVoucherBarcode(voucher: VoucherDTO, e: MouseEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		const displayValue =
-			voucher.type === 'percentage'
-				? `${voucher.value}%`
-				: voucher.type === 'fixed_amount'
-					? formatCurrency(voucher.value, voucher.currency, $locale)
-					: voucher.type === 'free'
-						? $t('vouchers.types.freeDisplay')
-						: `${voucher.value}x Punkte`;
-
-		onShowBarcode({
-			type: 'voucher',
-			value: voucher.code,
-			barcodeType: voucher.barcode_type,
-			merchantName: voucher.merchant?.name,
-			displayValue,
-			description: voucher.description,
-			validFrom: voucher.valid_from,
-			validUntil: voucher.valid_until,
-			status: voucher.status
-		});
-		pageLogger.debug('Opening barcode modal for voucher:', voucher.id);
-	}
-
-	function showGiftCardBarcode(giftCard: GiftCardDTO, e: MouseEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		onShowBarcode({
-			type: 'gift_card',
-			value: giftCard.card_number,
-			barcodeType: giftCard.barcode_type,
-			merchantName: giftCard.merchant?.name,
-			pin: giftCard.pin,
-			balance: giftCard.current_balance.toFixed(2),
-			currency: giftCard.currency,
-			expiresAt: giftCard.expires_at || undefined,
-			status: giftCard.status
-		});
-		pageLogger.debug('Opening barcode modal for gift card:', giftCard.id);
-	}
+	const cardTiles = $derived(
+		data.recent_cards
+			.slice(0, 3)
+			.map((c) => cardToTileModel(c, currentUserId, currentLocale))
+	);
+	const voucherTiles = $derived(
+		data.recent_vouchers
+			.slice(0, 3)
+			.map((v) => voucherToTileModel(v, currentUserId, currentLocale))
+	);
+	const giftCardTiles = $derived(
+		data.recent_gift_cards
+			.slice(0, 3)
+			.map((g) => giftCardToTileModel(g, currentUserId, currentLocale))
+	);
 </script>
 
 <div class="bg-white rounded-lg shadow-md p-6" data-testid="favorites-section">
@@ -108,175 +67,22 @@
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 				<!-- Cards -->
 				{#if data.recent_cards.length > 0 && (!data.has_favorites || data.has_card_favorites)}
-					{#each data.recent_cards.slice(0, 3) as card (card.id)}
-						<div
-							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
-							style="border-left: 6px solid {card.merchant?.color || '#6B7280'}"
-						>
-							<a href={resolve(`/cards/${card.id}`)} class="p-3 min-w-0">
-								<p
-									class="font-semibold text-gray-900 text-sm truncate group-hover:text-cyan-600 transition"
-								>
-									{card.merchant?.name || $t('dashboard.cardType')}
-								</p>
-								<div class="flex items-baseline justify-between gap-2 mt-1">
-									{#if card.card_number}
-										<p class="text-xs text-gray-500 font-mono">
-											····{card.card_number.slice(-4)}
-										</p>
-									{/if}
-									{#if card.owner && card.owner.id !== $authStore.user?.id}
-										<p class="text-xs text-gray-400 truncate">
-											{$t('dashboard.sharedBy', {
-												name:
-													card.owner.first_name || card.owner.email || 'User'
-											})}
-										</p>
-									{/if}
-								</div>
-							</a>
-							{#if card.card_number}
-								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
-								<button
-									onclick={(e) => showCardBarcode(card, e)}
-									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-cyan-50 transition"
-									title={$t('dashboard.tapToEnlarge')}
-									aria-label={$t('dashboard.showBarcode')}
-								>
-									<Barcode value={card.card_number} type={card.barcode_type} />
-								</button>
-							{/if}
-						</div>
+					{#each cardTiles as model (model.id)}
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 
 				<!-- Vouchers -->
 				{#if data.recent_vouchers.length > 0 && (!data.has_favorites || data.has_voucher_favorites)}
-					{#each data.recent_vouchers.slice(0, 3) as voucher (voucher.id)}
-						<div
-							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
-							style="border-left: 6px solid {voucher.merchant?.color ||
-								'#6B7280'}"
-						>
-							<a href={resolve(`/vouchers/${voucher.id}`)} class="p-3 min-w-0">
-								<p
-									class="font-semibold text-gray-900 text-sm truncate group-hover:text-green-600 transition"
-								>
-									{voucher.merchant?.name || $t('dashboard.voucherType')}
-								</p>
-								<div class="flex items-baseline justify-between gap-2 mt-1">
-									<p class="text-xs text-gray-600 font-medium">
-										{#if voucher.type === 'percentage'}
-											{voucher.value}%
-										{:else if voucher.type === 'fixed_amount'}
-											{formatCurrency(voucher.value, voucher.currency, $locale)}
-										{:else if voucher.type === 'points_multiplier'}
-											{voucher.value}{$t(
-												'vouchers.types.pointsMultiplierDisplay'
-											)}
-										{:else if voucher.type === 'bonus_points'}
-											+{voucher.value}{$t('vouchers.types.bonusPointsDisplay')}
-										{:else if voucher.type === 'free'}
-											{$t('vouchers.types.freeDisplay')}
-										{/if}
-									</p>
-									{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
-										<p class="text-xs text-gray-400 truncate">
-											{$t('dashboard.sharedBy', {
-												name:
-													voucher.owner.first_name ||
-													voucher.owner.email ||
-													'User'
-											})}
-										</p>
-									{/if}
-									{#if voucher.valid_until}
-										<p class="text-xs text-orange-600 whitespace-nowrap">
-											{$t('dashboard.validUntil', {
-												date: new Date(
-													voucher.valid_until.split('T')[0]
-												).toLocaleDateString(currentLocale)
-											})}
-										</p>
-									{/if}
-								</div>
-							</a>
-							{#if voucher.code}
-								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
-								<button
-									onclick={(e) => showVoucherBarcode(voucher, e)}
-									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-green-50 transition"
-									title={$t('dashboard.tapToEnlarge')}
-									aria-label={$t('dashboard.showBarcode')}
-								>
-									<Barcode value={voucher.code} type={voucher.barcode_type} />
-								</button>
-							{/if}
-						</div>
+					{#each voucherTiles as model (model.id)}
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 
 				<!-- Gift Cards -->
 				{#if data.recent_gift_cards.length > 0 && (!data.has_favorites || data.has_gift_card_favorites)}
-					{#each data.recent_gift_cards.slice(0, 3) as giftCard (giftCard.id)}
-						<div
-							class="group flex flex-col rounded-lg bg-white shadow-lg hover:shadow-xl overflow-hidden transition"
-							style="border-left: 6px solid {giftCard.merchant?.color ||
-								'#6B7280'}"
-						>
-							<a
-								href={resolve(`/gift-cards/${giftCard.id}`)}
-								class="p-3 min-w-0"
-							>
-								<p
-									class="font-semibold text-gray-900 text-sm truncate group-hover:text-red-600 transition"
-								>
-									{giftCard.merchant?.name || $t('dashboard.giftCardType')}
-								</p>
-								<div class="flex items-baseline justify-between gap-2 mt-1">
-									<p class="text-sm text-green-600 font-semibold">
-										{formatCurrency(
-											giftCard.current_balance,
-											giftCard.currency,
-											$locale
-										)}
-									</p>
-									{#if giftCard.owner && giftCard.owner.id !== $authStore.user?.id}
-										<p class="text-xs text-gray-400 truncate">
-											{$t('dashboard.sharedBy', {
-												name:
-													giftCard.owner.first_name ||
-													giftCard.owner.email ||
-													'User'
-											})}
-										</p>
-									{/if}
-									{#if giftCard.expires_at}
-										<p class="text-xs text-orange-600 whitespace-nowrap">
-											{$t('dashboard.validUntil', {
-												date: new Date(
-													giftCard.expires_at.split('T')[0]
-												).toLocaleDateString(currentLocale)
-											})}
-										</p>
-									{/if}
-								</div>
-							</a>
-							{#if giftCard.card_number}
-								<!-- Inline barcode: scan straight from the dashboard; click enlarges via modal -->
-								<button
-									onclick={(e) => showGiftCardBarcode(giftCard, e)}
-									class="px-3 pb-3 pt-1 border-t border-gray-100 flex justify-center hover:bg-red-50 transition"
-									title={$t('dashboard.tapToEnlarge')}
-									aria-label={$t('dashboard.showBarcode')}
-								>
-									<Barcode
-										value={giftCard.card_number}
-										type={giftCard.barcode_type}
-									/>
-								</button>
-							{/if}
-						</div>
+					{#each giftCardTiles as model (model.id)}
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 			</div>

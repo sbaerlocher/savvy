@@ -191,6 +191,23 @@ export const en: TranslationKeys = {
 		tapToClose: 'Tap to close',
 		tapToEnlarge: 'Tap to enlarge'
 	},
+	tile: {
+		expired: 'Expired',
+		expiresToday: 'Today',
+		daysRemaining: '{count} days',
+		notYetValid: 'valid from {date}',
+		usageSingle: 'Single use',
+		usageMultiple: 'Multiple use',
+		inactive: 'Inactive',
+		status: {
+			depleted: 'Depleted',
+			expired: 'Expired'
+		}
+	},
+	barcodeToggle: {
+		show: 'Show barcodes',
+		hide: 'Hide barcodes'
+	},
 	cards: {
 		title: 'Cards',
 		noCards: 'No cards yet',

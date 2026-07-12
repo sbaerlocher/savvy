@@ -453,7 +453,7 @@ test.describe('Sharing', () => {
 		await sharedCardsList.goto();
 
 		const sharedCard = sharedPage
-			.locator(`div[role="button"]:has-text("${testCards.ikea.merchant_name}")`)
+			.locator(`[data-owner]:has-text("${testCards.ikea.merchant_name}")`)
 			.first();
 		if (await sharedCard.isVisible({ timeout: 5000 }).catch(() => false)) {
 			await sharedCard.click();
