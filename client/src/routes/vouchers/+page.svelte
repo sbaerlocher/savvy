@@ -440,7 +440,6 @@
 			pageLogger.error('Failed to save filters', { error: e });
 		}
 	});
-
 </script>
 
 <svelte:head>
