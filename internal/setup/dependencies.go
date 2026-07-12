@@ -131,7 +131,7 @@ func InitDatabase(cfg *config.Config) error {
 // RunMigrations executes database migrations using Gormigrate.
 func RunMigrations(cfg *config.Config) error {
 	if !cfg.AutoMigrate {
-		slog.Warn("AutoMigrate disabled (AUTO_MIGRATE=false), run migrations manually: make migrate-up")
+		slog.Warn("AutoMigrate disabled (AUTO_MIGRATE=false), run migrations manually: dde project:db:migrate-up")
 		return nil
 	}
 

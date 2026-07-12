@@ -156,10 +156,10 @@ EXAMPLES:
     go run cmd/migrate/main.go to 202601230001_init_schema
     go run cmd/migrate/main.go status
 
-MAKEFILE SHORTCUTS:
-    make migrate-up         Same as: up
-    make migrate-down       Same as: down
-    make migrate-reset      Same as: reset
-    make migrate-status     Same as: status
+DDE SHORTCUTS:
+    dde project:db:migrate-up       Same as: up
+    dde project:db:migrate-down     Same as: down
+    dde project:db:migrate-reset    Same as: reset
+    dde project:db:migrate-status   Same as: status
 `)
 }

@@ -63,7 +63,7 @@ A worktree created for frontend changes therefore has no `node_modules`. When
 a push includes `client/` files, the frontend hooks can't resolve the
 prettier/eslint/svelte-check binaries and **fail the push with a
 missing-binary error** — the gate never actually runs and the check only
-happens later in CI. (lefthook only *skips* these `root: client/` commands
+happens later in CI. (lefthook only _skips_ these `root: client/` commands
 when no pushed file falls under `client/`, i.e. when there's nothing to gate.)
 Before touching frontend files in a fresh worktree, install once:
 
@@ -450,7 +450,7 @@ make logs-all                # All logs (all containers)
 
 # Shell Access
 make shell                   # Open shell in API container
-make db-shell                # Open PostgreSQL shell
+dde project:db:open          # Open PostgreSQL shell
 
 # Testing
 make test                    # Run all Go tests
@@ -461,11 +461,11 @@ go test -race ./...          # Direct: all tests with race detection
 npm run test:e2e             # Frontend E2E tests (Playwright)
 npm test                     # Frontend unit tests (Vitest)
 
-# Database
-make seed                    # Seed database with test data
-make migrate-up              # Apply all pending migrations
-make migrate-down            # Rollback last migration
-make migrate-status          # Show migration status
+# Database (via dde plugins)
+dde project:db:seed            # Seed database with test data
+dde project:db:migrate-up      # Apply all pending migrations
+dde project:db:migrate-down    # Rollback last migration
+dde project:db:migrate-status  # Show migration status
 
 # Build
 make build                   # Production build (frontend + backend binary)

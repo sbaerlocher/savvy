@@ -34,15 +34,15 @@ Every feature ships in the binary; scope is controlled at runtime via
 `ENABLE_*` environment variables, not by deleting code. This keeps a small
 deployment small without forking.
 
-| Group            | Feature                         | Toggle                    | Default |
-| ---------------- | ------------------------------- | ------------------------- | ------- |
-| **Core**         | Loyalty cards + barcode + share | `ENABLE_CARDS`            | on      |
-| Optional         | Discount vouchers               | `ENABLE_VOUCHERS`         | on      |
-| Optional         | Prepaid gift cards              | `ENABLE_GIFT_CARDS`       | on      |
-| Optional (auth)  | Email/password login            | `ENABLE_LOCAL_LOGIN`      | on      |
-| Optional (auth)  | Self-registration               | `ENABLE_REGISTRATION`     | on      |
-| Optional (auth)  | Two-factor (TOTP)               | `ENABLE_2FA`              | off     |
-| Optional         | Expiry reminders                | `ENABLE_EXPIRY_REMINDERS` | on      |
+| Group           | Feature                         | Toggle                    | Default |
+| --------------- | ------------------------------- | ------------------------- | ------- |
+| **Core**        | Loyalty cards + barcode + share | `ENABLE_CARDS`            | on      |
+| Optional        | Discount vouchers               | `ENABLE_VOUCHERS`         | on      |
+| Optional        | Prepaid gift cards              | `ENABLE_GIFT_CARDS`       | on      |
+| Optional (auth) | Email/password login            | `ENABLE_LOCAL_LOGIN`      | on      |
+| Optional (auth) | Self-registration               | `ENABLE_REGISTRATION`     | on      |
+| Optional (auth) | Two-factor (TOTP)               | `ENABLE_2FA`              | off     |
+| Optional        | Expiry reminders                | `ENABLE_EXPIRY_REMINDERS` | on      |
 
 > Defaults reflect `internal/config/config.go`. At least one auth method
 > (`ENABLE_LOCAL_LOGIN` or OAuth) must stay enabled — the config validates this.
@@ -326,7 +326,7 @@ cp .env.example .env
 make dev
 
 # 4. Load test data (optional, in another terminal)
-make seed
+dde project:db:seed
 ```
 
 **Application URL**: <https://savvy.test> (routed by dde traefik)
@@ -402,18 +402,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed package structure and archit
 
 ### Features & Libraries
 
-| Feature                | Technology                 | Purpose                        |
-| ---------------------- | -------------------------- | ------------------------------ |
-| **Auth (Sessions)**    | Gorilla Sessions + PGStore | Server-side Session Management |
-| **Auth (OAuth/OIDC)**  | go-oidc                    | OpenID Connect Provider        |
-| **Barcode Scanning**   | barcode-detector           | BarcodeDetector Polyfill (WASM)|
-| **Barcode Generation** | bwip-js                    | Server-side Barcode Rendering  |
-| **Validation**         | go-playground/validator    | Input Validation               |
-| **i18n**               | go-i18n                    | Internationalization           |
-| **Metrics**            | Prometheus                 | Application Metrics            |
-| **Tracing**            | OpenTelemetry              | Distributed Tracing            |
-| **PWA**                | @vite-pwa/sveltekit        | Service Worker & Offline       |
-| **Service Worker**     | Workbox                    | Caching & Offline Strategies   |
+| Feature                | Technology                 | Purpose                         |
+| ---------------------- | -------------------------- | ------------------------------- |
+| **Auth (Sessions)**    | Gorilla Sessions + PGStore | Server-side Session Management  |
+| **Auth (OAuth/OIDC)**  | go-oidc                    | OpenID Connect Provider         |
+| **Barcode Scanning**   | barcode-detector           | BarcodeDetector Polyfill (WASM) |
+| **Barcode Generation** | bwip-js                    | Server-side Barcode Rendering   |
+| **Validation**         | go-playground/validator    | Input Validation                |
+| **i18n**               | go-i18n                    | Internationalization            |
+| **Metrics**            | Prometheus                 | Application Metrics             |
+| **Tracing**            | OpenTelemetry              | Distributed Tracing             |
+| **PWA**                | @vite-pwa/sveltekit        | Service Worker & Offline        |
+| **Service Worker**     | Workbox                    | Caching & Offline Strategies    |
 
 ### Development & Testing
 

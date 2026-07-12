@@ -14,15 +14,11 @@ VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
 # Container names (development)
-APP_CONTAINER := savvy-api
-DB_CONTAINER := savvy-postgres
+APP_CONTAINER := savvy-api-1
 
 # Helm configuration
 HELM_RELEASE := savvy
 HELM_CHART := deploy/helm/savvy
-
-# Helper commands
-DOCKER_MIGRATE := docker exec $(APP_CONTAINER) go run -mod=mod /app/cmd/migrate/main.go
 
 # ==============================================================================
 # HELP
@@ -48,21 +44,19 @@ help:
 	@echo "  logs-client    Show client logs"
 	@echo "  logs-db        Show database logs"
 	@echo "  logs-all       Show all logs"
-	@echo "  logs-mailpit   Show Mailpit logs"
 	@echo "  shell          Open shell in app container"
-	@echo "  db-shell       Open PostgreSQL shell"
-	@echo "  mailpit        Open Mailpit web UI (http://localhost:8025)"
-	@echo "  up-observability  Start observability stack (Grafana/Prometheus/Loki/Tempo)"
-	@echo "  down-observability  Stop observability stack"
-	@echo "  logs-observability  Show observability stack logs"
 	@echo ""
-	@echo "Database:"
-	@echo "  migrate-up     Apply all pending migrations"
-	@echo "  migrate-down   Rollback last migration"
-	@echo "  migrate-reset  Rollback all migrations"
-	@echo "  migrate-status Show applied migrations"
-	@echo "  migrate-to     Migrate to specific version (TARGET_VERSION=...)"
-	@echo "  seed           Seed database with test data"
+	@echo "  Mailpit + observability via dde:"
+	@echo "    dde project:observability   Start Grafana/Prometheus/Loki/Tempo"
+	@echo "    Mailpit UI: dde stock service (see dde dashboard)"
+	@echo ""
+	@echo "Database (via dde plugins):"
+	@echo "  dde project:db:migrate-up      Apply all pending migrations"
+	@echo "  dde project:db:migrate-down    Rollback last migration"
+	@echo "  dde project:db:migrate-reset   Rollback all migrations"
+	@echo "  dde project:db:migrate-status  Show applied migrations"
+	@echo "  dde project:db:migrate-to      Migrate to version (-- TARGET_VERSION)"
+	@echo "  dde project:db:seed            Seed database with test data"
 	@echo ""
 	@echo "Helm:"
 	@echo "  helm-install   Install with Helm"
@@ -131,18 +125,6 @@ clean:
 	rm -rf internal/assets/client/
 	@echo "✓ Cleanup complete"
 
-.PHONY: clean-port
-clean-port:
-	@echo "🧹 Cleaning up development ports..."
-	@lsof -ti:5173 | xargs kill -9 2>/dev/null || echo "No process found on port 5173 (Frontend)"
-	@lsof -ti:8080 | xargs kill -9 2>/dev/null || echo "No process found on port 8080 (Backend)"
-	@lsof -ti:5432 | xargs kill -9 2>/dev/null || echo "No process found on port 5432 (PostgreSQL)"
-	@echo "✓ Ports cleaned: 5173 (Frontend), 8080 (Backend), 5432 (PostgreSQL)"
-
-.PHONY: clean-all
-clean-all: clean clean-port
-	@echo "🧹 Full cleanup completed"
-
 # ==============================================================================
 # DEVELOPMENT
 # ==============================================================================
@@ -176,29 +158,11 @@ up:
 	@echo ""
 	@echo "💡 View logs: make logs (API) | make logs-client (Frontend)"
 
-.PHONY: up-observability
-up-observability:
-	@echo "📊 Starting Observability Stack..."
-	docker compose --profile observability up -d
-	@echo "✓ Observability stack started"
-	@echo "  Grafana:    http://localhost:3000 (admin/admin)"
-	@echo "  Prometheus: http://localhost:9090"
-	@echo "  Loki:       http://localhost:3100"
-	@echo "  Tempo:      http://localhost:3200"
-	@echo ""
-	@echo "💡 View logs: make logs-observability"
-
 .PHONY: down
 down:
 	@echo "⏹️  Stopping containers..."
 	docker compose down
 	@echo "✓ Containers stopped"
-
-.PHONY: down-observability
-down-observability:
-	@echo "⏹️  Stopping observability stack..."
-	docker compose --profile observability down
-	@echo "✓ Observability stack stopped"
 
 .PHONY: restart
 restart: down up
@@ -228,70 +192,26 @@ logs-db:
 logs-all:
 	docker compose logs -f
 
-.PHONY: logs-mailpit
-logs-mailpit:
-	docker compose logs -f mailpit
-
-.PHONY: mailpit
-mailpit:
-	@echo "Opening Mailpit at http://localhost:8025"
-	open http://localhost:8025
-
-.PHONY: logs-observability
-logs-observability:
-	docker compose --profile observability logs -f
-
 .PHONY: shell
 shell:
 	docker exec -it $(APP_CONTAINER) sh
 
-.PHONY: db-shell
-db-shell:
-	docker exec -it $(DB_CONTAINER) psql -U savvy -d savvy
+# Database shell: use `dde project:db:open` (dde stock postgres, db savvy)
 
 .PHONY: ps
 ps:
 	docker compose ps
 
 # ==============================================================================
-# DATABASE MIGRATIONS
+# DATABASE MIGRATIONS & SEED
 # ==============================================================================
-# IMPORTANT: Migrations run in Docker container (consistent with development environment)
-
-.PHONY: migrate-up
-migrate-up:
-	@echo "🚀 Running migrations in Docker..."
-	$(DOCKER_MIGRATE) up
-
-.PHONY: migrate-down
-migrate-down:
-	@echo "⏪ Rolling back last migration in Docker..."
-	$(DOCKER_MIGRATE) down
-
-.PHONY: migrate-reset
-migrate-reset:
-	@echo "⚠️  Rolling back all migrations in Docker..."
-	$(DOCKER_MIGRATE) reset
-
-.PHONY: migrate-status
-migrate-status:
-	@echo "📋 Checking migration status in Docker..."
-	$(DOCKER_MIGRATE) status
-
-.PHONY: migrate-to
-migrate-to:
-	@if [ -z "$(TARGET_VERSION)" ]; then \
-		echo "❌ Error: TARGET_VERSION parameter required"; \
-		echo "Usage: make migrate-to TARGET_VERSION=202601230001_init_schema"; \
-		exit 1; \
-	fi
-	@echo "🎯 Migrating to version $(TARGET_VERSION) in Docker..."
-	$(DOCKER_MIGRATE) to $(TARGET_VERSION)
-
-.PHONY: seed
-seed:
-	@echo "🌱 Seeding database in Docker..."
-	docker exec $(APP_CONTAINER) go run -mod=mod /app/cmd/seed/main.go
+# Migrations and seeding are driven through dde plugins (.dde/plugins/db.*.sh):
+#   dde project:db:migrate-up      Apply all pending migrations
+#   dde project:db:migrate-down    Rollback last migration
+#   dde project:db:migrate-reset   Rollback all migrations
+#   dde project:db:migrate-status  Show applied migrations
+#   dde project:db:migrate-to -- TARGET_VERSION
+#   dde project:db:seed            Seed database with test data
 
 # ==============================================================================
 # HELM

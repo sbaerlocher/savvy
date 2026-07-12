@@ -47,7 +47,7 @@ cp .env.example .env
 make dev
 
 # Seed test data (optional, in another terminal)
-make seed
+dde project:db:seed
 ```
 
 **Access the application**:
@@ -221,13 +221,13 @@ npm run build
 # Migrations are automatically applied on server startup (AUTO_MIGRATE=true)
 
 # To manually run migrations
-make migrate-up
+dde project:db:migrate-up
 
 # Check migration status
-make migrate-status
+dde project:db:migrate-status
 
 # Rollback last migration (use with caution!)
-make migrate-down
+dde project:db:migrate-down
 ```
 
 **Creating a new migration**:
