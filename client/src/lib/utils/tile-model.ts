@@ -33,7 +33,6 @@ export type ShareState =
 export interface TileModel {
 	id: string;
 	type: TileResourceType;
-	href: string;
 
 	merchantName: string;
 	merchantColor: string;
@@ -146,7 +145,6 @@ export function cardToTileModel(
 	return {
 		id: card.id,
 		type: 'card',
-		href: `/cards/${card.id}`,
 		merchantName: card.merchant?.name || tr('dashboard.cardType'),
 		merchantColor: card.merchant?.color || '#6B7280',
 		identifier: card.program || undefined,
@@ -214,6 +212,9 @@ export function voucherToTileModel(
 	let expiry: { text: string; urgent: boolean } | undefined;
 	if (voucher.valid_until) expiry = expiryBadge(tr, voucher.valid_until);
 
+	// Computed once, reused for the tile amount and the barcode modal.
+	const amount = voucherAmount(voucher, locale);
+
 	// single_use → einmalig; every multiple_use_* / one_per_customer → mehrfach.
 	let usageMarker: string | undefined;
 	if (voucher.usage_limit_type === 'single_use') {
@@ -225,18 +226,20 @@ export function voucherToTileModel(
 	return {
 		id: voucher.id,
 		type: 'voucher',
-		href: `/vouchers/${voucher.id}`,
 		merchantName: voucher.merchant?.name || tr('dashboard.voucherType'),
 		merchantColor: voucher.merchant?.color || '#6B7280',
 		identifier: voucher.description || undefined,
-		amount: voucherAmount(voucher, locale),
+		amount,
 		maskedNumber: maskNumber(voucher.code),
 		expiryBadge: expiry?.text,
 		expiryUrgent: expiry?.urgent,
 		notYetValid,
 		usageMarker,
 		isActive: voucher.status === 'valid',
-		statusBadge: voucher.status === 'valid' ? undefined : tr('tile.expired'),
+		statusBadge:
+			voucher.status === 'valid'
+				? undefined
+				: tr(`vouchers.status.${voucher.status}`),
 		shareState: share,
 		barcodeValue: voucher.code || undefined,
 		barcodeType,
@@ -245,7 +248,7 @@ export function voucherToTileModel(
 			value: voucher.code,
 			barcodeType: voucher.barcode_type,
 			merchantName: voucher.merchant?.name,
-			displayValue: voucherAmount(voucher, locale),
+			displayValue: amount,
 			description: voucher.description,
 			validFrom: voucher.valid_from,
 			validUntil: voucher.valid_until,
@@ -285,7 +288,6 @@ export function giftCardToTileModel(
 	return {
 		id: giftCard.id,
 		type: 'gift_card',
-		href: `/gift-cards/${giftCard.id}`,
 		merchantName: giftCard.merchant?.name || tr('dashboard.giftCardType'),
 		merchantColor: giftCard.merchant?.color || '#6B7280',
 		identifier: giftCard.notes || undefined,
