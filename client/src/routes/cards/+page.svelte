@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { ApiError, batchApi, cardsApi, translateBatchError } from '$lib/api';
-	import Barcode from '$lib/components/Barcode.svelte';
 	import BatchConfirmModal from '$lib/components/BatchConfirmModal.svelte';
 	import BatchPanel from '$lib/components/BatchPanel.svelte';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import ImportDialog from '$lib/components/ImportDialog.svelte';
+	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import BarcodeModal, {
+		type BarcodeModalItem
+	} from '$lib/components/dashboard/BarcodeModal.svelte';
+	import { cardToTileModel } from '$lib/utils/tile-model';
 	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
+	import { t, locale } from '$lib/stores/i18n';
 	import { isOnline } from '$lib/stores/offline';
 	import { toastStore } from '$lib/stores/toast';
 	import type { CardDTO } from '$lib/types/api';
@@ -14,7 +18,6 @@
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { categoryColors } from '$lib/utils/category-colors';
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
@@ -45,6 +48,11 @@
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
 	let showImportDialog = $state(false);
+
+	// Barcode visibility toggle (per-list, localStorage-persisted, default off).
+	// Wallet/list = quiet tiles; users who want barcodes at-a-glance can opt in.
+	let showBarcodes = $state(false);
+	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
 
 	const selectedCount = $derived(selectedIds.size);
 
@@ -252,6 +260,11 @@
 		});
 	});
 
+	const currentLocale = $derived($locale || 'de');
+	const cardTiles = $derived(
+		filteredCards.map((c) => cardToTileModel(c, currentUserId, currentLocale))
+	);
+
 	const sharedSelectedCount = $derived(
 		filteredCards.filter(
 			(c) => selectedIds.has(c.id) && c.owner && c.owner.id !== currentUserId
@@ -262,8 +275,14 @@
 
 	onMount(async () => {
 		loadFilters();
+		showBarcodes = localStorage.getItem('savvy_cards_show_barcodes') === 'true';
 		await loadCards();
 	});
+
+	function toggleBarcodes() {
+		showBarcodes = !showBarcodes;
+		localStorage.setItem('savvy_cards_show_barcodes', String(showBarcodes));
+	}
 
 	async function loadCards() {
 		isLoading = true;
@@ -442,33 +461,6 @@
 			return () => document.removeEventListener('keydown', handleKeydown);
 		}
 	});
-
-	function getStatusBadge(status: string): { class: string; text: string } {
-		switch (status) {
-			case 'inactive':
-				return {
-					class: 'bg-gray-100 text-gray-800',
-					text: $t('cards.status.inactive')
-				};
-			case 'expired':
-				return {
-					class: 'bg-red-100 text-red-800',
-					text: $t('cards.status.expired')
-				};
-			case 'lost':
-				return {
-					class: 'bg-orange-100 text-orange-800',
-					text: $t('cards.status.lost')
-				};
-			case 'blocked':
-				return {
-					class: 'bg-red-100 text-red-800',
-					text: $t('cards.status.blocked')
-				};
-			default:
-				return { class: '', text: '' };
-		}
-	}
 </script>
 
 <svelte:head>
@@ -489,6 +481,11 @@
 	onClose={() => (showImportDialog = false)}
 	onImported={loadCards}
 	defaultResourceType="cards"
+/>
+
+<BarcodeModal
+	item={barcodeModalItem}
+	onClose={() => (barcodeModalItem = null)}
 />
 
 <div class="px-4 max-w-7xl mx-auto" class:pb-40={selectMode}>
@@ -537,6 +534,35 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+						></path>
+					</svg>
+				</button>
+				<!-- Barcode Toggle Button -->
+				<button
+					type="button"
+					onclick={toggleBarcodes}
+					class="btn btn-ghost {showBarcodes
+						? 'ring-2 ring-cyan-500 border-cyan-500'
+						: ''}"
+					title={showBarcodes
+						? tr('barcodeToggle.hide')
+						: tr('barcodeToggle.show')}
+					aria-label={showBarcodes
+						? tr('barcodeToggle.hide')
+						: tr('barcodeToggle.show')}
+					aria-pressed={showBarcodes}
+				>
+					<svg
+						class="w-5 h-5 text-gray-600"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
 						></path>
 					</svg>
 				</button>
@@ -654,6 +680,32 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+						></path>
+					</svg>
+				</button>
+				<!-- Barcode Toggle Button (Mobile) -->
+				<button
+					type="button"
+					onclick={toggleBarcodes}
+					class="flex-1 btn btn-ghost {showBarcodes
+						? 'ring-2 ring-cyan-500 border-cyan-500'
+						: ''}"
+					aria-label={showBarcodes
+						? tr('barcodeToggle.hide')
+						: tr('barcodeToggle.show')}
+					aria-pressed={showBarcodes}
+				>
+					<svg
+						class="w-5 h-5 text-gray-600"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
 						></path>
 					</svg>
 				</button>
@@ -829,108 +881,15 @@
 						? ''
 						: 'lg:grid-cols-3'} gap-6"
 				>
-					{#each filteredCards as card (card.id)}
-						<div
-							class="block bg-white rounded-lg shadow-lg hover:shadow-xl transition overflow-hidden relative {selectMode &&
-							selectedIds.has(card.id)
-								? 'ring-2 ring-cyan-500'
-								: ''}"
-							style="border-left: 6px solid {card.merchant?.color || '#6B7280'}"
-							role="button"
-							tabindex="0"
-							data-owner={card.owner && card.owner.id !== currentUserId
-								? 'shared'
-								: 'owned'}
-							onclick={() => {
-								if (selectMode) {
-									toggleSelection(card.id);
-								} else {
-									goto(resolve(`/cards/${card.id}`));
-								}
-							}}
-							onkeydown={(e) => {
-								if (e.key === 'Enter' || e.key === ' ') {
-									e.preventDefault();
-									if (selectMode) {
-										toggleSelection(card.id);
-									} else {
-										goto(resolve(`/cards/${card.id}`));
-									}
-								}
-							}}
-						>
-							<div
-								class="p-6 flex flex-col h-full {card.status !== 'active'
-									? 'opacity-50 grayscale'
-									: ''}"
-							>
-								<!-- Status Overlay -->
-								{#if card.status !== 'active'}
-									{@const badge = getStatusBadge(card.status || '')}
-									<div
-										class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-									>
-										<span
-											class="px-4 py-1.5 text-sm font-semibold rounded-full {badge.class} shadow-sm"
-										>
-											{badge.text}
-										</span>
-									</div>
-								{/if}
-
-								<!-- Merchant + Owner -->
-								<div class="flex items-start justify-end gap-2 mb-4">
-									<div class="text-right min-w-0">
-										<p class="text-sm text-gray-500 truncate">
-											{card.merchant?.name || $t('cards.title')}
-										</p>
-										<p class="text-xs text-gray-400">
-											{#if card.owner && card.owner.id !== currentUserId}
-												{tr('cards.sharedBy', {
-													name: card.owner.first_name || card.owner.email
-												})}
-											{:else if card.shared_with_count > 0}
-												{tr('cards.sharedWithCount', {
-													count: String(card.shared_with_count)
-												})}
-											{:else}
-												{tr('cards.sharedWithNone')}
-											{/if}
-										</p>
-									</div>
-								</div>
-
-								<div class="mt-auto">
-									<!-- Barcode (hidden on mobile: ponytail: CSS breakpoint, add a user toggle if per-user control is needed) -->
-									<div
-										class="bg-gray-50 rounded-lg p-4 border border-gray-200 h-[120px] hidden sm:flex flex-col justify-center"
-									>
-										<div class="flex justify-center mb-2">
-											<Barcode
-												value={card.card_number}
-												type={card.barcode_type || 'CODE128'}
-												height={64}
-												maxHeight={64}
-											/>
-										</div>
-										<p
-											class="text-center text-xs text-gray-600 font-mono break-all"
-										>
-											{card.card_number}
-										</p>
-									</div>
-
-									<!-- Footer: Program -->
-									<p class="text-xs text-gray-500 truncate mt-3">
-										{#if card.program}
-											{card.program}
-										{:else}
-											&nbsp;
-										{/if}
-									</p>
-								</div>
-							</div>
-						</div>
+					{#each cardTiles as model (model.id)}
+						<ResourceTile
+							{model}
+							showBarcode={showBarcodes}
+							{selectMode}
+							selected={selectedIds.has(model.id)}
+							onSelect={toggleSelection}
+							onShowBarcode={(item) => (barcodeModalItem = item)}
+						/>
 					{/each}
 				</div>
 			</div>

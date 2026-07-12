@@ -197,6 +197,24 @@ export const de: TranslationKeys = {
 		tapToClose: 'Tippen zum Schließen',
 		tapToEnlarge: 'Tippen zum Vergrößern'
 	},
+	tile: {
+		expired: 'Abgelaufen',
+		expiresToday: 'Heute',
+		daysRemaining: '{count} Tage',
+		notYetValid: 'ab {date} gültig',
+		sharedFrom: 'von {name}',
+		usageSingle: 'Einmalig',
+		usageMultiple: 'Mehrfach',
+		inactive: 'Inaktiv',
+		status: {
+			depleted: 'Aufgebraucht',
+			expired: 'Abgelaufen'
+		}
+	},
+	barcodeToggle: {
+		show: 'Barcodes einblenden',
+		hide: 'Barcodes ausblenden'
+	},
 	cards: {
 		title: 'Kundenkarten',
 		noCards: 'Noch keine Kundenkarten vorhanden',

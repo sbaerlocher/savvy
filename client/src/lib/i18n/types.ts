@@ -178,6 +178,24 @@ export type TranslationKeys = {
 		tapToClose: string;
 		tapToEnlarge: string;
 	};
+	tile: {
+		expired: string;
+		expiresToday: string;
+		daysRemaining: string;
+		notYetValid: string;
+		sharedFrom: string;
+		usageSingle: string;
+		usageMultiple: string;
+		inactive: string;
+		status: {
+			depleted: string;
+			expired: string;
+		};
+	};
+	barcodeToggle: {
+		show: string;
+		hide: string;
+	};
 	cards: {
 		title: string;
 		noCards: string;
