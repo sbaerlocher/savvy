@@ -254,16 +254,17 @@ test.describe('Vouchers Management', () => {
 		await page.waitForURL(/\/vouchers\/?$/, { timeout: 5000 });
 		await vouchersListPage.waitForPageReady();
 
-		// ResourceTile masks the code, so match the inactive voucher by its
-		// status badge (the only not-yet-valid tile) rather than by code.
-		const voucherCard = page
-			.locator('[data-owner]')
+		// A future-valid_from voucher must render as inactive. In ResourceTile the
+		// status badge is a sibling of the [data-owner] link, so match the tile
+		// root that contains the badge and click its inner link.
+		const inactiveTile = page
+			.locator('div:has(> [data-owner])')
 			.filter({ hasText: /Inaktiv|Inactive/ })
 			.first();
-		await expect(voucherCard).toBeVisible({ timeout: 10000 });
+		await expect(inactiveTile).toBeVisible({ timeout: 10000 });
 
 		// Cleanup
-		await voucherCard.click();
+		await inactiveTile.locator('[data-owner]').click();
 		await page.waitForURL(/\/vouchers\/[a-f0-9-]+$/, { timeout: 5000 });
 		const deleteButton = page
 			.locator('button:has-text("Delete"), button:has-text("Löschen")')
