@@ -93,10 +93,9 @@
 		</div>
 	{:else if data}
 		<!-- Grid gives the two layouts from the same markup:
-		     mobile (1 col) stacks via `order` — header → favorites → stats
-		     (prototype "02 — START"); desktop (2 cols) puts the header top-left
-		     and stats top-right, favorites spanning the full width below
-		     (prototype "03 — START · DESKTOP"). -->
+		     mobile (1 col) stacks via `order` — header → favorites → stats;
+		     desktop (2 cols) puts the header top-left and stats top-right,
+		     favorites spanning the full width below. -->
 		<div class="grid grid-cols-1 gap-x-4 lg:grid-cols-[1fr_auto]">
 			<div class="order-1 lg:col-start-1 lg:row-start-1">
 				<PageHeader

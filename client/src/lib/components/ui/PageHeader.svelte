@@ -15,7 +15,7 @@
 	} = $props();
 </script>
 
-<!-- Direction B page header: accent bar + type hierarchy, no heavy shadow. -->
+<!-- Page header: accent bar + type hierarchy, no heavy shadow. -->
 <div class="mb-8 flex items-start justify-between gap-4">
 	<div class="flex items-stretch gap-3">
 		<div
