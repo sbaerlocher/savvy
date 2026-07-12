@@ -19,7 +19,9 @@ test.describe('Authentication', () => {
 			TEST_USERS.regular.password
 		);
 		await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
-		await expect(page.locator('text=/Willkommen|Welcome/i')).toBeVisible({
+		await expect(
+			page.locator('[data-testid="favorites-section"]')
+		).toBeVisible({
 			timeout: 5000
 		});
 	});
