@@ -181,17 +181,15 @@ test.describe('Vouchers Management', () => {
 		}
 
 		await vouchersListPage.filterButton.click();
-		await expect(
-			vouchersListPage.page.locator('select, [role="listbox"]').first()
-		).toBeVisible({
-			timeout: 3000
-		});
 
+		// The unified wallet filter sheet no longer exposes a native <select>
+		// merchant picker; per-merchant browsing moved to /merchants. Skip when
+		// no legacy select is present rather than assert one into existence.
 		const merchantFilter = vouchersListPage.page
 			.locator('select')
 			.filter({ hasText: /Merchant|Händler/i })
 			.first();
-		if (!(await merchantFilter.isVisible())) {
+		if (!(await merchantFilter.isVisible().catch(() => false))) {
 			test.skip();
 			return;
 		}
@@ -340,7 +338,7 @@ test.describe('Vouchers Management', () => {
 		await expect(merchantTitle).toBeVisible({ timeout: 10000 });
 
 		const editButton = page
-			.locator('button:has-text("Bearbeiten"), button:has-text("Edit")')
+			.getByRole('button', { name: /Edit|Bearbeiten/ })
 			.first();
 		await editButton.waitFor({ state: 'visible', timeout: 5000 });
 		await editButton.click();

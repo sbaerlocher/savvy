@@ -30,8 +30,12 @@ export class ResourceDetailPage extends BasePage {
 	}
 
 	get editButton(): Locator {
+		// The redesigned detail pages expose edit as an icon button (iOS/desktop
+		// header action, Android FAB) labelled only via aria-label/title, plus a
+		// legacy text button on some screens. Match by accessible name so all
+		// variants resolve.
 		return this.page
-			.locator('button:has-text("Edit"), button:has-text("Bearbeiten")')
+			.getByRole('button', { name: /Edit|Bearbeiten/ })
 			.first();
 	}
 
