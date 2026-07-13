@@ -415,8 +415,9 @@
 			{#if !isEditing}
 				<!-- View Mode -->
 				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-left: 6px solid {card.merchant?.color || '#3B82F6'}"
+					class="overflow-hidden rounded-xl border border-border/80 bg-white"
+					style="border-left: 3px solid color-mix(in srgb, {card.merchant
+						?.color || '#3B82F6'} 70%, transparent)"
 				>
 					<div
 						class="p-6 {card.status && card.status !== 'active'
@@ -494,10 +495,7 @@
 				</div>
 			{:else}
 				<!-- Edit Mode -->
-				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-top: 4px solid #3B82F6"
-				>
+				<div class="overflow-hidden rounded-xl border border-border bg-white">
 					<div class="p-6">
 						<CardForm
 							bind:cardNumber={editCardNumber}
@@ -569,7 +567,7 @@
 				/>
 
 				<!-- Sharing Box -->
-				<div class="bg-white rounded-lg shadow-lg p-6">
+				<div class="rounded-xl border border-border bg-white p-6">
 					<div class="flex justify-between items-center mb-4">
 						<h3 class="text-lg font-semibold text-text">
 							{tr('common.share')}

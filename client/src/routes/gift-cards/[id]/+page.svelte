@@ -518,8 +518,9 @@
 			{#if !isEditing}
 				<!-- View Mode -->
 				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-left: 6px solid {giftCard.merchant?.color || '#F59E0B'}"
+					class="overflow-hidden rounded-xl border border-border/80 bg-white"
+					style="border-left: 3px solid color-mix(in srgb, {giftCard.merchant
+						?.color || '#F59E0B'} 70%, transparent)"
 				>
 					<div
 						class="p-6 {giftCard.status && giftCard.status !== 'active'
@@ -608,10 +609,7 @@
 				</div>
 			{:else}
 				<!-- Edit Mode -->
-				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-top: 4px solid #3B82F6"
-				>
+				<div class="overflow-hidden rounded-xl border border-border bg-white">
 					<div class="p-6">
 						<GiftCardForm
 							bind:cardNumber={editCardNumber}
@@ -664,7 +662,7 @@
 		<!-- Right column: Balance, Transactions, Transfer & Sharing Info -->
 		<div class="lg:col-span-1 space-y-4">
 			<!-- Balance & Transactions Box -->
-			<div class="bg-white rounded-lg shadow-lg p-6">
+			<div class="rounded-xl border border-border bg-white p-6">
 				<!-- Balance Display -->
 				<div class="mb-6">
 					<p class="text-sm text-text-ink2 mb-1">
@@ -905,7 +903,7 @@
 				/>
 
 				<!-- Sharing Box -->
-				<div class="bg-white rounded-lg shadow-lg p-6">
+				<div class="rounded-xl border border-border bg-white p-6">
 					<div class="flex justify-between items-center mb-4">
 						<h3 class="text-lg font-semibold text-text">
 							{tr('giftCards.sharing.title')}

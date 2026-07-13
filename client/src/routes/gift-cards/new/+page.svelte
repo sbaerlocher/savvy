@@ -158,7 +158,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 	<!-- Left column: Form (2/3 width) -->
 	<div class="lg:col-span-2">
-		<div class="bg-white rounded-lg shadow-lg p-6">
+		<div class="rounded-xl border border-border bg-white p-6">
 			<h1 class="text-3xl font-bold text-text mb-6">
 				{tr('giftCards.newGiftCard')}
 			</h1>
@@ -188,7 +188,7 @@
 	<!-- Right column: Sharing (1/3 width) -->
 	<div class="lg:col-span-1 space-y-4">
 		<!-- Sharing Box -->
-		<div class="bg-white rounded-lg shadow-lg p-6">
+		<div class="rounded-xl border border-border bg-white p-6">
 			<h2 class="text-xl font-bold text-text mb-4">
 				{tr('giftCards.sharing.title')}
 			</h2>
@@ -196,7 +196,9 @@
 				{tr('giftCards.sharing.shareOnCreate')}
 			</p>
 
-			<div class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4">
+			<div
+				class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+			>
 				<!-- Email Input with Autocomplete -->
 				<div class="relative">
 					<label
@@ -239,7 +241,8 @@
 											>{suggestion.first_name}
 											{suggestion.last_name}</span
 										>
-										<span class="text-xs text-text-subtle">{suggestion.email}</span
+										<span class="text-xs text-text-subtle"
+											>{suggestion.email}</span
 										>
 									</div>
 								</button>
