@@ -26,7 +26,12 @@
 	import { locale, t } from '$lib/stores/i18n';
 	import { isOnline } from '$lib/stores/offline';
 	import { toastStore } from '$lib/stores/toast';
-	import type { CardDTO, GiftCardDTO, VoucherDTO } from '$lib/types/api';
+	import type {
+		BatchResponse,
+		CardDTO,
+		GiftCardDTO,
+		VoucherDTO
+	} from '$lib/types/api';
 	import { page } from '$app/stores';
 	import { onMount, tick } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
@@ -404,6 +409,18 @@
 	});
 	const hasNonDeletableShared = $derived(sharedSelectedCount > 0);
 
+	// Share modal permission hints, derived from the actual selection (not the
+	// type filter), since a selection can span categories.
+	const selectionHasGiftCards = $derived(
+		filteredGiftCards.some((g) => selectedIds.has(g.id))
+	);
+	const selectionOnlyVouchers = $derived(
+		selectedIds.size > 0 &&
+			filteredVouchers.some((v) => selectedIds.has(v.id)) &&
+			!filteredCards.some((c) => selectedIds.has(c.id)) &&
+			!selectionHasGiftCards
+	);
+
 	// Reset selection and status filter when type filter changes
 	let lastTypeFilter = 'all';
 	$effect(() => {
@@ -591,16 +608,22 @@
 		selectMode = !selectMode;
 		if (!selectMode) {
 			selectedIds.clear();
-			walletFilters.typeFilter = 'all';
 		} else {
 			showFilterMenu = false;
-			// Batch endpoints are per-type; force a concrete type when entering select mode.
-			if (walletFilters.typeFilter === 'all') {
-				if (cards.length > 0) walletFilters.typeFilter = 'cards';
-				else if (vouchers.length > 0) walletFilters.typeFilter = 'vouchers';
-				else if (giftCards.length > 0) walletFilters.typeFilter = 'gift-cards';
-			}
+			// Selection works across all categories; batch actions fan out to the
+			// per-type endpoints, so no forced type switch on enter.
 		}
+	}
+
+	// Group the current selection by resource type. Batch endpoints are per-type,
+	// so a cross-category selection is dispatched as one call per non-empty group.
+	function groupSelectedByType() {
+		const sel = selectedIds;
+		return {
+			cards: filteredCards.filter((c) => sel.has(c.id)).map((c) => c.id),
+			vouchers: filteredVouchers.filter((v) => sel.has(v.id)).map((v) => v.id),
+			giftCards: filteredGiftCards.filter((g) => sel.has(g.id)).map((g) => g.id)
+		};
 	}
 
 	function toggleSelection(id: string) {
@@ -636,37 +659,51 @@
 		}
 	) {
 		batchLoading = true;
-		const ids = [...selectedIds];
+		const groups = groupSelectedByType();
 		try {
-			let result;
+			// One call per non-empty type group; merge into a single result so the
+			// toast/aggregation below stays type-agnostic.
+			const calls: Promise<BatchResponse>[] = [];
 			if (batchAction === 'delete') {
-				if (walletFilters.typeFilter === 'cards')
-					result = await batchApi.deleteCards(ids);
-				else if (walletFilters.typeFilter === 'vouchers')
-					result = await batchApi.deleteVouchers(ids);
-				else result = await batchApi.deleteGiftCards(ids);
+				if (groups.cards.length) calls.push(batchApi.deleteCards(groups.cards));
+				if (groups.vouchers.length)
+					calls.push(batchApi.deleteVouchers(groups.vouchers));
+				if (groups.giftCards.length)
+					calls.push(batchApi.deleteGiftCards(groups.giftCards));
 			} else if (batchAction === 'share') {
-				const req = {
-					ids,
+				const base = {
 					email,
 					can_edit: permissions.canEdit,
-					can_delete: permissions.canDelete,
-					...(walletFilters.typeFilter === 'gift-cards'
-						? { can_edit_transactions: permissions.canEditTransactions }
-						: {})
+					can_delete: permissions.canDelete
 				};
-				if (walletFilters.typeFilter === 'cards')
-					result = await batchApi.shareCards(req);
-				else if (walletFilters.typeFilter === 'vouchers')
-					result = await batchApi.shareVouchers(req);
-				else result = await batchApi.shareGiftCards(req);
+				if (groups.cards.length)
+					calls.push(batchApi.shareCards({ ...base, ids: groups.cards }));
+				// Vouchers are read-only shares; backend ignores edit flags.
+				if (groups.vouchers.length)
+					calls.push(batchApi.shareVouchers({ ...base, ids: groups.vouchers }));
+				if (groups.giftCards.length)
+					calls.push(
+						batchApi.shareGiftCards({
+							...base,
+							ids: groups.giftCards,
+							can_edit_transactions: permissions.canEditTransactions
+						})
+					);
 			} else {
-				if (walletFilters.typeFilter === 'cards')
-					result = await batchApi.transferCards(ids, email);
-				else if (walletFilters.typeFilter === 'vouchers')
-					result = await batchApi.transferVouchers(ids, email);
-				else result = await batchApi.transferGiftCards(ids, email);
+				if (groups.cards.length)
+					calls.push(batchApi.transferCards(groups.cards, email));
+				if (groups.vouchers.length)
+					calls.push(batchApi.transferVouchers(groups.vouchers, email));
+				if (groups.giftCards.length)
+					calls.push(batchApi.transferGiftCards(groups.giftCards, email));
 			}
+
+			const results = await Promise.all(calls);
+			const result = {
+				success_count: results.reduce((n, r) => n + r.success_count, 0),
+				failed: results.flatMap((r) => r.failed || [])
+			};
+			const ids = [...groups.cards, ...groups.vouchers, ...groups.giftCards];
 
 			const failed = result.failed || [];
 			if (failed.length === 0) {
@@ -715,23 +752,26 @@
 
 	async function handleBatchExport() {
 		try {
-			let result;
-			const ids = [...selectedIds];
-			if (walletFilters.typeFilter === 'cards')
-				result = await batchApi.exportCards(ids);
-			else if (walletFilters.typeFilter === 'vouchers')
-				result = await batchApi.exportVouchers(ids);
-			else result = await batchApi.exportGiftCards(ids);
+			const groups = groupSelectedByType();
+			const count = selectedIds.size;
+			// One export file per non-empty type group (endpoints are per-type).
+			const exports: { blob: Blob; filename: string }[] = [];
+			if (groups.cards.length)
+				exports.push(await batchApi.exportCards(groups.cards));
+			if (groups.vouchers.length)
+				exports.push(await batchApi.exportVouchers(groups.vouchers));
+			if (groups.giftCards.length)
+				exports.push(await batchApi.exportGiftCards(groups.giftCards));
 
-			const url = URL.createObjectURL(result.blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = result.filename;
-			a.click();
-			URL.revokeObjectURL(url);
-			toastStore.success(
-				$t('batch.exportSuccess', { count: selectedIds.size })
-			);
+			for (const result of exports) {
+				const url = URL.createObjectURL(result.blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = result.filename;
+				a.click();
+				URL.revokeObjectURL(url);
+			}
+			toastStore.success($t('batch.exportSuccess', { count }));
 		} catch {
 			toastStore.error($t('batch.exportError'));
 		}
@@ -757,8 +797,8 @@
 	isLoading={batchLoading}
 	onConfirm={executeBatchAction}
 	onCancel={() => (showBatchModal = false)}
-	hidePermissions={walletFilters.typeFilter === 'vouchers'}
-	showTransactionPermission={walletFilters.typeFilter === 'gift-cards'}
+	hidePermissions={selectionOnlyVouchers}
+	showTransactionPermission={selectionHasGiftCards}
 />
 
 <ImportDialog
