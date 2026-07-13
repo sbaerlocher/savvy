@@ -132,7 +132,7 @@
 			{#if value}
 				<button
 					type="button"
-					class="rounded p-0.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+					class="rounded p-0.5 text-text-faint hover:text-text-muted focus:outline-none"
 					onmousedown={clearSelection}
 					tabindex="-1"
 					aria-label="Clear"
@@ -145,7 +145,7 @@
 				</button>
 			{:else}
 				<svg
-					class="h-4 w-4 text-gray-400 pointer-events-none"
+					class="h-4 w-4 text-text-faint pointer-events-none"
 					viewBox="0 0 20 20"
 					fill="currentColor"
 				>
@@ -167,7 +167,9 @@
 			class="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none"
 		>
 			{#if filtered.length === 0}
-				<li class="relative cursor-default select-none px-4 py-2 text-gray-500">
+				<li
+					class="relative cursor-default select-none px-4 py-2 text-text-subtle"
+				>
 					{$t('merchants.noResults')}
 				</li>
 			{:else}
@@ -178,8 +180,8 @@
 						aria-selected={merchant.id === value}
 						class="relative cursor-default select-none py-2 pl-3 pr-9 {i ===
 						highlightedIndex
-							? 'bg-cyan-600 text-white'
-							: 'text-gray-900'}"
+							? 'bg-accent text-white'
+							: 'text-text'}"
 						onmousedown={() => selectMerchant(merchant)}
 						onmouseenter={() => (highlightedIndex = i)}
 					>
@@ -196,7 +198,7 @@
 								class="absolute inset-y-0 right-0 flex items-center pr-4 {i ===
 								highlightedIndex
 									? 'text-white'
-									: 'text-cyan-600'}"
+									: 'text-accent'}"
 							>
 								<svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
 									<path

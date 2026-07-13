@@ -82,16 +82,13 @@ test.describe('Configuration & Features', () => {
 
 		await page.setViewportSize({ width: 375, height: 667 });
 
-		const mobileNav = page.locator(
-			'nav, [data-testid="mobile-nav"], [role="navigation"]'
-		);
-		await expect(mobileNav.first()).toBeVisible();
+		// Mobile and desktop navs both exist in the DOM; only one is shown per
+		// breakpoint. Target the specific testid so `.first()` can't resolve to
+		// the hidden counterpart.
+		await expect(page.getByTestId('mobile-nav').first()).toBeVisible();
 
 		await page.setViewportSize({ width: 1280, height: 720 });
 
-		const desktopNav = page.locator(
-			'nav, [data-testid="desktop-nav"], [role="navigation"]'
-		);
-		await expect(desktopNav.first()).toBeVisible();
+		await expect(page.getByTestId('desktop-nav').first()).toBeVisible();
 	});
 });

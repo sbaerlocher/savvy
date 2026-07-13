@@ -66,7 +66,7 @@
 </svelte:head>
 
 <div
-	class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4"
+	class="min-h-screen bg-gradient-to-br from-surface-1 to-border-soft flex items-center justify-center px-4"
 >
 	<div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
 		{#if isOnline}
@@ -89,10 +89,10 @@
 						></path>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+				<h1 class="text-2xl font-bold text-text mb-2">
 					{text.titleOnline}
 				</h1>
-				<p class="text-gray-600">
+				<p class="text-text-muted">
 					{text.messageOnline}
 				</p>
 			</div>
@@ -116,21 +116,21 @@
 						></path>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+				<h1 class="text-2xl font-bold text-text mb-2">
 					{text.title}
 				</h1>
-				<p class="text-gray-600 mb-6">
+				<p class="text-text-muted mb-6">
 					{text.message}
 				</p>
 			</div>
 
 			<!-- Info Box -->
 			<div
-				class="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-6 text-left"
+				class="bg-accent-50 border border-accent-200 rounded-lg p-4 mb-6 text-left"
 			>
 				<div class="flex items-start gap-3">
 					<svg
-						class="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5"
+						class="w-5 h-5 text-accent flex-shrink-0 mt-0.5"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -142,7 +142,7 @@
 							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 						></path>
 					</svg>
-					<div class="text-sm text-cyan-800">
+					<div class="text-sm text-accent-800">
 						<p class="font-semibold mb-1">{text.offlineFeaturesTitle}</p>
 						<ul class="list-disc list-inside space-y-1">
 							{#each text.offlineFeatures as feature (feature)}
@@ -159,7 +159,7 @@
 					type="button"
 					onclick={handleRetry}
 					disabled={retrying}
-					class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+					class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 				>
 					{#if retrying}
 						<svg
@@ -189,7 +189,7 @@
 				</button>
 				<a
 					href={resolve('/')}
-					class="block w-full text-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
+					class="block w-full text-center px-6 py-3 border border-border-field text-base font-medium rounded-lg text-text-ink2 bg-white hover:bg-surface-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
 				>
 					{text.goHome}
 				</a>

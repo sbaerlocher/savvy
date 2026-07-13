@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { cardsApi, vouchersApi, giftCardsApi, merchantsApi } from '$lib/api';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
 	import { isOnline } from '$lib/stores/offline';
@@ -252,14 +253,7 @@
 
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
-	<div class="mb-8">
-		<div class="flex items-center gap-3">
-			<div class="w-2 h-8 rounded-full bg-cyan-500"></div>
-			<h1 class="text-3xl font-bold text-gray-900">
-				{tr('merchantOverview.title')}
-			</h1>
-		</div>
-	</div>
+	<PageHeader title={tr('merchantOverview.title')} />
 
 	{#if merchants.length > 0}
 		<!-- Search + Filter + New Button -->
@@ -271,7 +265,7 @@
 					data-testid="merchant-search"
 					bind:value={searchInput}
 					placeholder={tr('common.search')}
-					class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+					class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 				/>
 			</div>
 
@@ -283,13 +277,13 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					title={tr('common.filter')}
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -303,7 +297,7 @@
 					</svg>
 					{#if hasActiveFilters}
 						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 						></span>
 					{/if}
 				</button>
@@ -347,12 +341,12 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -366,7 +360,7 @@
 					</svg>
 					{#if hasActiveFilters}
 						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 						></span>
 					{/if}
 				</button>
@@ -440,19 +434,19 @@
 		<LoadingSpinner />
 	{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
 		<!-- No results with filters -->
-		<div class="bg-gray-50 rounded-lg p-12 text-center">
-			<p class="text-gray-600 text-lg mb-4">{tr('search.no_results')}</p>
+		<div class="bg-surface-1 rounded-lg p-12 text-center">
+			<p class="text-text-muted text-lg mb-4">{tr('search.no_results')}</p>
 			<button type="button" onclick={resetFilters} class="btn btn-ghost">
 				{tr('common.resetFilters')}
 			</button>
 		</div>
 	{:else if filteredMerchants.length === 0}
 		<!-- Empty State -->
-		<div class="bg-gray-50 rounded-lg p-12 text-center">
-			<p class="text-gray-600 text-lg mb-4">
+		<div class="bg-surface-1 rounded-lg p-12 text-center">
+			<p class="text-text-muted text-lg mb-4">
 				{tr('merchantOverview.noMerchants')}
 			</p>
-			<p class="text-gray-400 text-sm mt-1">
+			<p class="text-text-faint text-sm mt-1">
 				{tr('merchantOverview.noMerchantsHint')}
 			</p>
 		</div>
@@ -476,7 +470,7 @@
 						>
 							<div class="p-4 flex flex-col flex-1">
 								<!-- Merchant name -->
-								<h2 class="text-lg font-semibold text-gray-900 truncate">
+								<h2 class="text-lg font-semibold text-text truncate">
 									{merchant.name}
 								</h2>
 
@@ -518,7 +512,7 @@
 									<div class="mt-1.5 flex flex-wrap gap-2">
 										{#if merchant.cards_inactive_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
 											>
 												{merchant.cards_inactive_count}
 												{tr('merchantOverview.cards')}
@@ -526,7 +520,7 @@
 										{/if}
 										{#if merchant.vouchers_inactive_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
 											>
 												{merchant.vouchers_inactive_count}
 												{tr('merchantOverview.vouchers')}
@@ -534,7 +528,7 @@
 										{/if}
 										{#if merchant.gift_cards_inactive_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
 											>
 												{merchant.gift_cards_inactive_count}
 												{tr('merchantOverview.giftCards')}
@@ -545,14 +539,14 @@
 
 								<!-- Balance + total items (pushed to bottom) -->
 								<div
-									class="mt-auto pt-3 flex items-center justify-between text-sm text-gray-500"
+									class="mt-auto pt-3 flex items-center justify-between text-sm text-text-subtle"
 								>
 									<span
 										>{getTotalItems(merchant)}
 										{tr('merchantOverview.items')}</span
 									>
 									{#if merchant.total_gift_card_balance > 0}
-										<span class="font-semibold text-gray-900">
+										<span class="font-semibold text-text">
 											CHF {formatBalance(merchant.total_gift_card_balance)}
 										</span>
 									{/if}
@@ -570,11 +564,11 @@
 						class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
 					>
 						<!-- Header -->
-						<div class="px-5 py-4 bg-gray-50/80 border-b border-gray-100">
+						<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<svg
-										class="w-4 h-4 text-gray-500"
+										class="w-4 h-4 text-text-subtle"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -586,20 +580,20 @@
 											d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
 										/>
 									</svg>
-									<h3 class="text-sm font-semibold text-gray-900">
+									<h3 class="text-sm font-semibold text-text">
 										{tr('common.filter')}
 									</h3>
 								</div>
 								<div class="flex items-center gap-2.5">
 									<span
-										class="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 tabular-nums"
+										class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
 									>
 										{tr('common.results', { count: filteredMerchants.length })}
 									</span>
 									<button
 										type="button"
 										onclick={() => (showFilterMenu = false)}
-										class="text-gray-400 hover:text-gray-600 transition-colors"
+										class="text-text-faint hover:text-text-muted transition-colors"
 										aria-label={tr('common.closeFilters')}
 									>
 										<svg
@@ -651,13 +645,13 @@
 >
 	<div class="p-6">
 		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-semibold text-gray-900">
+			<h3 class="text-lg font-semibold text-text">
 				{tr('common.filter')}
 			</h3>
 			<button
 				type="button"
 				onclick={() => (showFilterMenu = false)}
-				class="text-gray-400 hover:text-gray-600 transition-colors"
+				class="text-text-faint hover:text-text-muted transition-colors"
 				aria-label={tr('common.close')}
 			>
 				<svg

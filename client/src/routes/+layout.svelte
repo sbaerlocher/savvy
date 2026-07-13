@@ -14,6 +14,7 @@
 	import { pwaStore } from '$lib/stores/pwa';
 	import { toastStore } from '$lib/stores/toast';
 	import { showOfflineBanner } from '$lib/stores/offline';
+	import { showNewDialog } from '$lib/stores/newDialog';
 	import { browser } from '$app/environment';
 	import { onMount, type Snippet } from 'svelte';
 	import { logger } from '$lib/utils/logger';
@@ -159,7 +160,6 @@
 
 	let showUserMenu = $state(false);
 	let showAdminMenu = $state(false);
-	let showNewDialog = $state(false);
 	let desktopSearch = $state('');
 
 	// Desktop search submits into Wallet (single global search entry).
@@ -193,7 +193,8 @@
 <!-- Desktop Navigation -->
 {#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 	<nav
-		class="bg-white shadow-sm border-b border-gray-200 transition-all duration-300 ease-out"
+		data-testid="desktop-nav"
+		class="hidden transition-all duration-300 ease-out sm:block"
 		class:mt-16={$showOfflineBanner}
 		class:sm:mt-12={$showOfflineBanner}
 	>
@@ -202,8 +203,8 @@
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
 						<a href={resolve('/dashboard')} class="flex items-center space-x-3">
-							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-							<span class="hidden sm:inline text-2xl font-bold text-cyan-600"
+							<img src="/logo.png" alt="Savvy Logo" class="h-8 w-auto" />
+							<span class="hidden sm:inline text-2xl font-bold text-accent"
 								>{$t('common.appName')}</span
 							>
 						</a>
@@ -214,29 +215,27 @@
 						<a
 							href={resolve('/dashboard')}
 							data-testid="nav-start-desktop"
-							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-							class:border-cyan-600={$page.url.pathname.startsWith(
-								'/dashboard'
-							)}
-							class:text-gray-900={$page.url.pathname.startsWith('/dashboard')}
+							class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+							class:border-accent={$page.url.pathname.startsWith('/dashboard')}
+							class:text-text={$page.url.pathname.startsWith('/dashboard')}
 						>
 							{$t('nav.start')}
 						</a>
 						<a
 							href={resolve('/wallet')}
 							data-testid="nav-wallet-desktop"
-							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-							class:border-cyan-600={$page.url.pathname.startsWith('/wallet')}
-							class:text-gray-900={$page.url.pathname.startsWith('/wallet')}
+							class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+							class:border-accent={$page.url.pathname.startsWith('/wallet')}
+							class:text-text={$page.url.pathname.startsWith('/wallet')}
 						>
 							{$t('nav.wallet')}
 						</a>
 						<a
 							href={resolve('/profile')}
 							data-testid="nav-profile-desktop"
-							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-							class:border-cyan-600={$page.url.pathname.startsWith('/profile')}
-							class:text-gray-900={$page.url.pathname.startsWith('/profile')}
+							class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+							class:border-accent={$page.url.pathname.startsWith('/profile')}
+							class:text-text={$page.url.pathname.startsWith('/profile')}
 						>
 							{$t('nav.profile')}
 						</a>
@@ -255,14 +254,14 @@
 							bind:value={desktopSearch}
 							placeholder={$t('common.search')}
 							aria-label={$t('common.search')}
-							class="w-48 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+							class="w-48 px-3 py-1.5 text-sm bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 						/>
 					</form>
 					<button
 						type="button"
-						onclick={() => (showNewDialog = true)}
+						onclick={() => ($showNewDialog = true)}
 						data-testid="nav-new-desktop"
-						class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
+						class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-hover transition-colors"
 					>
 						<svg
 							class="w-4 h-4"
@@ -279,54 +278,6 @@
 						</svg>
 						{$t('common.new')}
 					</button>
-
-					<!-- Mobile: iOS shows header "+" (New); Android shows search (New = FAB) -->
-					{#if platform === 'ios'}
-						<button
-							type="button"
-							onclick={() => (showNewDialog = true)}
-							data-testid="nav-new-mobile"
-							aria-label={$t('common.new')}
-							class="sm:hidden inline-flex items-center justify-center text-cyan-600 p-1"
-						>
-							<svg
-								class="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 4v16m8-8H4"
-								/>
-							</svg>
-						</button>
-					{:else}
-						<!-- eslint-disable svelte/no-navigation-without-resolve -- base is resolve()d; ?search is a query string -->
-						<a
-							href={resolve('/wallet') + '?search=1'}
-							data-testid="nav-search-mobile"
-							aria-label={$t('common.search')}
-							class="sm:hidden inline-flex items-center justify-center text-gray-600 p-1"
-						>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
-							<svg
-								class="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-								/>
-							</svg>
-						</a>
-					{/if}
 
 					<!-- Impersonation Indicator -->
 					{#if $authStore.user?.is_impersonating}
@@ -399,10 +350,10 @@
 						</div>
 					{/if}
 
-					<!-- Admin Dropdown (only for admins, hidden during impersonation) -->
+					<!-- Admin Dropdown (only for admins, hidden during impersonation; desktop only — mockup mobile header has no admin controls) -->
 					{#if !$authStore.user?.is_impersonating}
 						{#if data.user?.is_admin && !$authStore.user?.is_impersonating}
-							<div class="relative">
+							<div class="relative hidden sm:block">
 								<button
 									type="button"
 									onclick={(e) => {
@@ -435,7 +386,7 @@
 										class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
 										'ios'
 											? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
-											: 'bg-white border border-gray-200'}"
+											: 'bg-white border border-border'}"
 										onclick={(e) => e.stopPropagation()}
 										onkeydown={(e) => {
 											if (e.key === 'Escape') showAdminMenu = false;
@@ -444,7 +395,7 @@
 										<div
 											class="px-4 py-3 text-sm border-b {platform === 'ios'
 												? 'border-white/30'
-												: 'border-gray-200'}"
+												: 'border-border'}"
 										>
 											<div class="font-semibold text-purple-700">
 												{$t('nav.admin')}
@@ -454,7 +405,7 @@
 										<a
 											href={resolve('/admin/users')}
 											onclick={() => (showAdminMenu = false)}
-											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+											class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 										>
 											<svg
 												class="w-5 h-5 mr-3"
@@ -475,7 +426,7 @@
 										<a
 											href={resolve('/admin/audit-log')}
 											onclick={() => (showAdminMenu = false)}
-											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+											class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 										>
 											<svg
 												class="w-5 h-5 mr-3"
@@ -496,7 +447,7 @@
 										<a
 											href={resolve('/admin/system-health')}
 											onclick={() => (showAdminMenu = false)}
-											class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+											class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 										>
 											<svg
 												class="w-5 h-5 mr-3"
@@ -518,7 +469,7 @@
 											<a
 												href={resolve('/admin/email-templates')}
 												onclick={() => (showAdminMenu = false)}
-												class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+												class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 											>
 												<svg
 													class="w-5 h-5 mr-3"
@@ -542,23 +493,24 @@
 						{/if}
 
 						<!-- Notifications (hidden during impersonation) -->
+						<!-- Mobile: bell sits before the "+" to match the mockup order (bell · +); desktop keeps its natural position. -->
 						{#if !$authStore.user?.is_impersonating}
-							<div class="relative">
+							<div class="relative order-first sm:order-none">
 								<NotificationPanel />
 							</div>
 						{/if}
 					{/if}
 
-					<!-- User Menu (hidden during impersonation) -->
+					<!-- User Menu (hidden during impersonation; desktop only — Profile is a bottom-nav place on mobile, so no redundant user icon in the mobile header) -->
 					{#if !$authStore.user?.is_impersonating}
-						<div class="relative">
+						<div class="relative hidden sm:block">
 							<button
 								type="button"
 								onclick={(e) => {
 									e.stopPropagation();
 									showUserMenu = !showUserMenu;
 								}}
-								class="flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
+								class="flex items-center text-sm text-text-subtle hover:text-text-ink2 transition-colors"
 								aria-label={$t('aria.openUserMenu')}
 								aria-expanded={showUserMenu}
 							>
@@ -584,7 +536,7 @@
 									class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
 									'ios'
 										? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
-										: 'bg-white border border-gray-200'}"
+										: 'bg-white border border-border'}"
 									onclick={(e) => e.stopPropagation()}
 									onkeydown={(e) => {
 										if (e.key === 'Escape') showUserMenu = false;
@@ -594,15 +546,15 @@
 										<div
 											class="px-4 py-3 text-sm border-b {platform === 'ios'
 												? 'border-white/30'
-												: 'border-gray-200'}"
+												: 'border-border'}"
 										>
 											{#if $authStore.user.first_name || $authStore.user.last_name}
-												<div class="font-semibold text-gray-900 mb-1">
+												<div class="font-semibold text-text mb-1">
 													{$authStore.user.first_name || ''}
 													{$authStore.user.last_name || ''}
 												</div>
 											{/if}
-											<div class="text-xs text-gray-600 break-all">
+											<div class="text-xs text-text-muted break-all">
 												{$authStore.user.email}
 											</div>
 										</div>
@@ -611,7 +563,7 @@
 									<a
 										href={resolve('/profile')}
 										onclick={() => (showUserMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 									>
 										<svg
 											class="w-5 h-5 mr-3"
@@ -632,7 +584,7 @@
 									<a
 										href={resolve('/security')}
 										onclick={() => (showUserMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 									>
 										<svg
 											class="w-5 h-5 mr-3"
@@ -653,7 +605,7 @@
 									<a
 										href={resolve('/notifications')}
 										onclick={() => (showUserMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
 									>
 										<svg
 											class="w-5 h-5 mr-3"
@@ -674,7 +626,7 @@
 									<button
 										type="button"
 										onclick={handleLogout}
-										class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-gray-50 transition-colors"
+										class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-surface-1 transition-colors"
 									>
 										<svg
 											class="w-5 h-5 mr-3"
@@ -702,8 +654,7 @@
 {/if}
 
 <main
-	class="max-w-7xl mx-auto pt-14 pb-6 px-4 sm:px-6 lg:px-8"
-	class:pt-4={!$authStore.isAuthenticated}
+	class="max-w-7xl mx-auto pt-4 pb-6 px-4 sm:px-6 lg:px-8"
 	class:main-with-mobile-nav={showMobileNav && platform !== 'ios'}
 	class:main-with-mobile-nav-floating={showMobileNav && platform === 'ios'}
 >
@@ -711,14 +662,14 @@
 </main>
 
 <footer
-	class="bg-gradient-to-b from-gray-50 to-gray-100 border-t border-gray-200 mt-12 hidden sm:block"
+	class="bg-gradient-to-b from-surface-1 to-border-soft border-t border-border mt-12 hidden sm:block"
 >
 	<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
 			<!-- App Info -->
 			<div class="space-y-4">
-				<h3 class="text-lg font-bold text-gray-900">{$t('common.appName')}</h3>
-				<p class="text-sm text-gray-600 leading-relaxed">
+				<h3 class="text-lg font-bold text-text">{$t('common.appName')}</h3>
+				<p class="text-sm text-text-muted leading-relaxed">
 					{$t('footer.description')}
 				</p>
 				<div class="flex space-x-3">
@@ -726,7 +677,7 @@
 						href="https://github.com/sbaerlocher/savvy"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-gray-500 hover:text-gray-700 transition-colors"
+						class="text-text-subtle hover:text-text-ink2 transition-colors"
 						aria-label={$t('aria.githubLink')}
 					>
 						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -742,16 +693,14 @@
 
 			<!-- Quick Links -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-gray-900 uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.quickLinks')}
 				</h3>
 				<ul class="space-y-2">
 					<li>
 						<a
 							href={resolve('/dashboard')}
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.start')}
 						</a>
@@ -759,7 +708,7 @@
 					<li>
 						<a
 							href={resolve('/wallet')}
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.wallet')}
 						</a>
@@ -767,7 +716,7 @@
 					<li>
 						<a
 							href={resolve('/profile')}
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.profile')}
 						</a>
@@ -777,9 +726,7 @@
 
 			<!-- Resources -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-gray-900 uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.resources')}
 				</h3>
 				<ul class="space-y-2">
@@ -788,7 +735,7 @@
 							href="https://github.com/sbaerlocher/savvy#readme"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('footer.documentation')}
 						</a>
@@ -798,7 +745,7 @@
 							href="https://github.com/sbaerlocher/savvy/issues"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('footer.reportBug')}
 						</a>
@@ -808,7 +755,7 @@
 							href="https://github.com/sbaerlocher/savvy/releases"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('footer.changelog')}
 						</a>
@@ -818,9 +765,7 @@
 
 			<!-- Tech Stack -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-gray-900 uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.builtWith')}
 				</h3>
 				<ul class="space-y-2">
@@ -829,7 +774,7 @@
 							href="https://svelte.dev"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							SvelteKit
 						</a>
@@ -839,7 +784,7 @@
 							href="https://echo.labstack.com"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							Echo Framework
 						</a>
@@ -849,7 +794,7 @@
 							href="https://tailwindcss.com"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							Tailwind CSS
 						</a>
@@ -859,7 +804,7 @@
 							href="https://gorm.io"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							GORM
 						</a>
@@ -869,12 +814,12 @@
 		</div>
 
 		<!-- Bottom Bar -->
-		<div class="mt-8 pt-8 border-t border-gray-300">
+		<div class="mt-8 pt-8 border-t border-border-field">
 			<div
 				class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
 			>
 				<div
-					class="flex flex-col md:flex-row items-center gap-3 text-sm text-gray-500"
+					class="flex flex-col md:flex-row items-center gap-3 text-sm text-text-subtle"
 				>
 					<p>{$t('footer.copyright')}</p>
 					<span class="hidden md:inline">•</span>
@@ -895,7 +840,7 @@
 						<span>v{__APP_VERSION__}</span>
 					</p>
 				</div>
-				<div class="flex items-center space-x-2 text-sm text-gray-500">
+				<div class="flex items-center space-x-2 text-sm text-text-subtle">
 					<span>{$t('footer.developedWith')}</span>
 					<svg
 						class="w-4 h-4 text-red-500"
@@ -918,13 +863,13 @@
 <Toast />
 
 {#if showMobileNav}
-	<MobileNav onNew={() => (showNewDialog = true)} />
+	<MobileNav onNew={() => ($showNewDialog = true)} />
 {/if}
 
 <!-- Global type-choice ("New") dialog, triggered from desktop button, iOS header +, Android FAB -->
 <TypeChoiceDialog
-	bind:open={showNewDialog}
-	onClose={() => (showNewDialog = false)}
+	bind:open={$showNewDialog}
+	onClose={() => ($showNewDialog = false)}
 />
 
 <svelte:window

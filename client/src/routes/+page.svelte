@@ -16,7 +16,7 @@
 
 <div class="min-h-screen flex items-center justify-center">
 	<div class="text-center">
-		<h1 class="text-4xl font-bold text-primary-600 mb-4">Savvy</h1>
-		<p class="text-gray-600">Lade...</p>
+		<h1 class="text-4xl font-bold text-accent mb-4">Savvy</h1>
+		<p class="text-text-muted">Lade...</p>
 	</div>
 </div>

@@ -207,7 +207,7 @@
 				<option value="GBP">GBP</option>
 			</select>
 		</div>
-		<p class="text-sm text-gray-500 mt-1">
+		<p class="text-sm text-text-subtle mt-1">
 			{$t('giftCards.initialBalanceDesc')}
 		</p>
 	</div>
@@ -221,7 +221,7 @@
 			class="input"
 			placeholder="1234"
 		/>
-		<p class="text-sm text-gray-500 mt-1">{$t('giftCards.pinDesc')}</p>
+		<p class="text-sm text-text-subtle mt-1">{$t('giftCards.pinDesc')}</p>
 	</div>
 
 	<div>
@@ -232,7 +232,7 @@
 			bind:value={expiresAt}
 			class="input w-full text-base"
 		/>
-		<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+		<p class="text-xs text-text-subtle mt-1 hidden sm:block">
 			{$t('giftCards.expiresAtDesc')}
 		</p>
 	</div>

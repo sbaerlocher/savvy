@@ -39,39 +39,155 @@
 		}
 	];
 
-	// iOS Health-pattern: tapping search opens Wallet with focused search field.
-	// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
-	const openSearch = () => goto(resolve('/wallet') + '?search=1');
+	// iOS Liquid Glass: the search pill expands inline into a text field (no
+	// navigation to a separate search bar). Typing drives /wallet?search=<query>
+	// so the wallet list filters reactively; the field itself stays in the nav.
+	let searchActive = $state(false);
+	let searchValue = $state('');
+	let searchEl = $state<HTMLInputElement | null>(null);
+	let searchDebounce: ReturnType<typeof setTimeout> | null = null;
+
+	// Prefill from the current ?search param so re-opening keeps the query.
+	$effect(() => {
+		const param = $page.url.searchParams.get('search');
+		if (param && param !== '1') searchValue = param;
+	});
+
+	$effect(() => {
+		if (searchActive && searchEl) searchEl.focus();
+	});
+
+	function openSearch() {
+		searchActive = true;
+	}
+
+	function closeSearch() {
+		searchActive = false;
+		searchValue = '';
+		if (searchDebounce) clearTimeout(searchDebounce);
+		if ($page.url.pathname.startsWith('/wallet')) goto(resolve('/wallet'));
+	}
+
+	function onSearchInput() {
+		if (searchDebounce) clearTimeout(searchDebounce);
+		const q = searchValue.trim();
+		searchDebounce = setTimeout(() => {
+			const target =
+				resolve('/wallet') +
+				(q ? `?search=${encodeURIComponent(q)}` : '?search=1');
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
+			goto(target, {
+				keepFocus: true,
+				replaceState: true
+			});
+		}, 250);
+	}
 
 	const linkClass = (path: string) => {
 		const base =
 			'flex flex-col items-center justify-center transition-colors relative';
-		if (!isActive(path)) return `${base} text-gray-600`;
-		if (platform === 'android') return `${base} text-cyan-700 font-semibold`;
-		return `${base} text-cyan-600 font-semibold`;
+		if (!isActive(path)) return `${base} text-text-muted`;
+		if (platform === 'android')
+			return `${base} text-accent-hover font-semibold`;
+		return `${base} text-accent font-semibold`;
 	};
 </script>
 
 {#if platform === 'ios'}
 	<!-- iOS 26 tab-bar pattern: two separate floating glass pills (places + search) -->
 	<div
+		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 mx-2 z-50 flex items-center gap-2 mobile-nav mobile-nav-floating"
 		style="-webkit-tap-highlight-color: transparent;"
 	>
-		<nav
-			class="flex-1 grid grid-cols-3 h-16 rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg"
-		>
-			{#each places as place (place.path)}
-				<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
-				<a
-					href={place.href}
-					data-sveltekit-preload-data={preloadStrategy}
-					class={linkClass(place.path)}
+		{#if !searchActive}
+			<nav
+				class="flex-1 grid grid-cols-3 h-16 rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg"
+			>
+				{#each places as place (place.path)}
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
+					<a
+						href={place.href}
+						data-sveltekit-preload-data={preloadStrategy}
+						class={linkClass(place.path)}
+					>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+						{#if isActive(place.path)}
+							<span class="liquid-glass-pill"></span>
+						{/if}
+						<svg
+							class="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d={place.icon}
+							/>
+						</svg>
+						<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span
+						>
+					</a>
+				{/each}
+			</nav>
+			<!-- Round search pill (collapsed) -->
+			<button
+				type="button"
+				onclick={openSearch}
+				aria-label={$t('common.search')}
+				class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-text-muted"
+			>
+				<svg
+					class="w-6 h-6"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
 				>
-					<!-- eslint-enable svelte/no-navigation-without-resolve -->
-					{#if isActive(place.path)}
-						<span class="liquid-glass-pill"></span>
-					{/if}
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+					/>
+				</svg>
+			</button>
+		{:else}
+			<!-- Expanded inline search field (Liquid Glass) -->
+			<div
+				class="flex-1 flex items-center gap-2 h-16 px-5 rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg"
+			>
+				<svg
+					class="w-6 h-6 shrink-0 text-text-muted"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+					/>
+				</svg>
+				<input
+					bind:this={searchEl}
+					bind:value={searchValue}
+					oninput={onSearchInput}
+					type="search"
+					enterkeyhint="search"
+					placeholder={$t('common.search')}
+					aria-label={$t('common.search')}
+					class="flex-1 min-w-0 bg-transparent text-text placeholder:text-text-subtle focus:outline-none"
+				/>
+				<button
+					type="button"
+					onclick={closeSearch}
+					aria-label={$t('common.cancel')}
+					class="shrink-0 text-text-muted hover:text-text-strong"
+				>
 					<svg
 						class="w-6 h-6"
 						fill="none"
@@ -82,34 +198,12 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d={place.icon}
+							d="M6 18L18 6M6 6l12 12"
 						/>
 					</svg>
-					<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span>
-				</a>
-			{/each}
-		</nav>
-		<!-- Separate round search pill -->
-		<button
-			type="button"
-			onclick={openSearch}
-			aria-label={$t('common.search')}
-			class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-gray-600"
-		>
-			<svg
-				class="w-6 h-6"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-				/>
-			</svg>
-		</button>
+				</button>
+			</div>
+		{/if}
 	</div>
 {:else}
 	<!-- Android Material 3 edge-to-edge bar + FAB for New. Search lives in top bar. -->
@@ -117,7 +211,7 @@
 		type="button"
 		onclick={onNew}
 		aria-label={$t('common.new')}
-		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg mobile-nav-fab"
+		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab"
 	>
 		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
@@ -129,6 +223,7 @@
 		</svg>
 	</button>
 	<nav
+		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
 		'android'
 			? 'bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
@@ -146,7 +241,7 @@
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{#if platform === 'android' && isActive(place.path)}
 						<span
-							class="absolute -inset-x-1.5 top-1 bottom-1 bg-cyan-100 rounded-full -z-10"
+							class="absolute -inset-x-1.5 top-1 bottom-1 bg-accent-100 rounded-full -z-10"
 						></span>
 					{:else if isActive(place.path)}
 						<span class="liquid-glass-pill"></span>

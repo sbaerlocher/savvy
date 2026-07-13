@@ -85,7 +85,7 @@
 	{#if isLoading}
 		<LoadingSpinner />
 	{:else if error}
-		<div class="rounded-xl border border-gray-200/80 bg-white p-6 text-center">
+		<div class="rounded-xl border border-border/80 bg-white p-6 text-center">
 			<p class="mb-4 text-red-600">{error}</p>
 			<button onclick={loadDashboard} class="btn btn-primary"
 				>{$t('common.retry')}</button
@@ -104,7 +104,7 @@
 				>
 					{#snippet actions()}
 						{#if isRefreshing}
-							<span class="animate-pulse text-xs text-gray-400"
+							<span class="animate-pulse text-xs text-text-faint"
 								>{$t('common.refreshing')}</span
 							>
 						{/if}
@@ -118,30 +118,30 @@
 			>
 				<div
 					data-testid="dashboard-stat-balance"
-					class="rounded-xl border border-gray-200/80 bg-white px-4 py-3 lg:min-w-32"
+					class="rounded-xl border border-border/80 bg-white px-4 py-3 lg:min-w-32"
 				>
-					<p class="text-2xl font-bold tabular-nums text-gray-900">
+					<p class="text-2xl font-bold tabular-nums text-text">
 						CHF {Math.round(data.stats.total_balance)}
 					</p>
-					<p class="text-sm text-gray-500">
+					<p class="text-sm text-text-subtle">
 						{$t('dashboard.totalBalanceShort')}
 					</p>
 				</div>
 				<div
 					data-testid="dashboard-stat-entries"
-					class="rounded-xl border border-gray-200/80 bg-white px-4 py-3 lg:min-w-32"
+					class="rounded-xl border border-border/80 bg-white px-4 py-3 lg:min-w-32"
 				>
-					<p class="text-2xl font-bold tabular-nums text-gray-900">
+					<p class="text-2xl font-bold tabular-nums text-text">
 						{entriesCount}
 					</p>
-					<p class="text-sm text-gray-500">{$t('dashboard.entries')}</p>
+					<p class="text-sm text-text-subtle">{$t('dashboard.entries')}</p>
 				</div>
 			</div>
 
 			<!-- At-checkout favorites: barcode always visible (register quick access) -->
 			<section class="order-2 lg:col-span-2 lg:row-start-2">
 				<h2
-					class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500"
+					class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle"
 				>
 					{$t('dashboard.atCheckout')}
 				</h2>

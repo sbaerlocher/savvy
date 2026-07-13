@@ -5,10 +5,10 @@
  */
 export const categoryColors = {
 	cards: {
-		badge: 'bg-cyan-100 text-cyan-800',
-		accent: 'bg-cyan-500',
-		filter: 'bg-cyan-50 text-cyan-700',
-		action: 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'
+		badge: 'bg-accent-100 text-accent-800',
+		accent: 'bg-accent',
+		filter: 'bg-accent-50 text-accent-hover',
+		action: 'bg-accent-50 text-accent-hover hover:bg-accent-100'
 	},
 	vouchers: {
 		badge: 'bg-emerald-100 text-emerald-800',

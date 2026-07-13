@@ -1,30 +1,14 @@
 @import 'tailwindcss';
 
-@theme {
-	/* Brand palette based on logo color #85d3dc */
-	--color-cyan-50: #f0fafb;
-	--color-cyan-100: #d6eff3;
-	--color-cyan-200: #b1e1e8;
-	--color-cyan-300: #85d3dc;
-	--color-cyan-400: #54b8c6;
-	--color-cyan-500: #389daa;
-	--color-cyan-600: #2b808d;
-	--color-cyan-700: #236974;
-	--color-cyan-800: #1e575f;
-	--color-cyan-900: #1a484f;
+/* Self-hosted fonts (offline-safe PWA — no external CDN). Matches the mockup:
+   Instrument Sans for UI, IBM Plex Mono for codes/numeric readouts. */
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 
-	/* Primary alias (same as cyan) */
-	--color-primary-50: #f0fafb;
-	--color-primary-100: #d6eff3;
-	--color-primary-200: #b1e1e8;
-	--color-primary-300: #85d3dc;
-	--color-primary-400: #54b8c6;
-	--color-primary-500: #389daa;
-	--color-primary-600: #2b808d;
-	--color-primary-700: #236974;
-	--color-primary-800: #1e575f;
-	--color-primary-900: #1a484f;
-}
+/* Design tokens — single source of truth extracted from the design files. */
+@import './tokens.css';
 
 @layer base {
 	html {
@@ -34,7 +18,10 @@
 	}
 
 	body {
-		@apply bg-gray-50 text-gray-900;
+		@apply font-sans text-text;
+		/* App ground from the design tokens. */
+		background-color: var(--color-ground);
+		-webkit-font-smoothing: antialiased;
 	}
 
 	/* Global select normalization — intentionally applies to all <select> elements
@@ -67,12 +54,12 @@
 
 	/* Button Colors - Primary Actions */
 	.btn-primary {
-		@apply bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500;
+		@apply bg-accent text-white hover:bg-accent-hover focus:ring-2 focus:ring-offset-2 focus:ring-accent;
 	}
 
 	/* Button Colors - Secondary Actions */
 	.btn-secondary {
-		@apply bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+		@apply bg-border text-text hover:bg-border-field focus:ring-2 focus:ring-offset-2 focus:ring-text-faint;
 	}
 
 	/* Button Colors - Danger/Delete Actions */
@@ -97,17 +84,17 @@
 
 	/* Button Colors - Gray Actions */
 	.btn-gray {
-		@apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-offset-2 focus:ring-gray-500;
+		@apply bg-text-muted text-white hover:bg-text-ink2 focus:ring-2 focus:ring-offset-2 focus:ring-text-subtle;
 	}
 
 	/* Button Colors - Ghost/Outline */
 	.btn-ghost {
-		@apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+		@apply bg-white text-text-ink2 border border-border-field hover:bg-surface-1 focus:ring-2 focus:ring-offset-2 focus:ring-text-faint;
 	}
 
 	/* Button Colors - Favorite Toggle */
 	.btn-favorite {
-		@apply bg-gray-100 text-gray-600 hover:bg-gray-200 rounded text-sm transition;
+		@apply bg-border-soft text-text-muted hover:bg-border rounded text-sm transition;
 	}
 
 	.btn-favorite.active {
@@ -116,7 +103,7 @@
 
 	/* Button Colors - Text Only */
 	.btn-text {
-		@apply bg-transparent text-cyan-600 hover:text-cyan-800 px-0;
+		@apply bg-transparent text-accent hover:text-accent-800 px-0;
 	}
 
 	.btn-text-danger {
@@ -130,11 +117,11 @@
 
 	/* Input styles */
 	.input {
-		@apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20;
+		@apply w-full rounded-md border border-border-field bg-white px-3 py-2 text-text placeholder:text-text-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
 	}
 
 	.label {
-		@apply block text-sm font-medium text-gray-700 mb-1;
+		@apply block text-sm font-medium text-text-ink2 mb-1;
 	}
 
 	/* iOS floating nav offset – single source of truth for nav, batch panel, and main content */
@@ -162,6 +149,53 @@
 	@media (display-mode: standalone) {
 		:root {
 			--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 0.5rem);
+		}
+	}
+
+	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
+	   translucent tint so content behind shows through, a bright hairline border
+	   and an inset specular highlight. No SVG displacement (unsupported in
+	   Safari/WebView). Two tints: --glass-sheet (deeper, the panel) and
+	   --glass-card (lighter milky insets that sit on the sheet). */
+	.liquid-glass-surface {
+		background: rgba(255, 255, 255, 0.18);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.45);
+		box-shadow:
+			0 8px 32px rgba(31, 38, 135, 0.14),
+			inset 0 1px 0 rgba(255, 255, 255, 0.6);
+	}
+
+	.liquid-glass-card {
+		background: rgba(255, 255, 255, 0.4);
+		backdrop-filter: blur(12px) saturate(160%);
+		-webkit-backdrop-filter: blur(12px) saturate(160%);
+		border: 1px solid rgba(255, 255, 255, 0.5);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	}
+
+	/* Pull-down menu: an iOS context menu is near-opaque so its text stays
+	   readable — heavier tint + blur than the flat glass surfaces. */
+	.liquid-glass-menu {
+		background: rgba(252, 252, 251, 0.99);
+		backdrop-filter: blur(30px) saturate(180%);
+		-webkit-backdrop-filter: blur(30px) saturate(180%);
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		box-shadow:
+			0 12px 32px rgba(31, 38, 135, 0.22),
+			inset 0 1px 0 rgba(255, 255, 255, 0.7);
+	}
+
+	@supports not (backdrop-filter: blur(1px)) {
+		.liquid-glass-surface {
+			background: rgba(255, 255, 255, 0.92);
+		}
+		.liquid-glass-card {
+			background: rgba(255, 255, 255, 0.85);
+		}
+		.liquid-glass-menu {
+			background: rgba(250, 250, 249, 0.98);
 		}
 	}
 

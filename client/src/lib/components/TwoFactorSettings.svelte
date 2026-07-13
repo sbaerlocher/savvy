@@ -140,14 +140,11 @@
 	}
 </script>
 
-<div
-	class="bg-white rounded-lg shadow-lg p-6 overflow-hidden"
-	style="border-left: 6px solid #06b6d4"
->
-	<h2 class="text-lg font-semibold text-gray-900 mb-2">
+<div class="overflow-hidden rounded-xl border border-border bg-white p-6">
+	<h2 class="text-lg font-semibold text-text mb-2">
 		{tr('settings.twoFactor.title')}
 	</h2>
-	<p class="text-sm text-gray-600 mb-4">
+	<p class="text-sm text-text-muted mb-4">
 		{tr('settings.twoFactor.description')}
 	</p>
 
@@ -155,18 +152,18 @@
 		<div class="flex justify-center py-4">
 			<span class="relative inline-flex h-5 w-5"
 				><span
-					class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+					class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 				></span><span
-					class="relative inline-flex rounded-full h-5 w-5 bg-cyan-500"
+					class="relative inline-flex rounded-full h-5 w-5 bg-accent"
 				></span></span
 			>
 		</div>
 	{:else if authProvider !== 'local'}
-		<p class="text-sm text-gray-500">
+		<p class="text-sm text-text-subtle">
 			{tr('settings.twoFactor.oauthNote')}
 		</p>
 	{:else if !isLocalAuth}
-		<p class="text-sm text-gray-500">
+		<p class="text-sm text-text-subtle">
 			{tr('settings.twoFactor.oauthNote')}
 		</p>
 	{:else}
@@ -188,7 +185,7 @@
 					</span>
 				{:else}
 					<span
-						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-strong"
 					>
 						{tr('settings.twoFactor.disabled')}
 					</span>
@@ -228,16 +225,16 @@
 				{#if isSettingUp}
 					<span class="relative inline-flex h-3 w-3 mr-2"
 						><span
-							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 						></span><span
-							class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+							class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 						></span></span
 					>
 				{/if}
 				{tr('settings.twoFactor.enableButton')}
 			</button>
 		{:else}
-			<p class="text-sm text-gray-500">
+			<p class="text-sm text-text-subtle">
 				{tr('settings.twoFactor.enrollmentDisabled')}
 			</p>
 		{/if}
@@ -252,18 +249,18 @@
 		<div
 			class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
 		>
-			<h3 class="text-lg font-semibold text-gray-900 mb-4">
+			<h3 class="text-lg font-semibold text-text mb-4">
 				{tr('settings.twoFactor.setupTitle')}
 			</h3>
 
 			<div class="space-y-4 mb-6">
-				<p class="text-sm text-gray-600">
+				<p class="text-sm text-text-muted">
 					{tr('settings.twoFactor.setupStep1')}
 				</p>
-				<p class="text-sm text-gray-600">
+				<p class="text-sm text-text-muted">
 					{tr('settings.twoFactor.setupStep2')}
 				</p>
-				<p class="text-sm text-gray-600">
+				<p class="text-sm text-text-muted">
 					{tr('settings.twoFactor.setupStep3')}
 				</p>
 			</div>
@@ -271,7 +268,7 @@
 			<!-- QR Code -->
 			<div class="flex flex-col items-center mb-6">
 				{#if !showManualEntry}
-					<p class="text-sm font-medium text-gray-700 mb-2">
+					<p class="text-sm font-medium text-text-ink2 mb-2">
 						{tr('settings.twoFactor.scanQrCode')}
 					</p>
 					<img
@@ -284,16 +281,16 @@
 						onclick={() => {
 							showManualEntry = true;
 						}}
-						class="text-sm text-cyan-600 hover:text-cyan-500 mt-2"
+						class="text-sm text-accent hover:text-accent mt-2"
 					>
 						{tr('settings.twoFactor.manualEntry')}
 					</button>
 				{:else}
-					<p class="text-sm font-medium text-gray-700 mb-2">
+					<p class="text-sm font-medium text-text-ink2 mb-2">
 						{tr('settings.twoFactor.secretKey')}
 					</p>
 					<code
-						class="bg-gray-100 px-4 py-2 rounded text-sm font-mono break-all select-all"
+						class="bg-border-soft px-4 py-2 rounded text-sm font-mono break-all select-all"
 					>
 						{secret}
 					</code>
@@ -302,7 +299,7 @@
 						onclick={() => {
 							showManualEntry = false;
 						}}
-						class="text-sm text-cyan-600 hover:text-cyan-500 mt-2"
+						class="text-sm text-accent hover:text-accent mt-2"
 					>
 						{tr('settings.twoFactor.scanQrCode')}
 					</button>
@@ -314,7 +311,7 @@
 				<div>
 					<label
 						for="setupCode"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('settings.twoFactor.enterCode')}
 					</label>
@@ -328,7 +325,7 @@
 						required
 						bind:value={setupCode}
 						disabled={isSettingUp}
-						class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-center text-2xl font-mono tracking-widest"
+						class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center text-2xl font-mono tracking-widest"
 						placeholder={tr('settings.twoFactor.codePlaceholder')}
 					/>
 				</div>
@@ -353,9 +350,9 @@
 						{#if isSettingUp}
 							<span class="relative inline-flex h-3 w-3 mr-2"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 								></span></span
 							>
 							{tr('settings.twoFactor.verifying')}
@@ -375,14 +372,14 @@
 		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
 	>
 		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-			<h3 class="text-lg font-semibold text-gray-900 mb-2">
+			<h3 class="text-lg font-semibold text-text mb-2">
 				{tr('settings.twoFactor.backupCodesTitle')}
 			</h3>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('settings.twoFactor.backupCodesDescription')}
 			</p>
 
-			<div class="bg-gray-50 rounded-lg p-4 mb-4">
+			<div class="bg-surface-1 rounded-lg p-4 mb-4">
 				<div class="grid grid-cols-2 gap-2">
 					{#each backupCodes as code (code)}
 						<code
@@ -398,9 +395,9 @@
 				<input
 					type="checkbox"
 					bind:checked={backupCodesConfirmed}
-					class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+					class="rounded border-border-field text-accent focus:ring-accent"
 				/>
-				<span class="text-sm text-gray-700"
+				<span class="text-sm text-text-ink2"
 					>{tr('settings.twoFactor.backupCodesSaved')}</span
 				>
 			</label>
@@ -426,7 +423,7 @@
 			<h3 class="text-lg font-semibold text-red-600 mb-2">
 				{tr('settings.twoFactor.disableButton')}
 			</h3>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('settings.twoFactor.disableConfirm')}
 			</p>
 
@@ -441,7 +438,7 @@
 						required
 						bind:value={disableCode}
 						disabled={isDisabling}
-						class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-center text-2xl font-mono tracking-widest"
+						class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center text-2xl font-mono tracking-widest"
 						placeholder={tr('settings.twoFactor.codePlaceholder')}
 					/>
 				</div>
@@ -466,9 +463,9 @@
 						{#if isDisabling}
 							<span class="relative inline-flex h-3 w-3 mr-2"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 								></span></span
 							>
 						{/if}
@@ -486,10 +483,10 @@
 		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
 	>
 		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-			<h3 class="text-lg font-semibold text-gray-900 mb-2">
+			<h3 class="text-lg font-semibold text-text mb-2">
 				{tr('settings.twoFactor.regenerateBackupCodes')}
 			</h3>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('settings.twoFactor.regenerateConfirm')}
 			</p>
 
@@ -504,7 +501,7 @@
 						required
 						bind:value={regenerateCode}
 						disabled={isRegenerating}
-						class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-center text-2xl font-mono tracking-widest"
+						class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center text-2xl font-mono tracking-widest"
 						placeholder={tr('settings.twoFactor.codePlaceholder')}
 					/>
 				</div>
@@ -529,9 +526,9 @@
 						{#if isRegenerating}
 							<span class="relative inline-flex h-3 w-3 mr-2"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 								></span></span
 							>
 						{/if}

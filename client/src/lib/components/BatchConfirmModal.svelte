@@ -180,7 +180,7 @@
 						</h3>
 					</div>
 				</div>
-				<p class="text-gray-600 mb-6 ml-9">
+				<p class="text-text-muted mb-6 ml-9">
 					{tr('batch.confirmDeleteMessage', { count })}
 				</p>
 				<div class="flex gap-3 justify-end">
@@ -188,7 +188,7 @@
 						type="button"
 						onclick={onCancel}
 						disabled={isLoading}
-						class="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700"
+						class="px-4 py-2 rounded-md border border-border-field hover:bg-surface-1 transition-colors text-text-ink2"
 					>
 						{tr('common.cancel')}
 					</button>
@@ -228,22 +228,21 @@
 				</div>
 			{:else if action === 'share'}
 				<!-- Share -->
-				<h3
-					id="batch-modal-title"
-					class="text-lg font-semibold text-gray-900 mb-2"
-				>
+				<h3 id="batch-modal-title" class="text-lg font-semibold text-text mb-2">
 					{tr('batch.confirmShareTitle')}
 				</h3>
-				<p class="text-sm text-gray-600 mb-4">
+				<p class="text-sm text-text-muted mb-4">
 					{tr('batch.confirmShareMessage', { count })}
 				</p>
 
-				<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4">
+				<div
+					class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+				>
 					<!-- Email with Autocomplete -->
 					<div class="relative">
 						<label
 							for="batch-email"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('batch.email')} *
 						</label>
@@ -262,15 +261,15 @@
 
 						{#if showSuggestions && suggestedUsers.length > 0}
 							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
+								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
 							>
 								{#each suggestedUsers as user (user.id)}
 									<button
 										type="button"
 										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
 									>
-										<div class="font-medium text-sm text-gray-900">
+										<div class="font-medium text-sm text-text">
 											{#if user.first_name && user.last_name}
 												{user.first_name} {user.last_name}
 											{:else if user.first_name}
@@ -279,13 +278,13 @@
 												{user.email}
 											{/if}
 										</div>
-										<div class="text-xs text-gray-500">{user.email}</div>
+										<div class="text-xs text-text-subtle">{user.email}</div>
 									</button>
 								{/each}
 							</div>
 						{/if}
 
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-text-subtle mt-1">
 							{tr('giftCards.sharing.userMustBeRegistered')}
 						</p>
 					</div>
@@ -293,10 +292,10 @@
 					<!-- Permissions -->
 					{#if hidePermissions}
 						<div
-							class="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3"
+							class="flex items-start gap-2 bg-surface-1 border border-border rounded-lg p-3"
 						>
 							<svg
-								class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+								class="w-4 h-4 text-text-subtle mt-0.5 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -308,7 +307,7 @@
 									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								></path>
 							</svg>
-							<p class="text-sm text-gray-600">{tr('batch.readOnlyShare')}</p>
+							<p class="text-sm text-text-muted">{tr('batch.readOnlyShare')}</p>
 						</div>
 					{:else}
 						<div class="space-y-2">
@@ -317,13 +316,13 @@
 									type="checkbox"
 									bind:checked={canEdit}
 									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 								/>
 								<div class="ml-2">
-									<span class="block text-sm font-medium text-gray-900"
+									<span class="block text-sm font-medium text-text"
 										>{tr('cards.sharing.canEdit')}</span
 									>
-									<span class="text-xs text-gray-500"
+									<span class="text-xs text-text-subtle"
 										>{tr('cards.sharing.canEditDesc')}</span
 									>
 								</div>
@@ -333,13 +332,13 @@
 									type="checkbox"
 									bind:checked={canDelete}
 									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 								/>
 								<div class="ml-2">
-									<span class="block text-sm font-medium text-gray-900"
+									<span class="block text-sm font-medium text-text"
 										>{tr('cards.sharing.canDelete')}</span
 									>
-									<span class="text-xs text-gray-500"
+									<span class="text-xs text-text-subtle"
 										>{tr('cards.sharing.canDeleteDesc')}</span
 									>
 								</div>
@@ -350,13 +349,13 @@
 										type="checkbox"
 										bind:checked={canEditTransactions}
 										disabled={isLoading}
-										class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+										class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 									/>
 									<div class="ml-2">
-										<span class="block text-sm font-medium text-gray-900"
+										<span class="block text-sm font-medium text-text"
 											>{tr('giftCards.sharing.canManageTransactions')}</span
 										>
-										<span class="text-xs text-gray-500"
+										<span class="text-xs text-text-subtle"
 											>{tr('giftCards.sharing.canManageTransactionsDesc')}</span
 										>
 									</div>
@@ -418,7 +417,7 @@
 				>
 					{tr('batch.confirmTransferTitle')}
 				</h3>
-				<p class="text-sm text-gray-600 mb-4">
+				<p class="text-sm text-text-muted mb-4">
 					{tr('batch.confirmTransferMessage', { count })}
 				</p>
 
@@ -439,7 +438,7 @@
 					<div class="relative">
 						<label
 							for="batch-transfer-email"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('cards.transfer.newOwnerEmail')} *
 						</label>
@@ -458,15 +457,15 @@
 
 						{#if showSuggestions && suggestedUsers.length > 0}
 							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
+								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
 							>
 								{#each suggestedUsers as user (user.id)}
 									<button
 										type="button"
 										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
 									>
-										<div class="font-medium text-sm text-gray-900">
+										<div class="font-medium text-sm text-text">
 											{#if user.first_name && user.last_name}
 												{user.first_name} {user.last_name}
 											{:else if user.first_name}
@@ -475,23 +474,23 @@
 												{user.email}
 											{/if}
 										</div>
-										<div class="text-xs text-gray-500">{user.email}</div>
+										<div class="text-xs text-text-subtle">{user.email}</div>
 									</button>
 								{/each}
 							</div>
 						{/if}
 
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-text-subtle mt-1">
 							{tr('giftCards.sharing.userMustBeRegistered')}
 						</p>
 					</div>
 
 					<!-- What Happens -->
 					<div>
-						<p class="text-sm font-medium text-gray-700 mb-2">
+						<p class="text-sm font-medium text-text-ink2 mb-2">
 							{tr('cards.transfer.whatHappens')}
 						</p>
-						<ul class="text-xs text-gray-600 space-y-1">
+						<ul class="text-xs text-text-muted space-y-1">
 							<li>{tr('cards.transfer.newOwnerGetsRights')}</li>
 							<li>{tr('cards.transfer.allSharesDeleted')}</li>
 							<li>{tr('cards.transfer.youLoseAccess')}</li>

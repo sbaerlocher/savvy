@@ -60,10 +60,10 @@
 		<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 			<div class="mb-6 text-center">
 				<div
-					class="mx-auto w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mb-4"
+					class="mx-auto w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mb-4"
 				>
 					<svg
-						class="w-6 h-6 text-cyan-600"
+						class="w-6 h-6 text-accent"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -76,10 +76,10 @@
 						/>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900">
+				<h1 class="text-2xl font-bold text-text">
 					{tr('auth.twoFactor.title')}
 				</h1>
-				<p class="text-sm text-gray-600 mt-2">
+				<p class="text-sm text-text-muted mt-2">
 					{#if useBackup}
 						{tr('auth.twoFactor.backupCodeLabel')}
 					{:else}
@@ -93,7 +93,7 @@
 					<div>
 						<label
 							for="backupCode"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('auth.twoFactor.backupCodeLabel')}
 						</label>
@@ -104,7 +104,7 @@
 							required
 							bind:value={backupCode}
 							disabled={isLoading}
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 font-mono"
+							class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent font-mono"
 							placeholder={tr('auth.twoFactor.backupCodePlaceholder')}
 						/>
 					</div>
@@ -112,7 +112,7 @@
 					<div>
 						<label
 							for="totpCode"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('auth.twoFactor.codeLabel')}
 						</label>
@@ -126,7 +126,7 @@
 							required
 							bind:value={code}
 							disabled={isLoading}
-							class="w-full px-4 py-3 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-center text-2xl font-mono tracking-widest"
+							class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center text-2xl font-mono tracking-widest"
 							placeholder={tr('auth.twoFactor.codePlaceholder')}
 						/>
 					</div>
@@ -163,9 +163,9 @@
 					{#if isLoading}
 						<span class="relative inline-flex h-3 w-3 mr-2"
 							><span
-								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 							></span><span
-								class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+								class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 							></span></span
 						>
 						{tr('auth.twoFactor.verifying')}
@@ -179,7 +179,7 @@
 				<button
 					type="button"
 					onclick={toggleBackupMode}
-					class="w-full text-sm text-cyan-600 hover:text-cyan-500 text-center"
+					class="w-full text-sm text-accent hover:text-accent text-center"
 				>
 					{#if useBackup}
 						{tr('auth.twoFactor.useAuthenticator')}
@@ -190,7 +190,7 @@
 
 				<a
 					href={resolve('/login')}
-					class="block w-full text-sm text-gray-500 hover:text-gray-700 text-center"
+					class="block w-full text-sm text-text-subtle hover:text-text-ink2 text-center"
 				>
 					{tr('auth.twoFactor.backToLogin')}
 				</a>

@@ -651,7 +651,7 @@
 						class="w-2 h-8 rounded-full"
 						style="background-color: {merchant.color}"
 					></div>
-					<h1 class="text-3xl font-bold text-gray-900">{merchant.name}</h1>
+					<h1 class="text-3xl font-bold text-text">{merchant.name}</h1>
 				</div>
 				{#if isAdmin}
 					<a
@@ -665,9 +665,9 @@
 		</div>
 
 		{#if totalItems === 0}
-			<div class="bg-gray-50 rounded-lg p-12 text-center">
+			<div class="bg-surface-1 rounded-lg p-12 text-center">
 				<svg
-					class="w-16 h-16 mx-auto text-gray-300 mb-4"
+					class="w-16 h-16 mx-auto text-text-placeholder mb-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -679,10 +679,10 @@
 						d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
 					/>
 				</svg>
-				<p class="text-gray-600 text-lg mb-4">
+				<p class="text-text-muted text-lg mb-4">
 					{tr('merchantOverview.detail.noItems')}
 				</p>
-				<p class="text-gray-400 text-sm">
+				<p class="text-text-faint text-sm">
 					{tr('merchantOverview.detail.noItemsHint')}
 				</p>
 			</div>
@@ -695,7 +695,7 @@
 						type="search"
 						bind:value={searchInput}
 						placeholder={tr('common.search')}
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 					/>
 				</div>
 
@@ -706,15 +706,15 @@
 						type="button"
 						onclick={toggleSelectMode}
 						disabled={isOffline}
-						class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
-							? 'ring-2 ring-cyan-500 border-cyan-500'
-							: 'border-gray-300'}"
+						class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+							? 'ring-2 ring-accent border-accent'
+							: 'border-border-field'}"
 						title={tr('batch.selectMode')}
 						aria-label={tr('batch.selectMode')}
 						aria-pressed={selectMode}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -732,7 +732,7 @@
 						type="button"
 						onclick={toggleBarcodes}
 						class="btn btn-ghost {showBarcodes
-							? 'ring-2 ring-cyan-500 border-cyan-500'
+							? 'ring-2 ring-accent border-accent'
 							: ''}"
 						title={showBarcodes
 							? tr('barcodeToggle.hide')
@@ -743,7 +743,7 @@
 						aria-pressed={showBarcodes}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -763,13 +763,13 @@
 							e.stopPropagation();
 							showFilterMenu = !showFilterMenu;
 						}}
-						class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+						class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 						title={tr('common.filter')}
 						aria-label={tr('common.filter')}
 						aria-expanded={showFilterMenu}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -783,7 +783,7 @@
 						</svg>
 						{#if hasActiveFilters}
 							<span
-								class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+								class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 							></span>
 						{/if}
 					</button>
@@ -818,13 +818,13 @@
 						type="button"
 						onclick={toggleSelectMode}
 						disabled={isOffline}
-						class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
-							? 'ring-2 ring-cyan-500 border-cyan-500'
+						class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+							? 'ring-2 ring-accent border-accent'
 							: ''}"
 						aria-label={tr('batch.selectMode')}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -842,7 +842,7 @@
 						type="button"
 						onclick={toggleBarcodes}
 						class="flex-1 btn btn-ghost {showBarcodes
-							? 'ring-2 ring-cyan-500 border-cyan-500'
+							? 'ring-2 ring-accent border-accent'
 							: ''}"
 						aria-label={showBarcodes
 							? tr('barcodeToggle.hide')
@@ -850,7 +850,7 @@
 						aria-pressed={showBarcodes}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -870,12 +870,12 @@
 							e.stopPropagation();
 							showFilterMenu = !showFilterMenu;
 						}}
-						class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+						class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 						aria-label={tr('common.filter')}
 						aria-expanded={showFilterMenu}
 					>
 						<svg
-							class="w-5 h-5 text-gray-600"
+							class="w-5 h-5 text-text-muted"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -889,7 +889,7 @@
 						</svg>
 						{#if hasActiveFilters}
 							<span
-								class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+								class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 							></span>
 						{/if}
 					</button>
@@ -898,8 +898,8 @@
 
 			{#if totalFiltered === 0 && (searchInput || hasActiveFilters)}
 				<!-- No results with filters -->
-				<div class="bg-gray-50 rounded-lg p-12 text-center">
-					<p class="text-gray-600 text-lg mb-4">{tr('search.no_results')}</p>
+				<div class="bg-surface-1 rounded-lg p-12 text-center">
+					<p class="text-text-muted text-lg mb-4">{tr('search.no_results')}</p>
 					{#if hasActiveFilters}
 						<button type="button" onclick={resetFilters} class="btn btn-ghost">
 							{tr('common.resetFilters')}
@@ -966,11 +966,13 @@
 								class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
 							>
 								<!-- Header -->
-								<div class="px-5 py-4 bg-gray-50/80 border-b border-gray-100">
+								<div
+									class="px-5 py-4 bg-surface-1/80 border-b border-border-soft"
+								>
 									<div class="flex items-center justify-between">
 										<div class="flex items-center gap-2">
 											<svg
-												class="w-4 h-4 text-gray-500"
+												class="w-4 h-4 text-text-subtle"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24"
@@ -982,20 +984,20 @@
 													d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
 												/>
 											</svg>
-											<h3 class="text-sm font-semibold text-gray-900">
+											<h3 class="text-sm font-semibold text-text">
 												{tr('common.filter')}
 											</h3>
 										</div>
 										<div class="flex items-center gap-2.5">
 											<span
-												class="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 tabular-nums"
+												class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
 											>
 												{tr('common.results', { count: totalFiltered })}
 											</span>
 											<button
 												type="button"
 												onclick={() => (showFilterMenu = false)}
-												class="text-gray-400 hover:text-gray-600 transition-colors"
+												class="text-text-faint hover:text-text-muted transition-colors"
 												aria-label={tr('common.closeFilters')}
 											>
 												<svg
@@ -1083,13 +1085,13 @@
 >
 	<div class="p-6">
 		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-semibold text-gray-900">
+			<h3 class="text-lg font-semibold text-text">
 				{tr('common.filter')}
 			</h3>
 			<button
 				type="button"
 				onclick={() => (showFilterMenu = false)}
-				class="text-gray-400 hover:text-gray-600 transition-colors"
+				class="text-text-faint hover:text-text-muted transition-colors"
 				aria-label={tr('common.close')}
 			>
 				<svg

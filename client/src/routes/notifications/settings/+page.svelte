@@ -2,9 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { profileApi, type ProfileDTO } from '$lib/api';
+	import NotificationsSection from '$lib/components/settings/NotificationsSection.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import ProfileSection from '$lib/components/settings/ProfileSection.svelte';
-	import SecuritySection from '$lib/components/settings/SecuritySection.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
@@ -13,7 +12,7 @@
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
-	const pageLogger = logger.child('ProfilePage');
+	const pageLogger = logger.child('NotificationSettingsPage');
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
 
@@ -25,7 +24,6 @@
 			goto(resolve('/login'));
 			return;
 		}
-
 		try {
 			const response = await profileApi.get();
 			profile = response.profile;
@@ -44,22 +42,17 @@
 </script>
 
 <svelte:head>
-	<title>{tr('profile.title')} - {tr('common.appName')}</title>
+	<title>{tr('settings.notifications.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<PageHeader title={tr('profile.title')} />
+	<PageHeader title={tr('settings.notifications.title')} />
 
 	{#if isLoadingProfile}
 		<LoadingSpinner />
 	{:else if profile}
-		<div class="flex flex-col lg:flex-row gap-6 items-start">
-			<div class="w-full lg:w-2/3">
-				<ProfileSection {profile} onProfileUpdated={handleProfileUpdated} />
-			</div>
-			<div class="w-full lg:w-1/3">
-				<SecuritySection {profile} />
-			</div>
+		<div class="w-full lg:max-w-2xl">
+			<NotificationsSection {profile} onProfileUpdated={handleProfileUpdated} />
 		</div>
 	{/if}
 </div>

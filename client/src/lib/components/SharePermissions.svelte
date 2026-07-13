@@ -31,12 +31,12 @@
 		<input
 			type="checkbox"
 			bind:checked={canEdit}
-			class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+			class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 		/>
 		<div class="ml-2">
-			<span class="block text-sm font-medium text-gray-900">{labelEdit}</span>
+			<span class="block text-sm font-medium text-text">{labelEdit}</span>
 			{#if labelEditDesc}
-				<span class="text-xs text-gray-500">{labelEditDesc}</span>
+				<span class="text-xs text-text-subtle">{labelEditDesc}</span>
 			{/if}
 		</div>
 	</label>
@@ -44,12 +44,12 @@
 		<input
 			type="checkbox"
 			bind:checked={canDelete}
-			class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+			class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 		/>
 		<div class="ml-2">
-			<span class="block text-sm font-medium text-gray-900">{labelDelete}</span>
+			<span class="block text-sm font-medium text-text">{labelDelete}</span>
 			{#if labelDeleteDesc}
-				<span class="text-xs text-gray-500">{labelDeleteDesc}</span>
+				<span class="text-xs text-text-subtle">{labelDeleteDesc}</span>
 			{/if}
 		</div>
 	</label>
@@ -58,14 +58,16 @@
 			<input
 				type="checkbox"
 				bind:checked={canEditTransactions}
-				class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+				class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 			/>
 			<div class="ml-2">
-				<span class="block text-sm font-medium text-gray-900"
+				<span class="block text-sm font-medium text-text"
 					>{labelEditTransactions}</span
 				>
 				{#if labelEditTransactionsDesc}
-					<span class="text-xs text-gray-500">{labelEditTransactionsDesc}</span>
+					<span class="text-xs text-text-subtle"
+						>{labelEditTransactionsDesc}</span
+					>
 				{/if}
 			</div>
 		</label>

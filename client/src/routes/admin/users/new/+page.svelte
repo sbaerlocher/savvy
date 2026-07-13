@@ -45,7 +45,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href={resolve('/admin/users')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/admin/users')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -54,7 +54,7 @@
 	<!-- Left column: User Form (2/3 width) -->
 	<div class="lg:col-span-2">
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h1 class="text-3xl font-bold text-gray-900 mb-6">
+			<h1 class="text-3xl font-bold text-text mb-6">
 				{tr('admin.users.createUser')}
 			</h1>
 			<form onsubmit={handleSubmit} class="space-y-6">
@@ -62,7 +62,7 @@
 				<div>
 					<label
 						for="email"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.email')} *</label
 					>
 					<input
@@ -70,7 +70,7 @@
 						id="email"
 						bind:value={email}
 						required
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 						placeholder={tr('admin.users.emailPlaceholder')}
 					/>
 				</div>
@@ -79,7 +79,7 @@
 				<div>
 					<label
 						for="password"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.password')} *</label
 					>
 					<input
@@ -87,7 +87,7 @@
 						id="password"
 						bind:value={password}
 						required
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 						placeholder={tr('admin.users.passwordPlaceholder')}
 					/>
 				</div>
@@ -96,7 +96,7 @@
 				<div>
 					<label
 						for="firstName"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.firstName')} *</label
 					>
 					<input
@@ -104,7 +104,7 @@
 						id="firstName"
 						bind:value={firstName}
 						required
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 					/>
 				</div>
 
@@ -112,7 +112,7 @@
 				<div>
 					<label
 						for="lastName"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.lastName')} *</label
 					>
 					<input
@@ -120,19 +120,21 @@
 						id="lastName"
 						bind:value={lastName}
 						required
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 					/>
 				</div>
 
 				<!-- Role -->
 				<div>
-					<label for="role" class="block text-sm font-medium text-gray-700 mb-1"
+					<label
+						for="role"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.role')} *</label
 					>
 					<select
 						id="role"
 						bind:value={role}
-						class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 					>
 						<option value="user">{tr('admin.users.roleUser')}</option>
 						<option value="admin">{tr('admin.users.roleAdmin')}</option>
@@ -159,19 +161,19 @@
 	<!-- Right column: Role Information (1/3 width) -->
 	<div class="lg:col-span-1">
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h2 class="text-xl font-bold text-gray-900 mb-4">
+			<h2 class="text-xl font-bold text-text mb-4">
 				{tr('admin.users.roleInfo.title')}
 			</h2>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('admin.users.roleInfo.description')}
 			</p>
 
 			<div class="space-y-4">
 				<!-- User Role -->
-				<div class="border border-gray-200 rounded-lg p-4">
+				<div class="border border-border rounded-lg p-4">
 					<div class="flex items-center mb-2">
 						<svg
-							class="w-5 h-5 text-cyan-500 mr-2"
+							class="w-5 h-5 text-accent mr-2"
 							fill="currentColor"
 							viewBox="0 0 20 20"
 						>
@@ -181,14 +183,14 @@
 								clip-rule="evenodd"
 							/>
 						</svg>
-						<h3 class="text-sm font-bold text-gray-900">
+						<h3 class="text-sm font-bold text-text">
 							{tr('admin.users.roleUser')}
 						</h3>
 					</div>
-					<p class="text-xs text-gray-600 mb-2">
+					<p class="text-xs text-text-muted mb-2">
 						{tr('admin.users.roleInfo.userDesc')}
 					</p>
-					<ul class="text-xs text-gray-600 space-y-1 ml-4">
+					<ul class="text-xs text-text-muted space-y-1 ml-4">
 						<li class="flex items-start">
 							<span class="mr-2">•</span>
 							<span>{tr('admin.users.roleInfo.userPerm1')}</span>
@@ -246,8 +248,8 @@
 				</div>
 			</div>
 
-			<div class="mt-6 pt-6 border-t border-gray-200">
-				<div class="flex items-start text-sm text-gray-600">
+			<div class="mt-6 pt-6 border-t border-border">
+				<div class="flex items-start text-sm text-text-muted">
 					<svg
 						class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5"
 						fill="currentColor"

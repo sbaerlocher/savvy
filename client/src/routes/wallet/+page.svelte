@@ -12,6 +12,7 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import ImportDialog from '$lib/components/ImportDialog.svelte';
 	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BarcodeModal, {
 		type BarcodeModalItem
 	} from '$lib/components/dashboard/BarcodeModal.svelte';
@@ -27,13 +28,16 @@
 	import { toastStore } from '$lib/stores/toast';
 	import type { CardDTO, GiftCardDTO, VoucherDTO } from '$lib/types/api';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { logger } from '$lib/utils/logger';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { platform } from '$lib/utils/platform';
+	import { walletFilters } from '$lib/stores/walletFilters.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -53,13 +57,6 @@
 	let giftCards = $state<GiftCardDTO[]>([]);
 	let isLoading = $state(true);
 
-	let searchInput = $state('');
-	let typeFilter = $state('all');
-	let statusFilter = $state('all');
-	let sortBy = $state('newest');
-	let ownerFilter = $state('all');
-	let favoritesOnly = $state(false);
-	let expiringFilter = $state('all');
 	let showFilterMenu = $state(false);
 
 	// Batch selection state
@@ -78,23 +75,23 @@
 	const validTypes = ['cards', 'vouchers', 'gift-cards'];
 
 	const hasActiveFilters = $derived(
-		typeFilter !== 'all' ||
-			statusFilter !== 'all' ||
-			sortBy !== 'newest' ||
-			ownerFilter !== 'all' ||
-			favoritesOnly ||
-			expiringFilter !== 'all'
+		walletFilters.typeFilter !== 'all' ||
+			walletFilters.statusFilter !== 'all' ||
+			walletFilters.sortBy !== 'newest' ||
+			walletFilters.ownerFilter !== 'all' ||
+			walletFilters.favoritesOnly ||
+			walletFilters.expiringFilter !== 'all'
 	);
 
 	// Show status filter only when vouchers or gift cards are visible
-	const showStatusFilter = $derived(typeFilter !== 'cards');
+	const showStatusFilter = $derived(walletFilters.typeFilter !== 'cards');
 
 	const detailSortOptions = $derived.by(() => {
 		const opts = [
 			{ value: 'newest', label: tr('merchantOverview.detail.sortNewest') },
 			{ value: 'oldest', label: tr('merchantOverview.detail.sortOldest') }
 		];
-		if (typeFilter !== 'cards') {
+		if (walletFilters.typeFilter !== 'cards') {
 			opts.push(
 				{
 					value: 'value-desc',
@@ -114,7 +111,7 @@
 	});
 
 	const detailStatusOptions = $derived.by(() => {
-		if (typeFilter === 'vouchers') {
+		if (walletFilters.typeFilter === 'vouchers') {
 			return [
 				{ value: 'all', label: tr('merchantOverview.detail.statusAll') },
 				{ value: 'valid', label: tr('vouchers.status.valid') },
@@ -128,7 +125,7 @@
 				}
 			];
 		}
-		if (typeFilter === 'gift-cards') {
+		if (walletFilters.typeFilter === 'gift-cards') {
 			return [
 				{ value: 'all', label: tr('merchantOverview.detail.statusAll') },
 				{ value: 'active', label: tr('giftCards.status.active') },
@@ -175,23 +172,23 @@
 		T extends { owner?: { id?: string }; is_favorite: boolean }
 	>(items: T[], getExpiryDate: (item: T) => string | undefined): T[] {
 		let result = items;
-		if (ownerFilter === 'mine') {
+		if (walletFilters.ownerFilter === 'mine') {
 			result = result.filter(
 				(item) => !item.owner || item.owner.id === currentUserId
 			);
-		} else if (ownerFilter === 'shared') {
+		} else if (walletFilters.ownerFilter === 'shared') {
 			result = result.filter(
 				(item) => item.owner && item.owner.id !== currentUserId
 			);
 		}
-		if (favoritesOnly) {
+		if (walletFilters.favoritesOnly) {
 			result = result.filter((item) => item.is_favorite);
 		}
-		if (expiringFilter === '7') {
+		if (walletFilters.expiringFilter === '7') {
 			result = result.filter((item) =>
 				expiresWithinDays(getExpiryDate(item), 7)
 			);
-		} else if (expiringFilter === '30') {
+		} else if (walletFilters.expiringFilter === '30') {
 			result = result.filter((item) =>
 				expiresWithinDays(getExpiryDate(item), 30)
 			);
@@ -207,7 +204,7 @@
 		getExpiry: (item: T) => string | undefined
 	): T[] {
 		return [...items].sort((a, b) => {
-			switch (sortBy) {
+			switch (walletFilters.sortBy) {
 				case 'newest':
 					return (
 						new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime()
@@ -237,20 +234,24 @@
 	// Filtered items
 	const filteredCards = $derived.by(() => {
 		if (!showCards) return [];
-		if (typeFilter === 'vouchers' || typeFilter === 'gift-cards') return [];
+		if (
+			walletFilters.typeFilter === 'vouchers' ||
+			walletFilters.typeFilter === 'gift-cards'
+		)
+			return [];
 		let result = cards;
 		// Expiring filter does not apply to cards (no expiry) - skip if set
-		if (expiringFilter !== 'all') return [];
-		if (ownerFilter === 'mine') {
+		if (walletFilters.expiringFilter !== 'all') return [];
+		if (walletFilters.ownerFilter === 'mine') {
 			result = result.filter((c) => !c.owner || c.owner.id === currentUserId);
-		} else if (ownerFilter === 'shared') {
+		} else if (walletFilters.ownerFilter === 'shared') {
 			result = result.filter((c) => c.owner && c.owner.id !== currentUserId);
 		}
-		if (favoritesOnly) {
+		if (walletFilters.favoritesOnly) {
 			result = result.filter((c) => c.is_favorite);
 		}
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(c) =>
 					c.merchant?.name.toLowerCase().includes(q) ||
@@ -269,28 +270,32 @@
 
 	const filteredVouchers = $derived.by(() => {
 		if (!showVouchers) return [];
-		if (typeFilter === 'cards' || typeFilter === 'gift-cards') return [];
+		if (
+			walletFilters.typeFilter === 'cards' ||
+			walletFilters.typeFilter === 'gift-cards'
+		)
+			return [];
 		let result = vouchers;
-		if (typeFilter === 'all') {
-			if (statusFilter === 'active') {
+		if (walletFilters.typeFilter === 'all') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((v) => v.status === 'valid');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter((v) => v.status !== 'valid');
 			}
 		} else {
-			if (statusFilter === 'valid') {
+			if (walletFilters.statusFilter === 'valid') {
 				result = result.filter((v) => v.status === 'valid');
-			} else if (statusFilter === 'expired') {
+			} else if (walletFilters.statusFilter === 'expired') {
 				result = result.filter((v) => v.status === 'expired');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter(
 					(v) => v.status === 'inactive' || v.status === 'used'
 				);
 			}
 		}
 		result = applyCommonFilters(result, (v) => v.valid_until);
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(v) =>
 					v.merchant?.name.toLowerCase().includes(q) ||
@@ -308,26 +313,30 @@
 
 	const filteredGiftCards = $derived.by(() => {
 		if (!showGiftCards) return [];
-		if (typeFilter === 'cards' || typeFilter === 'vouchers') return [];
+		if (
+			walletFilters.typeFilter === 'cards' ||
+			walletFilters.typeFilter === 'vouchers'
+		)
+			return [];
 		let result = giftCards;
-		if (typeFilter === 'all') {
-			if (statusFilter === 'active') {
+		if (walletFilters.typeFilter === 'all') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((g) => getComputedStatus(g) === 'active');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter((g) => getComputedStatus(g) !== 'active');
 			}
 		} else {
-			if (statusFilter === 'active') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((g) => getComputedStatus(g) === 'active');
-			} else if (statusFilter === 'expired') {
+			} else if (walletFilters.statusFilter === 'expired') {
 				result = result.filter((g) => getComputedStatus(g) === 'expired');
-			} else if (statusFilter === 'depleted') {
+			} else if (walletFilters.statusFilter === 'depleted') {
 				result = result.filter((g) => getComputedStatus(g) === 'depleted');
 			}
 		}
 		result = applyCommonFilters(result, (g) => g.expires_at);
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(g) =>
 					g.merchant?.name.toLowerCase().includes(q) ||
@@ -367,9 +376,9 @@
 	// Batch derived values
 	const selectedCount = $derived(selectedIds.size);
 	const currentFilteredItems = $derived.by(() => {
-		if (typeFilter === 'cards') return filteredCards;
-		if (typeFilter === 'vouchers') return filteredVouchers;
-		if (typeFilter === 'gift-cards') return filteredGiftCards;
+		if (walletFilters.typeFilter === 'cards') return filteredCards;
+		if (walletFilters.typeFilter === 'vouchers') return filteredVouchers;
+		if (walletFilters.typeFilter === 'gift-cards') return filteredGiftCards;
 		return [...filteredCards, ...filteredVouchers, ...filteredGiftCards];
 	});
 	const sharedSelectedCount = $derived.by(() => {
@@ -385,20 +394,24 @@
 	// Reset selection and status filter when type filter changes
 	let lastTypeFilter = 'all';
 	$effect(() => {
-		if (typeFilter !== lastTypeFilter) {
+		if (walletFilters.typeFilter !== lastTypeFilter) {
 			if (selectMode) {
 				selectedIds.clear();
 			}
 			// Reset status filter when type changes to avoid invalid combinations
-			statusFilter = 'all';
+			walletFilters.statusFilter = 'all';
 			// Reset sort/expiring if switching to cards (no value/expiry)
-			if (typeFilter === 'cards') {
-				if (['value-desc', 'value-asc', 'expiry-asc'].includes(sortBy)) {
-					sortBy = 'newest';
+			if (walletFilters.typeFilter === 'cards') {
+				if (
+					['value-desc', 'value-asc', 'expiry-asc'].includes(
+						walletFilters.sortBy
+					)
+				) {
+					walletFilters.sortBy = 'newest';
 				}
-				expiringFilter = 'all';
+				walletFilters.expiringFilter = 'all';
 			}
-			lastTypeFilter = typeFilter;
+			lastTypeFilter = walletFilters.typeFilter;
 		}
 	});
 
@@ -488,6 +501,10 @@
 	// Search field element, focused when arriving via ?search (global search entry).
 	let searchEl = $state<HTMLInputElement | null>(null);
 	let wantSearchFocus = $state(false);
+	// Whether the search field is shown. There is no permanent search bar; it
+	// only appears when entered via the ?search focus path, and stays until
+	// cancelled.
+	let searchOpen = $state(false);
 
 	// The input only renders once loadData() finishes (isLoading → false), so we
 	// focus reactively when the element binds rather than on a fixed timer.
@@ -498,26 +515,43 @@
 		}
 	});
 
+	function cancelSearch() {
+		walletFilters.searchInput = '';
+		searchOpen = false;
+	}
+
 	// Global search entry: ?search (1 = focus only, other = prefill query).
 	// Reactive on the param so navigating to /wallet?search=… while already on
 	// the page still applies — onMount alone would miss same-page navigations.
 	const searchParam = $derived($page.url.searchParams.get('search'));
 	$effect(() => {
 		if (searchParam) {
-			if (searchParam !== '1') searchInput = searchParam;
+			if (searchParam !== '1') walletFilters.searchInput = searchParam;
+			searchOpen = true;
 			wantSearchFocus = true;
 		}
 	});
 
-	onMount(() => {
+	// Remember the scroll position when leaving, so returning from a detail page
+	// restores it (SvelteKit's own restore fires before the async list renders).
+	beforeNavigate(() => {
+		walletFilters.scrollY = window.scrollY;
+	});
+
+	onMount(async () => {
 		showBarcodes =
 			localStorage.getItem('savvy_wallet_show_barcodes') === 'true';
 		const t = get(page).url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
-			typeFilter = t;
+			walletFilters.typeFilter = t;
 			lastTypeFilter = t;
 		}
-		loadData();
+		await loadData();
+		// List is now in the DOM — restore the saved scroll position.
+		if (walletFilters.scrollY > 0) {
+			await tick();
+			window.scrollTo(0, walletFilters.scrollY);
+		}
 	});
 
 	function toggleBarcodes() {
@@ -526,13 +560,13 @@
 	}
 
 	function resetFilters() {
-		typeFilter = 'all';
-		statusFilter = 'all';
-		sortBy = 'newest';
-		ownerFilter = 'all';
-		favoritesOnly = false;
-		expiringFilter = 'all';
-		searchInput = '';
+		walletFilters.typeFilter = 'all';
+		walletFilters.statusFilter = 'all';
+		walletFilters.sortBy = 'newest';
+		walletFilters.ownerFilter = 'all';
+		walletFilters.favoritesOnly = false;
+		walletFilters.expiringFilter = 'all';
+		walletFilters.searchInput = '';
 	}
 
 	// Batch functions
@@ -540,14 +574,14 @@
 		selectMode = !selectMode;
 		if (!selectMode) {
 			selectedIds.clear();
-			typeFilter = 'all';
+			walletFilters.typeFilter = 'all';
 		} else {
 			showFilterMenu = false;
 			// Batch endpoints are per-type; force a concrete type when entering select mode.
-			if (typeFilter === 'all') {
-				if (cards.length > 0) typeFilter = 'cards';
-				else if (vouchers.length > 0) typeFilter = 'vouchers';
-				else if (giftCards.length > 0) typeFilter = 'gift-cards';
+			if (walletFilters.typeFilter === 'all') {
+				if (cards.length > 0) walletFilters.typeFilter = 'cards';
+				else if (vouchers.length > 0) walletFilters.typeFilter = 'vouchers';
+				else if (giftCards.length > 0) walletFilters.typeFilter = 'gift-cards';
 			}
 		}
 	}
@@ -589,8 +623,9 @@
 		try {
 			let result;
 			if (batchAction === 'delete') {
-				if (typeFilter === 'cards') result = await batchApi.deleteCards(ids);
-				else if (typeFilter === 'vouchers')
+				if (walletFilters.typeFilter === 'cards')
+					result = await batchApi.deleteCards(ids);
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.deleteVouchers(ids);
 				else result = await batchApi.deleteGiftCards(ids);
 			} else if (batchAction === 'share') {
@@ -599,18 +634,19 @@
 					email,
 					can_edit: permissions.canEdit,
 					can_delete: permissions.canDelete,
-					...(typeFilter === 'gift-cards'
+					...(walletFilters.typeFilter === 'gift-cards'
 						? { can_edit_transactions: permissions.canEditTransactions }
 						: {})
 				};
-				if (typeFilter === 'cards') result = await batchApi.shareCards(req);
-				else if (typeFilter === 'vouchers')
+				if (walletFilters.typeFilter === 'cards')
+					result = await batchApi.shareCards(req);
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.shareVouchers(req);
 				else result = await batchApi.shareGiftCards(req);
 			} else {
-				if (typeFilter === 'cards')
+				if (walletFilters.typeFilter === 'cards')
 					result = await batchApi.transferCards(ids, email);
-				else if (typeFilter === 'vouchers')
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.transferVouchers(ids, email);
 				else result = await batchApi.transferGiftCards(ids, email);
 			}
@@ -664,8 +700,9 @@
 		try {
 			let result;
 			const ids = [...selectedIds];
-			if (typeFilter === 'cards') result = await batchApi.exportCards(ids);
-			else if (typeFilter === 'vouchers')
+			if (walletFilters.typeFilter === 'cards')
+				result = await batchApi.exportCards(ids);
+			else if (walletFilters.typeFilter === 'vouchers')
 				result = await batchApi.exportVouchers(ids);
 			else result = await batchApi.exportGiftCards(ids);
 
@@ -703,8 +740,8 @@
 	isLoading={batchLoading}
 	onConfirm={executeBatchAction}
 	onCancel={() => (showBatchModal = false)}
-	hidePermissions={typeFilter === 'vouchers'}
-	showTransactionPermission={typeFilter === 'gift-cards'}
+	hidePermissions={walletFilters.typeFilter === 'vouchers'}
+	showTransactionPermission={walletFilters.typeFilter === 'gift-cards'}
 />
 
 <ImportDialog
@@ -719,36 +756,61 @@
 />
 
 <div class="px-4 max-w-7xl mx-auto pb-20 md:pb-4" class:pb-40={selectMode}>
-	<!-- Header -->
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{tr('nav.wallet')}</h1>
-	</div>
+	<!-- Header: count above title (mockup "7 Einträge"). -->
+	<PageHeader
+		eyebrow={`${totalItems} ${tr('dashboard.entries')}`}
+		title={tr('nav.wallet')}
+	/>
 
 	{#if isLoading}
 		<LoadingSpinner />
 	{:else if totalItems === 0}
-		<div class="bg-gray-50 rounded-lg p-12 text-center">
-			<p class="text-gray-600 text-lg mb-4">
+		<div class="bg-surface-1 rounded-lg p-12 text-center">
+			<p class="text-text-muted text-lg mb-4">
 				{tr('merchantOverview.detail.noItems')}
 			</p>
-			<p class="text-gray-400 text-sm">
+			<p class="text-text-faint text-sm">
 				{tr('merchantOverview.detail.noItemsHint')}
 			</p>
 		</div>
 	{:else}
-		<!-- WalletToolbar: Search + ¼ Select · ¼ Filter · ½ Barcode-Toggle -->
-		<div class="flex flex-col sm:flex-row gap-3 mb-6">
-			<!-- Search Bar -->
-			<div class="flex-1">
+		<!-- Type filter: always visible (All · Cards · Vouchers · Gift). -->
+		<div class="mb-4">
+			<TypeFilterButtons
+				bind:typeFilter={walletFilters.typeFilter}
+				cardsCount={cards.length}
+				vouchersCount={vouchers.length}
+				giftCardsCount={giftCards.length}
+				showAll={false}
+				allowToggle={!selectMode}
+			/>
+		</div>
+
+		<!-- Search field: only shown when arriving via ?search focus path.
+		     iOS puts search in the bottom-nav pill and Android in the header,
+		     so only the desktop fallback shows this top field (the query still
+		     filters via the ?search param on every platform). -->
+		{#if searchOpen && platform === 'other'}
+			<div class="mb-6 flex gap-2">
 				<input
 					type="search"
 					bind:this={searchEl}
-					bind:value={searchInput}
+					bind:value={walletFilters.searchInput}
 					placeholder={tr('common.search')}
-					class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+					class="w-full flex-1 rounded-md border border-border-field bg-white px-4 py-2 focus:border-accent focus:ring-accent"
 				/>
+				<button
+					type="button"
+					onclick={cancelSearch}
+					class="btn btn-ghost whitespace-nowrap"
+				>
+					{tr('common.cancel')}
+				</button>
 			</div>
+		{/if}
 
+		<!-- WalletToolbar: ¼ Select · ¼ Filter · ½ Barcode-Toggle -->
+		<div class="flex flex-col sm:flex-row gap-3 mb-6">
 			<!-- Action Buttons (Desktop) -->
 			<div class="hidden sm:flex gap-3">
 				<!-- Select Mode Button -->
@@ -756,15 +818,15 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
-						? 'ring-2 ring-cyan-500 border-cyan-500'
-						: 'border-gray-300'}"
+					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+						? 'ring-2 ring-accent border-accent'
+						: 'border-border-field'}"
 					title={tr('batch.selectMode')}
 					aria-label={tr('batch.selectMode')}
 					aria-pressed={selectMode}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -784,13 +846,13 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					title={tr('common.filter')}
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -804,7 +866,7 @@
 					</svg>
 					{#if hasActiveFilters}
 						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 						></span>
 					{/if}
 				</button>
@@ -812,32 +874,16 @@
 				<button
 					type="button"
 					onclick={toggleBarcodes}
-					class="flex items-center justify-center gap-2 h-[42px] px-6 bg-white border rounded-md hover:bg-gray-50 transition-colors {showBarcodes
-						? 'ring-2 ring-cyan-500 border-cyan-500'
-						: 'border-gray-300'}"
-					title={showBarcodes
-						? tr('barcodeToggle.hide')
-						: tr('barcodeToggle.show')}
+					class="flex items-center justify-center gap-2 h-[42px] px-6 bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
+						? 'ring-2 ring-accent border-accent'
+						: 'border-border-field'}"
 					aria-label={showBarcodes
 						? tr('barcodeToggle.hide')
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					<svg
-						class="w-5 h-5 text-gray-600"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-						></path>
-					</svg>
-					<span class="text-sm text-gray-700 whitespace-nowrap">
-						{showBarcodes ? tr('barcodeToggle.hide') : tr('barcodeToggle.show')}
+					<span class="text-sm font-medium text-text-muted whitespace-nowrap">
+						{tr('barcodeToggle.label')}
 					</span>
 				</button>
 				<!-- Import Button -->
@@ -871,13 +917,13 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
-						? 'ring-2 ring-cyan-500 border-cyan-500'
+					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+						? 'ring-2 ring-accent border-accent'
 						: ''}"
 					aria-label={tr('batch.selectMode')}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -897,12 +943,12 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -916,7 +962,7 @@
 					</svg>
 					{#if hasActiveFilters}
 						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 						></span>
 					{/if}
 				</button>
@@ -924,38 +970,25 @@
 				<button
 					type="button"
 					onclick={toggleBarcodes}
-					class="flex-[2] flex items-center justify-center gap-2 h-[42px] bg-white border rounded-md hover:bg-gray-50 transition-colors {showBarcodes
-						? 'ring-2 ring-cyan-500 border-cyan-500'
-						: 'border-gray-300'}"
+					class="flex-[2] flex items-center justify-center gap-2 h-[42px] bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
+						? 'ring-2 ring-accent border-accent'
+						: 'border-border-field'}"
 					aria-label={showBarcodes
 						? tr('barcodeToggle.hide')
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					<svg
-						class="w-5 h-5 text-gray-600"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-						></path>
-					</svg>
-					<span class="text-sm text-gray-700 whitespace-nowrap">
-						{showBarcodes ? tr('barcodeToggle.hide') : tr('barcodeToggle.show')}
+					<span class="text-sm font-medium text-text-muted whitespace-nowrap">
+						{tr('barcodeToggle.label')}
 					</span>
 				</button>
 			</div>
 		</div>
 
-		{#if totalFiltered === 0 && (searchInput || hasActiveFilters)}
+		{#if totalFiltered === 0 && (walletFilters.searchInput || hasActiveFilters)}
 			<!-- No results with filters -->
-			<div class="bg-gray-50 rounded-lg p-12 text-center">
-				<p class="text-gray-600 text-lg mb-4">{tr('search.no_results')}</p>
+			<div class="bg-surface-1 rounded-lg p-12 text-center">
+				<p class="text-text-muted text-lg mb-4">{tr('search.no_results')}</p>
 				{#if hasActiveFilters}
 					<button type="button" onclick={resetFilters} class="btn btn-ghost">
 						{tr('common.resetFilters')}
@@ -1021,11 +1054,13 @@
 							class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
 						>
 							<!-- Header -->
-							<div class="px-5 py-4 bg-gray-50/80 border-b border-gray-100">
+							<div
+								class="px-5 py-4 bg-surface-1/80 border-b border-border-soft"
+							>
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<svg
-											class="w-4 h-4 text-gray-500"
+											class="w-4 h-4 text-text-subtle"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -1037,20 +1072,20 @@
 												d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
 											/>
 										</svg>
-										<h3 class="text-sm font-semibold text-gray-900">
+										<h3 class="text-sm font-semibold text-text">
 											{tr('common.filter')}
 										</h3>
 									</div>
 									<div class="flex items-center gap-2.5">
 										<span
-											class="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 tabular-nums"
+											class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
 										>
 											{tr('common.results', { count: totalFiltered })}
 										</span>
 										<button
 											type="button"
 											onclick={() => (showFilterMenu = false)}
-											class="text-gray-400 hover:text-gray-600 transition-colors"
+											class="text-text-faint hover:text-text-muted transition-colors"
 											aria-label={tr('common.closeFilters')}
 										>
 											<svg
@@ -1073,12 +1108,12 @@
 
 							<div class="p-5">
 								<MerchantFilters
-									bind:typeFilter
-									bind:statusFilter
-									bind:sortBy
-									bind:ownerFilter
-									bind:favoritesOnly
-									bind:expiringFilter
+									bind:typeFilter={walletFilters.typeFilter}
+									bind:statusFilter={walletFilters.statusFilter}
+									bind:sortBy={walletFilters.sortBy}
+									bind:ownerFilter={walletFilters.ownerFilter}
+									bind:favoritesOnly={walletFilters.favoritesOnly}
+									bind:expiringFilter={walletFilters.expiringFilter}
 									sortOptions={detailSortOptions}
 									statusOptions={detailStatusOptions}
 									cardsCount={cards.length}
@@ -1087,9 +1122,10 @@
 									{showStatusFilter}
 									ownerOptions={detailOwnerOptions}
 									expiringOptions={detailExpiringOptions}
-									showExpiringFilter={typeFilter !== 'cards'}
+									showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 									{hasActiveFilters}
 									onReset={resetFilters}
+									showAll={false}
 									idPrefix="wallet-desktop"
 								/>
 							</div>
@@ -1111,17 +1147,7 @@
 						onTransfer={() => openBatchModal('transfer')}
 						onExport={handleBatchExport}
 						onCancel={toggleSelectMode}
-					>
-						{#snippet headerExtra()}
-							<TypeFilterButtons
-								bind:typeFilter
-								cardsCount={cards.length}
-								vouchersCount={vouchers.length}
-								giftCardsCount={giftCards.length}
-								allowToggle={false}
-							/>
-						{/snippet}
-					</BatchPanel>
+					/>
 				{/if}
 			</div>
 		{/if}
@@ -1135,15 +1161,15 @@
 	maxHeight="80vh"
 	ariaLabel={tr('common.filter')}
 >
-	<div class="p-6">
-		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-semibold text-gray-900">
+	<div class="px-4 pb-4 pt-1">
+		<div class="mb-3 flex items-center justify-between">
+			<h3 class="text-lg font-semibold text-text">
 				{tr('common.filter')}
 			</h3>
 			<button
 				type="button"
 				onclick={() => (showFilterMenu = false)}
-				class="text-gray-400 hover:text-gray-600 transition-colors"
+				class="text-text-faint hover:text-text-muted transition-colors"
 				aria-label={tr('common.close')}
 			>
 				<svg
@@ -1162,14 +1188,14 @@
 			</button>
 		</div>
 
-		<div class="px-6 pt-4">
+		<div class="pt-1">
 			<MerchantFilters
-				bind:typeFilter
-				bind:statusFilter
-				bind:sortBy
-				bind:ownerFilter
-				bind:favoritesOnly
-				bind:expiringFilter
+				bind:typeFilter={walletFilters.typeFilter}
+				bind:statusFilter={walletFilters.statusFilter}
+				bind:sortBy={walletFilters.sortBy}
+				bind:ownerFilter={walletFilters.ownerFilter}
+				bind:favoritesOnly={walletFilters.favoritesOnly}
+				bind:expiringFilter={walletFilters.expiringFilter}
 				sortOptions={detailSortOptions}
 				statusOptions={detailStatusOptions}
 				cardsCount={cards.length}
@@ -1178,9 +1204,10 @@
 				{showStatusFilter}
 				ownerOptions={detailOwnerOptions}
 				expiringOptions={detailExpiringOptions}
-				showExpiringFilter={typeFilter !== 'cards'}
+				showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 				{hasActiveFilters}
 				onReset={resetFilters}
+				showAll={false}
 				idPrefix="wallet-mobile"
 			/>
 		</div>

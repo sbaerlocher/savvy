@@ -202,14 +202,11 @@
 			role="document"
 		>
 			<!-- Header -->
-			<div class="px-6 pt-6 pb-4 border-b border-gray-100">
-				<h3
-					id="import-dialog-title"
-					class="text-lg font-semibold text-gray-900"
-				>
+			<div class="px-6 pt-6 pb-4 border-b border-border-soft">
+				<h3 id="import-dialog-title" class="text-lg font-semibold text-text">
 					{tr('settings.import.title')}
 				</h3>
-				<p class="mt-1 text-sm text-gray-500">
+				<p class="mt-1 text-sm text-text-subtle">
 					{tr('settings.import.description')}
 				</p>
 			</div>
@@ -220,15 +217,15 @@
 					<!-- File Selection -->
 					<div
 						class="border-2 border-dashed rounded-lg p-8 text-center transition-colors {isDragging
-							? 'border-cyan-500 bg-cyan-50'
-							: 'border-gray-300 hover:border-gray-400'}"
+							? 'border-accent bg-accent-50'
+							: 'border-border-field hover:border-text-faint'}"
 						ondragover={handleDragOver}
 						ondragleave={handleDragLeave}
 						ondrop={handleDrop}
 						role="region"
 					>
 						<svg
-							class="mx-auto w-12 h-12 text-gray-400 mb-3"
+							class="mx-auto w-12 h-12 text-text-faint mb-3"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -240,10 +237,10 @@
 								d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 							/>
 						</svg>
-						<p class="text-sm text-gray-600 mb-1">
+						<p class="text-sm text-text-muted mb-1">
 							{tr('settings.import.dragDrop')}
 						</p>
-						<p class="text-xs text-gray-400 mb-3">
+						<p class="text-xs text-text-faint mb-3">
 							{tr('settings.import.orClickToSelect')}
 						</p>
 						<button
@@ -260,7 +257,7 @@
 							onchange={handleFileSelect}
 							class="hidden"
 						/>
-						<div class="mt-4 flex justify-center gap-4 text-xs text-gray-400">
+						<div class="mt-4 flex justify-center gap-4 text-xs text-text-faint">
 							<span>{tr('settings.import.jsonFormat')}</span>
 							<span>|</span>
 							<span>{tr('settings.import.csvFormat')}</span>
@@ -269,7 +266,7 @@
 				{:else if step === 'csv-type'}
 					<!-- CSV Resource Type Selection -->
 					<div class="space-y-4">
-						<p class="text-sm font-medium text-gray-700">
+						<p class="text-sm font-medium text-text-ink2">
 							{tr('settings.import.csvResourceType')}
 						</p>
 						<div class="space-y-2">
@@ -277,8 +274,8 @@
 								<label
 									class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors {csvType ===
 									option.value
-										? 'border-cyan-500 bg-cyan-50'
-										: 'border-gray-200 hover:border-gray-300'}"
+										? 'border-accent bg-accent-50'
+										: 'border-border hover:border-border-field'}"
 								>
 									<input
 										type="radio"
@@ -286,14 +283,14 @@
 										value={option.value}
 										checked={csvType === option.value}
 										onchange={() => (csvType = option.value)}
-										class="text-cyan-600 focus:ring-cyan-500"
+										class="text-accent focus:ring-accent"
 									/>
-									<span class="text-sm text-gray-700">{option.label}</span>
+									<span class="text-sm text-text-ink2">{option.label}</span>
 								</label>
 							{/each}
 						</div>
 						{#if file}
-							<p class="text-xs text-gray-400 truncate">
+							<p class="text-xs text-text-faint truncate">
 								{file.name}
 							</p>
 						{/if}
@@ -301,17 +298,17 @@
 				{:else if step === 'preview'}
 					<!-- JSON Preview -->
 					<div class="space-y-4">
-						<h4 class="text-sm font-medium text-gray-700">
+						<h4 class="text-sm font-medium text-text-ink2">
 							{tr('settings.import.preview')}
 						</h4>
 						{#if preview}
 							<div class="grid grid-cols-3 gap-3">
 								{#if preview.cards > 0}
-									<div class="bg-cyan-50 rounded-lg p-3 text-center">
-										<div class="text-2xl font-bold text-cyan-600">
+									<div class="bg-accent-50 rounded-lg p-3 text-center">
+										<div class="text-2xl font-bold text-accent">
 											{preview.cards}
 										</div>
-										<div class="text-xs text-cyan-500">
+										<div class="text-xs text-accent">
 											{tr('settings.import.previewCards')}
 										</div>
 									</div>
@@ -339,7 +336,7 @@
 							</div>
 						{/if}
 						{#if file}
-							<p class="text-xs text-gray-400 truncate">
+							<p class="text-xs text-text-faint truncate">
 								{file.name}
 							</p>
 						{/if}
@@ -349,12 +346,12 @@
 					<div class="flex flex-col items-center py-8">
 						<span class="relative inline-flex h-6 w-6 mb-4"
 							><span
-								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 							></span><span
-								class="relative inline-flex rounded-full h-6 w-6 bg-cyan-500"
+								class="relative inline-flex rounded-full h-6 w-6 bg-accent"
 							></span></span
 						>
-						<p class="text-sm text-gray-600">
+						<p class="text-sm text-text-muted">
 							{tr('settings.import.importing')}
 						</p>
 					</div>
@@ -364,11 +361,11 @@
 						<div class="space-y-4">
 							<div class="grid grid-cols-2 gap-3">
 								{#if result.cards_imported > 0}
-									<div class="bg-cyan-50 rounded-lg p-3">
-										<div class="text-lg font-bold text-cyan-600">
+									<div class="bg-accent-50 rounded-lg p-3">
+										<div class="text-lg font-bold text-accent">
 											{result.cards_imported}
 										</div>
-										<div class="text-xs text-cyan-500">
+										<div class="text-xs text-accent">
 											{tr('settings.import.previewCards')}
 											{tr('settings.import.imported').toLowerCase()}
 										</div>
@@ -432,7 +429,7 @@
 
 			<!-- Footer -->
 			<div
-				class="px-6 pb-6 flex justify-end gap-3 border-t border-gray-100 pt-4"
+				class="px-6 pb-6 flex justify-end gap-3 border-t border-border-soft pt-4"
 			>
 				{#if step === 'select' || step === 'result'}
 					<button type="button" onclick={handleClose} class="btn btn-ghost">

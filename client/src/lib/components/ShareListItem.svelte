@@ -57,10 +57,14 @@
 </script>
 
 {#if isEditing}
-	<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4">
+	<div
+		class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
+	>
 		<div>
-			<p class="font-medium text-gray-900 text-sm">{userName(share)}</p>
-			<p class="text-xs text-gray-500">{share.shared_with_user?.email || ''}</p>
+			<p class="font-medium text-text text-sm">{userName(share)}</p>
+			<p class="text-xs text-text-subtle">
+				{share.shared_with_user?.email || ''}
+			</p>
 		</div>
 
 		{@render children?.()}
@@ -80,7 +84,7 @@
 			</button>
 		</div>
 
-		<div class="pt-2 border-t border-cyan-200">
+		<div class="pt-2 border-t border-accent-200">
 			<button
 				type="button"
 				onclick={ondelete}
@@ -109,11 +113,11 @@
 		</div>
 	</div>
 {:else}
-	<div class="border border-gray-200 rounded-lg p-3">
+	<div class="border border-border rounded-lg p-3">
 		<div class="flex justify-between items-start mb-2">
 			<div class="flex-1">
-				<p class="font-medium text-gray-900 text-sm">{userName(share)}</p>
-				<p class="text-xs text-gray-500">
+				<p class="font-medium text-text text-sm">{userName(share)}</p>
+				<p class="text-xs text-text-subtle">
 					{share.shared_with_user?.email || ''}
 				</p>
 			</div>
@@ -146,7 +150,9 @@
 		</div>
 		<div class="flex flex-wrap gap-1">
 			{#if alwaysViewOnly}
-				<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+				<span
+					class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded"
+				>
 					{viewOnlyLabel ?? $t('common.viewOnly')}
 				</span>
 			{:else}
@@ -161,12 +167,16 @@
 					</span>
 				{/if}
 				{#if showTransactionsBadge && share.can_edit_transactions}
-					<span class="text-xs bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-accent-100 text-accent-800 px-2 py-0.5 rounded"
+					>
 						{labelPermTransactions ?? $t('giftCards.sharing.permTransactions')}
 					</span>
 				{/if}
 				{#if !share.can_edit && !share.can_delete && !(showTransactionsBadge && share.can_edit_transactions)}
-					<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded"
+					>
 						{viewOnlyLabel ?? $t('common.viewOnly')}
 					</span>
 				{/if}

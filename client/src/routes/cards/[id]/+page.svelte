@@ -15,7 +15,9 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
-	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
+	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { platform } from '$lib/utils/platform';
 
 	import type { CardDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
@@ -68,6 +70,13 @@
 	let shareToDelete: string | null = null;
 
 	const isOffline = $derived(!$isOnline);
+
+	// Back: return to where the user came from; fall back to the wallet when the
+	// detail page was opened directly (deep link / reload) with no app history.
+	function goBack() {
+		if (history.length > 1) history.back();
+		else goto(resolve('/wallet'));
+	}
 
 	onMount(async () => {
 		await Promise.all([loadCard(), loadMerchants()]);
@@ -363,7 +372,7 @@
 		switch (status) {
 			case 'inactive':
 				return {
-					class: 'bg-gray-200 text-gray-700',
+					class: 'bg-border text-text-ink2',
 					text: tr('cards.status.inactive')
 				};
 			case 'expired':
@@ -395,129 +404,204 @@
 	>
 </svelte:head>
 
-<div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/cards')} class="text-cyan-600 hover:text-cyan-700"
-		>{tr('common.backToOverview')}</a
-	>
+<div class="px-4 max-w-7xl mx-auto">
 	{#if isRefreshing}
-		<span class="text-xs text-gray-400 animate-pulse"
-			>{tr('common.refreshing')}</span
-		>
+		<div class="mb-6 flex justify-end">
+			<span class="text-xs text-text-faint animate-pulse"
+				>{tr('common.refreshing')}</span
+			>
+		</div>
 	{/if}
-</div>
 
-{#if isLoading}
-	<LoadingSpinner />
-{:else if card}
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-		<!-- Left column: Card Details -->
-		<div class="lg:col-span-2">
-			{#if !isEditing}
-				<!-- View Mode -->
-				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-left: 6px solid {card.merchant?.color || '#3B82F6'}"
+	{#if isLoading}
+		<LoadingSpinner />
+	{:else if card}
+		<!-- Page header (view mode only; edit mode keeps its own form title). -->
+		{#if !isEditing}
+			<PageHeader
+				title={card.merchant?.name || tr('common.card')}
+				eyebrow={card.program || undefined}
+				mobileActions={false}
+				showSearch
+				onBack={goBack}
+			>
+				{#snippet actions()}
+					<ResourceActions
+						{isOffline}
+						isFavorite={card!.is_favorite}
+						{isTogglingFavorite}
+						canEdit={card!.permissions?.can_edit}
+						favoriteTitleAdd={tr('common.addToFavorites')}
+						favoriteTitleRemove={tr('common.removeFromFavorites')}
+						ontoggleFavorite={toggleFavorite}
+						onstartEdit={startEdit}
+					/>
+				{/snippet}
+			</PageHeader>
+			{#if card.owner && card.owner.id !== $authStore.user?.id}
+				<p class="-mt-6 mb-6 text-xs text-text-faint">
+					{tr('cards.sharedBy', {
+						name: card.owner.first_name || card.owner.email
+					})}
+				</p>
+			{/if}
+
+			<!-- Android M3: edit is a bottom-right FAB instead of a header action. -->
+			{#if card.permissions?.can_edit && platform === 'android'}
+				<button
+					type="button"
+					onclick={startEdit}
+					disabled={isOffline}
+					aria-label={tr('common.edit')}
+					class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab disabled:opacity-50 disabled:pointer-events-none"
 				>
-					<div
-						class="p-6 {card.status && card.status !== 'active'
-							? 'opacity-50 grayscale'
-							: ''}"
+					<svg
+						class="w-6 h-6"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
 					>
-						<!-- Header -->
-						<div class="mb-6">
-							<ResourceHeader
-								{isOffline}
-								isFavorite={card.is_favorite}
-								{isTogglingFavorite}
-								canEdit={card.permissions?.can_edit}
-								favoriteTitleAdd={tr('common.addToFavorites')}
-								favoriteTitleRemove={tr('common.removeFromFavorites')}
-								ontoggleFavorite={toggleFavorite}
-								onstartEdit={startEdit}
-							>
-								{@const c = card!}
-								<div class="flex items-baseline gap-2 flex-wrap mb-1">
-									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
-									>
-										{#if c.merchant}
-											{c.merchant.name}
-										{:else}
-											{tr('common.card')}
-										{/if}
-										{#if c.program}
-											<span
-												class="text-sm sm:text-base md:text-lg font-normal text-gray-500 ml-1"
-												>{c.program}</span
-											>
-										{/if}
-									</h1>
-									{#if c.owner && c.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-gray-400">
-											{tr('cards.sharedBy', {
-												name: c.owner.first_name || c.owner.email
-											})}
-										</span>
-									{/if}
-								</div>
-							</ResourceHeader>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+						/>
+					</svg>
+				</button>
+			{/if}
+		{/if}
 
-							<!-- Duplicate Warning -->
-							{#if card.duplicate_warning}
-								<DuplicateWarningBanner
-									warning={card.duplicate_warning}
-									resourceType="card"
-									onNavigate={(id) => goto(resolve(`/cards/${id}`))}
-								/>
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<!-- Left column: Card Details -->
+			<div class="lg:col-span-2">
+				{#if !isEditing}
+					<!-- View Mode -->
+					<div
+						class="overflow-hidden rounded-xl border border-border/80 bg-white"
+						style="border-left: 3px solid color-mix(in srgb, {card.merchant
+							?.color || '#3B82F6'} 70%, transparent)"
+					>
+						<div
+							class="p-6 {card.status && card.status !== 'active'
+								? 'opacity-50 grayscale'
+								: ''}"
+						>
+							<div>
+								<!-- Duplicate Warning -->
+								{#if card.duplicate_warning}
+									<DuplicateWarningBanner
+										warning={card.duplicate_warning}
+										resourceType="card"
+										onNavigate={(id) => goto(resolve(`/cards/${id}`))}
+									/>
+								{/if}
+							</div>
+
+							<!-- Barcode Display -->
+							<BarcodeDisplay
+								value={card.card_number}
+								type={card.barcode_type || 'CODE128'}
+								status={card.status}
+								statusBadge={card.status !== 'active'
+									? getStatusBadge(card.status ?? 'active')
+									: undefined}
+							/>
+
+							<!-- Notes -->
+							{#if card.notes}
+								<div
+									class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded"
+								>
+									<p class="text-sm text-text-ink2">{card.notes}</p>
+								</div>
 							{/if}
 						</div>
-
-						<!-- Barcode Display -->
-						<BarcodeDisplay
-							value={card.card_number}
-							type={card.barcode_type || 'CODE128'}
-							status={card.status}
-							statusBadge={card.status !== 'active'
-								? getStatusBadge(card.status ?? 'active')
-								: undefined}
-						/>
-
-						<!-- Notes -->
-						{#if card.notes}
-							<div
-								class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded"
-							>
-								<p class="text-sm text-gray-700">{card.notes}</p>
-							</div>
-						{/if}
 					</div>
-				</div>
-			{:else}
-				<!-- Edit Mode -->
-				<div
-					class="bg-white rounded-lg shadow-lg overflow-hidden"
-					style="border-top: 4px solid #3B82F6"
-				>
-					<div class="p-6">
-						<CardForm
-							bind:cardNumber={editCardNumber}
-							bind:merchantId={editMerchantId}
-							bind:program={editProgram}
-							bind:barcodeType={editBarcodeType}
-							bind:status={editStatus}
-							bind:notes={editNotes}
-							onSubmit={saveEdit}
-							onCancel={cancelEdit}
-							isLoading={false}
-							submitLabel={tr('common.save')}
-						/>
-						{#if card.permissions?.can_delete}
-							<div class="pt-4 mt-4 border-t border-gray-200">
+				{:else}
+					<!-- Edit Mode -->
+					<div class="overflow-hidden rounded-xl border border-border bg-white">
+						<div class="p-6">
+							<CardForm
+								bind:cardNumber={editCardNumber}
+								bind:merchantId={editMerchantId}
+								bind:program={editProgram}
+								bind:barcodeType={editBarcodeType}
+								bind:status={editStatus}
+								bind:notes={editNotes}
+								onSubmit={saveEdit}
+								onCancel={cancelEdit}
+								isLoading={false}
+								submitLabel={tr('common.save')}
+							/>
+							{#if card.permissions?.can_delete}
+								<div class="pt-4 mt-4 border-t border-border">
+									<button
+										type="button"
+										onclick={promptDelete}
+										disabled={isOffline}
+										class="btn btn-text-danger w-full flex items-center justify-center gap-1.5 {isOffline
+											? 'pointer-events-none blur-[0.5px]'
+											: ''}"
+									>
+										{#if isOffline}
+											<svg
+												class="w-3.5 h-3.5"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+												></path>
+											</svg>
+										{/if}
+										{tr('cards.deleteButton')}
+									</button>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/if}
+			</div>
+
+			<!-- Right column: Transfer & Sharing Info (only for owners) -->
+			<div class="lg:col-span-1 space-y-4">
+				{#if card.permissions?.is_owner}
+					<!-- Transfer Box -->
+					<TransferBox
+						{isOffline}
+						openButtonLabel={tr('cards.transfer.button')}
+						transferButtonLabel={tr('cards.transfer.transferButton')}
+						warningTitle={tr('cards.transfer.warning')}
+						warningDetails={tr('giftCards.transfer.warningDetails')}
+						emailLabel={tr('cards.transfer.newOwnerEmail')}
+						emailHint={tr('giftCards.sharing.userMustBeRegistered')}
+						whatHappensLabel={tr('cards.transfer.whatHappens')}
+						details={[
+							tr('cards.transfer.newOwnerGetsRights'),
+							tr('cards.transfer.allSharesDeleted'),
+							tr('cards.transfer.youLoseAccess'),
+							tr('cards.transfer.transferLogged')
+						]}
+						bind:email={transferEmail}
+						ontransfer={promptTransfer}
+					/>
+
+					<!-- Sharing Box -->
+					<div class="rounded-xl border border-border bg-white p-6">
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="text-lg font-semibold text-text">
+								{tr('common.share')}
+							</h3>
+							{#if !showShareForm}
 								<button
-									type="button"
-									onclick={promptDelete}
+									onclick={() => (showShareForm = true)}
 									disabled={isOffline}
-									class="btn btn-text-danger w-full flex items-center justify-center gap-1.5 {isOffline
+									class="btn btn-xs btn-primary whitespace-nowrap flex items-center gap-1.5 {isOffline
 										? 'pointer-events-none blur-[0.5px]'
 										: ''}"
 								>
@@ -535,214 +619,155 @@
 												d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
 											></path>
 										</svg>
+									{:else}
+										<span>+</span>
 									{/if}
-									{tr('cards.deleteButton')}
+									{tr('common.add')}
 								</button>
-							</div>
-						{/if}
-					</div>
-				</div>
-			{/if}
-		</div>
+							{/if}
+						</div>
 
-		<!-- Right column: Transfer & Sharing Info (only for owners) -->
-		<div class="lg:col-span-1 space-y-4">
-			{#if card.permissions?.is_owner}
-				<!-- Transfer Box -->
-				<TransferBox
-					{isOffline}
-					openButtonLabel={tr('cards.transfer.button')}
-					transferButtonLabel={tr('cards.transfer.transferButton')}
-					warningTitle={tr('cards.transfer.warning')}
-					warningDetails={tr('giftCards.transfer.warningDetails')}
-					emailLabel={tr('cards.transfer.newOwnerEmail')}
-					emailHint={tr('giftCards.sharing.userMustBeRegistered')}
-					whatHappensLabel={tr('cards.transfer.whatHappens')}
-					details={[
-						tr('cards.transfer.newOwnerGetsRights'),
-						tr('cards.transfer.allSharesDeleted'),
-						tr('cards.transfer.youLoseAccess'),
-						tr('cards.transfer.transferLogged')
-					]}
-					bind:email={transferEmail}
-					ontransfer={promptTransfer}
-				/>
-
-				<!-- Sharing Box -->
-				<div class="bg-white rounded-lg shadow-lg p-6">
-					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
-							{tr('common.share')}
-						</h3>
-						{#if !showShareForm}
-							<button
-								onclick={() => (showShareForm = true)}
-								disabled={isOffline}
-								class="btn btn-xs btn-primary whitespace-nowrap flex items-center gap-1.5 {isOffline
-									? 'pointer-events-none blur-[0.5px]'
-									: ''}"
+						{#if showShareForm}
+							<div
+								class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
 							>
-								{#if isOffline}
-									<svg
-										class="w-3.5 h-3.5"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
+								<EmailAutocomplete
+									multiple
+									bind:values={shareEmails}
+									label={tr('cards.sharing.userEmail')}
+									hint={tr('giftCards.sharing.userMustBeRegistered')}
+									inputId="share-email-input"
+									disabled={isOffline}
+								/>
+
+								<SharePermissions
+									bind:canEdit
+									bind:canDelete
+									labelEdit={tr('cards.sharing.canEdit')}
+									labelEditDesc={tr('cards.sharing.canEditDesc')}
+									labelDelete={tr('cards.sharing.canDelete')}
+									labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+								/>
+
+								<div class="bg-white border border-accent-200 rounded-lg p-3">
+									<h4 class="font-medium text-accent-900 text-sm mb-2">
+										{tr('cards.sharing.whatIsShared')}
+									</h4>
+									<ul class="text-xs text-accent-800 space-y-1">
+										<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
+										<li>{tr('cards.sharing.sharedItemDetails')}</li>
+										<li>{tr('cards.sharing.sharedItemNotes')}</li>
+									</ul>
+								</div>
+
+								<div class="flex gap-2">
+									<button
+										onclick={handleShare}
+										disabled={isOffline}
+										class="btn btn-primary flex-1"
 									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-										></path>
-									</svg>
-								{:else}
-									<span>+</span>
-								{/if}
-								{tr('common.add')}
+										{tr('giftCards.sharing.shareNow')}
+									</button>
+									<button
+										onclick={() => {
+											showShareForm = false;
+											shareEmails = [];
+											canEdit = false;
+											canDelete = false;
+										}}
+										class="btn btn-ghost"
+									>
+										{tr('common.cancel')}
+									</button>
+								</div>
+							</div>
+						{/if}
+
+						{#if shares.length > 0}
+							<div class="space-y-3">
+								{#each shares as share (share.shared_with_user.id)}
+									<ShareListItem
+										{share}
+										isEditing={editingShareId === share.shared_with_user.id}
+										{isOffline}
+										onstartEdit={() => startEditShare(share)}
+										onsave={() => saveShareEdit(share.shared_with_user.id)}
+										oncancel={cancelEditShare}
+										ondelete={() =>
+											promptDeleteShare(share.shared_with_user.id)}
+									>
+										<SharePermissions
+											bind:canEdit={editShareCanEdit}
+											bind:canDelete={editShareCanDelete}
+											labelEdit={tr('cards.sharing.canEdit')}
+											labelEditDesc={tr('cards.sharing.canEditDesc')}
+											labelDelete={tr('cards.sharing.canDelete')}
+											labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+										/>
+									</ShareListItem>
+								{/each}
+							</div>
+							<button
+								type="button"
+								onclick={promptRevokeAll}
+								disabled={isOffline}
+								class="btn btn-ghost text-red-600 mt-3 w-full disabled:opacity-50"
+							>
+								{tr('cards.sharing.revokeAll')}
 							</button>
+						{:else}
+							<p class="text-sm text-text-subtle text-center py-4">
+								{tr('giftCards.sharing.notSharedYet')}
+							</p>
 						{/if}
 					</div>
-
-					{#if showShareForm}
-						<div
-							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
-						>
-							<EmailAutocomplete
-								multiple
-								bind:values={shareEmails}
-								label={tr('cards.sharing.userEmail')}
-								hint={tr('giftCards.sharing.userMustBeRegistered')}
-								inputId="share-email-input"
-								disabled={isOffline}
-							/>
-
-							<SharePermissions
-								bind:canEdit
-								bind:canDelete
-								labelEdit={tr('cards.sharing.canEdit')}
-								labelEditDesc={tr('cards.sharing.canEditDesc')}
-								labelDelete={tr('cards.sharing.canDelete')}
-								labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
-							/>
-
-							<div class="bg-white border border-cyan-200 rounded-lg p-3">
-								<h4 class="font-medium text-cyan-900 text-sm mb-2">
-									{tr('cards.sharing.whatIsShared')}
-								</h4>
-								<ul class="text-xs text-cyan-800 space-y-1">
-									<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
-									<li>{tr('cards.sharing.sharedItemDetails')}</li>
-									<li>{tr('cards.sharing.sharedItemNotes')}</li>
-								</ul>
-							</div>
-
-							<div class="flex gap-2">
-								<button
-									onclick={handleShare}
-									disabled={isOffline}
-									class="btn btn-primary flex-1"
-								>
-									{tr('giftCards.sharing.shareNow')}
-								</button>
-								<button
-									onclick={() => {
-										showShareForm = false;
-										shareEmails = [];
-										canEdit = false;
-										canDelete = false;
-									}}
-									class="btn btn-ghost"
-								>
-									{tr('common.cancel')}
-								</button>
-							</div>
-						</div>
-					{/if}
-
-					{#if shares.length > 0}
-						<div class="space-y-3">
-							{#each shares as share (share.shared_with_user.id)}
-								<ShareListItem
-									{share}
-									isEditing={editingShareId === share.shared_with_user.id}
-									{isOffline}
-									onstartEdit={() => startEditShare(share)}
-									onsave={() => saveShareEdit(share.shared_with_user.id)}
-									oncancel={cancelEditShare}
-									ondelete={() => promptDeleteShare(share.shared_with_user.id)}
-								>
-									<SharePermissions
-										bind:canEdit={editShareCanEdit}
-										bind:canDelete={editShareCanDelete}
-										labelEdit={tr('cards.sharing.canEdit')}
-										labelEditDesc={tr('cards.sharing.canEditDesc')}
-										labelDelete={tr('cards.sharing.canDelete')}
-										labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
-									/>
-								</ShareListItem>
-							{/each}
-						</div>
-						<button
-							type="button"
-							onclick={promptRevokeAll}
-							disabled={isOffline}
-							class="btn btn-ghost text-red-600 mt-3 w-full disabled:opacity-50"
-						>
-							{tr('cards.sharing.revokeAll')}
-						</button>
-					{:else}
-						<p class="text-sm text-gray-500 text-center py-4">
-							{tr('giftCards.sharing.notSharedYet')}
-						</p>
-					{/if}
-				</div>
-			{/if}
+				{/if}
+			</div>
 		</div>
-	</div>
 
-	<!-- Confirmation Modals -->
-	<ConfirmModal
-		isOpen={showDeleteModal}
-		title={tr('cards.deleteConfirm')}
-		message={tr('cards.deleteConfirmMessage')}
-		confirmText={tr('common.delete')}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmDelete}
-		oncancel={() => (showDeleteModal = false)}
-	/>
+		<!-- Confirmation Modals -->
+		<ConfirmModal
+			isOpen={showDeleteModal}
+			title={tr('cards.deleteConfirm')}
+			message={tr('cards.deleteConfirmMessage')}
+			confirmText={tr('common.delete')}
+			cancelText={tr('common.cancel')}
+			variant="danger"
+			onconfirm={confirmDelete}
+			oncancel={() => (showDeleteModal = false)}
+		/>
 
-	<ConfirmModal
-		isOpen={showDeleteShareModal}
-		title={tr('cards.sharing.removeConfirm')}
-		message={tr('cards.sharing.removeConfirmMessage')}
-		confirmText={tr('common.remove')}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmDeleteShare}
-		oncancel={() => (showDeleteShareModal = false)}
-	/>
+		<ConfirmModal
+			isOpen={showDeleteShareModal}
+			title={tr('cards.sharing.removeConfirm')}
+			message={tr('cards.sharing.removeConfirmMessage')}
+			confirmText={tr('common.remove')}
+			cancelText={tr('common.cancel')}
+			variant="danger"
+			onconfirm={confirmDeleteShare}
+			oncancel={() => (showDeleteShareModal = false)}
+		/>
 
-	<ConfirmModal
-		isOpen={showRevokeAllModal}
-		title={tr('cards.sharing.revokeAllConfirm')}
-		message={tr('cards.sharing.revokeAllConfirmMessage')}
-		confirmText={tr('cards.sharing.revokeAll')}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmRevokeAll}
-		oncancel={() => (showRevokeAllModal = false)}
-	/>
+		<ConfirmModal
+			isOpen={showRevokeAllModal}
+			title={tr('cards.sharing.revokeAllConfirm')}
+			message={tr('cards.sharing.revokeAllConfirmMessage')}
+			confirmText={tr('cards.sharing.revokeAll')}
+			cancelText={tr('common.cancel')}
+			variant="danger"
+			onconfirm={confirmRevokeAll}
+			oncancel={() => (showRevokeAllModal = false)}
+		/>
 
-	<ConfirmModal
-		isOpen={showTransferModal}
-		title={tr('cards.transfer.confirmTitle')}
-		message={tr('cards.transfer.confirmMessage')}
-		confirmText={tr('cards.transfer.transferButton')}
-		cancelText={tr('common.cancel')}
-		variant="transfer"
-		onconfirm={confirmTransfer}
-		oncancel={() => (showTransferModal = false)}
-	/>
-{/if}
+		<ConfirmModal
+			isOpen={showTransferModal}
+			title={tr('cards.transfer.confirmTitle')}
+			message={tr('cards.transfer.confirmMessage')}
+			confirmText={tr('cards.transfer.transferButton')}
+			cancelText={tr('common.cancel')}
+			variant="transfer"
+			onconfirm={confirmTransfer}
+			oncancel={() => (showTransferModal = false)}
+		/>
+	{/if}
+</div>

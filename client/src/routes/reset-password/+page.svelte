@@ -80,7 +80,7 @@
 		<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 			<div class="mb-8 flex items-center gap-4">
 				<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-				<h1 class="text-2xl font-bold text-gray-900">
+				<h1 class="text-2xl font-bold text-text">
 					{tr('auth.resetPassword.title')}
 				</h1>
 			</div>
@@ -104,10 +104,10 @@
 							/>
 						</svg>
 					</div>
-					<h2 class="text-xl font-semibold text-gray-900 mb-2">
+					<h2 class="text-xl font-semibold text-text mb-2">
 						{tr('auth.resetPassword.success')}
 					</h2>
-					<p class="text-gray-600 mb-6">
+					<p class="text-text-muted mb-6">
 						{tr('auth.resetPassword.successMessage')}
 					</p>
 					<a href={resolve('/login')} class="btn btn-primary w-full">
@@ -133,10 +133,10 @@
 							/>
 						</svg>
 					</div>
-					<h2 class="text-xl font-semibold text-gray-900 mb-2">
+					<h2 class="text-xl font-semibold text-text mb-2">
 						{tr('auth.resetPassword.error')}
 					</h2>
-					<p class="text-gray-600 mb-6">{errorMessage}</p>
+					<p class="text-text-muted mb-6">{errorMessage}</p>
 
 					<div class="space-y-3">
 						{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
@@ -153,13 +153,15 @@
 					</div>
 				</div>
 			{:else}
-				<p class="text-gray-600 mb-6">{tr('auth.resetPassword.description')}</p>
+				<p class="text-text-muted mb-6">
+					{tr('auth.resetPassword.description')}
+				</p>
 
 				<form class="space-y-6" onsubmit={handleSubmit}>
 					<div>
 						<label
 							for="password"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('auth.resetPassword.password')}
 						</label>
@@ -171,7 +173,7 @@
 							required
 							bind:value={password}
 							disabled={isLoading}
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+							class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 							placeholder={tr('auth.resetPassword.passwordPlaceholder')}
 						/>
 					</div>
@@ -179,7 +181,7 @@
 					<div>
 						<label
 							for="confirmPassword"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('auth.resetPassword.confirmPassword')}
 						</label>
@@ -191,7 +193,7 @@
 							required
 							bind:value={confirmPassword}
 							disabled={isLoading}
-							class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+							class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 							placeholder={tr('auth.resetPassword.confirmPasswordPlaceholder')}
 						/>
 					</div>
@@ -205,9 +207,9 @@
 							{#if isLoading}
 								<span class="relative inline-flex h-3 w-3 mr-2"
 									><span
-										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 									></span><span
-										class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+										class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 									></span></span
 								>
 								{tr('auth.resetPassword.submitting')}
@@ -220,7 +222,7 @@
 					<div class="text-center pt-4">
 						<a
 							href={resolve('/login')}
-							class="font-medium text-cyan-600 hover:text-cyan-500"
+							class="font-medium text-accent hover:text-accent"
 						>
 							{tr('auth.resetPassword.goToLogin')}
 						</a>

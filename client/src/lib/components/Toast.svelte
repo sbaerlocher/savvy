@@ -38,10 +38,10 @@
 		info: {
 			bg: isIOS
 				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-cyan-50',
-			border: isIOS ? 'border-white/30' : 'border-cyan-200',
-			text: 'text-cyan-800',
-			icon: 'text-cyan-500'
+				: 'bg-accent-50',
+			border: isIOS ? 'border-white/30' : 'border-accent-200',
+			text: 'text-accent-800',
+			icon: 'text-accent'
 		}
 	};
 </script>

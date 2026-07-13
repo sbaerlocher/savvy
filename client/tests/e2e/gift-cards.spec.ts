@@ -345,17 +345,15 @@ test.describe('Gift Cards Management', () => {
 		}
 
 		await giftCardsListPage.filterButton.click();
-		await expect(
-			giftCardsListPage.page.locator('select, [role="listbox"]').first()
-		).toBeVisible({
-			timeout: 3000
-		});
 
+		// The unified wallet filter sheet no longer exposes a native <select>
+		// merchant picker; per-merchant browsing moved to /merchants. Skip when
+		// no legacy select is present rather than assert one into existence.
 		const merchantFilter = giftCardsListPage.page
 			.locator('select')
 			.filter({ hasText: /Merchant|Händler/i })
 			.first();
-		if (!(await merchantFilter.isVisible())) {
+		if (!(await merchantFilter.isVisible().catch(() => false))) {
 			test.skip();
 			return;
 		}

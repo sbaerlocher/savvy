@@ -103,7 +103,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href={resolve('/cards')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/cards')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -111,8 +111,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 	<!-- Left column: Form (2/3 width) -->
 	<div class="lg:col-span-2">
-		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h1 class="text-3xl font-bold text-gray-900 mb-6">
+		<div class="rounded-xl border border-border bg-white p-6">
+			<h1 class="text-3xl font-bold text-text mb-6">
 				{tr('cards.newCard')}
 			</h1>
 			<DuplicateWarningBanner
@@ -137,15 +137,17 @@
 
 	<!-- Right column: Sharing (1/3 width) -->
 	<div class="lg:col-span-1">
-		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h2 class="text-xl font-bold text-gray-900 mb-4">
+		<div class="rounded-xl border border-border bg-white p-6">
+			<h2 class="text-xl font-bold text-text mb-4">
 				{tr('cards.sharing.title')}
 			</h2>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('cards.sharing.shareOnCreate')}
 			</p>
 
-			<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4">
+			<div
+				class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+			>
 				<!-- Email Input with Autocomplete -->
 				<EmailAutocomplete
 					bind:value={shareEmail}
@@ -160,13 +162,13 @@
 						<input
 							type="checkbox"
 							bind:checked={canEdit}
-							class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-gray-900"
+							<span class="block text-sm font-medium text-text"
 								>{tr('cards.sharing.canEdit')}</span
 							>
-							<span class="text-xs text-gray-500">
+							<span class="text-xs text-text-subtle">
 								{tr('cards.sharing.canEditDesc')}
 							</span>
 						</div>
@@ -175,13 +177,13 @@
 						<input
 							type="checkbox"
 							bind:checked={canDelete}
-							class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-gray-900"
+							<span class="block text-sm font-medium text-text"
 								>{tr('cards.sharing.canDelete')}</span
 							>
-							<span class="text-xs text-gray-500"
+							<span class="text-xs text-text-subtle"
 								>{tr('cards.sharing.canDeleteDesc')}</span
 							>
 						</div>

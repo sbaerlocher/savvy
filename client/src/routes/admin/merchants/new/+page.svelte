@@ -71,7 +71,7 @@
 	<div class="mb-6">
 		<a
 			href={resolve('/merchants')}
-			class="text-cyan-600 hover:text-cyan-700 transition-colors"
+			class="text-accent hover:text-accent-hover transition-colors"
 		>
 			{$t('common.backToOverview')}
 		</a>
@@ -82,7 +82,7 @@
 		<!-- Left column: Form (2/3 width) -->
 		<div class="lg:col-span-2">
 			<div class="bg-white rounded-lg shadow-lg p-6">
-				<h1 class="text-3xl font-bold text-gray-900 mb-6">
+				<h1 class="text-3xl font-bold text-text mb-6">
 					{$t('admin.merchants.createMerchant')}
 				</h1>
 
@@ -98,7 +98,7 @@
 					<div>
 						<label
 							for="name"
-							class="block text-sm font-medium text-gray-700 mb-2"
+							class="block text-sm font-medium text-text-ink2 mb-2"
 						>
 							{$t('admin.merchants.name')} <span class="text-red-500">*</span>
 						</label>
@@ -119,7 +119,7 @@
 					<div>
 						<label
 							for="color"
-							class="block text-sm font-medium text-gray-700 mb-2"
+							class="block text-sm font-medium text-text-ink2 mb-2"
 						>
 							{$t('admin.merchants.color')}
 						</label>
@@ -128,7 +128,7 @@
 								id="color"
 								type="color"
 								bind:value={color}
-								class="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+								class="h-10 w-20 rounded border border-border-field cursor-pointer"
 							/>
 							<input
 								type="text"
@@ -146,7 +146,7 @@
 								class="input flex-1"
 							/>
 						</div>
-						<p class="mt-1 text-sm text-gray-500">
+						<p class="mt-1 text-sm text-text-subtle">
 							{$t('admin.merchants.colorHint')}
 						</p>
 					</div>
@@ -155,7 +155,7 @@
 					<div>
 						<label
 							for="logoUrl"
-							class="block text-sm font-medium text-gray-700 mb-2"
+							class="block text-sm font-medium text-text-ink2 mb-2"
 						>
 							{$t('admin.merchants.logoUrl')}
 						</label>
@@ -166,7 +166,7 @@
 							placeholder="https://example.com/logo.png"
 							class="input bg-white"
 						/>
-						<p class="mt-1 text-sm text-gray-500">
+						<p class="mt-1 text-sm text-text-subtle">
 							{$t('admin.merchants.logoUrlHint')}
 						</p>
 					</div>
@@ -175,7 +175,7 @@
 					<div>
 						<label
 							for="website"
-							class="block text-sm font-medium text-gray-700 mb-2"
+							class="block text-sm font-medium text-text-ink2 mb-2"
 						>
 							{$t('admin.merchants.website')}
 						</label>
@@ -186,7 +186,7 @@
 							placeholder="https://example.com"
 							class="input bg-white"
 						/>
-						<p class="mt-1 text-sm text-gray-500">
+						<p class="mt-1 text-sm text-text-subtle">
 							{$t('admin.merchants.websiteHint')}
 						</p>
 					</div>
@@ -219,40 +219,42 @@
 		<!-- Right column: Info (1/3 width) -->
 		<div class="lg:col-span-1">
 			<div class="bg-white rounded-lg shadow-lg p-6">
-				<h2 class="text-xl font-bold text-gray-900 mb-4">
+				<h2 class="text-xl font-bold text-text mb-4">
 					{$t('admin.merchants.title')}
 				</h2>
-				<p class="text-sm text-gray-600 mb-4">
+				<p class="text-sm text-text-muted mb-4">
 					{$t('admin.merchants.createSubtitle')}
 				</p>
 
 				<div class="space-y-4 text-sm">
-					<div class="border-l-4 border-cyan-500 pl-4">
-						<h3 class="font-semibold text-gray-900 mb-1">
+					<div class="border-l-4 border-accent pl-4">
+						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.name')}
 						</h3>
-						<p class="text-gray-600">{$t('admin.merchants.namePlaceholder')}</p>
+						<p class="text-text-muted">
+							{$t('admin.merchants.namePlaceholder')}
+						</p>
 					</div>
 
 					<div class="border-l-4 border-purple-500 pl-4">
-						<h3 class="font-semibold text-gray-900 mb-1">
+						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.color')}
 						</h3>
-						<p class="text-gray-600">{$t('admin.merchants.colorHint')}</p>
+						<p class="text-text-muted">{$t('admin.merchants.colorHint')}</p>
 					</div>
 
 					<div class="border-l-4 border-green-500 pl-4">
-						<h3 class="font-semibold text-gray-900 mb-1">
+						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.logoUrl')}
 						</h3>
-						<p class="text-gray-600">{$t('admin.merchants.logoUrlHint')}</p>
+						<p class="text-text-muted">{$t('admin.merchants.logoUrlHint')}</p>
 					</div>
 
 					<div class="border-l-4 border-orange-500 pl-4">
-						<h3 class="font-semibold text-gray-900 mb-1">
+						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.website')}
 						</h3>
-						<p class="text-gray-600">{$t('admin.merchants.websiteHint')}</p>
+						<p class="text-text-muted">{$t('admin.merchants.websiteHint')}</p>
 					</div>
 				</div>
 			</div>

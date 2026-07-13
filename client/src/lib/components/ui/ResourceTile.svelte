@@ -2,6 +2,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { resolve } from '$app/paths';
 	import Barcode from '$lib/components/Barcode.svelte';
+	import { platform } from '$lib/utils/platform';
 	import type { TileModel } from '$lib/utils/tile-model';
 	import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
 
@@ -55,6 +56,10 @@
 		}`
 	);
 
+	// The enlarge-to-modal barcode is a touch-device affordance (turn the phone
+	// to scan). On desktop the inline barcode is enough — no modal.
+	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
+
 	function handleBarcodeClick(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -63,11 +68,11 @@
 </script>
 
 <div
-	class="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-white transition hover:border-gray-300 {selectMode &&
+	class="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-white transition hover:border-border-field {selectMode &&
 	selected
-		? 'ring-2 ring-cyan-600'
+		? 'ring-2 ring-accent'
 		: ''}"
-	style="border-left: 6px solid {model.merchantColor}"
+	style="border-left: 3px solid color-mix(in srgb, {model.merchantColor} 70%, transparent)"
 >
 	<!-- Status overlay (centered) when not active — sits OUTSIDE the dimmed
 	     content so the badge stays at full opacity, like the prototype. -->
@@ -76,7 +81,7 @@
 			class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
 		>
 			<span
-				class="rounded-full border border-gray-300 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700 shadow-sm"
+				class="rounded-full border border-border-field bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-ink2 shadow-sm"
 			>
 				{model.statusBadge}
 			</span>
@@ -112,7 +117,7 @@
 		<!-- Header: icon + type label + merchant name | amount + expiry -->
 		<div class="flex items-start gap-3">
 			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500"
+				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-border-soft text-text-subtle"
 			>
 				<svg
 					class="h-5 w-5"
@@ -135,7 +140,7 @@
 				     lock private / people + N shared-out / people + first name
 				     received). Full text stays on the detail page. -->
 				<div
-					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
 				>
 					<span>{typeLabel}</span>
 					<span class="flex items-center gap-1 normal-case tracking-normal">
@@ -182,19 +187,19 @@
 					</span>
 				</div>
 				<p
-					class="truncate font-semibold text-gray-900 transition group-hover:text-cyan-700"
+					class="truncate font-semibold text-text transition group-hover:text-accent-hover"
 				>
 					{model.merchantName}
 				</p>
 				{#if model.identifier}
-					<p class="truncate text-sm text-gray-500">{model.identifier}</p>
+					<p class="truncate text-sm text-text-subtle">{model.identifier}</p>
 				{/if}
 			</div>
 
 			<!-- Kennzahl + expiry badge (fixed top-right slot) -->
 			<div class="flex shrink-0 flex-col items-end gap-1 text-right">
 				{#if model.amount}
-					<p class="text-lg font-bold tabular-nums text-gray-900">
+					<p class="text-lg font-bold tabular-nums text-text">
 						{model.amount}
 					</p>
 				{/if}
@@ -202,13 +207,13 @@
 					<span
 						class="rounded-full px-2 py-0.5 text-[0.7rem] font-medium {model.expiryUrgent
 							? 'bg-amber-50 text-amber-700'
-							: 'bg-gray-100 text-gray-500'}"
+							: 'bg-border-soft text-text-subtle'}"
 					>
 						{model.expiryBadge}
 					</span>
 				{:else if model.notYetValid}
 					<span
-						class="rounded-full bg-gray-100 px-2 py-0.5 text-[0.7rem] font-medium text-gray-500"
+						class="rounded-full bg-border-soft px-2 py-0.5 text-[0.7rem] font-medium text-text-subtle"
 					>
 						{model.notYetValid}
 					</span>
@@ -218,12 +223,12 @@
 
 		<!-- Footer: masked number | usage marker -->
 		<div class="mt-1 flex items-center justify-between gap-2">
-			<p class="font-mono text-xs text-gray-400">
+			<p class="font-mono text-xs text-text-faint">
 				{#if model.maskedNumber}{model.maskedNumber}{:else}&nbsp;{/if}
 			</p>
 			{#if model.usageMarker}
 				<span
-					class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+					class="text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
 				>
 					{model.usageMarker}
 				</span>
@@ -231,27 +236,36 @@
 		</div>
 	{/snippet}
 
-	<!-- Barcode box (optional, context-driven via showBarcode). Sibling of the
-	     info link so it stays independently tappable (enlarge via modal). -->
+	<!-- Barcode box (optional, context-driven via showBarcode). With
+	     onShowBarcode it is a button that enlarges via modal; without it the
+	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
-		<button
-			type="button"
-			onclick={handleBarcodeClick}
-			class="mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:bg-cyan-50 {model.isActive
-				? ''
-				: 'opacity-50 grayscale'}"
-			title={$t('dashboard.tapToEnlarge')}
-			aria-label={$t('dashboard.showBarcode')}
-		>
+		{@const barcodeValue = model.barcodeValue}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft bg-surface-1 p-3 ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{#snippet barcodeContent()}
+			<!-- Barcode image only; the raw value already shows masked in the
+			     footer (·· 1234), so no duplicate full-value text here. -->
 			<Barcode
-				value={model.barcodeValue}
+				value={barcodeValue}
 				type={model.barcodeType}
 				height={compact ? 50 : 64}
 				maxHeight={compact ? 50 : 64}
 			/>
-			<span class="break-all text-center font-mono text-[0.7rem] text-gray-500">
-				{model.barcodeValue}
-			</span>
-		</button>
+		{/snippet}
+		{#if barcodeEnlargeable}
+			<button
+				type="button"
+				onclick={handleBarcodeClick}
+				class="{boxClass} transition hover:bg-accent-50"
+				title={$t('dashboard.tapToEnlarge')}
+				aria-label={$t('dashboard.showBarcode')}
+			>
+				{@render barcodeContent()}
+			</button>
+		{:else}
+			<div class={boxClass}>
+				{@render barcodeContent()}
+			</div>
+		{/if}
 	{/if}
 </div>

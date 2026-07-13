@@ -122,7 +122,7 @@
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
 	<div class="mb-6">
-		<button onclick={handleCancel} class="text-cyan-600 hover:text-cyan-700">
+		<button onclick={handleCancel} class="text-accent hover:text-accent-hover">
 			{$t('common.backToOverview')}
 		</button>
 	</div>
@@ -134,7 +134,7 @@
 			<!-- Left column: Edit Form (2/3 width) -->
 			<div class="lg:col-span-2">
 				<div class="bg-white shadow-lg rounded-lg p-6">
-					<h1 class="text-3xl font-bold text-gray-900 mb-6">
+					<h1 class="text-3xl font-bold text-text mb-6">
 						{$t('admin.users.editUser')}
 					</h1>
 
@@ -149,7 +149,7 @@
 						<div>
 							<label
 								for="email"
-								class="block text-sm font-medium text-gray-700 mb-1"
+								class="block text-sm font-medium text-text-ink2 mb-1"
 							>
 								{$t('admin.users.email')} *
 							</label>
@@ -159,7 +159,7 @@
 								bind:value={email}
 								required
 								disabled={!isAdmin}
-								class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent disabled:bg-border-soft disabled:cursor-not-allowed"
 							/>
 						</div>
 
@@ -167,7 +167,7 @@
 						<div>
 							<label
 								for="firstName"
-								class="block text-sm font-medium text-gray-700 mb-1"
+								class="block text-sm font-medium text-text-ink2 mb-1"
 							>
 								{$t('admin.users.firstName')} *
 							</label>
@@ -177,7 +177,7 @@
 								bind:value={firstName}
 								required
 								disabled={!isAdmin}
-								class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent disabled:bg-border-soft disabled:cursor-not-allowed"
 							/>
 						</div>
 
@@ -185,7 +185,7 @@
 						<div>
 							<label
 								for="lastName"
-								class="block text-sm font-medium text-gray-700 mb-1"
+								class="block text-sm font-medium text-text-ink2 mb-1"
 							>
 								{$t('admin.users.lastName')} *
 							</label>
@@ -195,7 +195,7 @@
 								bind:value={lastName}
 								required
 								disabled={!isAdmin}
-								class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent disabled:bg-border-soft disabled:cursor-not-allowed"
 							/>
 						</div>
 
@@ -203,7 +203,7 @@
 						<div>
 							<label
 								for="role"
-								class="block text-sm font-medium text-gray-700 mb-1"
+								class="block text-sm font-medium text-text-ink2 mb-1"
 							>
 								{$t('admin.users.role')} *
 							</label>
@@ -211,17 +211,17 @@
 								id="role"
 								bind:value={role}
 								disabled={!isAdmin || isEditingSelf || isOAuthUser}
-								class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent disabled:bg-border-soft disabled:cursor-not-allowed"
 							>
 								<option value="user">{$t('admin.users.roleUser')}</option>
 								<option value="admin">{$t('admin.users.roleAdmin')}</option>
 							</select>
 							{#if isOAuthUser}
-								<p class="text-sm text-gray-500 mt-1">
+								<p class="text-sm text-text-subtle mt-1">
 									{$t('admin.users.oauthRoleManaged')}
 								</p>
 							{:else if isEditingSelf}
-								<p class="text-sm text-gray-500 mt-1">
+								<p class="text-sm text-text-subtle mt-1">
 									{$t('admin.users.cannotChangeOwnRole')}
 								</p>
 							{/if}
@@ -231,7 +231,7 @@
 						<div>
 							<label
 								for="user-provider"
-								class="block text-sm font-medium text-gray-700 mb-1"
+								class="block text-sm font-medium text-text-ink2 mb-1"
 							>
 								{$t('admin.users.provider')}
 							</label>
@@ -240,7 +240,7 @@
 								type="text"
 								value={user.auth_provider}
 								disabled
-								class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed"
+								class="w-full px-4 py-2 bg-border-soft border border-border-field rounded-md cursor-not-allowed"
 							/>
 						</div>
 
@@ -273,11 +273,11 @@
 
 					<!-- Impersonation Section -->
 					{#if !isEditingSelf}
-						<div class="pt-6 mt-6 border-t border-gray-200">
-							<h3 class="text-lg font-bold text-gray-900 mb-2">
+						<div class="pt-6 mt-6 border-t border-border">
+							<h3 class="text-lg font-bold text-text mb-2">
 								{$t('admin.impersonate_info.title')}
 							</h3>
-							<p class="text-sm text-gray-600 mb-4">
+							<p class="text-sm text-text-muted mb-4">
 								{$t('admin.impersonate_info.description')}
 							</p>
 							<button
@@ -301,19 +301,19 @@
 			<!-- Right column: Role Information (1/3 width) -->
 			<div class="lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-lg p-6">
-					<h2 class="text-xl font-bold text-gray-900 mb-4">
+					<h2 class="text-xl font-bold text-text mb-4">
 						{$t('admin.users.roleInfo.title')}
 					</h2>
-					<p class="text-sm text-gray-600 mb-4">
+					<p class="text-sm text-text-muted mb-4">
 						{$t('admin.users.roleInfo.description')}
 					</p>
 
 					<div class="space-y-4">
 						<!-- User Role -->
-						<div class="border border-gray-200 rounded-lg p-4">
+						<div class="border border-border rounded-lg p-4">
 							<div class="flex items-center mb-2">
 								<svg
-									class="w-5 h-5 text-cyan-500 mr-2"
+									class="w-5 h-5 text-accent mr-2"
 									fill="currentColor"
 									viewBox="0 0 20 20"
 								>
@@ -323,14 +323,14 @@
 										clip-rule="evenodd"
 									/>
 								</svg>
-								<h3 class="text-sm font-bold text-gray-900">
+								<h3 class="text-sm font-bold text-text">
 									{$t('admin.users.roleUser')}
 								</h3>
 							</div>
-							<p class="text-xs text-gray-600 mb-2">
+							<p class="text-xs text-text-muted mb-2">
 								{$t('admin.users.roleInfo.userDesc')}
 							</p>
-							<ul class="text-xs text-gray-600 space-y-1 ml-4">
+							<ul class="text-xs text-text-muted space-y-1 ml-4">
 								<li class="flex items-start">
 									<span class="mr-2">•</span>
 									<span>{$t('admin.users.roleInfo.userPerm1')}</span>
@@ -388,8 +388,8 @@
 						</div>
 					</div>
 
-					<div class="mt-6 pt-6 border-t border-gray-200">
-						<div class="flex items-start text-sm text-gray-600">
+					<div class="mt-6 pt-6 border-t border-border">
+						<div class="flex items-start text-sm text-text-muted">
 							<svg
 								class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5"
 								fill="currentColor"

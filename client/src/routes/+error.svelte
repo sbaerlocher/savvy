@@ -26,7 +26,7 @@
 </script>
 
 <div
-	class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4"
+	class="min-h-screen bg-gradient-to-br from-surface-1 to-border-soft flex items-center justify-center px-4"
 >
 	<div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
 		<div class="text-center">
@@ -49,22 +49,22 @@
 						></path>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+				<h1 class="text-2xl font-bold text-text mb-2">
 					{$t('errors.offline.title')}
 				</h1>
-				<p class="text-gray-600 mb-2">
+				<p class="text-text-muted mb-2">
 					{$t('errors.offline.description')}
 				</p>
-				<p class="text-gray-500 text-sm mb-6">
+				<p class="text-text-subtle text-sm mb-6">
 					{$t('errors.offline.hint')}
 				</p>
 			{:else if status === 404}
 				<!-- Not Found -->
 				<div
-					class="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4"
+					class="w-20 h-20 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4"
 				>
 					<svg
-						class="w-10 h-10 text-cyan-600"
+						class="w-10 h-10 text-accent"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -77,10 +77,10 @@
 						></path>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+				<h1 class="text-2xl font-bold text-text mb-2">
 					{$t('errors.notFound.title')}
 				</h1>
-				<p class="text-gray-600 mb-6">
+				<p class="text-text-muted mb-6">
 					{message || $t('errors.notFound.description')}
 				</p>
 			{:else}
@@ -102,10 +102,10 @@
 						></path>
 					</svg>
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">
+				<h1 class="text-2xl font-bold text-text mb-2">
 					{$t('errors.generic.title')}
 				</h1>
-				<p class="text-gray-600 mb-6">
+				<p class="text-text-muted mb-6">
 					{message || $t('errors.generic.description')}
 				</p>
 			{/if}
@@ -116,7 +116,7 @@
 					<button
 						type="button"
 						onclick={handleGoBack}
-						class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
+						class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
 					>
 						{$t('errors.goBack')}
 					</button>
@@ -124,14 +124,14 @@
 					<button
 						type="button"
 						onclick={handleRetry}
-						class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
+						class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-accent hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
 					>
 						{$t('errors.retry')}
 					</button>
 				{/if}
 				<a
 					href={resolve('/dashboard')}
-					class="block w-full text-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
+					class="block w-full text-center px-6 py-3 border border-border-field text-base font-medium rounded-lg text-text-ink2 bg-white hover:bg-surface-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent transition-colors"
 				>
 					{$t('errors.toDashboard')}
 				</a>

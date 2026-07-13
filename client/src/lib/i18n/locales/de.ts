@@ -223,6 +223,7 @@ export const de: TranslationKeys = {
 		}
 	},
 	barcodeToggle: {
+		label: 'Barcode',
 		show: 'Barcodes einblenden',
 		hide: 'Barcodes ausblenden'
 	},
@@ -876,7 +877,16 @@ export const de: TranslationKeys = {
 		securityNote: 'Dieser Link ist einmalig gültig und läuft nach 7 Tagen ab.'
 	},
 	profile: {
-		title: 'Mein Profil'
+		title: 'Mein Profil',
+		securityLink: {
+			title: 'Sicherheit',
+			description:
+				'Passwort, Zwei-Faktor-Authentifizierung und aktive Sitzungen'
+		},
+		notificationsLink: {
+			title: 'Benachrichtigungen',
+			description: 'Push, E-Mail und Erinnerungen verwalten'
+		}
 	},
 	settings: {
 		title: 'Einstellungen',
@@ -1167,7 +1177,7 @@ export const de: TranslationKeys = {
 		inSwitzerland: 'in der Schweiz'
 	},
 	notifications: {
-		title: 'Benachrichtigungen',
+		title: 'Mitteilungen',
 		markAllAsRead: 'Alle als gelesen markieren',
 		noNotifications: 'Keine Benachrichtigungen',
 		markAsRead: 'Als gelesen markieren',

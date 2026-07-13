@@ -50,11 +50,9 @@
 <div data-testid="favorites-section">
 	<div data-testid="favorites-list">
 		{#if isEmpty}
-			<div
-				class="rounded-xl border border-gray-200/80 bg-white py-8 text-center"
-			>
-				<p class="text-sm text-gray-500">{$t('dashboard.noActivity')}</p>
-				<p class="mt-1 mb-4 text-xs text-gray-400">
+			<div class="rounded-xl border border-border/80 bg-white py-8 text-center">
+				<p class="text-sm text-text-subtle">{$t('dashboard.noActivity')}</p>
+				<p class="mt-1 mb-4 text-xs text-text-faint">
 					{$t('dashboard.noActivityHint')}
 				</p>
 				<a
@@ -62,7 +60,7 @@
 					onclick={(e) => {
 						if (!$isOnline) e.preventDefault();
 					}}
-					class="inline-flex items-center gap-1 text-sm font-medium text-cyan-600 transition hover:text-cyan-800 {!$isOnline
+					class="inline-flex items-center gap-1 text-sm font-medium text-accent transition hover:text-accent-800 {!$isOnline
 						? 'pointer-events-none opacity-50'
 						: ''}"
 				>

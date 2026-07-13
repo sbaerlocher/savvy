@@ -34,7 +34,7 @@
 
 		switch (platform) {
 			case 'ios':
-				return `${base} bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl shadow-2xl`;
+				return `${base} liquid-glass-surface rounded-t-3xl`;
 			case 'android':
 				return `${base} bg-[#FFFBFE] rounded-t-2xl shadow-[0_-4px_16px_rgba(0,0,0,0.12)]`;
 			default:
@@ -45,11 +45,11 @@
 	const handleClass = $derived.by(() => {
 		switch (platform) {
 			case 'ios':
-				return 'w-10 h-1 bg-gray-400/50 rounded-full';
+				return 'w-10 h-1 bg-text-faint/50 rounded-full';
 			case 'android':
 				return 'w-8 h-1 bg-[#CAC4D0] rounded-full';
 			default:
-				return 'w-12 h-1.5 bg-gray-300 rounded-full';
+				return 'w-12 h-1.5 bg-border-field rounded-full';
 		}
 	});
 </script>

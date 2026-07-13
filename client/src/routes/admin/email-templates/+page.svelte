@@ -96,7 +96,7 @@
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">
+		<h1 class="text-3xl font-bold text-text">
 			{$t('nav.adminEmailTemplates')}
 		</h1>
 	</div>
@@ -104,10 +104,10 @@
 	<!-- Controls Row: Language Selector -->
 	<div class="flex flex-col sm:flex-row gap-3 mb-6">
 		<div
-			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-gray-300 rounded-md"
+			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-border-field rounded-md"
 		>
 			<svg
-				class="w-5 h-5 text-gray-400 shrink-0"
+				class="w-5 h-5 text-text-faint shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -119,13 +119,13 @@
 					d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
 				/>
 			</svg>
-			<label for="language" class="text-sm text-gray-500 shrink-0"
+			<label for="language" class="text-sm text-text-subtle shrink-0"
 				>{$t('admin.emailTemplates.language')}:</label
 			>
 			<select
 				id="language"
 				bind:value={selectedLanguage}
-				class="text-sm font-medium text-gray-900 bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
+				class="text-sm font-medium text-text bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
 			>
 				<option value="de">Deutsch (DE)</option>
 				<option value="en">English (EN)</option>
@@ -135,13 +135,13 @@
 	</div>
 
 	<!-- Mobile: Card List -->
-	<div class="md:hidden bg-white shadow rounded-lg divide-y divide-gray-200">
+	<div class="md:hidden bg-white shadow rounded-lg divide-y divide-border">
 		{#each templates as template (template.id)}
 			<button
 				class="w-full px-4 py-3 flex items-center gap-3 text-left"
 				onclick={() => toggleTemplate(template.id)}
 			>
-				<div class="text-cyan-600">
+				<div class="text-accent">
 					<svg
 						class="w-5 h-5"
 						fill="none"
@@ -156,11 +156,10 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
-					>{template.name}</span
+				<span class="text-sm font-medium text-text flex-1">{template.name}</span
 				>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedTemplate ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedTemplate ===
 					template.id
 						? 'rotate-180'
 						: ''}"
@@ -177,8 +176,8 @@
 				</svg>
 			</button>
 			{#if expandedTemplate === template.id}
-				<div class="px-4 py-3 bg-gray-50 space-y-3">
-					<p class="text-sm text-gray-600">{template.description}</p>
+				<div class="px-4 py-3 bg-surface-1 space-y-3">
+					<p class="text-sm text-text-muted">{template.description}</p>
 					<button
 						class="btn btn-sm btn-ghost w-full"
 						onclick={() => sendPreview(template.id)}
@@ -210,32 +209,32 @@
 
 	<!-- Desktop: Table -->
 	<div class="hidden md:block bg-white shadow rounded-lg overflow-hidden">
-		<table class="min-w-full divide-y divide-gray-200">
-			<thead class="bg-gray-50">
+		<table class="min-w-full divide-y divide-border">
+			<thead class="bg-surface-1">
 				<tr>
 					<th
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+						class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 					>
 						{$t('admin.emailTemplates.template')}
 					</th>
 					<th
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+						class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 					>
 						{$t('admin.emailTemplates.description')}
 					</th>
 					<th
-						class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+						class="px-6 py-3 text-right text-xs font-medium text-text-subtle uppercase tracking-wider"
 					>
 						{$t('admin.users.actions')}
 					</th>
 				</tr>
 			</thead>
-			<tbody class="bg-white divide-y divide-gray-200">
+			<tbody class="bg-white divide-y divide-border">
 				{#each templates as template (template.id)}
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
-								<div class="text-cyan-600">
+								<div class="text-accent">
 									<svg
 										class="w-5 h-5"
 										fill="none"
@@ -250,12 +249,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{template.name}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 text-sm text-gray-500">
+						<td class="px-6 py-4 text-sm text-text-subtle">
 							{template.description}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-right">

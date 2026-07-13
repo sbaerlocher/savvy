@@ -64,7 +64,7 @@
 		<div
 			class="max-w-md w-full p-6 shadow-xl {platform === 'ios'
 				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-2xl border border-white/30'
-				: 'bg-white dark:bg-gray-800 rounded-lg'}"
+				: 'bg-white dark:bg-text-strong rounded-lg'}"
 		>
 			<!-- Header -->
 			<div class="flex items-start mb-4">
@@ -119,7 +119,7 @@
 				{:else}
 					<div class="flex-shrink-0 mr-3">
 						<svg
-							class="h-6 w-6 text-cyan-600"
+							class="h-6 w-6 text-accent"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -142,7 +142,7 @@
 								? 'text-yellow-600 dark:text-yellow-400'
 								: variant === 'transfer'
 									? 'text-purple-600 dark:text-purple-400'
-									: 'text-cyan-600 dark:text-cyan-400'}"
+									: 'text-accent dark:text-accent-400'}"
 					>
 						{title}
 					</h3>
@@ -150,7 +150,7 @@
 			</div>
 
 			<!-- Message -->
-			<p class="text-gray-600 dark:text-gray-300 mb-6 ml-9">
+			<p class="text-text-muted dark:text-text-placeholder mb-6 ml-9">
 				{message}
 			</p>
 
@@ -158,7 +158,7 @@
 			<div class="flex gap-3 justify-end">
 				<button
 					type="button"
-					class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+					class="px-4 py-2 rounded-md border border-border-field dark:border-text-muted hover:bg-surface-1 dark:hover:bg-text-ink2 transition-colors text-text-ink2 dark:text-text-placeholder"
 					onclick={handleCancel}
 					data-testid="modal-cancel"
 				>
@@ -173,7 +173,7 @@
 							? 'bg-yellow-600 hover:bg-yellow-700'
 							: variant === 'transfer'
 								? 'bg-purple-600 hover:bg-purple-700'
-								: 'bg-cyan-600 hover:bg-cyan-700'}"
+								: 'bg-accent hover:bg-accent-hover'}"
 					onclick={handleConfirm}
 					data-testid="modal-confirm"
 				>
