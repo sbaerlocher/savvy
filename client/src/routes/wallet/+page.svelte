@@ -1160,8 +1160,8 @@
 	maxHeight="80vh"
 	ariaLabel={tr('common.filter')}
 >
-	<div class="p-6">
-		<div class="flex items-center justify-between mb-4">
+	<div class="px-4 pb-4 pt-1">
+		<div class="mb-3 flex items-center justify-between">
 			<h3 class="text-lg font-semibold text-text">
 				{tr('common.filter')}
 			</h3>
@@ -1187,7 +1187,7 @@
 			</button>
 		</div>
 
-		<div class="px-6 pt-4">
+		<div class="pt-1">
 			<MerchantFilters
 				bind:typeFilter={walletFilters.typeFilter}
 				bind:statusFilter={walletFilters.statusFilter}

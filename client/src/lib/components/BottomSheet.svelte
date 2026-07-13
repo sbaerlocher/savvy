@@ -34,7 +34,7 @@
 
 		switch (platform) {
 			case 'ios':
-				return `${base} bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl shadow-2xl`;
+				return `${base} liquid-glass-surface rounded-t-3xl`;
 			case 'android':
 				return `${base} bg-[#FFFBFE] rounded-t-2xl shadow-[0_-4px_16px_rgba(0,0,0,0.12)]`;
 			default:
