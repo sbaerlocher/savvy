@@ -487,22 +487,35 @@
 
 	// Search field element, focused when arriving via ?search (global search entry).
 	let searchEl = $state<HTMLInputElement | null>(null);
+	let wantSearchFocus = $state(false);
+
+	// The input only renders once loadData() finishes (isLoading → false), so we
+	// focus reactively when the element binds rather than on a fixed timer.
+	$effect(() => {
+		if (wantSearchFocus && searchEl) {
+			searchEl.focus();
+			wantSearchFocus = false;
+		}
+	});
+
+	// Global search entry: ?search (1 = focus only, other = prefill query).
+	// Reactive on the param so navigating to /wallet?search=… while already on
+	// the page still applies — onMount alone would miss same-page navigations.
+	const searchParam = $derived($page.url.searchParams.get('search'));
+	$effect(() => {
+		if (searchParam) {
+			if (searchParam !== '1') searchInput = searchParam;
+			wantSearchFocus = true;
+		}
+	});
 
 	onMount(() => {
 		showBarcodes =
 			localStorage.getItem('savvy_wallet_show_barcodes') === 'true';
-		const params = get(page).url.searchParams;
-		const t = params.get('type');
+		const t = get(page).url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
 			typeFilter = t;
 			lastTypeFilter = t;
-		}
-		const search = params.get('search');
-		if (search) {
-			// "1" = just focus; any other value pre-fills the query.
-			if (search !== '1') searchInput = search;
-			// Wait a tick so the input is rendered before focusing.
-			setTimeout(() => searchEl?.focus(), 0);
 		}
 		loadData();
 	});

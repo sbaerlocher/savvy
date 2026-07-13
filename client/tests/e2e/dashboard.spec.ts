@@ -34,7 +34,9 @@ test.describe('Dashboard', () => {
 		await dashboardPage.goto();
 		await dashboardPage.waitForDashboardApi();
 
-		const walletLink = page.getByTestId('nav-wallet-desktop');
+		// Wallet link exists in both the desktop nav and the mobile nav; pick
+		// whichever is visible for the current viewport (Pixel 5 vs desktop).
+		const walletLink = page.locator('a[href="/wallet"]:visible').first();
 		await expect(walletLink).toBeVisible({ timeout: 5000 });
 		await walletLink.click();
 		await expect(page).toHaveURL(/\/wallet\/?$/);

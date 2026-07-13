@@ -79,7 +79,12 @@
 				? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
 				: 'bg-white border border-gray-200'}"
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
+			onkeydown={(e) => {
+				if (e.key === 'Escape') {
+					open = false;
+					onClose();
+				}
+			}}
 		>
 			{#if platform === 'ios'}
 				<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-300"></div>
