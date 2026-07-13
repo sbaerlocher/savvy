@@ -18,6 +18,7 @@
 {#snippet bell()}
 	{#if !$authStore.user?.is_impersonating}
 		<NotificationPanel
+			mode="link"
 			triggerClass="notification-bell relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
 			iconClass="h-5 w-5"
 		/>

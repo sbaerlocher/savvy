@@ -882,6 +882,10 @@ export const de: TranslationKeys = {
 			title: 'Sicherheit',
 			description:
 				'Passwort, Zwei-Faktor-Authentifizierung und aktive Sitzungen'
+		},
+		notificationsLink: {
+			title: 'Benachrichtigungen',
+			description: 'Push, E-Mail und Erinnerungen verwalten'
 		}
 	},
 	settings: {
@@ -1173,7 +1177,7 @@ export const de: TranslationKeys = {
 		inSwitzerland: 'in der Schweiz'
 	},
 	notifications: {
-		title: 'Benachrichtigungen',
+		title: 'Mitteilungen',
 		markAllAsRead: 'Alle als gelesen markieren',
 		noNotifications: 'Keine Benachrichtigungen',
 		markAsRead: 'Als gelesen markieren',

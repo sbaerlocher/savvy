@@ -10,10 +10,18 @@
 
 	// triggerClass lets callers restyle the bell button (mobile header uses a
 	// 40px boxed variant to match the mockup); defaults to the desktop look.
+	// mode: 'panel' (desktop) opens the dropdown; 'link' (mobile) navigates
+	// straight to the notifications page instead — the full screen reads better
+	// on small viewports than a wide dropdown.
 	let {
 		triggerClass = 'notification-bell relative inline-flex items-center justify-center p-1 text-text-muted transition-colors hover:text-text-strong',
-		iconClass = 'w-6 h-6'
-	}: { triggerClass?: string; iconClass?: string } = $props();
+		iconClass = 'w-6 h-6',
+		mode = 'panel'
+	}: {
+		triggerClass?: string;
+		iconClass?: string;
+		mode?: 'panel' | 'link';
+	} = $props();
 
 	const notifications = $derived($notificationStore.notifications);
 	const unreadCount = $derived($notificationStore.unreadCount);
@@ -116,12 +124,8 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<!-- Notification Bell Button -->
-<button
-	class={triggerClass}
-	onclick={() => notificationStore.togglePanel()}
-	aria-label={$t('notifications.title')}
->
+<!-- Bell content: icon + unread badge, shared by both trigger variants. -->
+{#snippet bellContent()}
 	<svg class={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
 		<path
 			stroke-linecap="round"
@@ -138,7 +142,28 @@
 			{unreadCount > 99 ? '99+' : unreadCount}
 		</span>
 	{/if}
-</button>
+{/snippet}
+
+<!-- Notification Bell -->
+{#if mode === 'link'}
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- href from resolve() -->
+	<a
+		href={resolve('/notifications')}
+		class={triggerClass}
+		aria-label={$t('notifications.title')}
+	>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
+		{@render bellContent()}
+	</a>
+{:else}
+	<button
+		class={triggerClass}
+		onclick={() => notificationStore.togglePanel()}
+		aria-label={$t('notifications.title')}
+	>
+		{@render bellContent()}
+	</button>
+{/if}
 
 <!-- Notification Panel -->
 {#if isOpen}

@@ -811,6 +811,10 @@ export type TranslationKeys = {
 			title: string;
 			description: string;
 		};
+		notificationsLink: {
+			title: string;
+			description: string;
+		};
 	};
 	settings: {
 		title: string;

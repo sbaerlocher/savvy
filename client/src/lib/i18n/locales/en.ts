@@ -857,6 +857,10 @@ export const en: TranslationKeys = {
 		securityLink: {
 			title: 'Security',
 			description: 'Password, two-factor authentication and active sessions'
+		},
+		notificationsLink: {
+			title: 'Notifications',
+			description: 'Manage push, email and reminders'
 		}
 	},
 	settings: {

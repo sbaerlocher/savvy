@@ -884,6 +884,10 @@ export const fr: TranslationKeys = {
 			title: 'Sécurité',
 			description:
 				'Mot de passe, authentification à deux facteurs et sessions actives'
+		},
+		notificationsLink: {
+			title: 'Notifications',
+			description: 'Gérer les notifications push, e-mail et rappels'
 		}
 	},
 	settings: {
