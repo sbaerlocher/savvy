@@ -2,6 +2,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { resolve } from '$app/paths';
 	import Barcode from '$lib/components/Barcode.svelte';
+	import { platform } from '$lib/utils/platform';
 	import type { TileModel } from '$lib/utils/tile-model';
 	import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
 
@@ -54,6 +55,10 @@
 			model.isActive ? '' : 'opacity-50 grayscale'
 		}`
 	);
+
+	// The enlarge-to-modal barcode is a touch-device affordance (turn the phone
+	// to scan). On desktop the inline barcode is enough — no modal.
+	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
 
 	function handleBarcodeClick(e: MouseEvent) {
 		e.preventDefault();
@@ -247,7 +252,7 @@
 				maxHeight={compact ? 50 : 64}
 			/>
 		{/snippet}
-		{#if onShowBarcode}
+		{#if barcodeEnlargeable}
 			<button
 				type="button"
 				onclick={handleBarcodeClick}
