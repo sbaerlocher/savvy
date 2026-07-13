@@ -782,6 +782,7 @@
 				vouchersCount={vouchers.length}
 				giftCardsCount={giftCards.length}
 				showAll={false}
+				allowToggle={!selectMode}
 			/>
 		</div>
 
