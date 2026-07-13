@@ -231,27 +231,39 @@
 		</div>
 	{/snippet}
 
-	<!-- Barcode box (optional, context-driven via showBarcode). Sibling of the
-	     info link so it stays independently tappable (enlarge via modal). -->
+	<!-- Barcode box (optional, context-driven via showBarcode). With
+	     onShowBarcode it is a button that enlarges via modal; without it the
+	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
-		<button
-			type="button"
-			onclick={handleBarcodeClick}
-			class="mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-border-soft bg-surface-1 p-3 transition hover:bg-accent-50 {model.isActive
-				? ''
-				: 'opacity-50 grayscale'}"
-			title={$t('dashboard.tapToEnlarge')}
-			aria-label={$t('dashboard.showBarcode')}
-		>
+		{@const barcodeValue = model.barcodeValue}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-border-soft bg-surface-1 p-3 ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{#snippet barcodeContent()}
 			<Barcode
-				value={model.barcodeValue}
+				value={barcodeValue}
 				type={model.barcodeType}
 				height={compact ? 50 : 64}
 				maxHeight={compact ? 50 : 64}
 			/>
-			<span class="break-all text-center font-mono text-[0.7rem] text-text-subtle">
-				{model.barcodeValue}
+			<span
+				class="break-all text-center font-mono text-[0.7rem] text-text-subtle"
+			>
+				{barcodeValue}
 			</span>
-		</button>
+		{/snippet}
+		{#if onShowBarcode}
+			<button
+				type="button"
+				onclick={handleBarcodeClick}
+				class="{boxClass} transition hover:bg-accent-50"
+				title={$t('dashboard.tapToEnlarge')}
+				aria-label={$t('dashboard.showBarcode')}
+			>
+				{@render barcodeContent()}
+			</button>
+		{:else}
+			<div class={boxClass}>
+				{@render barcodeContent()}
+			</div>
+		{/if}
 	{/if}
 </div>

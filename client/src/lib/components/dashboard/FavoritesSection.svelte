@@ -10,14 +10,11 @@
 		giftCardToTileModel
 	} from '$lib/utils/tile-model';
 	import type { DashboardResponse } from '$lib/types/api';
-	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
 	let {
-		data,
-		onShowBarcode
+		data
 	}: {
 		data: DashboardResponse;
-		onShowBarcode: (item: BarcodeModalItem) => void;
 	} = $props();
 
 	const currentUserId = $derived($authStore.user?.id);
@@ -50,9 +47,7 @@
 <div data-testid="favorites-section">
 	<div data-testid="favorites-list">
 		{#if isEmpty}
-			<div
-				class="rounded-xl border border-border/80 bg-white py-8 text-center"
-			>
+			<div class="rounded-xl border border-border/80 bg-white py-8 text-center">
 				<p class="text-sm text-text-subtle">{$t('dashboard.noActivity')}</p>
 				<p class="mt-1 mb-4 text-xs text-text-faint">
 					{$t('dashboard.noActivityHint')}
@@ -73,17 +68,17 @@
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
 				{#if !data.has_favorites || data.has_card_favorites}
 					{#each cardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
+						<ResourceTile {model} showBarcode compact />
 					{/each}
 				{/if}
 				{#if !data.has_favorites || data.has_voucher_favorites}
 					{#each voucherTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
+						<ResourceTile {model} showBarcode compact />
 					{/each}
 				{/if}
 				{#if !data.has_favorites || data.has_gift_card_favorites}
 					{#each giftCardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
+						<ResourceTile {model} showBarcode compact />
 					{/each}
 				{/if}
 			</div>
