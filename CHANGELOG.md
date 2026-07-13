@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-13
+
+### Added
+
+- **Unified wallet overview (#239)** - Cards, vouchers and gift cards merged into a
+  single `/wallet` page with type filtering. The standalone vouchers list page is
+  removed; `/vouchers` now 307-redirects to `/wallet?type=vouchers`.
+- **Unified ResourceTile (#238)** - One `ResourceTile` component (fed by a `TileModel`
+  adapter that normalises all three DTOs) replaces the duplicated tile markup across
+  the dashboard favorites, cards/vouchers/gift-card lists and merchant detail. Share
+  status renders as a compact icon row (lock / people + count / people + owner name);
+  the cards list gains a per-list, localStorage-persisted barcode toggle.
+- **Global new dialog (#240)** - A single global "new" dialog to create cards, vouchers
+  and gift cards from anywhere.
+
+### Changed
+
+- **Dashboard redesigned as favorites quick-access (#237)** - The dashboard now leads
+  with favorites for fast at-the-till access.
+- **App shell reduced to three places (#240)** - Navigation collapsed to three primary
+  destinations plus the global new dialog.
+- **Platform-native mobile redesign on design tokens (#241)** - Mobile UI rebuilt on a
+  shared design-token system (`client/src/tokens.css`) for a platform-native feel.
+- **Database migrate and seed via dde plugins (#233)** - Migrations and seeding run
+  through dde plugins instead of Makefile targets, matching the existing e2e and
+  observability plugins. Dead Makefile targets removed.
+
 ## [1.4.0] - 2026-07-11
 
 ### Added
@@ -191,10 +218,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   asserted the HTTP response, so a white screen after the transfer (no redirect / empty
   page) would have gone unnoticed. The test now asserts the user lands back on the
   `/gift-cards` list, the list actually renders, and the transferred card is gone.
-- **Stable toast matching in E2E (#182)** - `expectToast` asserted the *first*
+- **Stable toast matching in E2E (#182)** - `expectToast` asserted the _first_
   `role="status"` node, but toasts stack and linger; a lingering service-worker warning
   toast could occupy `.first()` and fail the share-success assertion intermittently. Now
-  matches the toast that *contains* the expected message via `filter({ hasText })`,
+  matches the toast that _contains_ the expected message via `filter({ hasText })`,
   fixing the flake across every spec — no app change.
 
 ## [1.3.1] - 2026-03-31
@@ -498,7 +525,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sbaerlocher/savvy/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.2
 [1.3.1]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.1
