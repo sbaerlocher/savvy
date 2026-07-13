@@ -193,7 +193,7 @@
 <!-- Desktop Navigation -->
 {#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 	<nav
-		class="bg-white border-b border-gray-200 transition-all duration-300 ease-out"
+		class="transition-all duration-300 ease-out"
 		class:mt-16={$showOfflineBanner}
 		class:sm:mt-12={$showOfflineBanner}
 	>
@@ -202,7 +202,7 @@
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
 						<a href={resolve('/dashboard')} class="flex items-center space-x-3">
-							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
+							<img src="/logo.png" alt="Savvy Logo" class="h-8 w-auto" />
 							<span class="hidden sm:inline text-2xl font-bold text-cyan-600"
 								>{$t('common.appName')}</span
 							>
@@ -703,8 +703,7 @@
 {/if}
 
 <main
-	class="max-w-7xl mx-auto pt-14 pb-6 px-4 sm:px-6 lg:px-8"
-	class:pt-4={!$authStore.isAuthenticated}
+	class="max-w-7xl mx-auto pt-4 pb-6 px-4 sm:px-6 lg:px-8"
 	class:main-with-mobile-nav={showMobileNav && platform !== 'ios'}
 	class:main-with-mobile-nav-floating={showMobileNav && platform === 'ios'}
 >
