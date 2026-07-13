@@ -65,7 +65,6 @@
 		searchActive = false;
 		searchValue = '';
 		if (searchDebounce) clearTimeout(searchDebounce);
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d
 		if ($page.url.pathname.startsWith('/wallet')) goto(resolve('/wallet'));
 	}
 
@@ -73,15 +72,14 @@
 		if (searchDebounce) clearTimeout(searchDebounce);
 		const q = searchValue.trim();
 		searchDebounce = setTimeout(() => {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
-			goto(
+			const target =
 				resolve('/wallet') +
-					(q ? `?search=${encodeURIComponent(q)}` : '?search=1'),
-				{
-					keepFocus: true,
-					replaceState: true
-				}
-			);
+				(q ? `?search=${encodeURIComponent(q)}` : '?search=1');
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
+			goto(target, {
+				keepFocus: true,
+				replaceState: true
+			});
 		}, 250);
 	}
 

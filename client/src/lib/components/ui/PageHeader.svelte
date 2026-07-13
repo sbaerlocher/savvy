@@ -63,7 +63,6 @@
 	function closeSearch() {
 		searchValue = '';
 		if (searchDebounce) clearTimeout(searchDebounce);
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d
 		if ($page.url.pathname.startsWith('/wallet')) goto(resolve('/wallet'));
 	}
 
