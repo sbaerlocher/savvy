@@ -193,7 +193,7 @@
 <!-- Desktop Navigation -->
 {#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 	<nav
-		class="bg-white shadow-sm border-b border-gray-200 transition-all duration-300 ease-out"
+		class="bg-white border-b border-gray-200 transition-all duration-300 ease-out"
 		class:mt-16={$showOfflineBanner}
 		class:sm:mt-12={$showOfflineBanner}
 	>
@@ -399,10 +399,10 @@
 						</div>
 					{/if}
 
-					<!-- Admin Dropdown (only for admins, hidden during impersonation) -->
+					<!-- Admin Dropdown (only for admins, hidden during impersonation; desktop only — mockup mobile header has no admin controls) -->
 					{#if !$authStore.user?.is_impersonating}
 						{#if data.user?.is_admin && !$authStore.user?.is_impersonating}
-							<div class="relative">
+							<div class="relative hidden sm:block">
 								<button
 									type="button"
 									onclick={(e) => {
@@ -542,16 +542,17 @@
 						{/if}
 
 						<!-- Notifications (hidden during impersonation) -->
+						<!-- Mobile: bell sits before the "+" to match the mockup order (bell · +); desktop keeps its natural position. -->
 						{#if !$authStore.user?.is_impersonating}
-							<div class="relative">
+							<div class="relative order-first sm:order-none">
 								<NotificationPanel />
 							</div>
 						{/if}
 					{/if}
 
-					<!-- User Menu (hidden during impersonation) -->
+					<!-- User Menu (hidden during impersonation; desktop only — Profile is a bottom-nav place on mobile, so no redundant user icon in the mobile header) -->
 					{#if !$authStore.user?.is_impersonating}
-						<div class="relative">
+						<div class="relative hidden sm:block">
 							<button
 								type="button"
 								onclick={(e) => {
