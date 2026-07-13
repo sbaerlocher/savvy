@@ -193,6 +193,7 @@
 <!-- Desktop Navigation -->
 {#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 	<nav
+		data-testid="desktop-nav"
 		class="hidden transition-all duration-300 ease-out sm:block"
 		class:mt-16={$showOfflineBanner}
 		class:sm:mt-12={$showOfflineBanner}

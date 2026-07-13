@@ -285,4 +285,25 @@ test.describe('Batch Operations', () => {
 
 		await giftCardsListPage.enterSelectMode();
 	});
+
+	test('should keep the active type locked while in select mode', async ({
+		authenticatedPage,
+		cardsListPage
+	}) => {
+		const page = authenticatedPage;
+		await cardsListPage.goto();
+		await expect(cardsListPage.firstItem).toBeVisible({ timeout: 10000 });
+
+		await cardsListPage.enterSelectMode();
+
+		// Tapping the active type chip must NOT toggle back to 'all' in select
+		// mode — batch operations assume a single concrete type, so a mixed
+		// selection would route to the wrong endpoint.
+		const cardsChip = page.getByTestId('type-chip-cards');
+		await cardsChip.click();
+
+		await expect(page.getByTestId('type-chip-all')).toHaveCount(0);
+		const activeClass = await cardsChip.getAttribute('class');
+		expect(activeClass).toContain('bg-accent');
+	});
 });

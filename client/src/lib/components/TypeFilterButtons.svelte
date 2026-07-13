@@ -57,6 +57,7 @@
 	{#if showAll}
 		<button
 			type="button"
+			data-testid="type-chip-all"
 			onclick={() => handleClick('all')}
 			class="{base} {typeFilter === 'all' ? active : inactive}"
 		>
@@ -66,6 +67,7 @@
 	{#if cardsCount > 0}
 		<button
 			type="button"
+			data-testid="type-chip-cards"
 			onclick={() => handleClick('cards')}
 			class="{base} {typeFilter === 'cards' ? active : inactive}"
 		>
@@ -75,6 +77,7 @@
 	{#if vouchersCount > 0}
 		<button
 			type="button"
+			data-testid="type-chip-vouchers"
 			onclick={() => handleClick('vouchers')}
 			class="{base} {typeFilter === 'vouchers' ? active : inactive}"
 		>
@@ -84,6 +87,7 @@
 	{#if giftCardsCount > 0}
 		<button
 			type="button"
+			data-testid="type-chip-gift-cards"
 			onclick={() => handleClick('gift-cards')}
 			class="{base} {typeFilter === 'gift-cards' ? active : inactive}"
 		>

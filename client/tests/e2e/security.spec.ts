@@ -130,7 +130,7 @@ test.describe('Security', () => {
 
 			// At least one session should show browser/device info (sessions load during page mount)
 			const sessionCard = securityPage.page
-				.locator('.bg-cyan-50, .bg-gray-50')
+				.locator('.bg-accent-50, .bg-surface-1')
 				.filter({
 					hasText: /Chrome|Firefox|Safari|Edge|Unknown|Unbekannt/i
 				})

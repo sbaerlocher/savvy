@@ -96,6 +96,7 @@
 {#if platform === 'ios'}
 	<!-- iOS 26 tab-bar pattern: two separate floating glass pills (places + search) -->
 	<div
+		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 mx-2 z-50 flex items-center gap-2 mobile-nav mobile-nav-floating"
 		style="-webkit-tap-highlight-color: transparent;"
 	>
@@ -222,6 +223,7 @@
 		</svg>
 	</button>
 	<nav
+		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
 		'android'
 			? 'bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
