@@ -151,11 +151,7 @@ test.describe('Gift Cards Management', () => {
 		await expect(page).toHaveURL(/\/gift-cards\/[a-f0-9-]+$/);
 		await giftCardDetailPage.waitForPageReady();
 
-		const addTransactionButton = page
-			.locator(
-				'button:has-text("Neu"), button:has-text("New"), [data-testid="add-transaction"]'
-			)
-			.first();
+		const addTransactionButton = page.getByTestId('add-transaction');
 		await expect(addTransactionButton).toBeVisible({ timeout: 5000 });
 		await addTransactionButton.click();
 
@@ -220,11 +216,7 @@ test.describe('Gift Cards Management', () => {
 		await giftCardDetailPage.waitForPageReady();
 
 		// Add a transaction first
-		const addTransactionButton = page
-			.locator(
-				'button:has-text("Neu"), button:has-text("New"), [data-testid="add-transaction"]'
-			)
-			.first();
+		const addTransactionButton = page.getByTestId('add-transaction');
 		await addTransactionButton.click();
 
 		const amountInput = page.getByRole('spinbutton', {
@@ -306,11 +298,7 @@ test.describe('Gift Cards Management', () => {
 		await giftCardDetailPage.waitForPageReady();
 
 		const addAndSubmitTransaction = async (amount: string) => {
-			const addBtn = page
-				.locator(
-					'button:has-text("Neu"), button:has-text("New"), [data-testid="add-transaction"]'
-				)
-				.first();
+			const addBtn = page.getByTestId('add-transaction');
 			await addBtn.click();
 
 			const amountInput = page.getByRole('spinbutton', {

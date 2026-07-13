@@ -15,6 +15,13 @@
 
 	const tr = (key: string) => get(t)(key);
 
+	// Move focus into the dialog when it opens so keyboard/screen-reader users
+	// land inside it (and Escape works without a prior click).
+	let dialogEl = $state<HTMLDivElement | null>(null);
+	$effect(() => {
+		if (open && dialogEl) dialogEl.focus();
+	});
+
 	// Resource types, feature-gated. Route = existing /{type}/new form.
 	const types = $derived(
 		[
@@ -70,6 +77,7 @@
 	>
 		<!-- Sheet (mobile) / Dialog (desktop) -->
 		<div
+			bind:this={dialogEl}
 			role="dialog"
 			tabindex="-1"
 			aria-modal="true"
