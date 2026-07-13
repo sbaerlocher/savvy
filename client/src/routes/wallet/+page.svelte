@@ -489,6 +489,10 @@
 	// Search field element, focused when arriving via ?search (global search entry).
 	let searchEl = $state<HTMLInputElement | null>(null);
 	let wantSearchFocus = $state(false);
+	// Whether the search field is shown. There is no permanent search bar; it
+	// only appears when entered via the ?search focus path, and stays until
+	// cancelled.
+	let searchOpen = $state(false);
 
 	// The input only renders once loadData() finishes (isLoading → false), so we
 	// focus reactively when the element binds rather than on a fixed timer.
@@ -499,6 +503,11 @@
 		}
 	});
 
+	function cancelSearch() {
+		searchInput = '';
+		searchOpen = false;
+	}
+
 	// Global search entry: ?search (1 = focus only, other = prefill query).
 	// Reactive on the param so navigating to /wallet?search=… while already on
 	// the page still applies — onMount alone would miss same-page navigations.
@@ -506,6 +515,7 @@
 	$effect(() => {
 		if (searchParam) {
 			if (searchParam !== '1') searchInput = searchParam;
+			searchOpen = true;
 			wantSearchFocus = true;
 		}
 	});
@@ -735,19 +745,38 @@
 			</p>
 		</div>
 	{:else}
-		<!-- WalletToolbar: Search + ¼ Select · ¼ Filter · ½ Barcode-Toggle -->
-		<div class="flex flex-col sm:flex-row gap-3 mb-6">
-			<!-- Search Bar -->
-			<div class="flex-1">
+		<!-- Type filter: always visible (All · Cards · Vouchers · Gift). -->
+		<div class="mb-4">
+			<TypeFilterButtons
+				bind:typeFilter
+				cardsCount={cards.length}
+				vouchersCount={vouchers.length}
+				giftCardsCount={giftCards.length}
+			/>
+		</div>
+
+		<!-- Search field: only shown when arriving via ?search focus path. -->
+		{#if searchOpen}
+			<div class="mb-6 flex gap-2">
 				<input
 					type="search"
 					bind:this={searchEl}
 					bind:value={searchInput}
 					placeholder={tr('common.search')}
-					class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+					class="w-full flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 focus:border-cyan-500 focus:ring-cyan-500"
 				/>
+				<button
+					type="button"
+					onclick={cancelSearch}
+					class="btn btn-ghost whitespace-nowrap"
+				>
+					{tr('common.cancel')}
+				</button>
 			</div>
+		{/if}
 
+		<!-- WalletToolbar: ¼ Select · ¼ Filter · ½ Barcode-Toggle -->
+		<div class="flex flex-col sm:flex-row gap-3 mb-6">
 			<!-- Action Buttons (Desktop) -->
 			<div class="hidden sm:flex gap-3">
 				<!-- Select Mode Button -->
@@ -835,9 +864,6 @@
 							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
 						></path>
 					</svg>
-					<span class="text-sm text-gray-700 whitespace-nowrap">
-						{showBarcodes ? tr('barcodeToggle.hide') : tr('barcodeToggle.show')}
-					</span>
 				</button>
 				<!-- Import Button -->
 				<button
@@ -944,9 +970,6 @@
 							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
 						></path>
 					</svg>
-					<span class="text-sm text-gray-700 whitespace-nowrap">
-						{showBarcodes ? tr('barcodeToggle.hide') : tr('barcodeToggle.show')}
-					</span>
 				</button>
 			</div>
 		</div>
@@ -1110,17 +1133,7 @@
 						onTransfer={() => openBatchModal('transfer')}
 						onExport={handleBatchExport}
 						onCancel={toggleSelectMode}
-					>
-						{#snippet headerExtra()}
-							<TypeFilterButtons
-								bind:typeFilter
-								cardsCount={cards.length}
-								vouchersCount={vouchers.length}
-								giftCardsCount={giftCards.length}
-								allowToggle={false}
-							/>
-						{/snippet}
-					</BatchPanel>
+					/>
 				{/if}
 			</div>
 		{/if}
