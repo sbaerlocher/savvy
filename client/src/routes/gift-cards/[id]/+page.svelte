@@ -704,6 +704,7 @@
 						</h3>
 						{#if giftCard.permissions?.can_edit_transactions && !showTransactionForm}
 							<button
+								data-testid="add-transaction"
 								onclick={() => (showTransactionForm = true)}
 								disabled={isOffline}
 								class="btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 {isOffline

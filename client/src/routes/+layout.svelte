@@ -2,10 +2,12 @@
 	/* global __APP_VERSION__ -- compile-time constant injected by Vite `define` (see vite.config.ts, typed in src/app.d.ts) */
 	import { page } from '$app/stores';
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import OfflineIndicator from '$lib/components/OfflineIndicator.svelte';
 	import Toast from '$lib/components/Toast.svelte';
 	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
+	import TypeChoiceDialog from '$lib/components/TypeChoiceDialog.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
@@ -157,6 +159,17 @@
 
 	let showUserMenu = $state(false);
 	let showAdminMenu = $state(false);
+	let showNewDialog = $state(false);
+	let desktopSearch = $state('');
+
+	// Desktop search submits into Wallet (single global search entry).
+	function submitDesktopSearch(e: SubmitEvent) {
+		e.preventDefault();
+		const q = desktopSearch.trim();
+		const query = q ? `?search=${encodeURIComponent(q)}` : '?search=1';
+		/* eslint-disable-next-line svelte/no-navigation-without-resolve -- base is resolve()d; the rest is a query string */
+		goto(`${resolve('/wallet')}${query}`);
+	}
 
 	async function handleStopImpersonation() {
 		layoutLogger.debug('Stop impersonation button clicked');
@@ -196,61 +209,125 @@
 						</a>
 					</div>
 
+					<!-- App shell: three places — Start · Wallet · Profile -->
 					<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-						{#if $configStore.features.cards}
-							<a
-								href={resolve('/cards')}
-								data-testid="nav-cards-desktop"
-								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-								class:border-cyan-600={$page.url.pathname.startsWith('/cards')}
-								class:text-gray-900={$page.url.pathname.startsWith('/cards')}
-							>
-								{$t('nav.cards')}
-							</a>
-						{/if}
-						{#if $configStore.features.vouchers}
-							<a
-								href={resolve('/vouchers')}
-								data-testid="nav-vouchers-desktop"
-								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-								class:border-cyan-600={$page.url.pathname.startsWith(
-									'/vouchers'
-								)}
-								class:text-gray-900={$page.url.pathname.startsWith('/vouchers')}
-							>
-								{$t('nav.vouchers')}
-							</a>
-						{/if}
-						{#if $configStore.features.gift_cards}
-							<a
-								href={resolve('/gift-cards')}
-								data-testid="nav-gift-cards-desktop"
-								class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-								class:border-cyan-600={$page.url.pathname.startsWith(
-									'/gift-cards'
-								)}
-								class:text-gray-900={$page.url.pathname.startsWith(
-									'/gift-cards'
-								)}
-							>
-								{$t('nav.giftCards')}
-							</a>
-						{/if}
 						<a
-							href={resolve('/merchants')}
-							data-testid="nav-merchants-desktop"
+							href={resolve('/dashboard')}
+							data-testid="nav-start-desktop"
 							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
 							class:border-cyan-600={$page.url.pathname.startsWith(
-								'/merchants'
+								'/dashboard'
 							)}
-							class:text-gray-900={$page.url.pathname.startsWith('/merchants')}
+							class:text-gray-900={$page.url.pathname.startsWith('/dashboard')}
 						>
-							{$t('nav.merchants')}
+							{$t('nav.start')}
+						</a>
+						<a
+							href={resolve('/wallet')}
+							data-testid="nav-wallet-desktop"
+							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+							class:border-cyan-600={$page.url.pathname.startsWith('/wallet')}
+							class:text-gray-900={$page.url.pathname.startsWith('/wallet')}
+						>
+							{$t('nav.wallet')}
+						</a>
+						<a
+							href={resolve('/profile')}
+							data-testid="nav-profile-desktop"
+							class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
+							class:border-cyan-600={$page.url.pathname.startsWith('/profile')}
+							class:text-gray-900={$page.url.pathname.startsWith('/profile')}
+						>
+							{$t('nav.profile')}
 						</a>
 					</div>
 				</div>
 
 				<div class="flex items-center space-x-4">
+					<!-- Desktop: inline search + New (single global entries) -->
+					<form
+						onsubmit={submitDesktopSearch}
+						class="hidden sm:flex items-center"
+						role="search"
+					>
+						<input
+							type="search"
+							bind:value={desktopSearch}
+							placeholder={$t('common.search')}
+							aria-label={$t('common.search')}
+							class="w-48 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						/>
+					</form>
+					<button
+						type="button"
+						onclick={() => (showNewDialog = true)}
+						data-testid="nav-new-desktop"
+						class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
+					>
+						<svg
+							class="w-4 h-4"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 4v16m8-8H4"
+							/>
+						</svg>
+						{$t('common.new')}
+					</button>
+
+					<!-- Mobile: iOS shows header "+" (New); Android shows search (New = FAB) -->
+					{#if platform === 'ios'}
+						<button
+							type="button"
+							onclick={() => (showNewDialog = true)}
+							data-testid="nav-new-mobile"
+							aria-label={$t('common.new')}
+							class="sm:hidden inline-flex items-center justify-center text-cyan-600 p-1"
+						>
+							<svg
+								class="w-6 h-6"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 4v16m8-8H4"
+								/>
+							</svg>
+						</button>
+					{:else}
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- base is resolve()d; ?search is a query string -->
+						<a
+							href={resolve('/wallet') + '?search=1'}
+							data-testid="nav-search-mobile"
+							aria-label={$t('common.search')}
+							class="sm:hidden inline-flex items-center justify-center text-gray-600 p-1"
+						>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
+							<svg
+								class="w-6 h-6"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+								/>
+							</svg>
+						</a>
+					{/if}
+
 					<!-- Impersonation Indicator -->
 					{#if $authStore.user?.is_impersonating}
 						<div
@@ -676,45 +753,23 @@
 							href={resolve('/dashboard')}
 							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 						>
-							{$t('nav.dashboard')}
+							{$t('nav.start')}
 						</a>
 					</li>
-					{#if $configStore.features.cards}
-						<li>
-							<a
-								href={resolve('/cards')}
-								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
-							>
-								{$t('nav.cards')}
-							</a>
-						</li>
-					{/if}
-					{#if $configStore.features.vouchers}
-						<li>
-							<a
-								href={resolve('/vouchers')}
-								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
-							>
-								{$t('nav.vouchers')}
-							</a>
-						</li>
-					{/if}
-					{#if $configStore.features.gift_cards}
-						<li>
-							<a
-								href={resolve('/gift-cards')}
-								class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
-							>
-								{$t('nav.giftCards')}
-							</a>
-						</li>
-					{/if}
 					<li>
 						<a
-							href={resolve('/merchants')}
+							href={resolve('/wallet')}
 							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
 						>
-							{$t('nav.merchants')}
+							{$t('nav.wallet')}
+						</a>
+					</li>
+					<li>
+						<a
+							href={resolve('/profile')}
+							class="text-sm text-gray-600 hover:text-cyan-600 transition-colors"
+						>
+							{$t('nav.profile')}
 						</a>
 					</li>
 				</ul>
@@ -863,8 +918,14 @@
 <Toast />
 
 {#if showMobileNav}
-	<MobileNav />
+	<MobileNav onNew={() => (showNewDialog = true)} />
 {/if}
+
+<!-- Global type-choice ("New") dialog, triggered from desktop button, iOS header +, Android FAB -->
+<TypeChoiceDialog
+	bind:open={showNewDialog}
+	onClose={() => (showNewDialog = false)}
+/>
 
 <svelte:window
 	onclick={() => {

@@ -28,7 +28,7 @@ test.describe('Merchant Management', () => {
 			const merchantCards = page.locator('a[href^="/merchants/"]');
 			await expect(merchantCards.first()).toBeVisible({ timeout: 10000 });
 
-			const searchInput = page.locator('input[type="search"]').first();
+			const searchInput = page.getByTestId('merchant-search');
 			await searchInput.fill('Migros');
 
 			// Wait for client-side filter
@@ -47,7 +47,7 @@ test.describe('Merchant Management', () => {
 			const merchantCards = page.locator('a[href^="/merchants/"]');
 			await expect(merchantCards.first()).toBeVisible({ timeout: 10000 });
 
-			const searchInput = page.locator('input[type="search"]').first();
+			const searchInput = page.getByTestId('merchant-search');
 			await searchInput.fill('NonExistentMerchantXYZ12345');
 
 			await page.waitForFunction(() => true, null, { timeout: 600 });
@@ -104,7 +104,7 @@ test.describe('Merchant Management', () => {
 
 			// Verify merchant appears in the public list
 			await page.goto('/merchants');
-			const searchInput = page.locator('input[type="search"]').first();
+			const searchInput = page.getByTestId('merchant-search');
 			await expect(searchInput).toBeVisible({ timeout: 5000 });
 			await searchInput.fill(merchantName);
 

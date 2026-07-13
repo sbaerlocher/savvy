@@ -268,6 +268,7 @@
 			<div class="flex-1">
 				<input
 					type="search"
+					data-testid="merchant-search"
 					bind:value={searchInput}
 					placeholder={tr('common.search')}
 					class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"

@@ -120,13 +120,25 @@ test.describe('Internationalization', () => {
 	test('should translate navigation items', async ({ authenticatedPage }) => {
 		const page = authenticatedPage;
 
-		const navLinks = page.locator('nav a, [role="navigation"] a');
+		// Only assert the visible nav for this viewport — the off-screen mobile
+		// nav (sm:hidden on desktop) is present in the DOM but not the nav under
+		// test here. Wait for its labels to resolve before asserting.
+		const walletNav = page.locator('nav a[href="/wallet"]:visible').first();
+		await expect(walletNav).toHaveText(/\S/, { timeout: 10000 });
+
+		const navLinks = page.locator(
+			'nav a:visible, [role="navigation"] a:visible'
+		);
 		const navCount = await navLinks.count();
 		expect(navCount).toBeGreaterThan(0);
 
 		for (let i = 0; i < Math.min(navCount, 5); i++) {
-			const linkText = await navLinks.nth(i).textContent();
-			expect(linkText?.trim().length).toBeGreaterThan(0);
+			// A nav item is "labelled" if it has visible text or an aria-label —
+			// icon-only links (e.g. the mobile search entry) carry only the latter.
+			const link = navLinks.nth(i);
+			const text = (await link.textContent())?.trim() ?? '';
+			const ariaLabel = (await link.getAttribute('aria-label'))?.trim() ?? '';
+			expect(text.length + ariaLabel.length).toBeGreaterThan(0);
 		}
 	});
 });
