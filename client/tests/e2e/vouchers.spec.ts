@@ -233,24 +233,18 @@ test.describe('Vouchers Management', () => {
 
 		await page.waitForURL(/\/vouchers\/[a-f0-9-]+$/, { timeout: 10000 });
 
-		// Set filter to show all statuses via localStorage
-		await page.evaluate(() => {
-			localStorage.setItem(
-				'savvy_vouchers_filters',
-				JSON.stringify({
-					search: '',
-					sortBy: 'name-asc',
-					ownerFilter: 'all',
-					statusFilter: 'all-status',
-					merchantFilter: 'all',
-					favoritesOnly: false
-				})
-			);
-		});
-
 		await page.goto('/vouchers');
-		await page.waitForURL(/\/vouchers\/?$/, { timeout: 5000 });
 		await vouchersListPage.waitForPageReady();
+
+		// The wallet defaults to the "valid" status, which hides a future
+		// (inactive) voucher. Open the filter panel and switch to "inactive"
+		// so the tile is shown.
+		await vouchersListPage.filterButton.click();
+		await page
+			.getByRole('menuitemradio', { name: /Inaktiv|Inactive/ })
+			.or(page.getByRole('radio', { name: /Inaktiv|Inactive/ }))
+			.first()
+			.click();
 
 		// A future-valid_from voucher must render as inactive. In ResourceTile the
 		// status badge is a sibling of the [data-owner] link, so match the tile
