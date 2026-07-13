@@ -559,6 +559,8 @@
 		const t = get(page).url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
 			walletFilters.typeFilter = t;
+			// Mirror the type-change effect: 'active' is invalid for vouchers.
+			walletFilters.statusFilter = t === 'vouchers' ? 'valid' : 'active';
 			lastTypeFilter = t;
 		}
 		await loadData();
