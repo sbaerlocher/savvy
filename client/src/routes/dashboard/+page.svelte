@@ -9,6 +9,9 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
+	import BarcodeModal, {
+		type BarcodeModalItem
+	} from '$lib/components/dashboard/BarcodeModal.svelte';
 	import type { DashboardResponse } from '$lib/types/api';
 
 	const pageLogger = logger.child('DashboardPage');
@@ -17,6 +20,8 @@
 	let isLoading = $state(true);
 	let isRefreshing = $state(false);
 	let error = $state<string | null>(null);
+
+	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
 
 	const firstName = $derived($authStore.user?.first_name || '');
 	// Total entries across all resource types (drives the "Einträge" stat).
@@ -140,8 +145,16 @@
 				>
 					{$t('dashboard.atCheckout')}
 				</h2>
-				<FavoritesSection {data} />
+				<FavoritesSection
+					{data}
+					onShowBarcode={(item) => (barcodeModalItem = item)}
+				/>
 			</section>
 		</div>
 	{/if}
 </div>
+
+<BarcodeModal
+	item={barcodeModalItem}
+	onClose={() => (barcodeModalItem = null)}
+/>

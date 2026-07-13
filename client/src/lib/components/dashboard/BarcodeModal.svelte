@@ -20,7 +20,6 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { t, locale } from '$lib/stores/i18n';
 	import { formatCurrency } from '$lib/utils/currency';
-	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
 	import Barcode from '$lib/components/Barcode.svelte';
 
 	let {
@@ -33,9 +32,14 @@
 
 	const currentLocale = $derived($locale || 'de-DE');
 
-	// Landscape detection for fullscreen barcode
+	// Orientation detection. On touch devices in portrait we rotate the barcode
+	// 90° so the user turns the phone sideways to scan. Desktop never rotates.
 	let isLandscape = $state(false);
+	let isTouchDevice = $state(false);
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Rotate only on a touch device held in portrait.
+	const rotateBarcode = $derived(isTouchDevice && !isLandscape);
 
 	function checkOrientation() {
 		const screenOrientationType = window.screen.orientation?.type;
@@ -58,7 +62,7 @@
 	}
 
 	onMount(() => {
-		const isTouchDevice = 'ontouchstart' in window;
+		isTouchDevice = 'ontouchstart' in window;
 		if (isTouchDevice) {
 			checkOrientation();
 			window.addEventListener('orientationchange', handleOrientationChange);
@@ -73,80 +77,10 @@
 	});
 </script>
 
-<!-- Quick Barcode Modal (portrait / desktop) -->
-{#if item && !isLandscape}
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-		onclick={onClose}
-		onkeydown={(e) => e.key === 'Escape' && onClose()}
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="barcode-modal-title"
-		tabindex="-1"
-	>
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div
-			class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-			role="document"
-		>
-			<!-- Close Button -->
-			<button
-				onclick={onClose}
-				class="absolute top-4 right-4 text-text-faint hover:text-text-muted transition"
-				aria-label={$t('common.close')}
-			>
-				<svg
-					class="w-6 h-6"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
-			</button>
-
-			<!-- Merchant Name -->
-			{#if item.merchantName}
-				<h2
-					id="barcode-modal-title"
-					class="text-xl font-bold text-text mb-4 pr-8"
-				>
-					{item.merchantName}
-				</h2>
-			{/if}
-
-			<!-- Barcode Display -->
-			<BarcodeDisplay
-				value={item.value}
-				type={item.barcodeType}
-				status={item.status}
-				pin={item.pin}
-				validFrom={item.validFrom}
-				validUntil={item.validUntil}
-				displayValue={item.displayValue}
-				description={item.description}
-				balance={item.balance}
-				expiresAt={item.expiresAt}
-				currency={item.currency}
-			/>
-
-			<!-- Hint -->
-			<p class="text-xs text-text-subtle text-center mt-4">
-				{$t('dashboard.barcodeHint')}
-			</p>
-		</div>
-	</div>
-{/if}
-
-<!-- Fullscreen Barcode Overlay (landscape on touch device) -->
-{#if item && isLandscape}
+<!-- Fullscreen barcode overlay. Always opens in this large view; the barcode
+     is rotated 90° when the device is in portrait so the user turns the phone
+     sideways to scan (no waiting for a physical orientation change). -->
+{#if item}
 	<div
 		class="barcode-fullscreen-overlay"
 		onclick={onClose}
@@ -205,7 +139,7 @@
 			</div>
 
 			<!-- Barcode (large) -->
-			<div class="barcode-container">
+			<div class="barcode-container" class:is-portrait={rotateBarcode}>
 				<Barcode
 					value={item.value}
 					type={item.barcodeType || 'CODE128'}
@@ -309,6 +243,16 @@
 		height: 160px !important;
 		width: auto !important;
 		object-fit: contain;
+	}
+
+	/* Portrait on touch: rotate the barcode + its value 90° so the widest
+	   dimension runs down the (taller) screen — user turns the phone sideways. */
+	.barcode-fullscreen-overlay .barcode-container.is-portrait {
+		transform: rotate(90deg);
+		/* Swap the box's effective axes so the rotated content uses the tall side. */
+		width: 100vh;
+		height: auto;
+		flex: none;
 	}
 
 	.barcode-fullscreen-overlay .barcode-footer-section {

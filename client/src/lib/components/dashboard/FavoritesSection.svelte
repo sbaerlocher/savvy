@@ -10,11 +10,14 @@
 		giftCardToTileModel
 	} from '$lib/utils/tile-model';
 	import type { DashboardResponse } from '$lib/types/api';
+	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
 	let {
-		data
+		data,
+		onShowBarcode
 	}: {
 		data: DashboardResponse;
+		onShowBarcode: (item: BarcodeModalItem) => void;
 	} = $props();
 
 	const currentUserId = $derived($authStore.user?.id);
@@ -68,17 +71,17 @@
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
 				{#if !data.has_favorites || data.has_card_favorites}
 					{#each cardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact />
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 				{#if !data.has_favorites || data.has_voucher_favorites}
 					{#each voucherTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact />
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 				{#if !data.has_favorites || data.has_gift_card_favorites}
 					{#each giftCardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact />
+						<ResourceTile {model} showBarcode compact {onShowBarcode} />
 					{/each}
 				{/if}
 			</div>
