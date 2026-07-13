@@ -15,7 +15,8 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
-	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
+	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	import type { CardDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
@@ -395,20 +396,46 @@
 	>
 </svelte:head>
 
-<div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/cards')} class="text-accent hover:text-accent-hover"
-		>{tr('common.backToOverview')}</a
-	>
-	{#if isRefreshing}
+{#if isRefreshing}
+	<div class="mb-6 flex justify-end">
 		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
-	{/if}
-</div>
+	</div>
+{/if}
 
 {#if isLoading}
 	<LoadingSpinner />
 {:else if card}
+	<!-- Page header (view mode only; edit mode keeps its own form title). -->
+	{#if !isEditing}
+		<PageHeader
+			title={card.merchant?.name || tr('common.card')}
+			eyebrow={card.program || undefined}
+			mobileActions={false}
+		>
+			{#snippet actions()}
+				<ResourceActions
+					{isOffline}
+					isFavorite={card!.is_favorite}
+					{isTogglingFavorite}
+					canEdit={card!.permissions?.can_edit}
+					favoriteTitleAdd={tr('common.addToFavorites')}
+					favoriteTitleRemove={tr('common.removeFromFavorites')}
+					ontoggleFavorite={toggleFavorite}
+					onstartEdit={startEdit}
+				/>
+			{/snippet}
+		</PageHeader>
+		{#if card.owner && card.owner.id !== $authStore.user?.id}
+			<p class="-mt-6 mb-6 text-xs text-text-faint">
+				{tr('cards.sharedBy', {
+					name: card.owner.first_name || card.owner.email
+				})}
+			</p>
+		{/if}
+	{/if}
+
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left column: Card Details -->
 		<div class="lg:col-span-2">
@@ -424,45 +451,7 @@
 							? 'opacity-50 grayscale'
 							: ''}"
 					>
-						<!-- Header -->
-						<div class="mb-6">
-							<ResourceHeader
-								{isOffline}
-								isFavorite={card.is_favorite}
-								{isTogglingFavorite}
-								canEdit={card.permissions?.can_edit}
-								favoriteTitleAdd={tr('common.addToFavorites')}
-								favoriteTitleRemove={tr('common.removeFromFavorites')}
-								ontoggleFavorite={toggleFavorite}
-								onstartEdit={startEdit}
-							>
-								{@const c = card!}
-								<div class="flex items-baseline gap-2 flex-wrap mb-1">
-									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
-									>
-										{#if c.merchant}
-											{c.merchant.name}
-										{:else}
-											{tr('common.card')}
-										{/if}
-										{#if c.program}
-											<span
-												class="text-sm sm:text-base md:text-lg font-normal text-text-subtle ml-1"
-												>{c.program}</span
-											>
-										{/if}
-									</h1>
-									{#if c.owner && c.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-text-faint">
-											{tr('cards.sharedBy', {
-												name: c.owner.first_name || c.owner.email
-											})}
-										</span>
-									{/if}
-								</div>
-							</ResourceHeader>
-
+						<div>
 							<!-- Duplicate Warning -->
 							{#if card.duplicate_warning}
 								<DuplicateWarningBanner

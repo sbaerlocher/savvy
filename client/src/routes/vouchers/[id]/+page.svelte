@@ -26,7 +26,8 @@
 		formatShareResult,
 		shareResponseFromError
 	} from '$lib/utils/share-result';
-	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
+	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -401,20 +402,48 @@
 	>
 </svelte:head>
 
-<div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/vouchers')} class="text-accent hover:text-accent-hover"
-		>{tr('common.backToOverview')}</a
-	>
-	{#if isRefreshing}
+{#if isRefreshing}
+	<div class="mb-6 flex justify-end">
 		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
-	{/if}
-</div>
+	</div>
+{/if}
 
 {#if isLoading}
 	<LoadingSpinner />
 {:else if voucher}
+	<!-- Page header (view mode only; edit mode keeps its own form title). -->
+	{#if !isEditing}
+		<PageHeader
+			title={voucher.merchant?.name || tr('vouchers.title')}
+			eyebrow={voucher.usage_limit_type === 'single_use'
+				? tr('vouchers.singleUseOnly')
+				: tr('vouchers.multipleUse')}
+			mobileActions={false}
+		>
+			{#snippet actions()}
+				<ResourceActions
+					{isOffline}
+					isFavorite={voucher!.is_favorite}
+					{isTogglingFavorite}
+					canEdit={voucher!.permissions?.can_edit}
+					favoriteTitleAdd={tr('common.addToFavorites')}
+					favoriteTitleRemove={tr('common.removeFromFavorites')}
+					ontoggleFavorite={toggleFavorite}
+					onstartEdit={startEdit}
+				/>
+			{/snippet}
+		</PageHeader>
+		{#if voucher.owner && voucher.owner.id !== $authStore.user?.id}
+			<p class="-mt-6 mb-6 text-xs text-text-faint">
+				{tr('vouchers.sharedBy', {
+					name: voucher.owner.first_name || voucher.owner.email
+				})}
+			</p>
+		{/if}
+	{/if}
+
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left column: Voucher Details -->
 		<div class="lg:col-span-2">
@@ -430,53 +459,16 @@
 							? 'opacity-50 grayscale'
 							: ''}"
 					>
-						<!-- Header -->
-						<div class="mb-6">
-							<ResourceHeader
-								{isOffline}
-								isFavorite={voucher.is_favorite}
-								{isTogglingFavorite}
-								canEdit={voucher.permissions?.can_edit}
-								favoriteTitleAdd={tr('common.addToFavorites')}
-								favoriteTitleRemove={tr('common.removeFromFavorites')}
-								ontoggleFavorite={toggleFavorite}
-								onstartEdit={startEdit}
-							>
-								{@const v = voucher!}
-								<div class="flex items-baseline gap-3 flex-wrap mb-2">
-									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
-									>
-										{#if v.merchant}
-											{v.merchant.name}
-										{:else}
-											{tr('vouchers.title')}
-										{/if}
-									</h1>
-									<span class="text-sm text-text-muted">
-										{v.usage_limit_type === 'single_use'
-											? tr('vouchers.singleUseOnly')
-											: tr('vouchers.multipleUse')}
-									</span>
-									{#if v.owner && v.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-text-faint">
-											{tr('vouchers.sharedBy', {
-												name: v.owner.first_name || v.owner.email
-											})}
-										</span>
-									{/if}
-								</div>
-							</ResourceHeader>
-
-							<!-- Duplicate Warning -->
-							{#if voucher.duplicate_warning}
+						<!-- Duplicate Warning -->
+						{#if voucher.duplicate_warning}
+							<div class="mb-6">
 								<DuplicateWarningBanner
 									warning={voucher.duplicate_warning}
 									resourceType="voucher"
 									onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
 								/>
-							{/if}
-						</div>
+							</div>
+						{/if}
 
 						<!-- Barcode Display -->
 						<BarcodeDisplay

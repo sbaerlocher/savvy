@@ -10,7 +10,6 @@
 	import { giftCardsApi, merchantsApi, ApiError } from '$lib/api';
 	import { offlineDB } from '$lib/stores/offline-db';
 	import { toastStore } from '$lib/stores/toast';
-	import { formatCurrency } from '$lib/utils/currency';
 	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
 	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 
@@ -28,7 +27,8 @@
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
-	import ResourceHeader from '$lib/components/ResourceHeader.svelte';
+	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import {
 		formatShareResult,
 		shareResponseFromError
@@ -498,20 +498,45 @@
 	>
 </svelte:head>
 
-<div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/gift-cards')} class="text-accent hover:text-accent-hover"
-		>{tr('common.backToOverview')}</a
-	>
-	{#if isRefreshing}
+{#if isRefreshing}
+	<div class="mb-6 flex justify-end">
 		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
-	{/if}
-</div>
+	</div>
+{/if}
 
 {#if isLoading}
 	<LoadingSpinner />
 {:else if giftCard}
+	<!-- Page header (view mode only; edit mode keeps its own form title). -->
+	{#if !isEditing}
+		<PageHeader
+			title={giftCard.merchant?.name || tr('giftCards.title')}
+			mobileActions={false}
+		>
+			{#snippet actions()}
+				<ResourceActions
+					{isOffline}
+					isFavorite={giftCard!.is_favorite}
+					{isTogglingFavorite}
+					canEdit={giftCard!.permissions?.can_edit}
+					favoriteTitleAdd={tr('common.addFavorite')}
+					favoriteTitleRemove={tr('common.removeFavorite')}
+					ontoggleFavorite={toggleFavorite}
+					onstartEdit={startEdit}
+				/>
+			{/snippet}
+		</PageHeader>
+		{#if giftCard.owner && giftCard.owner.id !== $authStore.user?.id}
+			<p class="-mt-6 mb-6 text-xs text-text-faint">
+				{tr('giftCards.sharedBy', {
+					name: giftCard.owner.first_name || giftCard.owner.email
+				})}
+			</p>
+		{/if}
+	{/if}
+
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left column: Gift Card Details -->
 		<div class="lg:col-span-2">
@@ -527,61 +552,16 @@
 							? 'opacity-50 grayscale'
 							: ''}"
 					>
-						<!-- Header -->
-						<div class="mb-6">
-							<ResourceHeader
-								{isOffline}
-								isFavorite={giftCard.is_favorite}
-								{isTogglingFavorite}
-								canEdit={giftCard.permissions?.can_edit}
-								favoriteTitleAdd={tr('common.addFavorite')}
-								favoriteTitleRemove={tr('common.removeFavorite')}
-								ontoggleFavorite={toggleFavorite}
-								onstartEdit={startEdit}
-							>
-								{@const gc = giftCard!}
-								<div class="flex items-baseline gap-3 flex-wrap mb-2">
-									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
-									>
-										{#if gc.merchant}
-											{gc.merchant.name}
-										{:else}
-											{tr('giftCards.title')}
-										{/if}
-									</h1>
-									<span
-										class="text-sm sm:text-base md:text-lg font-semibold"
-										style="color: {gc.merchant?.color || '#F59E0B'}"
-									>
-										{formatCurrency(gc.current_balance, gc.currency, $locale)}
-										<span class="text-sm text-text-subtle font-normal">
-											({tr('giftCards.balance.remaining', {
-												percent: Math.round(
-													(gc.current_balance / gc.initial_balance) * 100
-												)
-											})})
-										</span>
-									</span>
-									{#if gc.owner && gc.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-text-faint">
-											{tr('giftCards.sharedBy', {
-												name: gc.owner.first_name || gc.owner.email
-											})}
-										</span>
-									{/if}
-								</div>
-							</ResourceHeader>
-
-							<!-- Duplicate Warning -->
-							{#if giftCard.duplicate_warning}
+						<!-- Duplicate Warning -->
+						{#if giftCard.duplicate_warning}
+							<div class="mb-6">
 								<DuplicateWarningBanner
 									warning={giftCard.duplicate_warning}
 									resourceType="gift_card"
 									onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
 								/>
-							{/if}
-						</div>
+							</div>
+						{/if}
 
 						<!-- Barcode Display -->
 						<BarcodeDisplay
