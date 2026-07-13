@@ -71,6 +71,13 @@
 
 	const isOffline = $derived(!$isOnline);
 
+	// Back: return to where the user came from; fall back to the wallet when the
+	// detail page was opened directly (deep link / reload) with no app history.
+	function goBack() {
+		if (history.length > 1) history.back();
+		else goto(resolve('/wallet'));
+	}
+
 	onMount(async () => {
 		await Promise.all([loadCard(), loadMerchants()]);
 	});
@@ -416,6 +423,7 @@
 				eyebrow={card.program || undefined}
 				mobileActions={false}
 				showSearch
+				onBack={goBack}
 			>
 				{#snippet actions()}
 					<ResourceActions

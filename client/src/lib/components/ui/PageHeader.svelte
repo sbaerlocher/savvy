@@ -13,7 +13,8 @@
 		eyebrow,
 		actions,
 		mobileActions = true,
-		showSearch = false
+		showSearch = false,
+		onBack
 	}: {
 		/** Main heading, e.g. "Deine Favoriten". */
 		title: string;
@@ -27,6 +28,8 @@
 		/** Show a standalone search icon (Android) next to custom actions — used by
 		 *  detail pages that keep search but not the full mobile header actions. */
 		showSearch?: boolean;
+		/** When set, render a compact back chevron left of the title (detail pages). */
+		onBack?: () => void;
 	} = $props();
 
 	const tr = (key: string) => get(t)(key);
@@ -130,11 +133,35 @@
 {:else}
 	<!-- Page header: plain type hierarchy, no left accent bar (mockup). -->
 	<div class="mb-8 flex items-start justify-between gap-4">
-		<div>
-			{#if eyebrow}
-				<p class="text-sm text-text-subtle">{eyebrow}</p>
+		<div class="flex min-w-0 items-center gap-2">
+			{#if onBack}
+				<button
+					type="button"
+					onclick={onBack}
+					aria-label={tr('common.back')}
+					class="-ml-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-surface-1"
+				>
+					<svg
+						class="h-6 w-6"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+				</button>
 			{/if}
-			<h1 class="text-3xl font-bold tracking-tight text-text">{title}</h1>
+			<div class="min-w-0">
+				{#if eyebrow}
+					<p class="text-sm text-text-subtle">{eyebrow}</p>
+				{/if}
+				<h1 class="text-3xl font-bold tracking-tight text-text">{title}</h1>
+			</div>
 		</div>
 		{#if actions || mobileActions || (showSearch && platform === 'android')}
 			<div class="flex shrink-0 items-center gap-2.5">

@@ -28,7 +28,8 @@
 	import { toastStore } from '$lib/stores/toast';
 	import type { CardDTO, GiftCardDTO, VoucherDTO } from '$lib/types/api';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
@@ -36,6 +37,7 @@
 	import { logger } from '$lib/utils/logger';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { platform } from '$lib/utils/platform';
+	import { walletFilters } from '$lib/stores/walletFilters.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -55,13 +57,6 @@
 	let giftCards = $state<GiftCardDTO[]>([]);
 	let isLoading = $state(true);
 
-	let searchInput = $state('');
-	let typeFilter = $state('all');
-	let statusFilter = $state('all');
-	let sortBy = $state('newest');
-	let ownerFilter = $state('all');
-	let favoritesOnly = $state(false);
-	let expiringFilter = $state('all');
 	let showFilterMenu = $state(false);
 
 	// Batch selection state
@@ -80,23 +75,23 @@
 	const validTypes = ['cards', 'vouchers', 'gift-cards'];
 
 	const hasActiveFilters = $derived(
-		typeFilter !== 'all' ||
-			statusFilter !== 'all' ||
-			sortBy !== 'newest' ||
-			ownerFilter !== 'all' ||
-			favoritesOnly ||
-			expiringFilter !== 'all'
+		walletFilters.typeFilter !== 'all' ||
+			walletFilters.statusFilter !== 'all' ||
+			walletFilters.sortBy !== 'newest' ||
+			walletFilters.ownerFilter !== 'all' ||
+			walletFilters.favoritesOnly ||
+			walletFilters.expiringFilter !== 'all'
 	);
 
 	// Show status filter only when vouchers or gift cards are visible
-	const showStatusFilter = $derived(typeFilter !== 'cards');
+	const showStatusFilter = $derived(walletFilters.typeFilter !== 'cards');
 
 	const detailSortOptions = $derived.by(() => {
 		const opts = [
 			{ value: 'newest', label: tr('merchantOverview.detail.sortNewest') },
 			{ value: 'oldest', label: tr('merchantOverview.detail.sortOldest') }
 		];
-		if (typeFilter !== 'cards') {
+		if (walletFilters.typeFilter !== 'cards') {
 			opts.push(
 				{
 					value: 'value-desc',
@@ -116,7 +111,7 @@
 	});
 
 	const detailStatusOptions = $derived.by(() => {
-		if (typeFilter === 'vouchers') {
+		if (walletFilters.typeFilter === 'vouchers') {
 			return [
 				{ value: 'all', label: tr('merchantOverview.detail.statusAll') },
 				{ value: 'valid', label: tr('vouchers.status.valid') },
@@ -130,7 +125,7 @@
 				}
 			];
 		}
-		if (typeFilter === 'gift-cards') {
+		if (walletFilters.typeFilter === 'gift-cards') {
 			return [
 				{ value: 'all', label: tr('merchantOverview.detail.statusAll') },
 				{ value: 'active', label: tr('giftCards.status.active') },
@@ -177,23 +172,23 @@
 		T extends { owner?: { id?: string }; is_favorite: boolean }
 	>(items: T[], getExpiryDate: (item: T) => string | undefined): T[] {
 		let result = items;
-		if (ownerFilter === 'mine') {
+		if (walletFilters.ownerFilter === 'mine') {
 			result = result.filter(
 				(item) => !item.owner || item.owner.id === currentUserId
 			);
-		} else if (ownerFilter === 'shared') {
+		} else if (walletFilters.ownerFilter === 'shared') {
 			result = result.filter(
 				(item) => item.owner && item.owner.id !== currentUserId
 			);
 		}
-		if (favoritesOnly) {
+		if (walletFilters.favoritesOnly) {
 			result = result.filter((item) => item.is_favorite);
 		}
-		if (expiringFilter === '7') {
+		if (walletFilters.expiringFilter === '7') {
 			result = result.filter((item) =>
 				expiresWithinDays(getExpiryDate(item), 7)
 			);
-		} else if (expiringFilter === '30') {
+		} else if (walletFilters.expiringFilter === '30') {
 			result = result.filter((item) =>
 				expiresWithinDays(getExpiryDate(item), 30)
 			);
@@ -209,7 +204,7 @@
 		getExpiry: (item: T) => string | undefined
 	): T[] {
 		return [...items].sort((a, b) => {
-			switch (sortBy) {
+			switch (walletFilters.sortBy) {
 				case 'newest':
 					return (
 						new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime()
@@ -239,20 +234,24 @@
 	// Filtered items
 	const filteredCards = $derived.by(() => {
 		if (!showCards) return [];
-		if (typeFilter === 'vouchers' || typeFilter === 'gift-cards') return [];
+		if (
+			walletFilters.typeFilter === 'vouchers' ||
+			walletFilters.typeFilter === 'gift-cards'
+		)
+			return [];
 		let result = cards;
 		// Expiring filter does not apply to cards (no expiry) - skip if set
-		if (expiringFilter !== 'all') return [];
-		if (ownerFilter === 'mine') {
+		if (walletFilters.expiringFilter !== 'all') return [];
+		if (walletFilters.ownerFilter === 'mine') {
 			result = result.filter((c) => !c.owner || c.owner.id === currentUserId);
-		} else if (ownerFilter === 'shared') {
+		} else if (walletFilters.ownerFilter === 'shared') {
 			result = result.filter((c) => c.owner && c.owner.id !== currentUserId);
 		}
-		if (favoritesOnly) {
+		if (walletFilters.favoritesOnly) {
 			result = result.filter((c) => c.is_favorite);
 		}
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(c) =>
 					c.merchant?.name.toLowerCase().includes(q) ||
@@ -271,28 +270,32 @@
 
 	const filteredVouchers = $derived.by(() => {
 		if (!showVouchers) return [];
-		if (typeFilter === 'cards' || typeFilter === 'gift-cards') return [];
+		if (
+			walletFilters.typeFilter === 'cards' ||
+			walletFilters.typeFilter === 'gift-cards'
+		)
+			return [];
 		let result = vouchers;
-		if (typeFilter === 'all') {
-			if (statusFilter === 'active') {
+		if (walletFilters.typeFilter === 'all') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((v) => v.status === 'valid');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter((v) => v.status !== 'valid');
 			}
 		} else {
-			if (statusFilter === 'valid') {
+			if (walletFilters.statusFilter === 'valid') {
 				result = result.filter((v) => v.status === 'valid');
-			} else if (statusFilter === 'expired') {
+			} else if (walletFilters.statusFilter === 'expired') {
 				result = result.filter((v) => v.status === 'expired');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter(
 					(v) => v.status === 'inactive' || v.status === 'used'
 				);
 			}
 		}
 		result = applyCommonFilters(result, (v) => v.valid_until);
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(v) =>
 					v.merchant?.name.toLowerCase().includes(q) ||
@@ -310,26 +313,30 @@
 
 	const filteredGiftCards = $derived.by(() => {
 		if (!showGiftCards) return [];
-		if (typeFilter === 'cards' || typeFilter === 'vouchers') return [];
+		if (
+			walletFilters.typeFilter === 'cards' ||
+			walletFilters.typeFilter === 'vouchers'
+		)
+			return [];
 		let result = giftCards;
-		if (typeFilter === 'all') {
-			if (statusFilter === 'active') {
+		if (walletFilters.typeFilter === 'all') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((g) => getComputedStatus(g) === 'active');
-			} else if (statusFilter === 'inactive') {
+			} else if (walletFilters.statusFilter === 'inactive') {
 				result = result.filter((g) => getComputedStatus(g) !== 'active');
 			}
 		} else {
-			if (statusFilter === 'active') {
+			if (walletFilters.statusFilter === 'active') {
 				result = result.filter((g) => getComputedStatus(g) === 'active');
-			} else if (statusFilter === 'expired') {
+			} else if (walletFilters.statusFilter === 'expired') {
 				result = result.filter((g) => getComputedStatus(g) === 'expired');
-			} else if (statusFilter === 'depleted') {
+			} else if (walletFilters.statusFilter === 'depleted') {
 				result = result.filter((g) => getComputedStatus(g) === 'depleted');
 			}
 		}
 		result = applyCommonFilters(result, (g) => g.expires_at);
-		if (searchInput.trim()) {
-			const q = searchInput.trim().toLowerCase();
+		if (walletFilters.searchInput.trim()) {
+			const q = walletFilters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(g) =>
 					g.merchant?.name.toLowerCase().includes(q) ||
@@ -369,9 +376,9 @@
 	// Batch derived values
 	const selectedCount = $derived(selectedIds.size);
 	const currentFilteredItems = $derived.by(() => {
-		if (typeFilter === 'cards') return filteredCards;
-		if (typeFilter === 'vouchers') return filteredVouchers;
-		if (typeFilter === 'gift-cards') return filteredGiftCards;
+		if (walletFilters.typeFilter === 'cards') return filteredCards;
+		if (walletFilters.typeFilter === 'vouchers') return filteredVouchers;
+		if (walletFilters.typeFilter === 'gift-cards') return filteredGiftCards;
 		return [...filteredCards, ...filteredVouchers, ...filteredGiftCards];
 	});
 	const sharedSelectedCount = $derived.by(() => {
@@ -387,20 +394,24 @@
 	// Reset selection and status filter when type filter changes
 	let lastTypeFilter = 'all';
 	$effect(() => {
-		if (typeFilter !== lastTypeFilter) {
+		if (walletFilters.typeFilter !== lastTypeFilter) {
 			if (selectMode) {
 				selectedIds.clear();
 			}
 			// Reset status filter when type changes to avoid invalid combinations
-			statusFilter = 'all';
+			walletFilters.statusFilter = 'all';
 			// Reset sort/expiring if switching to cards (no value/expiry)
-			if (typeFilter === 'cards') {
-				if (['value-desc', 'value-asc', 'expiry-asc'].includes(sortBy)) {
-					sortBy = 'newest';
+			if (walletFilters.typeFilter === 'cards') {
+				if (
+					['value-desc', 'value-asc', 'expiry-asc'].includes(
+						walletFilters.sortBy
+					)
+				) {
+					walletFilters.sortBy = 'newest';
 				}
-				expiringFilter = 'all';
+				walletFilters.expiringFilter = 'all';
 			}
-			lastTypeFilter = typeFilter;
+			lastTypeFilter = walletFilters.typeFilter;
 		}
 	});
 
@@ -505,7 +516,7 @@
 	});
 
 	function cancelSearch() {
-		searchInput = '';
+		walletFilters.searchInput = '';
 		searchOpen = false;
 	}
 
@@ -515,21 +526,32 @@
 	const searchParam = $derived($page.url.searchParams.get('search'));
 	$effect(() => {
 		if (searchParam) {
-			if (searchParam !== '1') searchInput = searchParam;
+			if (searchParam !== '1') walletFilters.searchInput = searchParam;
 			searchOpen = true;
 			wantSearchFocus = true;
 		}
 	});
 
-	onMount(() => {
+	// Remember the scroll position when leaving, so returning from a detail page
+	// restores it (SvelteKit's own restore fires before the async list renders).
+	beforeNavigate(() => {
+		walletFilters.scrollY = window.scrollY;
+	});
+
+	onMount(async () => {
 		showBarcodes =
 			localStorage.getItem('savvy_wallet_show_barcodes') === 'true';
 		const t = get(page).url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
-			typeFilter = t;
+			walletFilters.typeFilter = t;
 			lastTypeFilter = t;
 		}
-		loadData();
+		await loadData();
+		// List is now in the DOM — restore the saved scroll position.
+		if (walletFilters.scrollY > 0) {
+			await tick();
+			window.scrollTo(0, walletFilters.scrollY);
+		}
 	});
 
 	function toggleBarcodes() {
@@ -538,13 +560,13 @@
 	}
 
 	function resetFilters() {
-		typeFilter = 'all';
-		statusFilter = 'all';
-		sortBy = 'newest';
-		ownerFilter = 'all';
-		favoritesOnly = false;
-		expiringFilter = 'all';
-		searchInput = '';
+		walletFilters.typeFilter = 'all';
+		walletFilters.statusFilter = 'all';
+		walletFilters.sortBy = 'newest';
+		walletFilters.ownerFilter = 'all';
+		walletFilters.favoritesOnly = false;
+		walletFilters.expiringFilter = 'all';
+		walletFilters.searchInput = '';
 	}
 
 	// Batch functions
@@ -552,14 +574,14 @@
 		selectMode = !selectMode;
 		if (!selectMode) {
 			selectedIds.clear();
-			typeFilter = 'all';
+			walletFilters.typeFilter = 'all';
 		} else {
 			showFilterMenu = false;
 			// Batch endpoints are per-type; force a concrete type when entering select mode.
-			if (typeFilter === 'all') {
-				if (cards.length > 0) typeFilter = 'cards';
-				else if (vouchers.length > 0) typeFilter = 'vouchers';
-				else if (giftCards.length > 0) typeFilter = 'gift-cards';
+			if (walletFilters.typeFilter === 'all') {
+				if (cards.length > 0) walletFilters.typeFilter = 'cards';
+				else if (vouchers.length > 0) walletFilters.typeFilter = 'vouchers';
+				else if (giftCards.length > 0) walletFilters.typeFilter = 'gift-cards';
 			}
 		}
 	}
@@ -601,8 +623,9 @@
 		try {
 			let result;
 			if (batchAction === 'delete') {
-				if (typeFilter === 'cards') result = await batchApi.deleteCards(ids);
-				else if (typeFilter === 'vouchers')
+				if (walletFilters.typeFilter === 'cards')
+					result = await batchApi.deleteCards(ids);
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.deleteVouchers(ids);
 				else result = await batchApi.deleteGiftCards(ids);
 			} else if (batchAction === 'share') {
@@ -611,18 +634,19 @@
 					email,
 					can_edit: permissions.canEdit,
 					can_delete: permissions.canDelete,
-					...(typeFilter === 'gift-cards'
+					...(walletFilters.typeFilter === 'gift-cards'
 						? { can_edit_transactions: permissions.canEditTransactions }
 						: {})
 				};
-				if (typeFilter === 'cards') result = await batchApi.shareCards(req);
-				else if (typeFilter === 'vouchers')
+				if (walletFilters.typeFilter === 'cards')
+					result = await batchApi.shareCards(req);
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.shareVouchers(req);
 				else result = await batchApi.shareGiftCards(req);
 			} else {
-				if (typeFilter === 'cards')
+				if (walletFilters.typeFilter === 'cards')
 					result = await batchApi.transferCards(ids, email);
-				else if (typeFilter === 'vouchers')
+				else if (walletFilters.typeFilter === 'vouchers')
 					result = await batchApi.transferVouchers(ids, email);
 				else result = await batchApi.transferGiftCards(ids, email);
 			}
@@ -676,8 +700,9 @@
 		try {
 			let result;
 			const ids = [...selectedIds];
-			if (typeFilter === 'cards') result = await batchApi.exportCards(ids);
-			else if (typeFilter === 'vouchers')
+			if (walletFilters.typeFilter === 'cards')
+				result = await batchApi.exportCards(ids);
+			else if (walletFilters.typeFilter === 'vouchers')
 				result = await batchApi.exportVouchers(ids);
 			else result = await batchApi.exportGiftCards(ids);
 
@@ -715,8 +740,8 @@
 	isLoading={batchLoading}
 	onConfirm={executeBatchAction}
 	onCancel={() => (showBatchModal = false)}
-	hidePermissions={typeFilter === 'vouchers'}
-	showTransactionPermission={typeFilter === 'gift-cards'}
+	hidePermissions={walletFilters.typeFilter === 'vouchers'}
+	showTransactionPermission={walletFilters.typeFilter === 'gift-cards'}
 />
 
 <ImportDialog
@@ -752,7 +777,7 @@
 		<!-- Type filter: always visible (All · Cards · Vouchers · Gift). -->
 		<div class="mb-4">
 			<TypeFilterButtons
-				bind:typeFilter
+				bind:typeFilter={walletFilters.typeFilter}
 				cardsCount={cards.length}
 				vouchersCount={vouchers.length}
 				giftCardsCount={giftCards.length}
@@ -769,7 +794,7 @@
 				<input
 					type="search"
 					bind:this={searchEl}
-					bind:value={searchInput}
+					bind:value={walletFilters.searchInput}
 					placeholder={tr('common.search')}
 					class="w-full flex-1 rounded-md border border-border-field bg-white px-4 py-2 focus:border-accent focus:ring-accent"
 				/>
@@ -959,7 +984,7 @@
 			</div>
 		</div>
 
-		{#if totalFiltered === 0 && (searchInput || hasActiveFilters)}
+		{#if totalFiltered === 0 && (walletFilters.searchInput || hasActiveFilters)}
 			<!-- No results with filters -->
 			<div class="bg-surface-1 rounded-lg p-12 text-center">
 				<p class="text-text-muted text-lg mb-4">{tr('search.no_results')}</p>
@@ -1082,12 +1107,12 @@
 
 							<div class="p-5">
 								<MerchantFilters
-									bind:typeFilter
-									bind:statusFilter
-									bind:sortBy
-									bind:ownerFilter
-									bind:favoritesOnly
-									bind:expiringFilter
+									bind:typeFilter={walletFilters.typeFilter}
+									bind:statusFilter={walletFilters.statusFilter}
+									bind:sortBy={walletFilters.sortBy}
+									bind:ownerFilter={walletFilters.ownerFilter}
+									bind:favoritesOnly={walletFilters.favoritesOnly}
+									bind:expiringFilter={walletFilters.expiringFilter}
 									sortOptions={detailSortOptions}
 									statusOptions={detailStatusOptions}
 									cardsCount={cards.length}
@@ -1096,7 +1121,7 @@
 									{showStatusFilter}
 									ownerOptions={detailOwnerOptions}
 									expiringOptions={detailExpiringOptions}
-									showExpiringFilter={typeFilter !== 'cards'}
+									showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 									{hasActiveFilters}
 									onReset={resetFilters}
 									idPrefix="wallet-desktop"
@@ -1163,12 +1188,12 @@
 
 		<div class="px-6 pt-4">
 			<MerchantFilters
-				bind:typeFilter
-				bind:statusFilter
-				bind:sortBy
-				bind:ownerFilter
-				bind:favoritesOnly
-				bind:expiringFilter
+				bind:typeFilter={walletFilters.typeFilter}
+				bind:statusFilter={walletFilters.statusFilter}
+				bind:sortBy={walletFilters.sortBy}
+				bind:ownerFilter={walletFilters.ownerFilter}
+				bind:favoritesOnly={walletFilters.favoritesOnly}
+				bind:expiringFilter={walletFilters.expiringFilter}
 				sortOptions={detailSortOptions}
 				statusOptions={detailStatusOptions}
 				cardsCount={cards.length}
@@ -1177,7 +1202,7 @@
 				{showStatusFilter}
 				ownerOptions={detailOwnerOptions}
 				expiringOptions={detailExpiringOptions}
-				showExpiringFilter={typeFilter !== 'cards'}
+				showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 				{hasActiveFilters}
 				onReset={resetFilters}
 				idPrefix="wallet-mobile"

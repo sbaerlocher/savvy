@@ -89,6 +89,14 @@
 	let transactionToDelete: string | null = null;
 
 	const isOffline = $derived(!$isOnline);
+
+	// Back: return to where the user came from; fall back to the wallet when the
+	// detail page was opened directly (deep link / reload) with no app history.
+	function goBack() {
+		if (history.length > 1) history.back();
+		else goto(resolve('/wallet'));
+	}
+
 	const percentageRemaining = $derived(
 		giftCard
 			? Math.round((giftCard.current_balance / giftCard.initial_balance) * 100)
@@ -517,6 +525,7 @@
 				title={giftCard.merchant?.name || tr('giftCards.title')}
 				mobileActions={false}
 				showSearch
+				onBack={goBack}
 			>
 				{#snippet actions()}
 					<ResourceActions
