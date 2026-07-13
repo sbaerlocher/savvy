@@ -67,7 +67,7 @@
 	selected
 		? 'ring-2 ring-cyan-600'
 		: ''}"
-	style="border-left: 6px solid {model.merchantColor}"
+	style="border-left: 3px solid color-mix(in srgb, {model.merchantColor} 70%, transparent)"
 >
 	<!-- Status overlay (centered) when not active — sits OUTSIDE the dimmed
 	     content so the badge stays at full opacity, like the prototype. -->
