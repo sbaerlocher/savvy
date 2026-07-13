@@ -23,7 +23,10 @@ test.describe('Dashboard', () => {
 		await dashboardPage.expectStatsVisible();
 	});
 
-	test('should navigate to cards from dashboard', async ({
+	// App shell: individual resource tabs were merged into a single Wallet place.
+	// Cards/vouchers/gift cards are reachable via the Wallet nav entry, not from
+	// the dashboard directly.
+	test('should navigate to wallet from nav', async ({
 		authenticatedPage,
 		dashboardPage
 	}) => {
@@ -31,38 +34,10 @@ test.describe('Dashboard', () => {
 		await dashboardPage.goto();
 		await dashboardPage.waitForDashboardApi();
 
-		const cardsLink = page.locator('a[href="/cards"]').first();
-		await expect(cardsLink).toBeVisible({ timeout: 5000 });
-		await cardsLink.click();
-		await expect(page).toHaveURL(/(\/cards\/?$|\/wallet\?type=cards)/);
-	});
-
-	test('should navigate to vouchers from dashboard', async ({
-		authenticatedPage,
-		dashboardPage
-	}) => {
-		const page = authenticatedPage;
-		await dashboardPage.goto();
-		await dashboardPage.waitForDashboardApi();
-
-		const vouchersLink = page.locator('a[href="/vouchers"]').first();
-		await expect(vouchersLink).toBeVisible({ timeout: 5000 });
-		await vouchersLink.click();
-		await expect(page).toHaveURL(/(\/vouchers\/?$|\/wallet\?type=vouchers)/);
-	});
-
-	test('should navigate to gift cards from dashboard', async ({
-		authenticatedPage,
-		dashboardPage
-	}) => {
-		const page = authenticatedPage;
-		await dashboardPage.goto();
-		await dashboardPage.waitForDashboardApi();
-
-		const giftCardsLink = page.locator('a[href="/gift-cards"]').first();
-		await expect(giftCardsLink).toBeVisible({ timeout: 5000 });
-		await giftCardsLink.click();
-		await expect(page).toHaveURL(/(\/gift-cards\/?$|\/wallet\?type=gift-cards)/);
+		const walletLink = page.getByTestId('nav-wallet-desktop');
+		await expect(walletLink).toBeVisible({ timeout: 5000 });
+		await walletLink.click();
+		await expect(page).toHaveURL(/\/wallet\/?$/);
 	});
 
 	test('should display recent items', async ({

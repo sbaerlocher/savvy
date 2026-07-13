@@ -137,12 +137,17 @@ export const en: TranslationKeys = {
 		openUserMenu: 'Open user menu',
 		githubLink: 'GitHub Repository'
 	},
+	typeChoice: {
+		title: 'What would you like to create?',
+		subtitle: 'Choose a type.'
+	},
 	nav: {
 		cards: 'Cards',
 		vouchers: 'Vouchers',
 		giftCards: 'Gift Cards',
 		merchants: 'Merchants',
 		wallet: 'Wallet',
+		start: 'Home',
 		dashboard: 'Dashboard',
 		profile: 'Profile',
 		security: 'Security',

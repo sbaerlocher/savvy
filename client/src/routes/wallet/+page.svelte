@@ -485,13 +485,24 @@
 		}
 	}
 
+	// Search field element, focused when arriving via ?search (global search entry).
+	let searchEl = $state<HTMLInputElement | null>(null);
+
 	onMount(() => {
 		showBarcodes =
 			localStorage.getItem('savvy_wallet_show_barcodes') === 'true';
-		const t = get(page).url.searchParams.get('type');
+		const params = get(page).url.searchParams;
+		const t = params.get('type');
 		if (t && validTypes.includes(t)) {
 			typeFilter = t;
 			lastTypeFilter = t;
+		}
+		const search = params.get('search');
+		if (search) {
+			// "1" = just focus; any other value pre-fills the query.
+			if (search !== '1') searchInput = search;
+			// Wait a tick so the input is rendered before focusing.
+			setTimeout(() => searchEl?.focus(), 0);
 		}
 		loadData();
 	});
@@ -718,6 +729,7 @@
 			<div class="flex-1">
 				<input
 					type="search"
+					bind:this={searchEl}
 					bind:value={searchInput}
 					placeholder={tr('common.search')}
 					class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"

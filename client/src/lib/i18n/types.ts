@@ -124,12 +124,17 @@ export type TranslationKeys = {
 		openUserMenu: string;
 		githubLink: string;
 	};
+	typeChoice: {
+		title: string;
+		subtitle: string;
+	};
 	nav: {
 		cards: string;
 		vouchers: string;
 		giftCards: string;
 		merchants: string;
 		wallet: string;
+		start: string;
 		dashboard: string;
 		profile: string;
 		security: string;

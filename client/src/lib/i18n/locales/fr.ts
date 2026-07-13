@@ -142,12 +142,17 @@ export const fr: TranslationKeys = {
 		openUserMenu: 'Ouvrir le menu utilisateur',
 		githubLink: 'Dépôt GitHub'
 	},
+	typeChoice: {
+		title: 'Que souhaitez-vous créer ?',
+		subtitle: 'Choisissez un type.'
+	},
 	nav: {
 		cards: 'Cartes',
 		vouchers: 'Bons',
 		giftCards: 'Cartes-cadeaux',
 		merchants: 'Commerçants',
 		wallet: 'Portefeuille',
+		start: 'Accueil',
 		dashboard: 'Tableau de bord',
 		profile: 'Profil',
 		security: 'Sécurité',
