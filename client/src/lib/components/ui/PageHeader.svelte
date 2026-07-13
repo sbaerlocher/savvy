@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import MobileHeaderActions from './MobileHeaderActions.svelte';
 
 	let {
 		title,
 		eyebrow,
-		actions
+		actions,
+		mobileActions = true
 	}: {
 		/** Main heading, e.g. "Deine Favoriten". */
 		title: string;
@@ -12,6 +14,9 @@
 		eyebrow?: string;
 		/** Optional trailing controls (buttons, links) rendered on the right. */
 		actions?: Snippet;
+		/** Render the mobile header actions (bell + New) on the title row. Top-level
+		 *  screens keep this on; sub-screens without them can pass false. */
+		mobileActions?: boolean;
 	} = $props();
 </script>
 
@@ -29,9 +34,14 @@
 			<h1 class="text-3xl font-bold text-gray-900">{title}</h1>
 		</div>
 	</div>
-	{#if actions}
+	{#if actions || mobileActions}
 		<div class="flex shrink-0 items-center gap-2">
-			{@render actions()}
+			{#if actions}
+				{@render actions()}
+			{/if}
+			{#if mobileActions}
+				<MobileHeaderActions />
+			{/if}
 		</div>
 	{/if}
 </div>

@@ -4,6 +4,7 @@
 	import { profileApi, type ProfileDTO } from '$lib/api';
 	import { notificationsApi } from '$lib/api/notifications';
 	import NotificationsSection from '$lib/components/settings/NotificationsSection.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { notificationStore } from '$lib/stores/notifications';
 	import { t } from '$lib/stores/i18n';
@@ -192,11 +193,7 @@
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">
-			{tr('notifications.title')}
-		</h1>
-	</div>
+	<PageHeader title={tr('notifications.title')} />
 
 	{#if isLoadingProfile || isLoadingNotifications}
 		<LoadingSpinner />

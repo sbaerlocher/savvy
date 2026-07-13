@@ -8,6 +8,7 @@
 		type SessionDTO
 	} from '$lib/api';
 	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
@@ -170,9 +171,7 @@
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{tr('nav.security')}</h1>
-	</div>
+	<PageHeader title={tr('nav.security')} />
 
 	{#if isLoadingProfile}
 		<LoadingSpinner />

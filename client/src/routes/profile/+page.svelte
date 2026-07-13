@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { profileApi, type ProfileDTO } from '$lib/api';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import ProfileSection from '$lib/components/settings/ProfileSection.svelte';
 	import SecuritySection from '$lib/components/settings/SecuritySection.svelte';
 	import { authStore } from '$lib/stores/auth';
@@ -47,9 +48,7 @@
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{tr('profile.title')}</h1>
-	</div>
+	<PageHeader title={tr('profile.title')} />
 
 	{#if isLoadingProfile}
 		<LoadingSpinner />

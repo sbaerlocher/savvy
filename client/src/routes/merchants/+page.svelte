@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { cardsApi, vouchersApi, giftCardsApi, merchantsApi } from '$lib/api';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
 	import { isOnline } from '$lib/stores/offline';
@@ -252,14 +253,7 @@
 
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
-	<div class="mb-8">
-		<div class="flex items-center gap-3">
-			<div class="w-2 h-8 rounded-full bg-cyan-500"></div>
-			<h1 class="text-3xl font-bold text-gray-900">
-				{tr('merchantOverview.title')}
-			</h1>
-		</div>
-	</div>
+	<PageHeader title={tr('merchantOverview.title')} />
 
 	{#if merchants.length > 0}
 		<!-- Search + Filter + New Button -->

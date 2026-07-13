@@ -12,6 +12,7 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import ImportDialog from '$lib/components/ImportDialog.svelte';
 	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BarcodeModal, {
 		type BarcodeModalItem
 	} from '$lib/components/dashboard/BarcodeModal.svelte';
@@ -720,9 +721,7 @@
 
 <div class="px-4 max-w-7xl mx-auto pb-20 md:pb-4" class:pb-40={selectMode}>
 	<!-- Header -->
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{tr('nav.wallet')}</h1>
-	</div>
+	<PageHeader title={tr('nav.wallet')} />
 
 	{#if isLoading}
 		<LoadingSpinner />

@@ -14,6 +14,7 @@
 	import { pwaStore } from '$lib/stores/pwa';
 	import { toastStore } from '$lib/stores/toast';
 	import { showOfflineBanner } from '$lib/stores/offline';
+	import { showNewDialog } from '$lib/stores/newDialog';
 	import { browser } from '$app/environment';
 	import { onMount, type Snippet } from 'svelte';
 	import { logger } from '$lib/utils/logger';
@@ -159,7 +160,6 @@
 
 	let showUserMenu = $state(false);
 	let showAdminMenu = $state(false);
-	let showNewDialog = $state(false);
 	let desktopSearch = $state('');
 
 	// Desktop search submits into Wallet (single global search entry).
@@ -193,7 +193,7 @@
 <!-- Desktop Navigation -->
 {#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 	<nav
-		class="transition-all duration-300 ease-out"
+		class="hidden transition-all duration-300 ease-out sm:block"
 		class:mt-16={$showOfflineBanner}
 		class:sm:mt-12={$showOfflineBanner}
 	>
@@ -260,7 +260,7 @@
 					</form>
 					<button
 						type="button"
-						onclick={() => (showNewDialog = true)}
+						onclick={() => ($showNewDialog = true)}
 						data-testid="nav-new-desktop"
 						class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors"
 					>
@@ -279,54 +279,6 @@
 						</svg>
 						{$t('common.new')}
 					</button>
-
-					<!-- Mobile: iOS shows header "+" (New); Android shows search (New = FAB) -->
-					{#if platform === 'ios'}
-						<button
-							type="button"
-							onclick={() => (showNewDialog = true)}
-							data-testid="nav-new-mobile"
-							aria-label={$t('common.new')}
-							class="sm:hidden inline-flex items-center justify-center text-cyan-600 p-1"
-						>
-							<svg
-								class="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 4v16m8-8H4"
-								/>
-							</svg>
-						</button>
-					{:else}
-						<!-- eslint-disable svelte/no-navigation-without-resolve -- base is resolve()d; ?search is a query string -->
-						<a
-							href={resolve('/wallet') + '?search=1'}
-							data-testid="nav-search-mobile"
-							aria-label={$t('common.search')}
-							class="sm:hidden inline-flex items-center justify-center text-gray-600 p-1"
-						>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
-							<svg
-								class="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-								/>
-							</svg>
-						</a>
-					{/if}
 
 					<!-- Impersonation Indicator -->
 					{#if $authStore.user?.is_impersonating}
@@ -918,13 +870,13 @@
 <Toast />
 
 {#if showMobileNav}
-	<MobileNav onNew={() => (showNewDialog = true)} />
+	<MobileNav onNew={() => ($showNewDialog = true)} />
 {/if}
 
 <!-- Global type-choice ("New") dialog, triggered from desktop button, iOS header +, Android FAB -->
 <TypeChoiceDialog
-	bind:open={showNewDialog}
-	onClose={() => (showNewDialog = false)}
+	bind:open={$showNewDialog}
+	onClose={() => ($showNewDialog = false)}
 />
 
 <svelte:window
