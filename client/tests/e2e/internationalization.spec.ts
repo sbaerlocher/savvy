@@ -121,6 +121,9 @@ test.describe('Internationalization', () => {
 		const page = authenticatedPage;
 
 		const navLinks = page.locator('nav a, [role="navigation"] a');
+		// Wait for the nav to mount before counting — otherwise the count can
+		// race the authenticated layout render and come back as 0.
+		await expect(navLinks.first()).toBeVisible({ timeout: 10000 });
 		const navCount = await navLinks.count();
 		expect(navCount).toBeGreaterThan(0);
 
