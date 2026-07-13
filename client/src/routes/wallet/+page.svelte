@@ -1124,6 +1124,7 @@
 									showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 									{hasActiveFilters}
 									onReset={resetFilters}
+									showAll={false}
 									idPrefix="wallet-desktop"
 								/>
 							</div>
@@ -1205,6 +1206,7 @@
 				showExpiringFilter={walletFilters.typeFilter !== 'cards'}
 				{hasActiveFilters}
 				onReset={resetFilters}
+				showAll={false}
 				idPrefix="wallet-mobile"
 			/>
 		</div>

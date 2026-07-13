@@ -29,6 +29,7 @@
 		expiringFilter?: string;
 		expiringOptions?: SelectOption[];
 		showExpiringFilter?: boolean;
+		showAll?: boolean;
 	}
 
 	let {
@@ -49,7 +50,8 @@
 		favoritesOnly = $bindable(undefined),
 		expiringFilter = $bindable(undefined),
 		expiringOptions,
-		showExpiringFilter = true
+		showExpiringFilter = true,
+		showAll = true
 	}: Props = $props();
 </script>
 
@@ -60,6 +62,7 @@
 		{cardsCount}
 		{vouchersCount}
 		{giftCardsCount}
+		{showAll}
 	/>
 </div>
 
