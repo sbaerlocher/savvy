@@ -103,14 +103,18 @@ export class ResourceDetailPage extends BasePage {
 		);
 		await this.favoriteButton.click();
 		await favoriteResponse;
-		await expect(this.favoriteButton).toContainText(expectedIcon, {
-			timeout: 15000
-		});
+		// The redesigned favorite control is an icon button that carries its
+		// state on aria-pressed instead of a ★/☆ glyph in the text content.
+		const expectPressed = expectedIcon === '★' ? 'true' : 'false';
+		await expect(this.favoriteButton).toHaveAttribute(
+			'aria-pressed',
+			expectPressed,
+			{ timeout: 15000 }
+		);
 	}
 
 	async isFavorited(): Promise<boolean> {
-		const text = await this.favoriteButton.textContent();
-		return text?.includes('★') || false;
+		return (await this.favoriteButton.getAttribute('aria-pressed')) === 'true';
 	}
 
 	async ensureFavoriteState(shouldBeFavorited: boolean) {

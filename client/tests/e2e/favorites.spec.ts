@@ -125,8 +125,7 @@ test.describe('Favorites/Pinning', () => {
 
 		await expect(cardDetailPage.favoriteButton).toBeVisible({ timeout: 10000 });
 
-		const initialText = await cardDetailPage.favoriteButton.textContent();
-		const isInitiallyFavorited = initialText?.includes('★') || false;
+		const isInitiallyFavorited = await cardDetailPage.isFavorited();
 		const toggledIcon: '★' | '☆' = isInitiallyFavorited ? '☆' : '★';
 		const originalIcon: '★' | '☆' = isInitiallyFavorited ? '★' : '☆';
 
@@ -153,16 +152,17 @@ test.describe('Favorites/Pinning', () => {
 			});
 		});
 
-		const initialIcon =
-			(await cardDetailPage.favoriteButton.textContent()) || '';
+		const initialPressed =
+			await cardDetailPage.favoriteButton.getAttribute('aria-pressed');
 		await cardDetailPage.favoriteButton.click();
 
 		const errorToast = page.locator('[role="status"], [role="alert"], .toast');
 		await expect(errorToast.first()).toBeVisible({ timeout: 5000 });
 
-		// Verify the icon reverted back
-		await expect(cardDetailPage.favoriteButton).toContainText(
-			initialIcon.trim(),
+		// Verify the state reverted back (icon button carries state on aria-pressed)
+		await expect(cardDetailPage.favoriteButton).toHaveAttribute(
+			'aria-pressed',
+			initialPressed ?? 'false',
 			{
 				timeout: 3000
 			}
