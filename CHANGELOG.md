@@ -525,7 +525,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sbaerlocher/savvy/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.2
 [1.3.1]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.1
