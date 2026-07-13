@@ -152,7 +152,9 @@
 					{:else}
 						<!-- idle state - no token provided -->
 						<div class="text-center py-8">
-							<p class="text-text-muted mb-6">{tr('unsubscribe.invalidToken')}</p>
+							<p class="text-text-muted mb-6">
+								{tr('unsubscribe.invalidToken')}
+							</p>
 							<a href={resolve('/login')} class="btn btn-primary w-full">
 								{tr('unsubscribe.goToLogin')}
 							</a>

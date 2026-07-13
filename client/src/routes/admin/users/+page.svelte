@@ -220,8 +220,7 @@
 					/>
 				</svg>
 				{#if hasActiveFilters}
-					<span
-						class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
+					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 					></span>
 				{/if}
 			</button>
@@ -266,8 +265,7 @@
 					/>
 				</svg>
 				{#if hasActiveFilters}
-					<span
-						class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
+					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 					></span>
 				{/if}
 			</button>

@@ -65,7 +65,9 @@
 					>{labelEditTransactions}</span
 				>
 				{#if labelEditTransactionsDesc}
-					<span class="text-xs text-text-subtle">{labelEditTransactionsDesc}</span>
+					<span class="text-xs text-text-subtle"
+						>{labelEditTransactionsDesc}</span
+					>
 				{/if}
 			</div>
 		</label>

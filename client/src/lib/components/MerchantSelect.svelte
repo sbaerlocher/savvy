@@ -167,7 +167,9 @@
 			class="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none"
 		>
 			{#if filtered.length === 0}
-				<li class="relative cursor-default select-none px-4 py-2 text-text-subtle">
+				<li
+					class="relative cursor-default select-none px-4 py-2 text-text-subtle"
+				>
 					{$t('merchants.noResults')}
 				</li>
 			{:else}

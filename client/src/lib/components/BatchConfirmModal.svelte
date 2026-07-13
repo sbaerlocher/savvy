@@ -228,17 +228,16 @@
 				</div>
 			{:else if action === 'share'}
 				<!-- Share -->
-				<h3
-					id="batch-modal-title"
-					class="text-lg font-semibold text-text mb-2"
-				>
+				<h3 id="batch-modal-title" class="text-lg font-semibold text-text mb-2">
 					{tr('batch.confirmShareTitle')}
 				</h3>
 				<p class="text-sm text-text-muted mb-4">
 					{tr('batch.confirmShareMessage', { count })}
 				</p>
 
-				<div class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4">
+				<div
+					class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+				>
 					<!-- Email with Autocomplete -->
 					<div class="relative">
 						<label

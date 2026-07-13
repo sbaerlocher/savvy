@@ -203,10 +203,7 @@
 		>
 			<!-- Header -->
 			<div class="px-6 pt-6 pb-4 border-b border-border-soft">
-				<h3
-					id="import-dialog-title"
-					class="text-lg font-semibold text-text"
-				>
+				<h3 id="import-dialog-title" class="text-lg font-semibold text-text">
 					{tr('settings.import.title')}
 				</h3>
 				<p class="mt-1 text-sm text-text-subtle">

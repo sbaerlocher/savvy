@@ -966,7 +966,9 @@
 								class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
 							>
 								<!-- Header -->
-								<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
+								<div
+									class="px-5 py-4 bg-surface-1/80 border-b border-border-soft"
+								>
 									<div class="flex items-center justify-between">
 										<div class="flex items-center gap-2">
 											<svg

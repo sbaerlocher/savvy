@@ -57,10 +57,14 @@
 </script>
 
 {#if isEditing}
-	<div class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4">
+	<div
+		class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
+	>
 		<div>
 			<p class="font-medium text-text text-sm">{userName(share)}</p>
-			<p class="text-xs text-text-subtle">{share.shared_with_user?.email || ''}</p>
+			<p class="text-xs text-text-subtle">
+				{share.shared_with_user?.email || ''}
+			</p>
 		</div>
 
 		{@render children?.()}
@@ -146,7 +150,9 @@
 		</div>
 		<div class="flex flex-wrap gap-1">
 			{#if alwaysViewOnly}
-				<span class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded">
+				<span
+					class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded"
+				>
 					{viewOnlyLabel ?? $t('common.viewOnly')}
 				</span>
 			{:else}
@@ -161,12 +167,16 @@
 					</span>
 				{/if}
 				{#if showTransactionsBadge && share.can_edit_transactions}
-					<span class="text-xs bg-accent-100 text-accent-800 px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-accent-100 text-accent-800 px-2 py-0.5 rounded"
+					>
 						{labelPermTransactions ?? $t('giftCards.sharing.permTransactions')}
 					</span>
 				{/if}
 				{#if !share.can_edit && !share.can_delete && !(showTransactionsBadge && share.can_edit_transactions)}
-					<span class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-border-soft text-text-muted px-2 py-0.5 rounded"
+					>
 						{viewOnlyLabel ?? $t('common.viewOnly')}
 					</span>
 				{/if}

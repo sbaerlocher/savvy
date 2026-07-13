@@ -126,7 +126,9 @@
 
 				<!-- Role -->
 				<div>
-					<label for="role" class="block text-sm font-medium text-text-ink2 mb-1"
+					<label
+						for="role"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 						>{tr('admin.users.role')} *</label
 					>
 					<select

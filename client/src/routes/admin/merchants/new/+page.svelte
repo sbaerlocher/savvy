@@ -231,7 +231,9 @@
 						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.name')}
 						</h3>
-						<p class="text-text-muted">{$t('admin.merchants.namePlaceholder')}</p>
+						<p class="text-text-muted">
+							{$t('admin.merchants.namePlaceholder')}
+						</p>
 					</div>
 
 					<div class="border-l-4 border-purple-500 pl-4">

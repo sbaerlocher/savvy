@@ -156,8 +156,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{template.name}</span
+				<span class="text-sm font-medium text-text flex-1">{template.name}</span
 				>
 				<svg
 					class="w-4 h-4 text-text-faint transition-transform {expandedTemplate ===

@@ -153,7 +153,9 @@
 					</div>
 				</div>
 			{:else}
-				<p class="text-text-muted mb-6">{tr('auth.resetPassword.description')}</p>
+				<p class="text-text-muted mb-6">
+					{tr('auth.resetPassword.description')}
+				</p>
 
 				<form class="space-y-6" onsubmit={handleSubmit}>
 					<div>

@@ -240,9 +240,7 @@
 			{#if pin}
 				<p class="text-center">
 					<span class="text-xs text-text-muted">{tr('giftCards.pin')}: </span>
-					<span class="font-mono text-base font-semibold text-text"
-						>{pin}</span
-					>
+					<span class="font-mono text-base font-semibold text-text">{pin}</span>
 				</p>
 			{/if}
 		</div>

@@ -215,9 +215,7 @@
 							href={resolve('/dashboard')}
 							data-testid="nav-start-desktop"
 							class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-							class:border-accent={$page.url.pathname.startsWith(
-								'/dashboard'
-							)}
+							class:border-accent={$page.url.pathname.startsWith('/dashboard')}
 							class:text-text={$page.url.pathname.startsWith('/dashboard')}
 						>
 							{$t('nav.start')}
@@ -694,9 +692,7 @@
 
 			<!-- Quick Links -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-text uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.quickLinks')}
 				</h3>
 				<ul class="space-y-2">
@@ -729,9 +725,7 @@
 
 			<!-- Resources -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-text uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.resources')}
 				</h3>
 				<ul class="space-y-2">
@@ -770,9 +764,7 @@
 
 			<!-- Tech Stack -->
 			<div class="space-y-4">
-				<h3
-					class="text-sm font-semibold text-text uppercase tracking-wider"
-				>
+				<h3 class="text-sm font-semibold text-text uppercase tracking-wider">
 					{$t('footer.builtWith')}
 				</h3>
 				<ul class="space-y-2">

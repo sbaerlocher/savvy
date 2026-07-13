@@ -322,8 +322,7 @@
 													>
 														{log.action}
 													</span>
-													<span
-														class="md:hidden text-sm font-medium text-text"
+													<span class="md:hidden text-sm font-medium text-text"
 														>{log.resource_type}</span
 													>
 												</div>
@@ -386,7 +385,9 @@
 													<!-- Mobile-only: User & Timestamp -->
 													<div class="grid grid-cols-1 gap-4 md:hidden">
 														<div>
-															<span class="text-xs font-medium text-text-subtle">
+															<span
+																class="text-xs font-medium text-text-subtle"
+															>
 																{$t('admin.auditLog.user')}:
 															</span>
 															<p class="text-sm text-text">
@@ -400,7 +401,9 @@
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle">
+															<span
+																class="text-xs font-medium text-text-subtle"
+															>
 																{$t('admin.auditLog.timestamp')}:
 															</span>
 															<p class="text-sm text-text">
@@ -411,7 +414,9 @@
 													<!-- Log Details -->
 													<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 														<div>
-															<span class="text-xs font-medium text-text-subtle">
+															<span
+																class="text-xs font-medium text-text-subtle"
+															>
 																{$t('admin.auditLog.resourceId')}:
 															</span>
 															<p class="text-sm text-text font-mono">
@@ -419,7 +424,9 @@
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle">
+															<span
+																class="text-xs font-medium text-text-subtle"
+															>
 																{$t('admin.auditLog.ipAddress')}:
 															</span>
 															<p class="text-sm text-text font-mono">
@@ -427,7 +434,9 @@
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle">
+															<span
+																class="text-xs font-medium text-text-subtle"
+															>
 																{$t('admin.auditLog.userAgent')}:
 															</span>
 															<p
@@ -684,10 +693,7 @@
 	>
 		<div class="p-6">
 			<div class="flex items-center justify-between mb-4">
-				<h3
-					id="filter-dialog-title"
-					class="text-lg font-semibold text-text"
-				>
+				<h3 id="filter-dialog-title" class="text-lg font-semibold text-text">
 					{$t('common.filter')}
 				</h3>
 				<button
