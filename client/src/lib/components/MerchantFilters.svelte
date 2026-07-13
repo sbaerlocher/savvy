@@ -72,6 +72,7 @@
 			{vouchersCount}
 			{giftCardsCount}
 			{showAll}
+			variant="chip"
 		/>
 	</div>
 

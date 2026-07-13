@@ -13,6 +13,9 @@
 		/** Render the explicit "All" chip. When off, tapping the active type
 		 *  toggles back to all — keeps the row narrow on mobile. */
 		showAll?: boolean;
+		/** 'pill' (default, rounded-full) for the main list header; 'chip'
+		 *  (compact rounded-lg) inside the filter menu to match FilterGroup. */
+		variant?: 'pill' | 'chip';
 	}
 
 	let {
@@ -21,7 +24,8 @@
 		vouchersCount,
 		giftCardsCount,
 		allowToggle = true,
-		showAll = true
+		showAll = true,
+		variant = 'pill'
 	}: Props = $props();
 
 	function handleClick(type: 'all' | 'cards' | 'vouchers' | 'gift-cards') {
@@ -40,11 +44,16 @@
 	const active = 'bg-accent text-white border border-accent';
 	const inactive =
 		'bg-white text-text-muted border border-border hover:bg-surface-1';
-	const base =
-		'inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap';
+	const base = $derived(
+		`inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+			variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'
+		}`
+	);
 </script>
 
-<div class="flex gap-2 overflow-x-auto pb-1">
+<div
+	class="flex gap-2 {variant === 'chip' ? 'flex-wrap' : 'overflow-x-auto pb-1'}"
+>
 	{#if showAll}
 		<button
 			type="button"
