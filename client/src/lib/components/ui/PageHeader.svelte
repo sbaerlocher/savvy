@@ -12,7 +12,8 @@
 		title,
 		eyebrow,
 		actions,
-		mobileActions = true
+		mobileActions = true,
+		showSearch = false
 	}: {
 		/** Main heading, e.g. "Deine Favoriten". */
 		title: string;
@@ -23,6 +24,9 @@
 		/** Render the mobile header actions (bell + New) on the title row. Top-level
 		 *  screens keep this on; sub-screens without them can pass false. */
 		mobileActions?: boolean;
+		/** Show a standalone search icon (Android) next to custom actions — used by
+		 *  detail pages that keep search but not the full mobile header actions. */
+		showSearch?: boolean;
 	} = $props();
 
 	const tr = (key: string) => get(t)(key);
@@ -132,8 +136,30 @@
 			{/if}
 			<h1 class="text-3xl font-bold tracking-tight text-text">{title}</h1>
 		</div>
-		{#if actions || mobileActions}
-			<div class="flex shrink-0 items-center gap-2">
+		{#if actions || mobileActions || (showSearch && platform === 'android')}
+			<div class="flex shrink-0 items-center gap-2.5">
+				{#if showSearch && platform === 'android'}
+					<button
+						type="button"
+						onclick={openSearch}
+						aria-label={tr('common.search')}
+						class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
+					>
+						<svg
+							class="h-5 w-5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							/>
+						</svg>
+					</button>
+				{/if}
 				{#if actions}
 					{@render actions()}
 				{/if}
