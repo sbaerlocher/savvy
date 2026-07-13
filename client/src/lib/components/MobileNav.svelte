@@ -5,7 +5,6 @@
 	import { isOnline } from '$lib/stores/offline';
 	import { t } from '$lib/stores/i18n';
 	import { platform } from '$lib/utils/platform';
-	import { get } from 'svelte/store';
 
 	interface Props {
 		// Opens the global type-choice ("New") dialog.
@@ -13,8 +12,6 @@
 	}
 
 	let { onNew }: Props = $props();
-
-	const tr = (key: string) => get(t)(key);
 
 	const isActive = (path: string) => $page.url.pathname.startsWith(path);
 	const preloadStrategy = $derived($isOnline ? 'hover' : 'off');
@@ -88,7 +85,7 @@
 							d={place.icon}
 						/>
 					</svg>
-					<span class="text-[10px] leading-tight mt-1">{tr(place.label)}</span>
+					<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span>
 				</a>
 			{/each}
 		</nav>
@@ -96,7 +93,7 @@
 		<button
 			type="button"
 			onclick={openSearch}
-			aria-label={tr('common.search')}
+			aria-label={$t('common.search')}
 			class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-gray-600"
 		>
 			<svg
@@ -119,7 +116,7 @@
 	<button
 		type="button"
 		onclick={onNew}
-		aria-label={tr('common.new')}
+		aria-label={$t('common.new')}
 		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg mobile-nav-fab"
 	>
 		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +164,7 @@
 							d={place.icon}
 						/>
 					</svg>
-					<span class="text-[10px] leading-tight mt-1">{tr(place.label)}</span>
+					<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span>
 				</a>
 			{/each}
 		</div>
