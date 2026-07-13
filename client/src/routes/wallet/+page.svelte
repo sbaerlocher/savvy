@@ -35,6 +35,7 @@
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { logger } from '$lib/utils/logger';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -759,8 +760,11 @@
 			/>
 		</div>
 
-		<!-- Search field: only shown when arriving via ?search focus path. -->
-		{#if searchOpen}
+		<!-- Search field: only shown when arriving via ?search focus path.
+		     iOS puts search in the bottom-nav pill and Android in the header,
+		     so only the desktop fallback shows this top field (the query still
+		     filters via the ?search param on every platform). -->
+		{#if searchOpen && platform === 'other'}
 			<div class="mb-6 flex gap-2">
 				<input
 					type="search"

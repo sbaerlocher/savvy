@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
 	import { showNewDialog } from '$lib/stores/newDialog';
 	import { platform } from '$lib/utils/platform';
+
+	// Android search opens an inline M3 search field in the header row; the
+	// parent PageHeader owns that state and passes the opener down.
+	let { onSearchOpen }: { onSearchOpen?: () => void } = $props();
 </script>
 
 <!-- Mobile-only header actions, rendered on the page title row (see PageHeader)
@@ -46,14 +49,13 @@
 			</svg>
 		</button>
 	{:else}
-		<!-- eslint-disable svelte/no-navigation-without-resolve -- base is resolve()d; ?search is a query string -->
-		<a
-			href={resolve('/wallet') + '?search=1'}
+		<button
+			type="button"
+			onclick={onSearchOpen}
 			data-testid="nav-search-mobile"
 			aria-label={$t('common.search')}
 			class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
 		>
-			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			<svg
 				class="h-5 w-5"
 				fill="none"
@@ -67,7 +69,7 @@
 					d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 				/>
 			</svg>
-		</a>
+		</button>
 		{@render bell()}
 	{/if}
 </div>
