@@ -8,6 +8,13 @@
 	import { platform } from '$lib/utils/platform';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 
+	// triggerClass lets callers restyle the bell button (mobile header uses a
+	// 40px boxed variant to match the mockup); defaults to the desktop look.
+	let {
+		triggerClass = 'notification-bell relative inline-flex items-center justify-center p-1 text-text-muted transition-colors hover:text-text-strong',
+		iconClass = 'w-6 h-6'
+	}: { triggerClass?: string; iconClass?: string } = $props();
+
 	const notifications = $derived($notificationStore.notifications);
 	const unreadCount = $derived($notificationStore.unreadCount);
 	const isOpen = $derived($notificationStore.isOpen);
@@ -111,11 +118,11 @@
 
 <!-- Notification Bell Button -->
 <button
-	class="notification-bell relative flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-md hover:bg-gray-100"
+	class={triggerClass}
 	onclick={() => notificationStore.togglePanel()}
 	aria-label={$t('notifications.title')}
 >
-	<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	<svg class={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
 		<path
 			stroke-linecap="round"
 			stroke-linejoin="round"
@@ -126,7 +133,7 @@
 
 	{#if unreadCount > 0}
 		<span
-			class="absolute top-0 right-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold leading-none text-white translate-x-1/6 -translate-y-1/5 bg-red-600 rounded-full"
+			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full ring-2 ring-white"
 		>
 			{unreadCount > 99 ? '99+' : unreadCount}
 		</span>
@@ -139,23 +146,23 @@
 		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-lg shadow-xl z-50 max-w-[90vw] {platform ===
 		'ios'
 			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
-			: 'bg-white border border-gray-200'}"
+			: 'bg-white border border-border'}"
 	>
 		<!-- Header -->
 		<div
 			class="flex items-center justify-between px-4 py-3 border-b {platform ===
 			'ios'
 				? 'border-white/30'
-				: 'border-gray-200'}"
+				: 'border-border'}"
 		>
-			<h3 class="text-lg font-semibold text-gray-900">
+			<h3 class="text-lg font-semibold text-text">
 				{$t('notifications.title')}
 			</h3>
 
 			<div class="flex items-center gap-1">
 				{#if notifications.length > 0}
 					<button
-						class="text-cyan-600 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-50 transition-colors"
+						class="text-accent hover:text-accent-hover p-1.5 rounded-md hover:bg-accent-50 transition-colors"
 						onclick={() => notificationStore.markAllAsRead()}
 						title={$t('notifications.markAllAsRead')}
 						aria-label={$t('notifications.markAllAsRead')}
@@ -182,7 +189,7 @@
 					</button>
 				{/if}
 				<button
-					class="text-cyan-600 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-50 transition-colors"
+					class="text-accent hover:text-accent-hover p-1.5 rounded-md hover:bg-accent-50 transition-colors"
 					onclick={() => {
 						notificationStore.closePanel();
 						goto(resolve('/notifications'));
@@ -212,9 +219,9 @@
 			{#if isLoading}
 				<LoadingSpinner />
 			{:else if notifications.length === 0}
-				<div class="px-4 py-8 text-center text-gray-500">
+				<div class="px-4 py-8 text-center text-text-subtle">
 					<svg
-						class="w-12 h-12 mx-auto mb-2 text-gray-300"
+						class="w-12 h-12 mx-auto mb-2 text-text-placeholder"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -231,9 +238,9 @@
 			{:else}
 				{#each notifications as notification (notification.id)}
 					<div
-						class="flex items-start px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors {notification.is_read
+						class="flex items-start px-4 py-3 hover:bg-surface-1 cursor-pointer border-b border-border-soft last:border-b-0 transition-colors {notification.is_read
 							? 'opacity-60'
-							: 'bg-cyan-50'}"
+							: 'bg-accent-50'}"
 						onclick={() => handleNotificationClick(notification)}
 						onkeydown={(e) =>
 							e.key === 'Enter' && handleNotificationClick(notification)}
@@ -244,7 +251,7 @@
 						<div class="shrink-0 mr-3 mt-0.5">
 							{#if notification.type === 'share_received'}
 								<svg
-									class="w-5 h-5 text-cyan-500"
+									class="w-5 h-5 text-accent"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -300,7 +307,7 @@
 								</svg>
 							{:else}
 								<svg
-									class="w-5 h-5 text-gray-400"
+									class="w-5 h-5 text-text-faint"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -317,10 +324,10 @@
 
 						<!-- Content -->
 						<div class="flex-1 min-w-0">
-							<p class="text-sm text-gray-900">
+							<p class="text-sm text-text">
 								{formatNotificationMessage(notification)}
 							</p>
-							<p class="text-xs text-gray-500 mt-1">
+							<p class="text-xs text-text-subtle mt-1">
 								{formatTimeAgo(notification.created_at)}
 							</p>
 						</div>
@@ -329,7 +336,7 @@
 						<div class="shrink-0 ml-2 flex items-center gap-1">
 							{#if !notification.is_read}
 								<button
-									class="text-cyan-500 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-100 transition-colors"
+									class="text-accent hover:text-accent-hover p-1.5 rounded-md hover:bg-accent-100 transition-colors"
 									onclick={(e) => {
 										e.stopPropagation();
 										notificationStore.markAsRead(notification.id);
@@ -343,7 +350,7 @@
 							{/if}
 
 							<button
-								class="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+								class="text-text-faint hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
 								onclick={(e) => {
 									e.stopPropagation();
 									notificationStore.delete(notification.id);

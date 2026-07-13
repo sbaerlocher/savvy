@@ -10,26 +10,38 @@
 <!-- Mobile-only header actions, rendered on the page title row (see PageHeader)
      so the mockup's "title left · bell + '+' right" layout holds without a
      separate top header bar. Desktop keeps these in the global nav. -->
-<div class="flex items-center gap-2 sm:hidden">
+<!-- Action order follows the mockup's native chrome:
+     iOS  → [bell] [+]      (add lives in the header)
+     else → [search] [bell] (add is the Material FAB in the nav bar) -->
+<!-- Boxed 40px header buttons matching the mockup:
+     bell/search = white circle-ish box + border, "+" = filled teal box. -->
+{#snippet bell()}
 	{#if !$authStore.user?.is_impersonating}
-		<NotificationPanel />
+		<NotificationPanel
+			triggerClass="notification-bell relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
+			iconClass="h-5 w-5"
+		/>
 	{/if}
+{/snippet}
 
+<div class="flex items-center gap-2.5 sm:hidden">
 	{#if platform === 'ios'}
+		{@render bell()}
 		<button
 			type="button"
 			onclick={() => ($showNewDialog = true)}
 			data-testid="nav-new-mobile"
 			aria-label={$t('common.new')}
-			class="inline-flex items-center justify-center p-1 text-cyan-600"
+			class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white shadow-[var(--shadow-accent)] transition-transform active:scale-95"
 		>
-			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 4v16m8-8H4"
-				/>
+			<svg
+				class="h-5 w-5"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.3"
+				viewBox="0 0 24 24"
+			>
+				<path stroke-linecap="round" d="M12 5v14M5 12h14" />
 			</svg>
 		</button>
 	{:else}
@@ -38,17 +50,23 @@
 			href={resolve('/wallet') + '?search=1'}
 			data-testid="nav-search-mobile"
 			aria-label={$t('common.search')}
-			class="inline-flex items-center justify-center p-1 text-gray-600"
+			class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
 		>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
-			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg
+				class="h-5 w-5"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				viewBox="0 0 24 24"
+			>
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					stroke-width="2"
 					d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 				/>
 			</svg>
 		</a>
+		{@render bell()}
 	{/if}
 </div>

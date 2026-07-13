@@ -33,10 +33,12 @@
 	// Active pill = solid cyan; inactive = subtle warm chip. One consistent
 	// accent (brand cyan) keeps the row calm — the type is read from the label,
 	// not from a color per type.
-	const active = 'bg-cyan-600 text-white';
-	const inactive = 'bg-white text-gray-600 hover:bg-gray-50';
+	// Mockup: solid teal active pill, white bordered inactive pill, no count.
+	const active = 'bg-accent text-white border border-accent';
+	const inactive =
+		'bg-white text-text-muted border border-border hover:bg-surface-1';
 	const base =
-		'inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap';
+		'inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-colors whitespace-nowrap';
 </script>
 
 <div class="flex gap-2 overflow-x-auto pb-1">
@@ -54,7 +56,6 @@
 			class="{base} {typeFilter === 'cards' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterCards')}
-			<span class="text-xs opacity-70">{cardsCount}</span>
 		</button>
 	{/if}
 	{#if vouchersCount > 0}
@@ -64,7 +65,6 @@
 			class="{base} {typeFilter === 'vouchers' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterVouchers')}
-			<span class="text-xs opacity-70">{vouchersCount}</span>
 		</button>
 	{/if}
 	{#if giftCardsCount > 0}
@@ -74,7 +74,6 @@
 			class="{base} {typeFilter === 'gift-cards' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterGiftCards')}
-			<span class="text-xs opacity-70">{giftCardsCount}</span>
 		</button>
 	{/if}
 </div>

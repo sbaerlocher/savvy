@@ -94,8 +94,8 @@
 			/>
 
 			<div>
-				<p class="text-sm font-medium text-gray-700 mb-2">{whatHappensLabel}</p>
-				<ul class="text-xs text-gray-600 space-y-1">
+				<p class="text-sm font-medium text-text-ink2 mb-2">{whatHappensLabel}</p>
+				<ul class="text-xs text-text-muted space-y-1">
 					{#each details as detail (detail)}
 						<li>{detail}</li>
 					{/each}

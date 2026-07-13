@@ -129,7 +129,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href={resolve('/vouchers')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/vouchers')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -138,7 +138,7 @@
 	<!-- Left column: Form (2/3 width) -->
 	<div class="lg:col-span-2">
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h1 class="text-3xl font-bold text-gray-900 mb-6">
+			<h1 class="text-3xl font-bold text-text mb-6">
 				{tr('vouchers.newVoucher')}
 			</h1>
 			<DuplicateWarningBanner
@@ -172,12 +172,12 @@
 	<div class="lg:col-span-1 space-y-4">
 		<!-- Sharing Box -->
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h2 class="text-xl font-bold text-gray-900 mb-4">{tr('common.share')}</h2>
-			<p class="text-sm text-gray-600 mb-4">
+			<h2 class="text-xl font-bold text-text mb-4">{tr('common.share')}</h2>
+			<p class="text-sm text-text-muted mb-4">
 				{tr('vouchers.sharing.shareOnCreate')}
 			</p>
 
-			<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4">
+			<div class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4">
 				<!-- Email Input with Autocomplete -->
 				<EmailAutocomplete
 					bind:value={shareEmail}

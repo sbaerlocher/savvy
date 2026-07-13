@@ -182,7 +182,7 @@
 		style="border-left: 6px solid #06b6d4"
 	>
 		<div class="p-6">
-			<h3 class="text-lg font-semibold text-gray-900 mb-4">
+			<h3 class="text-lg font-semibold text-text mb-4">
 				{tr('settings.notifications.title')}
 			</h3>
 
@@ -205,7 +205,7 @@
 			{#if preferences.push_notifications_enabled}
 				<div
 					data-testid="push-subcategories"
-					class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3"
+					class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
 				>
 					<ToggleSwitch
 						checked={preferences.push_reminders_enabled}
@@ -225,7 +225,7 @@
 			{/if}
 
 			<!-- Email Notifications Channel -->
-			<div class="mt-4 pt-4 border-t border-gray-100">
+			<div class="mt-4 pt-4 border-t border-border-soft">
 				<ToggleSwitch
 					checked={preferences.email_notifications_enabled}
 					label={tr('settings.notifications.emailNotifications')}
@@ -239,7 +239,7 @@
 			{#if preferences.email_notifications_enabled}
 				<div
 					data-testid="email-subcategories"
-					class="ml-4 mt-3 pl-4 border-l-2 border-gray-100 space-y-3"
+					class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
 				>
 					<ToggleSwitch
 						checked={preferences.email_reminders_enabled}

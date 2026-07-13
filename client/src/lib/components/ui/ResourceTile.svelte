@@ -63,9 +63,9 @@
 </script>
 
 <div
-	class="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-white transition hover:border-gray-300 {selectMode &&
+	class="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-white transition hover:border-border-field {selectMode &&
 	selected
-		? 'ring-2 ring-cyan-600'
+		? 'ring-2 ring-accent'
 		: ''}"
 	style="border-left: 3px solid color-mix(in srgb, {model.merchantColor} 70%, transparent)"
 >
@@ -76,7 +76,7 @@
 			class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
 		>
 			<span
-				class="rounded-full border border-gray-300 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700 shadow-sm"
+				class="rounded-full border border-border-field bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-ink2 shadow-sm"
 			>
 				{model.statusBadge}
 			</span>
@@ -112,7 +112,7 @@
 		<!-- Header: icon + type label + merchant name | amount + expiry -->
 		<div class="flex items-start gap-3">
 			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500"
+				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-border-soft text-text-subtle"
 			>
 				<svg
 					class="h-5 w-5"
@@ -135,7 +135,7 @@
 				     lock private / people + N shared-out / people + first name
 				     received). Full text stays on the detail page. -->
 				<div
-					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
 				>
 					<span>{typeLabel}</span>
 					<span class="flex items-center gap-1 normal-case tracking-normal">
@@ -182,19 +182,19 @@
 					</span>
 				</div>
 				<p
-					class="truncate font-semibold text-gray-900 transition group-hover:text-cyan-700"
+					class="truncate font-semibold text-text transition group-hover:text-accent-hover"
 				>
 					{model.merchantName}
 				</p>
 				{#if model.identifier}
-					<p class="truncate text-sm text-gray-500">{model.identifier}</p>
+					<p class="truncate text-sm text-text-subtle">{model.identifier}</p>
 				{/if}
 			</div>
 
 			<!-- Kennzahl + expiry badge (fixed top-right slot) -->
 			<div class="flex shrink-0 flex-col items-end gap-1 text-right">
 				{#if model.amount}
-					<p class="text-lg font-bold tabular-nums text-gray-900">
+					<p class="text-lg font-bold tabular-nums text-text">
 						{model.amount}
 					</p>
 				{/if}
@@ -202,13 +202,13 @@
 					<span
 						class="rounded-full px-2 py-0.5 text-[0.7rem] font-medium {model.expiryUrgent
 							? 'bg-amber-50 text-amber-700'
-							: 'bg-gray-100 text-gray-500'}"
+							: 'bg-border-soft text-text-subtle'}"
 					>
 						{model.expiryBadge}
 					</span>
 				{:else if model.notYetValid}
 					<span
-						class="rounded-full bg-gray-100 px-2 py-0.5 text-[0.7rem] font-medium text-gray-500"
+						class="rounded-full bg-border-soft px-2 py-0.5 text-[0.7rem] font-medium text-text-subtle"
 					>
 						{model.notYetValid}
 					</span>
@@ -218,12 +218,12 @@
 
 		<!-- Footer: masked number | usage marker -->
 		<div class="mt-1 flex items-center justify-between gap-2">
-			<p class="font-mono text-xs text-gray-400">
+			<p class="font-mono text-xs text-text-faint">
 				{#if model.maskedNumber}{model.maskedNumber}{:else}&nbsp;{/if}
 			</p>
 			{#if model.usageMarker}
 				<span
-					class="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400"
+					class="text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
 				>
 					{model.usageMarker}
 				</span>
@@ -237,7 +237,7 @@
 		<button
 			type="button"
 			onclick={handleBarcodeClick}
-			class="mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:bg-cyan-50 {model.isActive
+			class="mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-border-soft bg-surface-1 p-3 transition hover:bg-accent-50 {model.isActive
 				? ''
 				: 'opacity-50 grayscale'}"
 			title={$t('dashboard.tapToEnlarge')}
@@ -249,7 +249,7 @@
 				height={compact ? 50 : 64}
 				maxHeight={compact ? 50 : 64}
 			/>
-			<span class="break-all text-center font-mono text-[0.7rem] text-gray-500">
+			<span class="break-all text-center font-mono text-[0.7rem] text-text-subtle">
 				{model.barcodeValue}
 			</span>
 		</button>

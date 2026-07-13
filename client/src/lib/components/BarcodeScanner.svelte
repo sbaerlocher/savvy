@@ -456,7 +456,7 @@
 				<button
 					type="button"
 					onclick={close}
-					class="text-gray-500 hover:text-gray-700 flex-shrink-0"
+					class="text-text-subtle hover:text-text-ink2 flex-shrink-0"
 					aria-label={$t('common.close')}
 				>
 					<svg
@@ -477,7 +477,7 @@
 
 			<!-- Scanner Method Indicator -->
 			{#if scannerReady}
-				<div class="text-xs text-gray-500 mb-2 flex items-center gap-2">
+				<div class="text-xs text-text-subtle mb-2 flex items-center gap-2">
 					<div class="w-2 h-2 rounded-full bg-green-500"></div>
 					BarcodeDetector
 				</div>
@@ -506,7 +506,7 @@
 					{#if isInitializing}
 						<div class="scanner-loading">
 							<svg
-								class="animate-spin h-12 w-12 text-cyan-500"
+								class="animate-spin h-12 w-12 text-accent"
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
@@ -586,7 +586,7 @@
 
 			<!-- Status Messages -->
 			<div class="mt-4 space-y-2">
-				<p id="scanner-status" class="text-sm text-gray-600 text-center">
+				<p id="scanner-status" class="text-sm text-text-muted text-center">
 					{scanMessage}
 				</p>
 				{#if hasError}
@@ -596,7 +596,7 @@
 							onclick={() => {
 								hasError = false;
 							}}
-							class="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
+							class="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent-hover rounded-lg transition-colors"
 						>
 							{$t('common.scanRetry')}
 						</button>
@@ -626,7 +626,7 @@
 						<button
 							type="button"
 							onclick={() => (showDebugPanel = false)}
-							class="text-gray-400 hover:text-gray-600"
+							class="text-text-faint hover:text-text-muted"
 							aria-label="Close debug panel"
 						>
 							<svg
@@ -673,7 +673,7 @@
 							<div class="debug-log-entry">{log}</div>
 						{/each}
 						{#if debugLogs.length === 0}
-							<div class="debug-log-entry text-gray-400">No logs yet...</div>
+							<div class="debug-log-entry text-text-faint">No logs yet...</div>
 						{/if}
 					</div>
 				</div>
@@ -681,7 +681,7 @@
 				<button
 					type="button"
 					onclick={() => (showDebugPanel = true)}
-					class="mt-2 text-xs text-gray-400 hover:text-gray-600"
+					class="mt-2 text-xs text-text-faint hover:text-text-muted"
 					aria-label="Show debug panel"
 				>
 					Show Debug

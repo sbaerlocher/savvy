@@ -46,9 +46,9 @@
 	const linkClass = (path: string) => {
 		const base =
 			'flex flex-col items-center justify-center transition-colors relative';
-		if (!isActive(path)) return `${base} text-gray-600`;
-		if (platform === 'android') return `${base} text-cyan-700 font-semibold`;
-		return `${base} text-cyan-600 font-semibold`;
+		if (!isActive(path)) return `${base} text-text-muted`;
+		if (platform === 'android') return `${base} text-accent-hover font-semibold`;
+		return `${base} text-accent font-semibold`;
 	};
 </script>
 
@@ -94,7 +94,7 @@
 			type="button"
 			onclick={openSearch}
 			aria-label={$t('common.search')}
-			class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-gray-600"
+			class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-text-muted"
 		>
 			<svg
 				class="w-6 h-6"
@@ -117,7 +117,7 @@
 		type="button"
 		onclick={onNew}
 		aria-label={$t('common.new')}
-		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg mobile-nav-fab"
+		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab"
 	>
 		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
@@ -146,7 +146,7 @@
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{#if platform === 'android' && isActive(place.path)}
 						<span
-							class="absolute -inset-x-1.5 top-1 bottom-1 bg-cyan-100 rounded-full -z-10"
+							class="absolute -inset-x-1.5 top-1 bottom-1 bg-accent-100 rounded-full -z-10"
 						></span>
 					{:else if isActive(place.path)}
 						<span class="liquid-glass-pill"></span>

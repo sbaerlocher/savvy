@@ -359,7 +359,7 @@
 		switch (status) {
 			case 'inactive':
 				return {
-					class: 'bg-gray-200 text-gray-700',
+					class: 'bg-border text-text-ink2',
 					text: tr('vouchers.status.inactive')
 				};
 			case 'expired':
@@ -402,11 +402,11 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/vouchers')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/vouchers')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
-		<span class="text-xs text-gray-400 animate-pulse"
+		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
 	{/if}
@@ -444,7 +444,7 @@
 								{@const v = voucher!}
 								<div class="flex items-baseline gap-3 flex-wrap mb-2">
 									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
 									>
 										{#if v.merchant}
 											{v.merchant.name}
@@ -452,13 +452,13 @@
 											{tr('vouchers.title')}
 										{/if}
 									</h1>
-									<span class="text-sm text-gray-600">
+									<span class="text-sm text-text-muted">
 										{v.usage_limit_type === 'single_use'
 											? tr('vouchers.singleUseOnly')
 											: tr('vouchers.multipleUse')}
 									</span>
 									{#if v.owner && v.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-gray-400">
+										<span class="text-xs text-text-faint">
 											{tr('vouchers.sharedBy', {
 												name: v.owner.first_name || v.owner.email
 											})}
@@ -525,7 +525,7 @@
 							submitLabel={tr('common.save')}
 						/>
 						{#if voucher.permissions?.can_delete}
-							<div class="pt-4 mt-4 border-t border-gray-200">
+							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
 									onclick={promptDelete}
@@ -584,7 +584,7 @@
 				<!-- Sharing Box -->
 				<div class="bg-white rounded-lg shadow-lg p-6">
 					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{tr('common.share')}
 						</h3>
 						{#if !showShareForm}
@@ -619,7 +619,7 @@
 
 					{#if showShareForm}
 						<div
-							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
+							class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
 								multiple
@@ -630,16 +630,16 @@
 								disabled={isOffline}
 							/>
 
-							<div class="bg-white border border-cyan-200 rounded-lg p-3">
-								<h4 class="font-medium text-cyan-900 text-sm mb-2">
+							<div class="bg-white border border-accent-200 rounded-lg p-3">
+								<h4 class="font-medium text-accent-900 text-sm mb-2">
 									{tr('vouchers.sharing.whatIsShared')}
 								</h4>
-								<ul class="text-xs text-cyan-800 space-y-1">
+								<ul class="text-xs text-accent-800 space-y-1">
 									<li>{tr('vouchers.sharing.sharedCode')}</li>
 									<li>{tr('vouchers.sharing.sharedDetails')}</li>
 									<li>{tr('vouchers.sharing.sharedDescription')}</li>
 								</ul>
-								<p class="text-xs text-cyan-700 mt-2 italic">
+								<p class="text-xs text-accent-hover mt-2 italic">
 									{tr('vouchers.sharing.readOnlyNote')}
 								</p>
 							</div>
@@ -704,7 +704,7 @@
 							{tr('vouchers.sharing.revokeAll')}
 						</button>
 					{:else}
-						<p class="text-sm text-gray-500 text-center py-4">
+						<p class="text-sm text-text-subtle text-center py-4">
 							{tr('vouchers.sharing.notSharedYet')}
 						</p>
 					{/if}

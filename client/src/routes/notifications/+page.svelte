@@ -214,14 +214,14 @@
 				<div class="bg-white rounded-xl shadow-lg overflow-hidden">
 					<!-- Header -->
 					<div
-						class="flex items-center justify-between px-6 py-4 border-b border-gray-200"
+						class="flex items-center justify-between px-6 py-4 border-b border-border"
 					>
-						<h2 class="text-lg font-semibold text-gray-900">
+						<h2 class="text-lg font-semibold text-text">
 							{tr('notifications.title')}
 						</h2>
 						{#if notifications.some((n) => !n.is_read)}
 							<button
-								class="text-sm text-cyan-600 hover:text-cyan-700"
+								class="text-sm text-accent hover:text-accent-hover"
 								onclick={handleMarkAllAsRead}
 							>
 								{tr('notifications.markAllAsRead')}
@@ -231,9 +231,9 @@
 
 					<!-- Notification Items -->
 					{#if notifications.length === 0}
-						<div class="px-4 py-12 text-center text-gray-500">
+						<div class="px-4 py-12 text-center text-text-subtle">
 							<svg
-								class="w-12 h-12 mx-auto mb-2 text-gray-300"
+								class="w-12 h-12 mx-auto mb-2 text-text-placeholder"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -250,9 +250,9 @@
 					{:else}
 						{#each notifications as notification (notification.id)}
 							<div
-								class="flex items-start px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors {notification.is_read
+								class="flex items-start px-4 py-3 hover:bg-surface-1 cursor-pointer border-b border-border-soft last:border-b-0 transition-colors {notification.is_read
 									? 'opacity-60'
-									: 'bg-cyan-50'}"
+									: 'bg-accent-50'}"
 								onclick={() => handleNotificationClick(notification)}
 								onkeydown={(e) =>
 									e.key === 'Enter' && handleNotificationClick(notification)}
@@ -263,7 +263,7 @@
 								<div class="shrink-0 mr-3 mt-0.5">
 									{#if notification.type === 'share_received'}
 										<svg
-											class="w-5 h-5 text-cyan-500"
+											class="w-5 h-5 text-accent"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -319,7 +319,7 @@
 										</svg>
 									{:else}
 										<svg
-											class="w-5 h-5 text-gray-400"
+											class="w-5 h-5 text-text-faint"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -336,10 +336,10 @@
 
 								<!-- Content -->
 								<div class="flex-1 min-w-0">
-									<p class="text-sm text-gray-900">
+									<p class="text-sm text-text">
 										{formatNotificationMessage(notification)}
 									</p>
-									<p class="text-xs text-gray-500 mt-1">
+									<p class="text-xs text-text-subtle mt-1">
 										{formatTimeAgo(notification.created_at)}
 									</p>
 								</div>
@@ -348,7 +348,7 @@
 								<div class="shrink-0 ml-2 flex items-center gap-1">
 									{#if !notification.is_read}
 										<button
-											class="text-cyan-500 hover:text-cyan-700 p-1.5 rounded-md hover:bg-cyan-100 transition-colors"
+											class="text-accent hover:text-accent-hover p-1.5 rounded-md hover:bg-accent-100 transition-colors"
 											onclick={(e) => {
 												e.stopPropagation();
 												handleMarkAsRead(notification.id);
@@ -366,7 +366,7 @@
 									{/if}
 
 									<button
-										class="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+										class="text-text-faint hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
 										onclick={(e) => {
 											e.stopPropagation();
 											handleDelete(notification.id);
@@ -394,9 +394,9 @@
 
 					<!-- Load More -->
 					{#if hasMore && notifications.length > 0}
-						<div class="px-6 py-4 border-t border-gray-100 text-center">
+						<div class="px-6 py-4 border-t border-border-soft text-center">
 							<button
-								class="text-sm text-cyan-600 hover:text-cyan-700 font-medium disabled:opacity-50"
+								class="text-sm text-accent hover:text-accent-hover font-medium disabled:opacity-50"
 								onclick={loadMore}
 								disabled={isLoadingMore}
 							>

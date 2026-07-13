@@ -277,7 +277,7 @@
 				{#if errors?.value}
 					<p class="text-red-600 text-sm mt-1">{errors.value}</p>
 				{:else}
-					<p class="text-sm text-gray-500 mt-1">
+					<p class="text-sm text-text-subtle mt-1">
 						{type === 'percentage'
 							? $t('vouchers.valueHintPercentage')
 							: type === 'points_multiplier'
@@ -318,7 +318,7 @@
 					{/each}
 				</select>
 			</div>
-			<p class="text-sm text-gray-500 mt-1">
+			<p class="text-sm text-text-subtle mt-1">
 				{$t('vouchers.minPurchaseAmountHint')}
 			</p>
 		</div>
@@ -346,7 +346,7 @@
 					>{$t('vouchers.usageLimitTypes.multiple_use_without_card')}</option
 				>
 			</select>
-			<p class="text-sm text-gray-500 mt-1">
+			<p class="text-sm text-text-subtle mt-1">
 				{$t('vouchers.usageLimitTypeHint')}
 			</p>
 		</div>
@@ -363,14 +363,14 @@
 				class="input w-full text-base"
 				style="min-width: 0;"
 			/>
-			<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+			<p class="text-xs text-text-subtle mt-1 hidden sm:block">
 				{$t('vouchers.validFromHint')}
 			</p>
 		</div>
 
 		<div>
 			<div class="flex items-center justify-between mb-1">
-				<label for="validUntil" class="text-sm font-medium text-gray-700">
+				<label for="validUntil" class="text-sm font-medium text-text-ink2">
 					{$t('vouchers.validUntil')} *
 				</label>
 				<!-- Quick-Select Buttons (inline with label) -->
@@ -378,14 +378,14 @@
 					<button
 						type="button"
 						onclick={() => setExpiryOffset(30)}
-						class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+						class="px-2 py-0.5 text-xs bg-border-soft hover:bg-border text-text-muted hover:text-text-strong rounded transition-colors"
 					>
 						{$t('vouchers.quickSelect.oneMonth')}
 					</button>
 					<button
 						type="button"
 						onclick={() => setExpiryOffset(90)}
-						class="px-2 py-0.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+						class="px-2 py-0.5 text-xs bg-border-soft hover:bg-border text-text-muted hover:text-text-strong rounded transition-colors"
 					>
 						{$t('vouchers.quickSelect.threeMonths')}
 					</button>
@@ -407,7 +407,7 @@
 			{#if errors?.validUntil}
 				<p class="text-red-600 text-sm mt-1">{errors.validUntil}</p>
 			{:else}
-				<p class="text-xs text-gray-500 mt-1 hidden sm:block">
+				<p class="text-xs text-text-subtle mt-1 hidden sm:block">
 					{$t('vouchers.validUntilHint')}
 				</p>
 			{/if}

@@ -51,7 +51,7 @@
 				<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 					<div class="mb-8 flex items-center gap-4">
 						<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-						<h1 class="text-2xl font-bold text-gray-900">
+						<h1 class="text-2xl font-bold text-text">
 							{tr('auth.forgotPassword.title')}
 						</h1>
 					</div>
@@ -75,10 +75,10 @@
 									/>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold text-gray-900 mb-2">
+							<h2 class="text-xl font-semibold text-text mb-2">
 								{tr('auth.forgotPassword.success')}
 							</h2>
-							<p class="text-gray-600 mb-6">
+							<p class="text-text-muted mb-6">
 								{tr('auth.forgotPassword.successMessage')}
 							</p>
 							<a href={resolve('/login')} class="btn btn-primary w-full">
@@ -86,7 +86,7 @@
 							</a>
 						</div>
 					{:else}
-						<p class="text-gray-600 mb-6">
+						<p class="text-text-muted mb-6">
 							{tr('auth.forgotPassword.description')}
 						</p>
 
@@ -94,7 +94,7 @@
 							<div>
 								<label
 									for="email"
-									class="block text-sm font-medium text-gray-700 mb-1"
+									class="block text-sm font-medium text-text-ink2 mb-1"
 								>
 									{tr('auth.forgotPassword.email')}
 								</label>
@@ -120,9 +120,9 @@
 									{#if isLoading}
 										<span class="relative inline-flex h-3 w-3 mr-2"
 											><span
-												class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+												class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 											></span><span
-												class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+												class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 											></span></span
 										>
 										{tr('auth.forgotPassword.submitting')}
@@ -135,7 +135,7 @@
 							<div class="text-center pt-4">
 								<a
 									href={resolve('/login')}
-									class="font-medium text-cyan-600 hover:text-cyan-500"
+									class="font-medium text-accent hover:text-accent"
 								>
 									{tr('auth.forgotPassword.backToLogin')}
 								</a>
@@ -148,17 +148,17 @@
 			<!-- Right column: Info (1/3 width) -->
 			<div class="lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-lg p-6">
-					<h2 class="text-xl font-bold text-gray-900 mb-4">
+					<h2 class="text-xl font-bold text-text mb-4">
 						{tr('auth.forgotPassword.infoTitle')}
 					</h2>
-					<p class="text-sm text-gray-600 mb-4">
+					<p class="text-sm text-text-muted mb-4">
 						{tr('auth.forgotPassword.infoDescription')}
 					</p>
 
 					<div class="space-y-4">
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-cyan-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-accent mt-0.5 mr-3 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -171,10 +171,10 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('auth.forgotPassword.step1Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('auth.forgotPassword.step1Desc')}
 								</p>
 							</div>
@@ -182,7 +182,7 @@
 
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-cyan-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-accent mt-0.5 mr-3 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -195,10 +195,10 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('auth.forgotPassword.step2Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('auth.forgotPassword.step2Desc')}
 								</p>
 							</div>
@@ -206,7 +206,7 @@
 
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-cyan-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-accent mt-0.5 mr-3 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -219,20 +219,20 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('auth.forgotPassword.step3Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('auth.forgotPassword.step3Desc')}
 								</p>
 							</div>
 						</div>
 					</div>
 
-					<div class="mt-6 pt-6 border-t border-gray-200">
-						<div class="flex items-center text-sm text-gray-600">
+					<div class="mt-6 pt-6 border-t border-border">
+						<div class="flex items-center text-sm text-text-muted">
 							<svg
-								class="w-5 h-5 text-cyan-500 mr-2 flex-shrink-0"
+								class="w-5 h-5 text-accent mr-2 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"

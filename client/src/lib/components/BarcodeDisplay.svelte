@@ -151,7 +151,7 @@
 	});
 </script>
 
-<div class="bg-gray-50 rounded-lg p-4 text-center border-t border-gray-200">
+<div class="bg-surface-1 rounded-lg p-4 text-center border-t border-border">
 	<!-- Status Badge + Validity Period (for Vouchers) -->
 	{#if showValidStatusBadge || showStatusBadge || hasValidityInfo}
 		<div class="flex items-center justify-center gap-4 mb-4 flex-wrap">
@@ -173,7 +173,7 @@
 
 			<!-- Validity Period (for vouchers) -->
 			{#if hasValidityInfo}
-				<span class="text-xs text-gray-600">
+				<span class="text-xs text-text-muted">
 					{#if validFrom && validUntil}
 						{new Date(validFrom.split('T')[0]).toLocaleDateString(
 							currentLocale
@@ -194,7 +194,7 @@
 					{/if}
 				</span>
 			{:else if minPurchaseInfo}
-				<span class="text-xs text-gray-600">{minPurchaseInfo}</span>
+				<span class="text-xs text-text-muted">{minPurchaseInfo}</span>
 			{/if}
 		</div>
 	{/if}
@@ -214,7 +214,7 @@
 
 	<!-- Code/Number -->
 	<p
-		class="font-mono text-sm sm:text-base md:text-lg font-semibold text-gray-900 break-all"
+		class="font-mono text-sm sm:text-base md:text-lg font-semibold text-text break-all"
 	>
 		{value}
 	</p>
@@ -226,12 +226,12 @@
 			{#if displayValue || description}
 				<div class="flex items-baseline justify-center gap-3 flex-wrap">
 					{#if displayValue}
-						<p class="font-mono text-lg font-bold text-gray-900">
+						<p class="font-mono text-lg font-bold text-text">
 							{displayValue}
 						</p>
 					{/if}
 					{#if description}
-						<p class="text-xs text-gray-600">{description}</p>
+						<p class="text-xs text-text-muted">{description}</p>
 					{/if}
 				</div>
 			{/if}
@@ -239,8 +239,8 @@
 			<!-- PIN (for gift cards) -->
 			{#if pin}
 				<p class="text-center">
-					<span class="text-xs text-gray-600">{tr('giftCards.pin')}: </span>
-					<span class="font-mono text-base font-semibold text-gray-900"
+					<span class="text-xs text-text-muted">{tr('giftCards.pin')}: </span>
+					<span class="font-mono text-base font-semibold text-text"
 						>{pin}</span
 					>
 				</p>

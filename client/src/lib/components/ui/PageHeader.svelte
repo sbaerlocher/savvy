@@ -20,19 +20,13 @@
 	} = $props();
 </script>
 
-<!-- Page header: accent bar + type hierarchy, no heavy shadow. -->
+<!-- Page header: plain type hierarchy, no left accent bar (mockup). -->
 <div class="mb-8 flex items-start justify-between gap-4">
-	<div class="flex items-stretch gap-3">
-		<div
-			class="w-1.5 self-stretch rounded-full bg-cyan-600"
-			aria-hidden="true"
-		></div>
-		<div>
-			{#if eyebrow}
-				<p class="text-sm text-gray-500">{eyebrow}</p>
-			{/if}
-			<h1 class="text-3xl font-bold text-gray-900">{title}</h1>
-		</div>
+	<div>
+		{#if eyebrow}
+			<p class="text-sm text-text-subtle">{eyebrow}</p>
+		{/if}
+		<h1 class="text-3xl font-bold tracking-tight text-text">{title}</h1>
 	</div>
 	{#if actions || mobileActions}
 		<div class="flex shrink-0 items-center gap-2">

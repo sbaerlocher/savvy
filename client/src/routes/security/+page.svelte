@@ -186,7 +186,7 @@
 						style="border-left: 6px solid #06b6d4"
 					>
 						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">
+							<h3 class="text-lg font-semibold text-text mb-4">
 								{tr('settings.password.title')}
 							</h3>
 
@@ -194,7 +194,7 @@
 								<div>
 									<label
 										for="currentPassword"
-										class="block text-sm font-medium text-gray-700 mb-1"
+										class="block text-sm font-medium text-text-ink2 mb-1"
 									>
 										{tr('settings.password.currentPassword')}
 									</label>
@@ -212,7 +212,7 @@
 								<div>
 									<label
 										for="newPassword"
-										class="block text-sm font-medium text-gray-700 mb-1"
+										class="block text-sm font-medium text-text-ink2 mb-1"
 									>
 										{tr('settings.password.newPassword')}
 									</label>
@@ -237,7 +237,7 @@
 																: passwordStrength.score === 3
 																	? 'bg-yellow-400'
 																	: 'bg-green-400'
-															: 'bg-gray-200'}"
+															: 'bg-border'}"
 													></div>
 												{/each}
 											</div>
@@ -253,7 +253,7 @@
 								<div>
 									<label
 										for="confirmPassword"
-										class="block text-sm font-medium text-gray-700 mb-1"
+										class="block text-sm font-medium text-text-ink2 mb-1"
 									>
 										{tr('settings.password.confirmPassword')}
 									</label>
@@ -277,9 +277,9 @@
 										{#if isChangingPassword}
 											<span class="relative inline-flex h-3 w-3 mr-2"
 												><span
-													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 												></span><span
-													class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+													class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 												></span></span
 											>
 											{tr('settings.password.changing')}
@@ -297,10 +297,10 @@
 						style="border-left: 6px solid #06b6d4"
 					>
 						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">
+							<h3 class="text-lg font-semibold text-text mb-4">
 								{tr('settings.password.title')}
 							</h3>
-							<p class="text-sm text-gray-500">
+							<p class="text-sm text-text-subtle">
 								{tr('settings.password.oauthNote')}
 							</p>
 						</div>
@@ -326,7 +326,7 @@
 					style="border-left: 6px solid #06b6d4"
 				>
 					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{tr('settings.sessions.title')}
 						</h3>
 						{#if sessions.length > 1}
@@ -334,7 +334,7 @@
 								type="button"
 								onclick={handleRevokeOthers}
 								disabled={isRevokingOthers}
-								class="text-xs text-cyan-600 hover:text-cyan-700 font-medium disabled:opacity-50"
+								class="text-xs text-accent hover:text-accent-hover font-medium disabled:opacity-50"
 							>
 								{#if isRevokingOthers}
 									...
@@ -349,14 +349,14 @@
 						<div class="flex justify-center py-4">
 							<span class="relative inline-flex h-4 w-4"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-4 w-4 bg-cyan-500"
+									class="relative inline-flex rounded-full h-4 w-4 bg-accent"
 								></span></span
 							>
 						</div>
 					{:else if sessions.length === 0}
-						<p class="text-sm text-gray-500">
+						<p class="text-sm text-text-subtle">
 							{tr('settings.sessions.noOtherSessions')}
 						</p>
 					{:else}
@@ -364,16 +364,16 @@
 							{#each sessions as session (session.id)}
 								<div
 									class="flex items-start justify-between gap-3 p-3 rounded-lg {session.is_current
-										? 'bg-cyan-50 border border-cyan-200'
-										: 'bg-gray-50'}"
+										? 'bg-accent-50 border border-accent-200'
+										: 'bg-surface-1'}"
 								>
 									<div class="flex-1 min-w-0">
 										<div class="flex items-center gap-2 flex-wrap">
-											<span class="text-sm font-medium text-gray-900">
+											<span class="text-sm font-medium text-text">
 												{session.browser_info ||
 													tr('settings.sessions.unknownBrowser')}
 											</span>
-											<span class="text-xs text-gray-500">
+											<span class="text-xs text-text-subtle">
 												{session.device_info ||
 													tr('settings.sessions.unknownDevice')}
 											</span>
@@ -386,7 +386,7 @@
 											{/if}
 										</div>
 										<div
-											class="mt-1 flex items-center gap-3 text-xs text-gray-500"
+											class="mt-1 flex items-center gap-3 text-xs text-text-subtle"
 										>
 											{#if session.ip_address}
 												<span>{session.ip_address}</span>
@@ -402,16 +402,16 @@
 											type="button"
 											onclick={() => handleRevokeSession(session.id)}
 											disabled={revokingSessionId === session.id}
-											class="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+											class="flex-shrink-0 p-1.5 text-text-faint hover:text-red-500 transition-colors disabled:opacity-50"
 											title={tr('settings.sessions.revoke')}
 											aria-label={tr('settings.sessions.revoke')}
 										>
 											{#if revokingSessionId === session.id}
 												<span class="relative inline-flex h-3 w-3"
 													><span
-														class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+														class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 													></span><span
-														class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+														class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 													></span></span
 												>
 											{:else}

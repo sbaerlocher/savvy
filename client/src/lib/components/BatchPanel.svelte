@@ -54,11 +54,11 @@
 <div class="hidden lg:block lg:col-span-1">
 	<div class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden">
 		<!-- Header -->
-		<div class="px-5 py-4 bg-gray-50/80 border-b border-gray-100">
+		<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<svg
-						class="w-4 h-4 text-gray-500"
+						class="w-4 h-4 text-text-subtle"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -70,20 +70,20 @@
 							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 						></path>
 					</svg>
-					<h3 class="text-sm font-semibold text-gray-900">
+					<h3 class="text-sm font-semibold text-text">
 						{tr('batch.selectMode')}
 					</h3>
 				</div>
 				<div class="flex items-center gap-2.5">
 					<span
-						class="text-xs text-gray-500 bg-white px-2.5 py-1 rounded-full border border-gray-200 tabular-nums"
+						class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
 					>
 						{selectedCount} / {totalCount}
 					</span>
 					<button
 						type="button"
 						onclick={onCancel}
-						class="text-gray-400 hover:text-gray-600 transition-colors"
+						class="text-text-faint hover:text-text-muted transition-colors"
 						aria-label={tr('batch.exitSelectMode')}
 					>
 						<svg
@@ -109,7 +109,7 @@
 				<div class="pb-4">
 					{@render headerExtra()}
 				</div>
-				<div class="border-t border-gray-100"></div>
+				<div class="border-t border-border-soft"></div>
 			{/if}
 
 			<!-- Select All / Deselect All -->
@@ -120,7 +120,7 @@
 					class="w-full flex items-center gap-2 cursor-pointer group"
 				>
 					<svg
-						class="w-4 h-4 text-gray-500"
+						class="w-4 h-4 text-text-subtle"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -132,7 +132,7 @@
 							d="M4 6h16M4 10h16M4 14h16M4 18h16"
 						></path>
 					</svg>
-					<span class="text-sm font-medium text-gray-700">
+					<span class="text-sm font-medium text-text-ink2">
 						{allSelected ? tr('batch.deselectAll') : tr('batch.selectAll')}
 					</span>
 				</button>
@@ -163,12 +163,12 @@
 				</div>
 			{/if}
 
-			<div class="border-t border-gray-100"></div>
+			<div class="border-t border-border-soft"></div>
 
 			<!-- Actions -->
 			<div class="pt-4 space-y-2">
 				<p
-					class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3"
+					class="text-xs font-medium text-text-subtle uppercase tracking-wider mb-3"
 				>
 					{tr('batch.actions')}
 				</p>
@@ -178,7 +178,7 @@
 					type="button"
 					onclick={onShare}
 					disabled={disableShareTransfer}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-cyan-50 hover:border-cyan-200 hover:text-cyan-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-accent-50 hover:border-accent-200 hover:text-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -201,7 +201,7 @@
 					type="button"
 					onclick={onTransfer}
 					disabled={disableShareTransfer}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -224,7 +224,7 @@
 					type="button"
 					onclick={onExport}
 					disabled={disableExport}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -247,7 +247,7 @@
 					type="button"
 					onclick={onDelete}
 					disabled={disableDelete}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -266,14 +266,14 @@
 				</button>
 			</div>
 
-			<div class="border-t border-gray-100 mt-4"></div>
+			<div class="border-t border-border-soft mt-4"></div>
 
 			<!-- Exit Select Mode -->
 			<div class="pt-4">
 				<button
 					type="button"
 					onclick={onCancel}
-					class="w-full text-sm text-gray-500 hover:text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
+					class="w-full text-sm text-text-subtle hover:text-text-ink2 py-2 rounded-lg hover:bg-surface-1 transition-colors flex items-center justify-center gap-1.5"
 				>
 					<svg
 						class="w-3.5 h-3.5"
@@ -301,7 +301,7 @@
 		? 'mx-4 rounded-2xl bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg batch-panel-floating'
 		: platform === 'android'
 			? 'bottom-16 sm:bottom-0 bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
-			: 'bottom-16 sm:bottom-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.1)]'}"
+			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.1)]'}"
 	style={platform === 'ios'
 		? ''
 		: 'padding-bottom: env(safe-area-inset-bottom);'}
@@ -312,7 +312,7 @@
 	<div class="px-6 py-3 flex items-center justify-between">
 		<div class="flex items-center gap-2">
 			<svg
-				class="w-4 h-4 text-gray-500"
+				class="w-4 h-4 text-text-subtle"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -324,20 +324,20 @@
 					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 				></path>
 			</svg>
-			<h3 class="text-sm font-semibold text-gray-900">
+			<h3 class="text-sm font-semibold text-text">
 				{tr('batch.selectMode')}
 			</h3>
 		</div>
 		<div class="flex items-center gap-2.5">
 			<span
-				class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200 tabular-nums"
+				class="text-xs text-text-subtle bg-border-soft px-2.5 py-1 rounded-full border border-border tabular-nums"
 			>
 				{selectedCount} / {totalCount}
 			</span>
 			<button
 				type="button"
 				onclick={onCancel}
-				class="text-gray-400 hover:text-gray-600 transition-colors"
+				class="text-text-faint hover:text-text-muted transition-colors"
 				aria-label={tr('batch.exitSelectMode')}
 			>
 				<svg
@@ -358,7 +358,7 @@
 	</div>
 
 	{#if headerExtra}
-		<div class="px-4 py-2.5 border-t border-gray-100">
+		<div class="px-4 py-2.5 border-t border-border-soft">
 			{@render headerExtra()}
 		</div>
 	{/if}
@@ -371,14 +371,14 @@
 		</div>
 	{/if}
 
-	<div class="border-t border-gray-100"></div>
+	<div class="border-t border-border-soft"></div>
 
 	<!-- Bottom row: action buttons -->
 	<div class="flex items-center justify-evenly px-2 py-2">
 		<button
 			type="button"
 			onclick={allSelected ? onDeselectAll : onSelectAll}
-			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-border-soft hover:text-text-strong transition-colors"
 		>
 			<svg
 				class="w-5 h-5"
@@ -402,7 +402,7 @@
 			type="button"
 			onclick={onShare}
 			disabled={disableShareTransfer}
-			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-cyan-50 hover:text-cyan-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-accent-50 hover:text-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 		>
 			<svg
 				class="w-5 h-5"
@@ -424,7 +424,7 @@
 			type="button"
 			onclick={onTransfer}
 			disabled={disableShareTransfer}
-			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-purple-50 hover:text-purple-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 		>
 			<svg
 				class="w-5 h-5"
@@ -448,7 +448,7 @@
 			type="button"
 			onclick={onDelete}
 			disabled={disableDelete}
-			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+			class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 		>
 			<svg
 				class="w-5 h-5"

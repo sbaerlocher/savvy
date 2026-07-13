@@ -85,7 +85,7 @@
 			class="w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
 			'ios'
 				? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
-				: 'bg-white border border-gray-200'}"
+				: 'bg-white border border-border'}"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => {
 				if (e.key === 'Escape') {
@@ -95,22 +95,22 @@
 			}}
 		>
 			{#if platform === 'ios'}
-				<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-300"></div>
+				<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-border-field"></div>
 			{/if}
-			<h2 class="text-lg font-semibold text-gray-900 mb-1">
+			<h2 class="text-lg font-semibold text-text mb-1">
 				{tr('typeChoice.title')}
 			</h2>
-			<p class="text-sm text-gray-500 mb-4">{tr('typeChoice.subtitle')}</p>
+			<p class="text-sm text-text-subtle mb-4">{tr('typeChoice.subtitle')}</p>
 
 			<div class="flex flex-col gap-2">
 				{#each types as type (type.key)}
 					<button
 						type="button"
 						onclick={() => choose(type.href)}
-						class="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-gray-200 hover:border-cyan-500 hover:bg-cyan-50 transition-colors text-left"
+						class="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-border hover:border-accent hover:bg-accent-50 transition-colors text-left"
 					>
 						<span
-							class="flex items-center justify-center w-10 h-10 rounded-full bg-cyan-100 text-cyan-700 shrink-0"
+							class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-100 text-accent-hover shrink-0"
 						>
 							<svg
 								class="w-5 h-5"
@@ -126,7 +126,7 @@
 								/>
 							</svg>
 						</span>
-						<span class="font-medium text-gray-900">{type.label}</span>
+						<span class="font-medium text-text">{type.label}</span>
 					</button>
 				{/each}
 			</div>

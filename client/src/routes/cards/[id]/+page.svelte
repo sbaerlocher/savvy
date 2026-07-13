@@ -363,7 +363,7 @@
 		switch (status) {
 			case 'inactive':
 				return {
-					class: 'bg-gray-200 text-gray-700',
+					class: 'bg-border text-text-ink2',
 					text: tr('cards.status.inactive')
 				};
 			case 'expired':
@@ -396,11 +396,11 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/cards')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/cards')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
-		<span class="text-xs text-gray-400 animate-pulse"
+		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
 	{/if}
@@ -438,7 +438,7 @@
 								{@const c = card!}
 								<div class="flex items-baseline gap-2 flex-wrap mb-1">
 									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
 									>
 										{#if c.merchant}
 											{c.merchant.name}
@@ -447,13 +447,13 @@
 										{/if}
 										{#if c.program}
 											<span
-												class="text-sm sm:text-base md:text-lg font-normal text-gray-500 ml-1"
+												class="text-sm sm:text-base md:text-lg font-normal text-text-subtle ml-1"
 												>{c.program}</span
 											>
 										{/if}
 									</h1>
 									{#if c.owner && c.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-gray-400">
+										<span class="text-xs text-text-faint">
 											{tr('cards.sharedBy', {
 												name: c.owner.first_name || c.owner.email
 											})}
@@ -487,7 +487,7 @@
 							<div
 								class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded"
 							>
-								<p class="text-sm text-gray-700">{card.notes}</p>
+								<p class="text-sm text-text-ink2">{card.notes}</p>
 							</div>
 						{/if}
 					</div>
@@ -512,7 +512,7 @@
 							submitLabel={tr('common.save')}
 						/>
 						{#if card.permissions?.can_delete}
-							<div class="pt-4 mt-4 border-t border-gray-200">
+							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
 									onclick={promptDelete}
@@ -571,7 +571,7 @@
 				<!-- Sharing Box -->
 				<div class="bg-white rounded-lg shadow-lg p-6">
 					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{tr('common.share')}
 						</h3>
 						{#if !showShareForm}
@@ -606,7 +606,7 @@
 
 					{#if showShareForm}
 						<div
-							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
+							class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
 								multiple
@@ -626,11 +626,11 @@
 								labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
 							/>
 
-							<div class="bg-white border border-cyan-200 rounded-lg p-3">
-								<h4 class="font-medium text-cyan-900 text-sm mb-2">
+							<div class="bg-white border border-accent-200 rounded-lg p-3">
+								<h4 class="font-medium text-accent-900 text-sm mb-2">
 									{tr('cards.sharing.whatIsShared')}
 								</h4>
-								<ul class="text-xs text-cyan-800 space-y-1">
+								<ul class="text-xs text-accent-800 space-y-1">
 									<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
 									<li>{tr('cards.sharing.sharedItemDetails')}</li>
 									<li>{tr('cards.sharing.sharedItemNotes')}</li>
@@ -692,7 +692,7 @@
 							{tr('cards.sharing.revokeAll')}
 						</button>
 					{:else}
-						<p class="text-sm text-gray-500 text-center py-4">
+						<p class="text-sm text-text-subtle text-center py-4">
 							{tr('giftCards.sharing.notSharedYet')}
 						</p>
 					{/if}

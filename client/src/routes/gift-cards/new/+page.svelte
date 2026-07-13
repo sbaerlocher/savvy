@@ -150,7 +150,7 @@
 </svelte:head>
 
 <div class="mb-6">
-	<a href={resolve('/gift-cards')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/gift-cards')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 </div>
@@ -159,7 +159,7 @@
 	<!-- Left column: Form (2/3 width) -->
 	<div class="lg:col-span-2">
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h1 class="text-3xl font-bold text-gray-900 mb-6">
+			<h1 class="text-3xl font-bold text-text mb-6">
 				{tr('giftCards.newGiftCard')}
 			</h1>
 			<DuplicateWarningBanner
@@ -189,19 +189,19 @@
 	<div class="lg:col-span-1 space-y-4">
 		<!-- Sharing Box -->
 		<div class="bg-white rounded-lg shadow-lg p-6">
-			<h2 class="text-xl font-bold text-gray-900 mb-4">
+			<h2 class="text-xl font-bold text-text mb-4">
 				{tr('giftCards.sharing.title')}
 			</h2>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('giftCards.sharing.shareOnCreate')}
 			</p>
 
-			<div class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4">
+			<div class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4">
 				<!-- Email Input with Autocomplete -->
 				<div class="relative">
 					<label
 						for="share_email"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('giftCards.sharing.userEmail')} *
 					</label>
@@ -212,34 +212,34 @@
 						oninput={() => fetchSuggestions()}
 						onkeydown={handleKeydown}
 						onblur={hideSuggestions}
-						class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+						class="w-full px-3 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 						placeholder="benutzer@example.com"
 						autocomplete="off"
 					/>
-					<p class="text-xs text-gray-500 mt-1">
+					<p class="text-xs text-text-subtle mt-1">
 						{tr('forms.userMustBeRegistered')}
 					</p>
 
 					<!-- Autocomplete Dropdown -->
 					{#if showSuggestions}
 						<div
-							class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+							class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-lg shadow-lg max-h-60 overflow-y-auto"
 						>
 							{#each suggestions as suggestion, index (suggestion.id)}
 								<button
 									type="button"
 									onclick={() => selectSuggestion(suggestion)}
-									class="w-full text-left px-4 py-2 hover:bg-cyan-50 border-b border-gray-100 last:border-b-0 {index ===
+									class="w-full text-left px-4 py-2 hover:bg-accent-50 border-b border-border-soft last:border-b-0 {index ===
 									selectedIndex
-										? 'bg-cyan-50'
+										? 'bg-accent-50'
 										: ''}"
 								>
 									<div class="flex flex-col">
-										<span class="text-sm font-medium text-gray-900"
+										<span class="text-sm font-medium text-text"
 											>{suggestion.first_name}
 											{suggestion.last_name}</span
 										>
-										<span class="text-xs text-gray-500">{suggestion.email}</span
+										<span class="text-xs text-text-subtle">{suggestion.email}</span
 										>
 									</div>
 								</button>
@@ -254,13 +254,13 @@
 						<input
 							type="checkbox"
 							bind:checked={canEdit}
-							class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-gray-900"
+							<span class="block text-sm font-medium text-text"
 								>{tr('giftCards.sharing.canEdit')}</span
 							>
-							<span class="text-xs text-gray-500">
+							<span class="text-xs text-text-subtle">
 								{tr('giftCards.sharing.canEditDesc')}
 							</span>
 						</div>
@@ -269,13 +269,13 @@
 						<input
 							type="checkbox"
 							bind:checked={canDelete}
-							class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-gray-900"
+							<span class="block text-sm font-medium text-text"
 								>{tr('giftCards.sharing.canDelete')}</span
 							>
-							<span class="text-xs text-gray-500"
+							<span class="text-xs text-text-subtle"
 								>{tr('giftCards.sharing.canDeleteDesc')}</span
 							>
 						</div>
@@ -284,13 +284,13 @@
 						<input
 							type="checkbox"
 							bind:checked={canEditTransactions}
-							class="mt-0.5 h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded"
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-gray-900"
+							<span class="block text-sm font-medium text-text"
 								>{tr('giftCards.sharing.canManageTransactions')}</span
 							>
-							<span class="text-xs text-gray-500">
+							<span class="text-xs text-text-subtle">
 								{tr('giftCards.sharing.canManageTransactionsDesc')}
 							</span>
 						</div>

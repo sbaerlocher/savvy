@@ -110,7 +110,7 @@
 					<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 						<div class="mb-8 flex items-center gap-4">
 							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-							<h1 class="text-3xl font-bold text-gray-900">
+							<h1 class="text-3xl font-bold text-text">
 								{tr('auth.login.title')}
 							</h1>
 						</div>
@@ -162,10 +162,10 @@
 							{#if localLoginEnabled}
 								<div class="relative my-6">
 									<div class="absolute inset-0 flex items-center">
-										<div class="w-full border-t border-gray-300"></div>
+										<div class="w-full border-t border-border-field"></div>
 									</div>
 									<div class="relative flex justify-center text-sm">
-										<span class="px-2 bg-white text-gray-500"
+										<span class="px-2 bg-white text-text-subtle"
 											>{tr('auth.login.orDivider')}</span
 										>
 									</div>
@@ -179,7 +179,7 @@
 								<div>
 									<label
 										for="email"
-										class="block text-sm font-medium text-gray-700 mb-1"
+										class="block text-sm font-medium text-text-ink2 mb-1"
 									>
 										{tr('auth.login.email')}
 									</label>
@@ -191,7 +191,7 @@
 										required
 										bind:value={email}
 										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 										placeholder={tr('auth.login.email')}
 									/>
 								</div>
@@ -199,7 +199,7 @@
 								<div>
 									<label
 										for="password"
-										class="block text-sm font-medium text-gray-700 mb-1"
+										class="block text-sm font-medium text-text-ink2 mb-1"
 									>
 										{tr('auth.login.password')}
 									</label>
@@ -211,7 +211,7 @@
 										required
 										bind:value={password}
 										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500"
+										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 										placeholder={tr('auth.login.password')}
 									/>
 								</div>
@@ -250,9 +250,9 @@
 										{#if isLoading}
 											<span class="relative inline-flex h-3 w-3 mr-2"
 												><span
-													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 												></span><span
-													class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+													class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 												></span></span
 											>
 											{tr('auth.login.loggingIn')}
@@ -266,7 +266,7 @@
 									{#if registrationEnabled}
 										<a
 											href={resolve('/register')}
-											class="font-medium text-cyan-600 hover:text-cyan-500 text-sm"
+											class="font-medium text-accent hover:text-accent text-sm"
 										>
 											{tr('auth.login.noAccountYet')}
 											{tr('auth.login.registerNow')}
@@ -276,7 +276,7 @@
 									{/if}
 									<a
 										href={resolve('/forgot-password')}
-										class="font-medium text-cyan-600 hover:text-cyan-500 text-sm"
+										class="font-medium text-accent hover:text-accent text-sm"
 									>
 										{tr('auth.login.forgotPassword')}
 									</a>
@@ -289,10 +289,10 @@
 				<!-- Right column: Information (1/3 width) -->
 				<div class="lg:col-span-1">
 					<div class="bg-white rounded-lg shadow-lg p-6">
-						<h2 class="text-xl font-bold text-gray-900 mb-4">
+						<h2 class="text-xl font-bold text-text mb-4">
 							{tr('auth.login.infoTitle')}
 						</h2>
-						<p class="text-sm text-gray-600 mb-4">
+						<p class="text-sm text-text-muted mb-4">
 							{tr('auth.login.infoDescription')}
 						</p>
 
@@ -310,10 +310,10 @@
 									/>
 								</svg>
 								<div>
-									<h3 class="text-sm font-medium text-gray-900">
+									<h3 class="text-sm font-medium text-text">
 										{tr('auth.login.info1Title')}
 									</h3>
-									<p class="text-xs text-gray-600 mt-1">
+									<p class="text-xs text-text-muted mt-1">
 										{tr('auth.login.info1Desc')}
 									</p>
 								</div>
@@ -332,10 +332,10 @@
 									/>
 								</svg>
 								<div>
-									<h3 class="text-sm font-medium text-gray-900">
+									<h3 class="text-sm font-medium text-text">
 										{tr('auth.login.info2Title')}
 									</h3>
-									<p class="text-xs text-gray-600 mt-1">
+									<p class="text-xs text-text-muted mt-1">
 										{tr('auth.login.info2Desc')}
 									</p>
 								</div>
@@ -354,20 +354,20 @@
 									/>
 								</svg>
 								<div>
-									<h3 class="text-sm font-medium text-gray-900">
+									<h3 class="text-sm font-medium text-text">
 										{tr('auth.login.info3Title')}
 									</h3>
-									<p class="text-xs text-gray-600 mt-1">
+									<p class="text-xs text-text-muted mt-1">
 										{tr('auth.login.info3Desc')}
 									</p>
 								</div>
 							</div>
 						</div>
 
-						<div class="mt-6 pt-6 border-t border-gray-200">
-							<div class="flex items-center text-sm text-gray-600">
+						<div class="mt-6 pt-6 border-t border-border">
+							<div class="flex items-center text-sm text-text-muted">
 								<svg
-									class="w-5 h-5 text-cyan-500 mr-2 flex-shrink-0"
+									class="w-5 h-5 text-accent mr-2 flex-shrink-0"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"

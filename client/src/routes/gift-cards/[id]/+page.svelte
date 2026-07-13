@@ -471,7 +471,7 @@
 		switch (status) {
 			case 'inactive':
 				return {
-					class: 'bg-gray-200 text-gray-700',
+					class: 'bg-border text-text-ink2',
 					text: tr('giftCards.status.inactive')
 				};
 			case 'expired':
@@ -499,11 +499,11 @@
 </svelte:head>
 
 <div class="mb-6 flex items-center justify-between">
-	<a href={resolve('/gift-cards')} class="text-cyan-600 hover:text-cyan-700"
+	<a href={resolve('/gift-cards')} class="text-accent hover:text-accent-hover"
 		>{tr('common.backToOverview')}</a
 	>
 	{#if isRefreshing}
-		<span class="text-xs text-gray-400 animate-pulse"
+		<span class="text-xs text-text-faint animate-pulse"
 			>{tr('common.refreshing')}</span
 		>
 	{/if}
@@ -541,7 +541,7 @@
 								{@const gc = giftCard!}
 								<div class="flex items-baseline gap-3 flex-wrap mb-2">
 									<h1
-										class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900"
+										class="text-lg sm:text-xl md:text-2xl font-bold text-text"
 									>
 										{#if gc.merchant}
 											{gc.merchant.name}
@@ -554,7 +554,7 @@
 										style="color: {gc.merchant?.color || '#F59E0B'}"
 									>
 										{formatCurrency(gc.current_balance, gc.currency, $locale)}
-										<span class="text-sm text-gray-500 font-normal">
+										<span class="text-sm text-text-subtle font-normal">
 											({tr('giftCards.balance.remaining', {
 												percent: Math.round(
 													(gc.current_balance / gc.initial_balance) * 100
@@ -563,7 +563,7 @@
 										</span>
 									</span>
 									{#if gc.owner && gc.owner.id !== $authStore.user?.id}
-										<span class="text-xs text-gray-400">
+										<span class="text-xs text-text-faint">
 											{tr('giftCards.sharedBy', {
 												name: gc.owner.first_name || gc.owner.email
 											})}
@@ -601,7 +601,7 @@
 							<div
 								class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded"
 							>
-								<p class="text-sm text-gray-700">{giftCard.notes}</p>
+								<p class="text-sm text-text-ink2">{giftCard.notes}</p>
 							</div>
 						{/if}
 					</div>
@@ -628,7 +628,7 @@
 							submitLabel={tr('common.save')}
 						/>
 						{#if giftCard.permissions?.can_delete}
-							<div class="pt-4 mt-4 border-t border-gray-200">
+							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
 									onclick={promptDelete}
@@ -667,7 +667,7 @@
 			<div class="bg-white rounded-lg shadow-lg p-6">
 				<!-- Balance Display -->
 				<div class="mb-6">
-					<p class="text-sm text-gray-700 mb-1">
+					<p class="text-sm text-text-ink2 mb-1">
 						{tr('giftCards.balance.current')}
 					</p>
 					<p
@@ -678,7 +678,7 @@
 						{giftCard.currency}
 					</p>
 					<!-- Progress Bar -->
-					<div class="mt-3 bg-gray-200 rounded-full h-3">
+					<div class="mt-3 bg-border rounded-full h-3">
 						<div
 							class="h-3 rounded-full transition-all {percentageRemaining > 50
 								? 'bg-green-500'
@@ -688,7 +688,7 @@
 							style="width: {percentageRemaining}%"
 						></div>
 					</div>
-					<p class="text-xs text-gray-600 mt-2">
+					<p class="text-xs text-text-muted mt-2">
 						{tr('giftCards.balance.initial')}: {giftCard.initial_balance.toFixed(
 							2
 						)}
@@ -699,7 +699,7 @@
 				<!-- Transactions Section -->
 				<div class="border-t pt-6">
 					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-sm font-medium text-gray-700">
+						<h3 class="text-sm font-medium text-text-ink2">
 							{tr('giftCards.transactions.title')}
 						</h3>
 						{#if giftCard.permissions?.can_edit_transactions && !showTransactionForm}
@@ -740,7 +740,7 @@
 							<div>
 								<label
 									for="transactionDate-input"
-									class="block text-sm font-medium text-gray-700 mb-1"
+									class="block text-sm font-medium text-text-ink2 mb-1"
 								>
 									{tr('giftCards.transactions.date')} *
 								</label>
@@ -757,7 +757,7 @@
 							<div>
 								<label
 									for="transactionAmount-input"
-									class="block text-sm font-medium text-gray-700 mb-1"
+									class="block text-sm font-medium text-text-ink2 mb-1"
 								>
 									{tr('giftCards.transactions.amount')} *
 								</label>
@@ -776,7 +776,7 @@
 							<div>
 								<label
 									for="transactionDescription-input"
-									class="block text-sm font-medium text-gray-700 mb-1"
+									class="block text-sm font-medium text-text-ink2 mb-1"
 								>
 									{tr('giftCards.transactions.description')}
 								</label>
@@ -815,7 +815,7 @@
 						<div class="space-y-2">
 							{#each transactions as transaction (transaction.id)}
 								<div
-									class="flex items-center justify-between p-3 bg-gray-50 rounded gap-3"
+									class="flex items-center justify-between p-3 bg-surface-1 rounded gap-3"
 								>
 									<div class="flex-1">
 										<div class="font-medium text-red-600">
@@ -823,13 +823,13 @@
 											{giftCard.currency}
 										</div>
 										{#if transaction.description}
-											<div class="text-sm text-gray-600">
+											<div class="text-sm text-text-muted">
 												{transaction.description}
 											</div>
 										{/if}
 									</div>
 									<div class="flex items-center gap-3">
-										<div class="text-xs text-gray-500">
+										<div class="text-xs text-text-subtle">
 											{new Date(
 												transaction.transaction_date.split('T')[0]
 											).toLocaleDateString(currentLocale)}
@@ -867,13 +867,13 @@
 							{/each}
 						</div>
 					{:else}
-						<div class="text-center py-8 bg-gray-50 rounded">
+						<div class="text-center py-8 bg-surface-1 rounded">
 							{#if isOffline}
 								<p class="text-amber-600 text-sm">
 									{tr('giftCards.transactions.notCachedOffline')}
 								</p>
 							{:else}
-								<p class="text-gray-500 text-sm">
+								<p class="text-text-subtle text-sm">
 									{tr('giftCards.transactions.noTransactions')}
 								</p>
 							{/if}
@@ -907,7 +907,7 @@
 				<!-- Sharing Box -->
 				<div class="bg-white rounded-lg shadow-lg p-6">
 					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{tr('giftCards.sharing.title')}
 						</h3>
 						{#if !showShareForm}
@@ -942,7 +942,7 @@
 
 					{#if showShareForm}
 						<div
-							class="border border-cyan-200 bg-cyan-50 rounded-lg p-4 space-y-4 mb-4"
+							class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
 						>
 							<EmailAutocomplete
 								multiple
@@ -970,11 +970,11 @@
 								)}
 							/>
 
-							<div class="bg-white border border-cyan-200 rounded-lg p-3">
-								<h4 class="font-medium text-cyan-900 text-sm mb-2">
+							<div class="bg-white border border-accent-200 rounded-lg p-3">
+								<h4 class="font-medium text-accent-900 text-sm mb-2">
 									{tr('giftCards.sharing.whatIsShared')}
 								</h4>
-								<ul class="text-xs text-cyan-800 space-y-1">
+								<ul class="text-xs text-accent-800 space-y-1">
 									<li>{tr('giftCards.sharing.sharedItemCardNumber')}</li>
 									<li>{tr('giftCards.sharing.sharedItemBalance')}</li>
 									<li>{tr('giftCards.sharing.sharedItemDetails')}</li>
@@ -1050,7 +1050,7 @@
 							{tr('giftCards.sharing.revokeAll')}
 						</button>
 					{:else}
-						<p class="text-sm text-gray-500 text-center py-4">
+						<p class="text-sm text-text-subtle text-center py-4">
 							{tr('giftCards.sharing.notSharedYet')}
 						</p>
 					{/if}
@@ -1119,7 +1119,7 @@
 	     access, or a load that failed before redirect). Without this branch
 	     the page rendered nothing → white screen (issue #121). -->
 	<div class="flex flex-col items-center justify-center py-16 text-center">
-		<p class="text-gray-600 mb-4">{tr('giftCards.notFound')}</p>
+		<p class="text-text-muted mb-4">{tr('giftCards.notFound')}</p>
 		<button
 			type="button"
 			onclick={() => goto(resolve('/gift-cards'))}

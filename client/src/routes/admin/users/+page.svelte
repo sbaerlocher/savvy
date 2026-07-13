@@ -177,7 +177,7 @@
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">{$t('admin.users.title')}</h1>
+		<h1 class="text-3xl font-bold text-text">{$t('admin.users.title')}</h1>
 	</div>
 
 	<!-- Search bar and action buttons -->
@@ -201,13 +201,13 @@
 					e.stopPropagation();
 					showFilterMenu = !showFilterMenu;
 				}}
-				class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+				class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				title={$t('common.filter')}
 				aria-label={$t('common.filter')}
 				aria-expanded={showFilterMenu}
 			>
 				<svg
-					class="w-5 h-5 text-gray-600"
+					class="w-5 h-5 text-text-muted"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -221,7 +221,7 @@
 				</svg>
 				{#if hasActiveFilters}
 					<span
-						class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+						class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 					></span>
 				{/if}
 			</button>
@@ -248,12 +248,12 @@
 					e.stopPropagation();
 					showFilterMenu = !showFilterMenu;
 				}}
-				class="flex-1 flex items-center justify-center h-[42px] px-3 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+				class="flex-1 flex items-center justify-center h-[42px] px-3 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				aria-label={$t('common.filter')}
 				aria-expanded={showFilterMenu}
 			>
 				<svg
-					class="w-5 h-5 text-gray-600"
+					class="w-5 h-5 text-text-muted"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -267,7 +267,7 @@
 				</svg>
 				{#if hasActiveFilters}
 					<span
-						class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+						class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 					></span>
 				{/if}
 			</button>
@@ -293,53 +293,53 @@
 			{#if isLoading}
 				<LoadingSpinner />
 			{:else if filteredUsers.length === 0}
-				<div class="text-center py-12 text-gray-500">
+				<div class="text-center py-12 text-text-subtle">
 					{$t('admin.users.noUsers')}
 				</div>
 			{:else}
 				<div class="bg-white shadow rounded-lg overflow-hidden">
 					<div class="overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-border">
+							<thead class="bg-surface-1">
 								<tr>
 									<th
-										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.users.email')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.users.name')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.users.role')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-right text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.users.actions')}
 									</th>
 								</tr>
 							</thead>
-							<tbody class="bg-white divide-y divide-gray-200">
+							<tbody class="bg-white divide-y divide-border">
 								{#each filteredUsers as user (user.id)}
 									{@const isOAuth = user.auth_provider === 'oauth'}
 									<tr
-										class="hover:bg-gray-50 transition-colors md:cursor-default cursor-pointer"
+										class="hover:bg-surface-1 transition-colors md:cursor-default cursor-pointer"
 										onclick={() => {
 											if (window.innerWidth < 768) toggleExpandUser(user.id);
 										}}
 									>
 										<td
-											class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+											class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
 										>
 											<div class="flex items-center justify-between">
 												<span class="truncate">{user.email}</span>
 												<svg
-													class="w-4 h-4 text-gray-400 ml-2 md:hidden flex-shrink-0 transition-transform {expandedUserId ===
+													class="w-4 h-4 text-text-faint ml-2 md:hidden flex-shrink-0 transition-transform {expandedUserId ===
 													user.id
 														? 'rotate-180'
 														: ''}"
@@ -357,7 +357,7 @@
 											</div>
 										</td>
 										<td
-											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-subtle"
 										>
 											{user.first_name || ''}
 											{user.last_name || ''}
@@ -369,7 +369,7 @@
 												class="px-2 py-1 text-xs font-medium rounded-full {user.role ===
 												'admin'
 													? 'bg-red-100 text-red-800'
-													: 'bg-gray-100 text-gray-800'}"
+													: 'bg-border-soft text-text-strong'}"
 											>
 												{user.role === 'admin'
 													? $t('admin.users.roleAdmin')
@@ -381,7 +381,7 @@
 										>
 											<button
 												onclick={() => toggleExpandUser(user.id)}
-												class="text-cyan-600 hover:text-cyan-900 font-medium transition-colors"
+												class="text-accent hover:text-accent-900 font-medium transition-colors"
 											>
 												{expandedUserId === user.id
 													? $t('common.close')
@@ -390,22 +390,22 @@
 										</td>
 									</tr>
 									{#if expandedUserId === user.id}
-										<tr class="bg-gray-50">
+										<tr class="bg-surface-1">
 											<td colspan="4" class="px-6 py-4">
 												<div class="space-y-3">
 													<!-- User Details -->
 													<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-gray-500"
+															<span class="text-xs font-medium text-text-subtle"
 																>{$t('admin.users.name')}:</span
 															>
-															<p class="text-sm text-gray-900">
+															<p class="text-sm text-text">
 																{user.first_name || ''}
 																{user.last_name || ''}
 															</p>
 														</div>
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-gray-500"
+															<span class="text-xs font-medium text-text-subtle"
 																>{$t('admin.users.role')}:</span
 															>
 															<p class="text-sm">
@@ -413,7 +413,7 @@
 																	class="px-2 py-1 text-xs font-medium rounded-full {user.role ===
 																	'admin'
 																		? 'bg-red-100 text-red-800'
-																		: 'bg-gray-100 text-gray-800'}"
+																		: 'bg-border-soft text-text-strong'}"
 																>
 																	{user.role === 'admin'
 																		? $t('admin.users.roleAdmin')
@@ -422,26 +422,26 @@
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500"
+															<span class="text-xs font-medium text-text-subtle"
 																>{$t('admin.users.userId')}:</span
 															>
-															<p class="text-sm text-gray-900 font-mono">
+															<p class="text-sm text-text font-mono">
 																{user.id}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500"
+															<span class="text-xs font-medium text-text-subtle"
 																>{$t('admin.users.provider')}:</span
 															>
-															<p class="text-sm text-gray-900">
+															<p class="text-sm text-text">
 																{user.auth_provider}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500"
+															<span class="text-xs font-medium text-text-subtle"
 																>{$t('admin.users.createdAt')}:</span
 															>
-															<p class="text-sm text-gray-900">
+															<p class="text-sm text-text">
 																{new Date(user.created_at).toLocaleString()}
 															</p>
 														</div>
@@ -449,7 +449,7 @@
 
 													<!-- Actions -->
 													<div
-														class="flex flex-wrap gap-2 pt-2 border-t border-gray-200"
+														class="flex flex-wrap gap-2 pt-2 border-t border-border"
 													>
 														{#if !isOAuth}
 															<a
@@ -508,13 +508,13 @@
 			<div class="hidden lg:block lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
 					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{$t('common.filter')}
 						</h3>
 						<button
 							type="button"
 							onclick={() => (showFilterMenu = false)}
-							class="text-gray-400 hover:text-gray-600 transition-colors"
+							class="text-text-faint hover:text-text-muted transition-colors"
 							aria-label={$t('common.close')}
 						>
 							<svg
@@ -537,7 +537,7 @@
 						<div>
 							<label
 								for="roleFilter"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.users.role')}
 							</label>
@@ -555,7 +555,7 @@
 						<div>
 							<label
 								for="providerFilter"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.users.provider')}
 							</label>
@@ -573,7 +573,7 @@
 						<div>
 							<label
 								for="sortBy"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('common.sort')}
 							</label>
@@ -618,13 +618,13 @@
 	>
 		<div class="p-6">
 			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-semibold text-gray-900">
+				<h3 class="text-lg font-semibold text-text">
 					{$t('common.filter')}
 				</h3>
 				<button
 					type="button"
 					onclick={() => (showFilterMenu = false)}
-					class="text-gray-400 hover:text-gray-600 transition-colors"
+					class="text-text-faint hover:text-text-muted transition-colors"
 					aria-label={$t('common.close')}
 				>
 					<svg
@@ -647,7 +647,7 @@
 				<div>
 					<label
 						for="roleFilterMobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.users.role')}
 					</label>
@@ -665,7 +665,7 @@
 				<div>
 					<label
 						for="providerFilterMobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.users.provider')}
 					</label>
@@ -683,7 +683,7 @@
 				<div>
 					<label
 						for="sortByMobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('common.sort')}
 					</label>

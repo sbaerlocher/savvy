@@ -45,11 +45,11 @@
 	const handleClass = $derived.by(() => {
 		switch (platform) {
 			case 'ios':
-				return 'w-10 h-1 bg-gray-400/50 rounded-full';
+				return 'w-10 h-1 bg-text-faint/50 rounded-full';
 			case 'android':
 				return 'w-8 h-1 bg-[#CAC4D0] rounded-full';
 			default:
-				return 'w-12 h-1.5 bg-gray-300 rounded-full';
+				return 'w-12 h-1.5 bg-border-field rounded-full';
 		}
 	});
 </script>

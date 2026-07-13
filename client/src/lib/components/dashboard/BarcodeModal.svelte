@@ -94,7 +94,7 @@
 			<!-- Close Button -->
 			<button
 				onclick={onClose}
-				class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+				class="absolute top-4 right-4 text-text-faint hover:text-text-muted transition"
 				aria-label={$t('common.close')}
 			>
 				<svg
@@ -116,7 +116,7 @@
 			{#if item.merchantName}
 				<h2
 					id="barcode-modal-title"
-					class="text-xl font-bold text-gray-900 mb-4 pr-8"
+					class="text-xl font-bold text-text mb-4 pr-8"
 				>
 					{item.merchantName}
 				</h2>
@@ -138,7 +138,7 @@
 			/>
 
 			<!-- Hint -->
-			<p class="text-xs text-gray-500 text-center mt-4">
+			<p class="text-xs text-text-subtle text-center mt-4">
 				{$t('dashboard.barcodeHint')}
 			</p>
 		</div>
@@ -158,7 +158,7 @@
 			<!-- Header: Merchant Name + Status/Validity Info -->
 			<div class="barcode-header-section">
 				{#if item.merchantName}
-					<h2 class="text-lg font-bold text-gray-900">
+					<h2 class="text-lg font-bold text-text">
 						{item.merchantName}
 					</h2>
 				{/if}
@@ -171,7 +171,7 @@
 						</span>
 					{/if}
 					{#if item.validFrom || item.validUntil}
-						<span class="text-sm text-gray-600">
+						<span class="text-sm text-text-muted">
 							{#if item.validFrom && item.validUntil}
 								{new Date(item.validFrom.split('T')[0]).toLocaleDateString(
 									currentLocale
@@ -195,7 +195,7 @@
 						</span>
 					{/if}
 					{#if item.expiresAt}
-						<span class="text-sm text-gray-600">
+						<span class="text-sm text-text-muted">
 							{$t('giftCards.expiresAt')}: {new Date(
 								item.expiresAt.split('T')[0]
 							).toLocaleDateString(currentLocale)}
@@ -213,7 +213,7 @@
 					height={100}
 					displayValue={false}
 				/>
-				<p class="font-mono text-base font-semibold text-gray-900">
+				<p class="font-mono text-base font-semibold text-text">
 					{item.value}
 				</p>
 			</div>
@@ -222,8 +222,8 @@
 			<div class="barcode-footer-section">
 				{#if item.pin}
 					<div class="flex items-center justify-center gap-2">
-						<span class="text-sm text-gray-600">{$t('giftCards.pin')}:</span>
-						<span class="font-mono text-lg font-semibold text-gray-900"
+						<span class="text-sm text-text-muted">{$t('giftCards.pin')}:</span>
+						<span class="font-mono text-lg font-semibold text-text"
 							>{item.pin}</span
 						>
 					</div>
@@ -231,18 +231,18 @@
 				{#if item.displayValue || item.description}
 					<div class="flex items-baseline justify-center gap-4 flex-wrap">
 						{#if item.displayValue}
-							<span class="font-mono text-lg font-semibold text-gray-900"
+							<span class="font-mono text-lg font-semibold text-text"
 								>{item.displayValue}</span
 							>
 						{/if}
 						{#if item.description}
-							<span class="text-sm text-gray-600">{item.description}</span>
+							<span class="text-sm text-text-muted">{item.description}</span>
 						{/if}
 					</div>
 				{/if}
 			</div>
 		</div>
-		<p class="text-sm text-gray-500 text-center w-full py-2">
+		<p class="text-sm text-text-subtle text-center w-full py-2">
 			{$t('dashboard.tapToClose')}
 		</p>
 	</div>

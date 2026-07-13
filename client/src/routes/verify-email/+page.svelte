@@ -78,7 +78,7 @@
 		<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 			<div class="mb-8 flex items-center gap-4">
 				<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-				<h1 class="text-2xl font-bold text-gray-900">
+				<h1 class="text-2xl font-bold text-text">
 					{tr('auth.verification.title')}
 				</h1>
 			</div>
@@ -104,10 +104,10 @@
 							/>
 						</svg>
 					</div>
-					<h2 class="text-xl font-semibold text-gray-900 mb-2">
+					<h2 class="text-xl font-semibold text-text mb-2">
 						{tr('auth.verification.success')}
 					</h2>
-					<p class="text-gray-600 mb-6">
+					<p class="text-text-muted mb-6">
 						{tr('auth.verification.successMessage')}
 					</p>
 
@@ -140,10 +140,10 @@
 							/>
 						</svg>
 					</div>
-					<h2 class="text-xl font-semibold text-gray-900 mb-2">
+					<h2 class="text-xl font-semibold text-text mb-2">
 						{tr('auth.verification.error')}
 					</h2>
-					<p class="text-gray-600 mb-6">{errorMessage}</p>
+					<p class="text-text-muted mb-6">{errorMessage}</p>
 
 					<div class="space-y-3">
 						{#if $authStore.isAuthenticated && (errorCode === 'token_expired' || errorCode === 'invalid_token')}
@@ -155,9 +155,9 @@
 								{#if isResending}
 									<span class="relative inline-flex h-3 w-3 mr-2"
 										><span
-											class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+											class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 										></span><span
-											class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+											class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 										></span></span
 									>
 								{/if}
@@ -179,7 +179,7 @@
 			{:else}
 				<!-- idle state - no token provided -->
 				<div class="text-center py-8">
-					<p class="text-gray-600 mb-6">{tr('auth.verification.checkEmail')}</p>
+					<p class="text-text-muted mb-6">{tr('auth.verification.checkEmail')}</p>
 					<a href={resolve('/login')} class="btn btn-primary w-full">
 						{tr('auth.verification.goToLogin')}
 					</a>

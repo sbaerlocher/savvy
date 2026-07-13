@@ -208,7 +208,7 @@
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">
+		<h1 class="text-3xl font-bold text-text">
 			{$t('admin.auditLog.title')}
 		</h1>
 	</div>
@@ -232,13 +232,13 @@
 				e.stopPropagation();
 				showFilterMenu = !showFilterMenu;
 			}}
-			class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors relative"
+			class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 			title={$t('common.filter')}
 			aria-label={$t('common.filter')}
 			aria-expanded={showFilterMenu}
 		>
 			<svg
-				class="w-5 h-5 text-gray-600"
+				class="w-5 h-5 text-text-muted"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -251,7 +251,7 @@
 				/>
 			</svg>
 			{#if hasActiveFilters}
-				<span class="absolute -top-1 -right-1 w-3 h-3 bg-cyan-600 rounded-full"
+				<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
 				></span>
 			{/if}
 		</button>
@@ -265,46 +265,46 @@
 			{#if isLoading}
 				<LoadingSpinner />
 			{:else if logs.length === 0}
-				<div class="text-center py-12 text-gray-500">
+				<div class="text-center py-12 text-text-subtle">
 					{$t('admin.auditLog.noLogs')}
 				</div>
 			{:else}
 				<div class="bg-white shadow rounded-lg overflow-hidden">
 					<div class="overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200">
-							<thead class="bg-gray-50">
+						<table class="min-w-full divide-y divide-border">
+							<thead class="bg-surface-1">
 								<tr>
 									<th
-										class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.auditLog.action')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.auditLog.resourceType')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.auditLog.user')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.auditLog.timestamp')}
 									</th>
 									<th
-										class="hidden md:table-cell px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+										class="hidden md:table-cell px-6 py-3 text-right text-xs font-medium text-text-subtle uppercase tracking-wider"
 									>
 										{$t('admin.users.actions')}
 									</th>
 								</tr>
 							</thead>
-							<tbody class="bg-white divide-y divide-gray-200">
+							<tbody class="bg-white divide-y divide-border">
 								{#each logs as log (log.id)}
 									<tr
-										class="hover:bg-gray-50 transition-colors md:cursor-default cursor-pointer"
+										class="hover:bg-surface-1 transition-colors md:cursor-default cursor-pointer"
 										onclick={() => {
 											if (window.innerWidth < 768) toggleExpandLog(log.id);
 										}}
@@ -323,12 +323,12 @@
 														{log.action}
 													</span>
 													<span
-														class="md:hidden text-sm font-medium text-gray-900"
+														class="md:hidden text-sm font-medium text-text"
 														>{log.resource_type}</span
 													>
 												</div>
 												<svg
-													class="w-4 h-4 text-gray-400 ml-2 md:hidden flex-shrink-0 transition-transform {expandedLogId ===
+													class="w-4 h-4 text-text-faint ml-2 md:hidden flex-shrink-0 transition-transform {expandedLogId ===
 													log.id
 														? 'rotate-180'
 														: ''}"
@@ -346,23 +346,23 @@
 											</div>
 										</td>
 										<td
-											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium text-text"
 										>
 											{log.resource_type}
 										</td>
 										<td
-											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-subtle"
 										>
 											{#if log.user}
 												{log.user.email}
 											{:else}
-												<span class="text-gray-400 italic"
+												<span class="text-text-faint italic"
 													>{$t('admin.auditLog.systemAction')}</span
 												>
 											{/if}
 										</td>
 										<td
-											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-subtle"
 										>
 											{new Date(log.created_at).toLocaleString()}
 										</td>
@@ -371,7 +371,7 @@
 										>
 											<button
 												onclick={() => toggleExpandLog(log.id)}
-												class="text-cyan-600 hover:text-cyan-900 font-medium transition-colors"
+												class="text-accent hover:text-accent-900 font-medium transition-colors"
 											>
 												{expandedLogId === log.id
 													? $t('common.close')
@@ -380,30 +380,30 @@
 										</td>
 									</tr>
 									{#if expandedLogId === log.id}
-										<tr class="bg-gray-50">
+										<tr class="bg-surface-1">
 											<td colspan="5" class="px-6 py-4">
 												<div class="space-y-3">
 													<!-- Mobile-only: User & Timestamp -->
 													<div class="grid grid-cols-1 gap-4 md:hidden">
 														<div>
-															<span class="text-xs font-medium text-gray-500">
+															<span class="text-xs font-medium text-text-subtle">
 																{$t('admin.auditLog.user')}:
 															</span>
-															<p class="text-sm text-gray-900">
+															<p class="text-sm text-text">
 																{#if log.user}
 																	{log.user.email}
 																{:else}
-																	<span class="text-gray-400 italic"
+																	<span class="text-text-faint italic"
 																		>{$t('admin.auditLog.systemAction')}</span
 																	>
 																{/if}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500">
+															<span class="text-xs font-medium text-text-subtle">
 																{$t('admin.auditLog.timestamp')}:
 															</span>
-															<p class="text-sm text-gray-900">
+															<p class="text-sm text-text">
 																{new Date(log.created_at).toLocaleString()}
 															</p>
 														</div>
@@ -411,27 +411,27 @@
 													<!-- Log Details -->
 													<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 														<div>
-															<span class="text-xs font-medium text-gray-500">
+															<span class="text-xs font-medium text-text-subtle">
 																{$t('admin.auditLog.resourceId')}:
 															</span>
-															<p class="text-sm text-gray-900 font-mono">
+															<p class="text-sm text-text font-mono">
 																{log.resource_id}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500">
+															<span class="text-xs font-medium text-text-subtle">
 																{$t('admin.auditLog.ipAddress')}:
 															</span>
-															<p class="text-sm text-gray-900 font-mono">
+															<p class="text-sm text-text font-mono">
 																{log.ip_address}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-gray-500">
+															<span class="text-xs font-medium text-text-subtle">
 																{$t('admin.auditLog.userAgent')}:
 															</span>
 															<p
-																class="text-sm text-gray-900 truncate"
+																class="text-sm text-text truncate"
 																title={log.user_agent}
 															>
 																{log.user_agent}
@@ -440,17 +440,17 @@
 													</div>
 
 													<!-- Resource Data -->
-													<div class="pt-3 border-t border-gray-200">
+													<div class="pt-3 border-t border-border">
 														<span
-															class="text-xs font-medium text-gray-500 block mb-2"
+															class="text-xs font-medium text-text-subtle block mb-2"
 														>
 															{$t('admin.auditLog.resourceData')}:
 														</span>
 														<div
-															class="bg-white p-3 rounded border border-gray-200 text-xs overflow-x-auto"
+															class="bg-white p-3 rounded border border-border text-xs overflow-x-auto"
 														>
 															<pre
-																class="whitespace-pre-wrap text-gray-700">{formatResourceData(
+																class="whitespace-pre-wrap text-text-ink2">{formatResourceData(
 																	log.resource_data
 																)}</pre>
 														</div>
@@ -458,7 +458,7 @@
 
 													<!-- Actions -->
 													{#if log.action === 'delete' || log.action === 'hard_delete'}
-														<div class="pt-3 border-t border-gray-200">
+														<div class="pt-3 border-t border-border">
 															<button
 																onclick={() =>
 																	handleRestore(
@@ -513,7 +513,7 @@
 					</button>
 
 					<span
-						class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg"
+						class="px-4 py-2 text-sm font-medium text-text-ink2 bg-surface-1 rounded-lg"
 					>
 						{$t('admin.auditLog.pageOf')
 							.replace('{page}', currentPage.toString())
@@ -549,13 +549,13 @@
 			<div class="hidden lg:block lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
 					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">
+						<h3 class="text-lg font-semibold text-text">
 							{$t('common.filter')}
 						</h3>
 						<button
 							type="button"
 							onclick={() => (showFilterMenu = false)}
-							class="text-gray-400 hover:text-gray-600 transition-colors"
+							class="text-text-faint hover:text-text-muted transition-colors"
 							aria-label={$t('common.close')}
 						>
 							<svg
@@ -578,7 +578,7 @@
 						<div>
 							<label
 								for="audit-log-user-filter-desktop"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.auditLog.user')}
 							</label>
@@ -597,7 +597,7 @@
 						<div>
 							<label
 								for="audit-log-resource-type-filter-desktop"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.auditLog.resourceType')}
 							</label>
@@ -615,7 +615,7 @@
 						<div>
 							<label
 								for="audit-log-action-filter-desktop"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.auditLog.action')}
 							</label>
@@ -633,7 +633,7 @@
 						<div>
 							<label
 								for="audit-log-date-from-desktop"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.auditLog.dateFrom')}
 							</label>
@@ -648,7 +648,7 @@
 						<div>
 							<label
 								for="audit-log-date-to-desktop"
-								class="block text-sm font-medium text-gray-700 mb-2"
+								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
 								{$t('admin.auditLog.dateTo')}
 							</label>
@@ -686,14 +686,14 @@
 			<div class="flex items-center justify-between mb-4">
 				<h3
 					id="filter-dialog-title"
-					class="text-lg font-semibold text-gray-900"
+					class="text-lg font-semibold text-text"
 				>
 					{$t('common.filter')}
 				</h3>
 				<button
 					type="button"
 					onclick={() => (showFilterMenu = false)}
-					class="text-gray-400 hover:text-gray-600 transition-colors"
+					class="text-text-faint hover:text-text-muted transition-colors"
 					aria-label={$t('common.close')}
 				>
 					<svg
@@ -716,7 +716,7 @@
 				<div>
 					<label
 						for="audit-log-user-filter-mobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.auditLog.user')}
 					</label>
@@ -735,7 +735,7 @@
 				<div>
 					<label
 						for="audit-log-resource-type-filter-mobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.auditLog.resourceType')}
 					</label>
@@ -753,7 +753,7 @@
 				<div>
 					<label
 						for="audit-log-action-filter-mobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.auditLog.action')}
 					</label>
@@ -771,7 +771,7 @@
 				<div>
 					<label
 						for="audit-log-date-from-mobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.auditLog.dateFrom')}
 					</label>
@@ -786,7 +786,7 @@
 				<div>
 					<label
 						for="audit-log-date-to-mobile"
-						class="block text-sm font-medium text-gray-700 mb-2"
+						class="block text-sm font-medium text-text-ink2 mb-2"
 					>
 						{$t('admin.auditLog.dateTo')}
 					</label>

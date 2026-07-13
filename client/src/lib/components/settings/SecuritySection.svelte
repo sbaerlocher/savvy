@@ -152,24 +152,24 @@
 		class="bg-white rounded-lg shadow-lg p-6 overflow-hidden"
 		style="border-left: 6px solid #06b6d4"
 	>
-		<h3 class="text-lg font-semibold text-gray-900 mb-4">
+		<h3 class="text-lg font-semibold text-text mb-4">
 			{tr('settings.account.title')}
 		</h3>
 
 		<dl class="space-y-3">
 			<div class="flex justify-between">
-				<dt class="text-sm text-gray-500">
+				<dt class="text-sm text-text-subtle">
 					{tr('settings.account.memberSince')}
 				</dt>
-				<dd class="text-sm text-gray-900">
+				<dd class="text-sm text-text">
 					{formatDate(profile.created_at)}
 				</dd>
 			</div>
 			<div class="flex justify-between">
-				<dt class="text-sm text-gray-500">
+				<dt class="text-sm text-text-subtle">
 					{tr('settings.account.authProvider')}
 				</dt>
-				<dd class="text-sm text-gray-900">
+				<dd class="text-sm text-text">
 					{#if profile.auth_provider === 'local'}
 						{tr('settings.account.providerLocal')}
 					{:else}
@@ -180,8 +180,8 @@
 		</dl>
 
 		<!-- Language -->
-		<div class="mt-4 pt-4 border-t border-gray-100">
-			<h4 class="text-sm font-medium text-gray-700 mb-2">
+		<div class="mt-4 pt-4 border-t border-border-soft">
+			<h4 class="text-sm font-medium text-text-ink2 mb-2">
 				{tr('aria.selectLanguage')}
 			</h4>
 			<div class="flex gap-2">
@@ -191,8 +191,8 @@
 						onclick={() => changeLanguage(lang.code)}
 						class="px-3 py-1.5 text-sm rounded-md transition-colors {$languageStore ===
 						lang.code
-							? 'bg-cyan-50 text-cyan-600 font-semibold border border-cyan-200'
-							: 'text-gray-600 hover:bg-gray-50 border border-gray-200'}"
+							? 'bg-accent-50 text-accent font-semibold border border-accent-200'
+							: 'text-text-muted hover:bg-surface-1 border border-border'}"
 					>
 						{lang.name}
 					</button>
@@ -201,12 +201,12 @@
 		</div>
 
 		<!-- Email Verification -->
-		<div class="mt-4 pt-4 border-t border-gray-100">
-			<h4 class="text-sm font-medium text-gray-700 mb-2">
+		<div class="mt-4 pt-4 border-t border-border-soft">
+			<h4 class="text-sm font-medium text-text-ink2 mb-2">
 				{tr('settings.emailVerification.title')}
 			</h4>
 			<div class="flex items-center gap-2 flex-wrap">
-				<span class="text-sm text-gray-600 break-all">{profile.email}</span>
+				<span class="text-sm text-text-muted break-all">{profile.email}</span>
 				{#if profile.email_verified}
 					<span
 						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
@@ -240,9 +240,9 @@
 						{#if isSendingVerification}
 							<span class="relative inline-flex h-3 w-3 mr-2"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 								></span></span
 							>
 							{tr('settings.emailVerification.sending')}
@@ -251,7 +251,7 @@
 						{/if}
 					</button>
 				{:else}
-					<span class="text-xs text-gray-400 mt-2 block"
+					<span class="text-xs text-text-faint mt-2 block"
 						>{tr('settings.emailVerification.smtpDisabled')}</span
 					>
 				{/if}
@@ -264,10 +264,10 @@
 		class="bg-white rounded-lg shadow-lg p-6 overflow-hidden"
 		style="border-left: 6px solid #06b6d4"
 	>
-		<h3 class="text-lg font-semibold text-gray-900 mb-2">
+		<h3 class="text-lg font-semibold text-text mb-2">
 			{tr('settings.export.title')}
 		</h3>
-		<p class="text-sm text-gray-600 mb-4">
+		<p class="text-sm text-text-muted mb-4">
 			{tr('settings.export.description')}
 		</p>
 		<button
@@ -279,9 +279,9 @@
 			{#if isExporting}
 				<span class="relative inline-flex h-3 w-3 mr-2"
 					><span
-						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 					></span><span
-						class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+						class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 					></span></span
 				>
 				{tr('settings.export.downloading')}
@@ -312,10 +312,10 @@
 
 		<div class="space-y-3">
 			<div>
-				<h4 class="text-sm font-medium text-gray-900">
+				<h4 class="text-sm font-medium text-text">
 					{tr('settings.dangerZone.deleteAccount')}
 				</h4>
-				<p class="text-sm text-gray-500 mt-1">
+				<p class="text-sm text-text-subtle mt-1">
 					{tr('settings.dangerZone.deleteDescription')}
 				</p>
 			</div>
@@ -347,7 +347,7 @@
 			>
 				{tr('settings.dangerZone.deleteConfirmTitle')}
 			</h3>
-			<p class="text-sm text-gray-600 mb-4">
+			<p class="text-sm text-text-muted mb-4">
 				{tr('settings.dangerZone.deleteConfirmMessage')}
 			</p>
 
@@ -355,7 +355,7 @@
 				<div>
 					<label
 						for="deleteConfirmation"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('settings.dangerZone.deleteConfirmPlaceholder')}
 					</label>
@@ -374,7 +374,7 @@
 					<div>
 						<label
 							for="deletePassword"
-							class="block text-sm font-medium text-gray-700 mb-1"
+							class="block text-sm font-medium text-text-ink2 mb-1"
 						>
 							{tr('settings.dangerZone.passwordRequired')}
 						</label>

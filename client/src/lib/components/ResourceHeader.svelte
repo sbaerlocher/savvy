@@ -42,7 +42,7 @@
 			disabled={isOffline || isTogglingFavorite}
 			class="btn btn-xs {isFavorite
 				? 'btn-favorite'
-				: 'bg-gray-200 hover:bg-gray-300 text-gray-700'} {isOffline ||
+				: 'bg-border hover:bg-border-field text-text-ink2'} {isOffline ||
 			isTogglingFavorite
 				? 'opacity-50 cursor-not-allowed'
 				: ''}"

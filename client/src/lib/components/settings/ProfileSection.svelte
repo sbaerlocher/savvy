@@ -56,12 +56,12 @@
 		style="border-left: 6px solid #06b6d4"
 	>
 		<div class="p-6">
-			<h3 class="text-lg font-semibold text-gray-900 mb-4">
+			<h3 class="text-lg font-semibold text-text mb-4">
 				{tr('settings.profile.title')}
 			</h3>
 
 			{#if profile.auth_provider !== 'local'}
-				<p class="text-sm text-gray-500 mb-4">
+				<p class="text-sm text-text-subtle mb-4">
 					{tr('settings.profile.oauthNote')}
 				</p>
 			{/if}
@@ -70,7 +70,7 @@
 				<div>
 					<label
 						for="firstName"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('settings.profile.firstName')}
 					</label>
@@ -80,8 +80,8 @@
 						bind:value={firstName}
 						disabled={isSavingProfile || profile.auth_provider !== 'local'}
 						class="input"
-						class:bg-gray-50={profile.auth_provider !== 'local'}
-						class:text-gray-500={profile.auth_provider !== 'local'}
+						class:bg-surface-1={profile.auth_provider !== 'local'}
+						class:text-text-subtle={profile.auth_provider !== 'local'}
 						class:cursor-not-allowed={profile.auth_provider !== 'local'}
 					/>
 				</div>
@@ -89,7 +89,7 @@
 				<div>
 					<label
 						for="lastName"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('settings.profile.lastName')}
 					</label>
@@ -99,8 +99,8 @@
 						bind:value={lastName}
 						disabled={isSavingProfile || profile.auth_provider !== 'local'}
 						class="input"
-						class:bg-gray-50={profile.auth_provider !== 'local'}
-						class:text-gray-500={profile.auth_provider !== 'local'}
+						class:bg-surface-1={profile.auth_provider !== 'local'}
+						class:text-text-subtle={profile.auth_provider !== 'local'}
 						class:cursor-not-allowed={profile.auth_provider !== 'local'}
 					/>
 				</div>
@@ -108,7 +108,7 @@
 				<div>
 					<label
 						for="email"
-						class="block text-sm font-medium text-gray-700 mb-1"
+						class="block text-sm font-medium text-text-ink2 mb-1"
 					>
 						{tr('settings.profile.email')}
 					</label>
@@ -117,7 +117,7 @@
 						type="email"
 						value={profile.email}
 						disabled
-						class="input bg-gray-50 text-gray-500 cursor-not-allowed"
+						class="input bg-surface-1 text-text-subtle cursor-not-allowed"
 					/>
 				</div>
 
@@ -131,9 +131,9 @@
 							{#if isSavingProfile}
 								<span class="relative inline-flex h-3 w-3 mr-2"
 									><span
-										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 									></span><span
-										class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"
+										class="relative inline-flex rounded-full h-3 w-3 bg-accent"
 									></span></span
 								>
 								{tr('settings.profile.saving')}

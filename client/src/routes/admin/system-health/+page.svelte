@@ -127,7 +127,7 @@
 	}
 
 	function getStatusColor(check: CheckResult): string {
-		if (!check.enabled) return 'text-gray-400';
+		if (!check.enabled) return 'text-text-faint';
 		return check.status === 'healthy' ? 'text-green-600' : 'text-red-600';
 	}
 
@@ -170,7 +170,7 @@
 <div class="px-4 pb-20 md:pb-4">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">
+		<h1 class="text-3xl font-bold text-text">
 			{$t('nav.adminSystemHealth')}
 		</h1>
 	</div>
@@ -179,10 +179,10 @@
 	<div class="flex flex-col sm:flex-row gap-3 mb-6">
 		<!-- Overall Status (left, where search bar is on other pages) -->
 		<div
-			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-gray-300 rounded-md"
+			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-border-field rounded-md"
 		>
 			{#if isLoading && !health}
-				<span class="text-sm text-gray-500">{$t('common.loading')}</span>
+				<span class="text-sm text-text-subtle">{$t('common.loading')}</span>
 			{:else if health}
 				{#if health.status === 'ready'}
 					<svg
@@ -237,21 +237,21 @@
 					>
 				{/if}
 				{#if lastRefresh}
-					<span class="text-xs text-gray-400 ml-auto"
+					<span class="text-xs text-text-faint ml-auto"
 						>{getTimeAgo(lastRefresh)}</span
 					>
 				{/if}
 			{:else}
-				<span class="text-sm text-gray-400">—</span>
+				<span class="text-sm text-text-faint">—</span>
 			{/if}
 		</div>
 
 		<!-- Action Buttons (right, full-width on mobile) -->
 		<div class="grid grid-cols-3 sm:flex gap-3 w-full sm:w-auto h-[42px]">
 			<button
-				class="col-span-1 sm:flex-none flex items-center justify-center gap-2 h-full px-4 bg-white border rounded-md hover:bg-gray-50 transition-colors {autoRefresh
-					? 'ring-2 ring-cyan-500 border-cyan-500'
-					: 'border-gray-300'}"
+				class="col-span-1 sm:flex-none flex items-center justify-center gap-2 h-full px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors {autoRefresh
+					? 'ring-2 ring-accent border-accent'
+					: 'border-border-field'}"
 				onclick={toggleAutoRefresh}
 				title={autoRefresh
 					? $t('admin.systemHealth.autoRefresh')
@@ -259,7 +259,7 @@
 			>
 				{#if autoRefresh}
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -273,7 +273,7 @@
 					</svg>
 				{:else}
 					<svg
-						class="w-5 h-5 text-gray-600"
+						class="w-5 h-5 text-text-muted"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -318,7 +318,7 @@
 		<LoadingSpinner />
 	{:else if health}
 		<!-- Mobile: Card List -->
-		<div class="md:hidden bg-white shadow rounded-lg divide-y divide-gray-200">
+		<div class="md:hidden bg-white shadow rounded-lg divide-y divide-border">
 			<!-- Database -->
 			<button
 				class="w-full px-4 py-3 flex items-center gap-3 text-left"
@@ -339,7 +339,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
+				<span class="text-sm font-medium text-text flex-1"
 					>{$t('admin.systemHealth.database')}</span
 				>
 				<span
@@ -348,12 +348,12 @@
 						? health.checks.database.status === 'healthy'
 							? 'bg-green-100 text-green-800'
 							: 'bg-red-100 text-red-800'
-						: 'bg-gray-100 text-gray-800'}"
+						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.database.status)}
 				</span>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedService ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedService ===
 					'database'
 						? 'rotate-180'
 						: ''}"
@@ -370,7 +370,7 @@
 				</svg>
 			</button>
 			{#if expandedService === 'database'}
-				<div class="px-4 py-3 bg-gray-50 text-sm text-gray-600">
+				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.database.error}
 						<span class="text-red-600">{health.checks.database.error}</span>
 					{:else if health.checks.database.latency_ms !== undefined}
@@ -406,7 +406,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
+				<span class="text-sm font-medium text-text flex-1"
 					>{$t('admin.systemHealth.smtp')}</span
 				>
 				<span
@@ -415,12 +415,12 @@
 						? health.checks.smtp.status === 'healthy'
 							? 'bg-green-100 text-green-800'
 							: 'bg-red-100 text-red-800'
-						: 'bg-gray-100 text-gray-800'}"
+						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.smtp.status)}
 				</span>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedService ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedService ===
 					'smtp'
 						? 'rotate-180'
 						: ''}"
@@ -437,8 +437,8 @@
 				</svg>
 			</button>
 			{#if expandedService === 'smtp'}
-				<div class="px-4 py-3 bg-gray-50 space-y-3">
-					<div class="text-sm text-gray-600">
+				<div class="px-4 py-3 bg-surface-1 space-y-3">
+					<div class="text-sm text-text-muted">
 						{#if health.checks.smtp.error}
 							<span class="text-red-600">{health.checks.smtp.error}</span>
 						{:else if !health.checks.smtp.enabled}
@@ -494,7 +494,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
+				<span class="text-sm font-medium text-text flex-1"
 					>{$t('admin.systemHealth.oauth')}</span
 				>
 				<span
@@ -503,12 +503,12 @@
 						? health.checks.oauth.status === 'healthy'
 							? 'bg-green-100 text-green-800'
 							: 'bg-red-100 text-red-800'
-						: 'bg-gray-100 text-gray-800'}"
+						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.oauth.status)}
 				</span>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedService ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedService ===
 					'oauth'
 						? 'rotate-180'
 						: ''}"
@@ -525,7 +525,7 @@
 				</svg>
 			</button>
 			{#if expandedService === 'oauth'}
-				<div class="px-4 py-3 bg-gray-50 text-sm text-gray-600">
+				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.oauth.error}
 						<span class="text-red-600">{health.checks.oauth.error}</span>
 					{:else if health.checks.oauth.enabled}
@@ -556,7 +556,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
+				<span class="text-sm font-medium text-text flex-1"
 					>{$t('admin.systemHealth.pushNotifications')}</span
 				>
 				<span
@@ -565,12 +565,12 @@
 						? health.checks.vapid.status === 'healthy'
 							? 'bg-green-100 text-green-800'
 							: 'bg-red-100 text-red-800'
-						: 'bg-gray-100 text-gray-800'}"
+						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.vapid.status)}
 				</span>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedService ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedService ===
 					'vapid'
 						? 'rotate-180'
 						: ''}"
@@ -587,8 +587,8 @@
 				</svg>
 			</button>
 			{#if expandedService === 'vapid'}
-				<div class="px-4 py-3 bg-gray-50 space-y-3">
-					<div class="text-sm text-gray-600">
+				<div class="px-4 py-3 bg-surface-1 space-y-3">
+					<div class="text-sm text-text-muted">
 						{#if health.checks.vapid.error}
 							<span class="text-red-600">{health.checks.vapid.error}</span>
 						{:else if !health.checks.vapid.enabled}
@@ -644,7 +644,7 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-gray-900 flex-1"
+				<span class="text-sm font-medium text-text flex-1"
 					>{$t('admin.systemHealth.totp')}</span
 				>
 				<span
@@ -653,12 +653,12 @@
 						? health.checks.totp_encryption.status === 'healthy'
 							? 'bg-green-100 text-green-800'
 							: 'bg-red-100 text-red-800'
-						: 'bg-gray-100 text-gray-800'}"
+						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.totp_encryption.status)}
 				</span>
 				<svg
-					class="w-4 h-4 text-gray-400 transition-transform {expandedService ===
+					class="w-4 h-4 text-text-faint transition-transform {expandedService ===
 					'totp'
 						? 'rotate-180'
 						: ''}"
@@ -675,7 +675,7 @@
 				</svg>
 			</button>
 			{#if expandedService === 'totp'}
-				<div class="px-4 py-3 bg-gray-50 text-sm text-gray-600">
+				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.totp_encryption.error}
 						<span class="text-red-600"
 							>{health.checks.totp_encryption.error}</span
@@ -691,34 +691,34 @@
 
 		<!-- Desktop: Table -->
 		<div class="hidden md:block bg-white shadow rounded-lg overflow-hidden">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
+			<table class="min-w-full divide-y divide-border">
+				<thead class="bg-surface-1">
 					<tr>
 						<th
-							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+							class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 						>
 							{$t('admin.systemHealth.service')}
 						</th>
 						<th
-							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+							class="px-6 py-3 text-left text-xs font-medium text-text-subtle uppercase tracking-wider"
 						>
 							{$t('admin.systemHealth.details')}
 						</th>
 						<th
-							class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+							class="px-6 py-3 text-right text-xs font-medium text-text-subtle uppercase tracking-wider"
 						>
 							{$t('admin.users.actions')}
 						</th>
 						<th
-							class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+							class="px-6 py-3 text-right text-xs font-medium text-text-subtle uppercase tracking-wider"
 						>
 							{$t('admin.systemHealth.statusLabel')}
 						</th>
 					</tr>
 				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
+				<tbody class="bg-white divide-y divide-border">
 					<!-- Database -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
 								<div class={getStatusColor(health.checks.database)}>
@@ -736,12 +736,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{$t('admin.systemHealth.database')}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.database.error}
 								<span class="text-red-600">{health.checks.database.error}</span>
 							{:else if health.checks.database.latency_ms !== undefined}
@@ -763,7 +763,7 @@
 									? health.checks.database.status === 'healthy'
 										? 'bg-green-100 text-green-800'
 										: 'bg-red-100 text-red-800'
-									: 'bg-gray-100 text-gray-800'}"
+									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.database.status)}
 							</span>
@@ -771,7 +771,7 @@
 					</tr>
 
 					<!-- SMTP -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
 								<div class={getStatusColor(health.checks.smtp)}>
@@ -789,12 +789,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{$t('admin.systemHealth.smtp')}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.smtp.error}
 								<span class="text-red-600">{health.checks.smtp.error}</span>
 							{:else if !health.checks.smtp.enabled}
@@ -836,7 +836,7 @@
 									? health.checks.smtp.status === 'healthy'
 										? 'bg-green-100 text-green-800'
 										: 'bg-red-100 text-red-800'
-									: 'bg-gray-100 text-gray-800'}"
+									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.smtp.status)}
 							</span>
@@ -844,7 +844,7 @@
 					</tr>
 
 					<!-- OAuth -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
 								<div class={getStatusColor(health.checks.oauth)}>
@@ -862,12 +862,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{$t('admin.systemHealth.oauth')}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.oauth.error}
 								<span class="text-red-600">{health.checks.oauth.error}</span>
 							{:else if health.checks.oauth.enabled}
@@ -884,7 +884,7 @@
 									? health.checks.oauth.status === 'healthy'
 										? 'bg-green-100 text-green-800'
 										: 'bg-red-100 text-red-800'
-									: 'bg-gray-100 text-gray-800'}"
+									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.oauth.status)}
 							</span>
@@ -892,7 +892,7 @@
 					</tr>
 
 					<!-- VAPID (Push) -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
 								<div class={getStatusColor(health.checks.vapid)}>
@@ -910,12 +910,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{$t('admin.systemHealth.pushNotifications')}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.vapid.error}
 								<span class="text-red-600">{health.checks.vapid.error}</span>
 							{:else if !health.checks.vapid.enabled}
@@ -957,7 +957,7 @@
 									? health.checks.vapid.status === 'healthy'
 										? 'bg-green-100 text-green-800'
 										: 'bg-red-100 text-red-800'
-									: 'bg-gray-100 text-gray-800'}"
+									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.vapid.status)}
 							</span>
@@ -965,7 +965,7 @@
 					</tr>
 
 					<!-- TOTP (2FA) -->
-					<tr class="hover:bg-gray-50 transition-colors">
+					<tr class="hover:bg-surface-1 transition-colors">
 						<td class="px-6 py-4 whitespace-nowrap">
 							<div class="flex items-center gap-3">
 								<div class={getStatusColor(health.checks.totp_encryption)}>
@@ -983,12 +983,12 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-gray-900"
+								<span class="text-sm font-medium text-text"
 									>{$t('admin.systemHealth.totp')}</span
 								>
 							</div>
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.totp_encryption.error}
 								<span class="text-red-600"
 									>{health.checks.totp_encryption.error}</span
@@ -1007,7 +1007,7 @@
 									? health.checks.totp_encryption.status === 'healthy'
 										? 'bg-green-100 text-green-800'
 										: 'bg-red-100 text-red-800'
-									: 'bg-gray-100 text-gray-800'}"
+									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.totp_encryption.status)}
 							</span>

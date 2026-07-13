@@ -64,7 +64,7 @@
 				<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
 					<div class="mb-8 flex items-center gap-4">
 						<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-						<h1 class="text-2xl font-bold text-gray-900">
+						<h1 class="text-2xl font-bold text-text">
 							{tr('unsubscribe.title')}
 						</h1>
 					</div>
@@ -90,10 +90,10 @@
 									/>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold text-gray-900 mb-2">
+							<h2 class="text-xl font-semibold text-text mb-2">
 								{tr('unsubscribe.success')}
 							</h2>
-							<p class="text-gray-600 mb-6">
+							<p class="text-text-muted mb-6">
 								{unsubType === 'reminders'
 									? tr('unsubscribe.successMessageReminders')
 									: tr('unsubscribe.successMessage')}
@@ -131,10 +131,10 @@
 									/>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold text-gray-900 mb-2">
+							<h2 class="text-xl font-semibold text-text mb-2">
 								{tr('unsubscribe.error')}
 							</h2>
-							<p class="text-gray-600 mb-6">{errorMessage}</p>
+							<p class="text-text-muted mb-6">{errorMessage}</p>
 
 							{#if $authStore.isAuthenticated}
 								<a
@@ -152,7 +152,7 @@
 					{:else}
 						<!-- idle state - no token provided -->
 						<div class="text-center py-8">
-							<p class="text-gray-600 mb-6">{tr('unsubscribe.invalidToken')}</p>
+							<p class="text-text-muted mb-6">{tr('unsubscribe.invalidToken')}</p>
 							<a href={resolve('/login')} class="btn btn-primary w-full">
 								{tr('unsubscribe.goToLogin')}
 							</a>
@@ -164,12 +164,12 @@
 			<!-- Right column: Information (1/3 width) -->
 			<div class="lg:col-span-1">
 				<div class="bg-white rounded-lg shadow-lg p-6">
-					<h2 class="text-xl font-bold text-gray-900 mb-4">
+					<h2 class="text-xl font-bold text-text mb-4">
 						{unsubType === 'reminders'
 							? tr('unsubscribe.infoTitleReminders')
 							: tr('unsubscribe.infoTitleNotifications')}
 					</h2>
-					<p class="text-sm text-gray-600 mb-4">
+					<p class="text-sm text-text-muted mb-4">
 						{unsubType === 'reminders'
 							? tr('unsubscribe.infoDescReminders')
 							: tr('unsubscribe.infoDescNotifications')}
@@ -189,10 +189,10 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('unsubscribe.info1Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('unsubscribe.info1Desc')}
 								</p>
 							</div>
@@ -211,10 +211,10 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('unsubscribe.info2Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('unsubscribe.info2Desc')}
 								</p>
 							</div>
@@ -233,20 +233,20 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-gray-900">
+								<h3 class="text-sm font-medium text-text">
 									{tr('unsubscribe.info3Title')}
 								</h3>
-								<p class="text-xs text-gray-600 mt-1">
+								<p class="text-xs text-text-muted mt-1">
 									{tr('unsubscribe.info3Desc')}
 								</p>
 							</div>
 						</div>
 					</div>
 
-					<div class="mt-6 pt-6 border-t border-gray-200">
-						<div class="flex items-center text-sm text-gray-600">
+					<div class="mt-6 pt-6 border-t border-border">
+						<div class="flex items-center text-sm text-text-muted">
 							<svg
-								class="w-5 h-5 text-cyan-500 mr-2 flex-shrink-0"
+								class="w-5 h-5 text-accent mr-2 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
