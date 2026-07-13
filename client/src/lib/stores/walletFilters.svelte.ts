@@ -5,7 +5,7 @@
 export const walletFilters = $state({
 	searchInput: '',
 	typeFilter: 'all',
-	statusFilter: 'all',
+	statusFilter: 'active',
 	sortBy: 'newest',
 	ownerFilter: 'all',
 	favoritesOnly: false,

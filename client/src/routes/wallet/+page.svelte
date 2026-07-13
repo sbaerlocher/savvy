@@ -74,17 +74,24 @@
 	// Apply ?type= query param on mount (from /cards /vouchers /gift-cards redirects).
 	const validTypes = ['cards', 'vouchers', 'gift-cards'];
 
+	// 'active' (and 'valid' for vouchers) is the default status, not a
+	// user-applied filter — so it does not count toward hasActiveFilters.
+	const isDefaultStatus = $derived(
+		walletFilters.statusFilter === 'active' ||
+			(walletFilters.typeFilter === 'vouchers' &&
+				walletFilters.statusFilter === 'valid')
+	);
 	const hasActiveFilters = $derived(
 		walletFilters.typeFilter !== 'all' ||
-			walletFilters.statusFilter !== 'all' ||
+			!isDefaultStatus ||
 			walletFilters.sortBy !== 'newest' ||
 			walletFilters.ownerFilter !== 'all' ||
 			walletFilters.favoritesOnly ||
 			walletFilters.expiringFilter !== 'all'
 	);
 
-	// Show status filter only when vouchers or gift cards are visible
-	const showStatusFilter = $derived(walletFilters.typeFilter !== 'cards');
+	// Status filter applies to all types (cards use active/inactive too)
+	const showStatusFilter = true;
 
 	const detailSortOptions = $derived.by(() => {
 		const opts = [
@@ -242,6 +249,12 @@
 		let result = cards;
 		// Expiring filter does not apply to cards (no expiry) - skip if set
 		if (walletFilters.expiringFilter !== 'all') return [];
+		// Cards have no expiry, only active/inactive status
+		if (walletFilters.statusFilter === 'active') {
+			result = result.filter((c) => c.status !== 'inactive');
+		} else if (walletFilters.statusFilter === 'inactive') {
+			result = result.filter((c) => c.status === 'inactive');
+		}
 		if (walletFilters.ownerFilter === 'mine') {
 			result = result.filter((c) => !c.owner || c.owner.id === currentUserId);
 		} else if (walletFilters.ownerFilter === 'shared') {
@@ -398,8 +411,10 @@
 			if (selectMode) {
 				selectedIds.clear();
 			}
-			// Reset status filter when type changes to avoid invalid combinations
-			walletFilters.statusFilter = 'all';
+			// Reset status filter to the active-equivalent for the new type.
+			// Vouchers use 'valid'; cards/gift-cards/all use 'active'.
+			walletFilters.statusFilter =
+				walletFilters.typeFilter === 'vouchers' ? 'valid' : 'active';
 			// Reset sort/expiring if switching to cards (no value/expiry)
 			if (walletFilters.typeFilter === 'cards') {
 				if (
@@ -561,7 +576,7 @@
 
 	function resetFilters() {
 		walletFilters.typeFilter = 'all';
-		walletFilters.statusFilter = 'all';
+		walletFilters.statusFilter = 'active';
 		walletFilters.sortBy = 'newest';
 		walletFilters.ownerFilter = 'all';
 		walletFilters.favoritesOnly = false;
