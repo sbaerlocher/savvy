@@ -140,10 +140,7 @@
 	}
 </script>
 
-<div
-	class="bg-white rounded-lg shadow-lg p-6 overflow-hidden"
-	style="border-left: 6px solid #06b6d4"
->
+<div class="overflow-hidden rounded-xl border border-border bg-white p-6">
 	<h2 class="text-lg font-semibold text-text mb-2">
 		{tr('settings.twoFactor.title')}
 	</h2>

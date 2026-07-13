@@ -755,6 +755,7 @@
 				cardsCount={cards.length}
 				vouchersCount={vouchers.length}
 				giftCardsCount={giftCards.length}
+				showAll={false}
 			/>
 		</div>
 
@@ -846,27 +847,14 @@
 					class="flex items-center justify-center gap-2 h-[42px] px-6 bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
 						? 'ring-2 ring-accent border-accent'
 						: 'border-border-field'}"
-					title={showBarcodes
-						? tr('barcodeToggle.hide')
-						: tr('barcodeToggle.show')}
 					aria-label={showBarcodes
 						? tr('barcodeToggle.hide')
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-						></path>
-					</svg>
+					<span class="text-sm font-medium text-text-muted whitespace-nowrap">
+						{tr('barcodeToggle.label')}
+					</span>
 				</button>
 				<!-- Import Button -->
 				<button
@@ -960,19 +948,9 @@
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-						></path>
-					</svg>
+					<span class="text-sm font-medium text-text-muted whitespace-nowrap">
+						{tr('barcodeToggle.label')}
+					</span>
 				</button>
 			</div>
 		</div>
@@ -1046,7 +1024,9 @@
 							class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
 						>
 							<!-- Header -->
-							<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
+							<div
+								class="px-5 py-4 bg-surface-1/80 border-b border-border-soft"
+							>
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<svg

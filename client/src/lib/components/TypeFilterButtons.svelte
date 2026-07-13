@@ -10,6 +10,9 @@
 		vouchersCount: number;
 		giftCardsCount: number;
 		allowToggle?: boolean;
+		/** Render the explicit "All" chip. When off, tapping the active type
+		 *  toggles back to all — keeps the row narrow on mobile. */
+		showAll?: boolean;
 	}
 
 	let {
@@ -17,16 +20,16 @@
 		cardsCount,
 		vouchersCount,
 		giftCardsCount,
-		allowToggle = true
+		allowToggle = true,
+		showAll = true
 	}: Props = $props();
 
 	function handleClick(type: 'all' | 'cards' | 'vouchers' | 'gift-cards') {
 		if (type === 'all') {
 			typeFilter = 'all';
-		} else if (allowToggle && typeFilter === type) {
-			typeFilter = 'all';
 		} else {
-			typeFilter = type;
+			// Tapping the active type clears back to all; otherwise select it.
+			typeFilter = allowToggle && typeFilter === type ? 'all' : type;
 		}
 	}
 
@@ -42,13 +45,15 @@
 </script>
 
 <div class="flex gap-2 overflow-x-auto pb-1">
-	<button
-		type="button"
-		onclick={() => handleClick('all')}
-		class="{base} {typeFilter === 'all' ? active : inactive}"
-	>
-		{tr('common.all')}
-	</button>
+	{#if showAll}
+		<button
+			type="button"
+			onclick={() => handleClick('all')}
+			class="{base} {typeFilter === 'all' ? active : inactive}"
+		>
+			{tr('common.all')}
+		</button>
+	{/if}
 	{#if cardsCount > 0}
 		<button
 			type="button"

@@ -204,6 +204,7 @@ export type TranslationKeys = {
 		};
 	};
 	barcodeToggle: {
+		label: string;
 		show: string;
 		hide: string;
 	};
@@ -806,6 +807,10 @@ export type TranslationKeys = {
 	};
 	profile: {
 		title: string;
+		securityLink: {
+			title: string;
+			description: string;
+		};
 	};
 	settings: {
 		title: string;

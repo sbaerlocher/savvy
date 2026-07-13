@@ -222,6 +222,7 @@ export const fr: TranslationKeys = {
 		}
 	},
 	barcodeToggle: {
+		label: 'Code-barres',
 		show: 'Afficher les codes-barres',
 		hide: 'Masquer les codes-barres'
 	},
@@ -878,7 +879,12 @@ export const fr: TranslationKeys = {
 		securityNote: 'Ce lien est à usage unique et expire après 7 jours.'
 	},
 	profile: {
-		title: 'Mon profil'
+		title: 'Mon profil',
+		securityLink: {
+			title: 'Sécurité',
+			description:
+				'Mot de passe, authentification à deux facteurs et sessions actives'
+		}
 	},
 	settings: {
 		title: 'Paramètres',

@@ -51,10 +51,7 @@
 
 <div class="space-y-6">
 	<!-- Profile Form -->
-	<div
-		class="bg-white rounded-lg shadow-lg overflow-hidden"
-		style="border-left: 6px solid #06b6d4"
-	>
+	<div class="overflow-hidden rounded-xl border border-border bg-white">
 		<div class="p-6">
 			<h3 class="text-lg font-semibold text-text mb-4">
 				{tr('settings.profile.title')}

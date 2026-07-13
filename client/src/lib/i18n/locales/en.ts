@@ -217,6 +217,7 @@ export const en: TranslationKeys = {
 		}
 	},
 	barcodeToggle: {
+		label: 'Barcode',
 		show: 'Show barcodes',
 		hide: 'Hide barcodes'
 	},
@@ -852,7 +853,11 @@ export const en: TranslationKeys = {
 		securityNote: 'This link is single-use and expires after 7 days.'
 	},
 	profile: {
-		title: 'My Profile'
+		title: 'My Profile',
+		securityLink: {
+			title: 'Security',
+			description: 'Password, two-factor authentication and active sessions'
+		}
 	},
 	settings: {
 		title: 'Settings',

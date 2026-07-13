@@ -236,19 +236,16 @@
 	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
 		{@const barcodeValue = model.barcodeValue}
-		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center gap-1 rounded-lg border border-border-soft bg-surface-1 p-3 ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft bg-surface-1 p-3 ${model.isActive ? '' : 'opacity-50 grayscale'}`}
 		{#snippet barcodeContent()}
+			<!-- Barcode image only; the raw value already shows masked in the
+			     footer (·· 1234), so no duplicate full-value text here. -->
 			<Barcode
 				value={barcodeValue}
 				type={model.barcodeType}
 				height={compact ? 50 : 64}
 				maxHeight={compact ? 50 : 64}
 			/>
-			<span
-				class="break-all text-center font-mono text-[0.7rem] text-text-subtle"
-			>
-				{barcodeValue}
-			</span>
 		{/snippet}
 		{#if onShowBarcode}
 			<button

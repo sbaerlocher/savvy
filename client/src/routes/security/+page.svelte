@@ -181,10 +181,7 @@
 			<div class="w-full lg:w-2/3 space-y-6">
 				<!-- Password Change -->
 				{#if profile.auth_provider === 'local'}
-					<div
-						class="bg-white rounded-lg shadow-lg overflow-hidden"
-						style="border-left: 6px solid #06b6d4"
-					>
+					<div class="overflow-hidden rounded-xl border border-border bg-white">
 						<div class="p-6">
 							<h3 class="text-lg font-semibold text-text mb-4">
 								{tr('settings.password.title')}
@@ -292,10 +289,7 @@
 						</div>
 					</div>
 				{:else}
-					<div
-						class="bg-white rounded-lg shadow-lg overflow-hidden"
-						style="border-left: 6px solid #06b6d4"
-					>
+					<div class="overflow-hidden rounded-xl border border-border bg-white">
 						<div class="p-6">
 							<h3 class="text-lg font-semibold text-text mb-4">
 								{tr('settings.password.title')}
@@ -322,8 +316,7 @@
 			<!-- Active Sessions (on mobile: second, on desktop: right side) -->
 			<div class="w-full lg:w-1/3">
 				<div
-					class="bg-white rounded-lg shadow-lg p-6 overflow-hidden"
-					style="border-left: 6px solid #06b6d4"
+					class="overflow-hidden rounded-xl border border-border bg-white p-6"
 				>
 					<div class="flex items-center justify-between mb-4">
 						<h3 class="text-lg font-semibold text-text">
