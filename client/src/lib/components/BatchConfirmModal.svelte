@@ -136,9 +136,10 @@
 		role="presentation"
 	></div>
 
-	<!-- Modal -->
+	<!-- Modal: bottom sheet on mobile, centered dialog on desktop -->
 	<div
-		class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-40 sm:pb-4"
+		class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4"
+		style="padding-bottom: env(safe-area-inset-bottom);"
 		onkeydown={handleKeydown}
 		role="dialog"
 		aria-modal="true"
@@ -147,9 +148,10 @@
 	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="max-w-md w-full p-6 shadow-xl {platform === 'ios'
-				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-2xl border border-white/30'
-				: 'bg-white rounded-lg'}"
+			class="w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
+			'ios'
+				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
+				: 'bg-white rounded-t-3xl sm:rounded-lg'}"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
