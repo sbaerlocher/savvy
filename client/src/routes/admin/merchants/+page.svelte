@@ -38,8 +38,8 @@
 		isLoading = true;
 		try {
 			const response = await merchantsApi.list();
+			// $effect (below) re-runs applyFilters() reactively on merchants change.
 			merchants = response.merchants;
-			applyFilters();
 		} catch {
 			toastStore.error($t('admin.merchants.loadError'));
 		} finally {
@@ -416,7 +416,9 @@
 														<button
 															onclick={() => (deleteTarget = merchant)}
 															disabled={isOffline}
-															class="btn btn-sm btn-ghost text-red-600 hover:text-red-700"
+															class="btn btn-sm btn-ghost text-red-600 hover:text-red-700 {isOffline
+																? 'opacity-50 cursor-not-allowed'
+																: ''}"
 														>
 															{$t('common.delete')}
 														</button>
