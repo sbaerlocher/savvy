@@ -84,6 +84,7 @@ export type TranslationKeys = {
 		card: string;
 		voucher: string;
 		gift_card: string;
+		merchant: string;
 		done: string;
 		sort: string;
 		resetFilters: string;
