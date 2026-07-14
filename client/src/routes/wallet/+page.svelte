@@ -698,12 +698,31 @@
 					calls.push(batchApi.transferGiftCards(groups.giftCards, email));
 			}
 
-			const results = await Promise.all(calls);
-			const result = {
-				success_count: results.reduce((n, r) => n + r.success_count, 0),
-				failed: results.flatMap((r) => r.failed || [])
-			};
 			const ids = [...groups.cards, ...groups.vouchers, ...groups.giftCards];
+			// allSettled, not all: a rejected type-group must not discard the
+			// groups that already committed server-side. Fulfilled results are
+			// aggregated; a rejected group is reported as a failed item so the
+			// UI still reloads and clears the selection below.
+			const settled = await Promise.allSettled(calls);
+			const result = {
+				success_count: settled.reduce(
+					(n, s) => n + (s.status === 'fulfilled' ? s.value.success_count : 0),
+					0
+				),
+				failed: settled.flatMap((s) =>
+					s.status === 'fulfilled'
+						? s.value.failed || []
+						: [
+								{
+									id: '',
+									error:
+										s.reason instanceof ApiError
+											? s.reason.message
+											: 'batch.error'
+								}
+							]
+				)
+			};
 
 			const failed = result.failed || [];
 			if (failed.length === 0) {
