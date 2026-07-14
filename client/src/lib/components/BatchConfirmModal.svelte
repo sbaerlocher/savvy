@@ -138,8 +138,7 @@
 
 	<!-- Modal: bottom sheet on mobile, centered dialog on desktop -->
 	<div
-		class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4"
-		style="padding-bottom: env(safe-area-inset-bottom);"
+		class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center pb-[env(safe-area-inset-bottom)] sm:p-4"
 		onkeydown={handleKeydown}
 		role="dialog"
 		aria-modal="true"
