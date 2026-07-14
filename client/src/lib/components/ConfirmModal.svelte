@@ -46,7 +46,7 @@
 {#if show}
 	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 z-40 {platform === 'ios'
+		class="fixed inset-0 z-[55] {platform === 'ios'
 			? 'bg-black/40 backdrop-blur-sm'
 			: 'bg-black bg-opacity-50'}"
 		onclick={handleBackdropClick}
@@ -54,17 +54,17 @@
 		role="presentation"
 	></div>
 
-	<!-- Modal -->
+	<!-- Modal: bottom sheet on mobile, centered dialog on desktop -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-52 sm:pb-4"
+		class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pb-[env(safe-area-inset-bottom)] sm:p-4"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="modal-title"
 	>
 		<div
-			class="max-w-md w-full p-6 shadow-xl {platform === 'ios'
-				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-2xl border border-white/30'
-				: 'bg-white dark:bg-text-strong rounded-lg'}"
+			class="w-full sm:max-w-md p-6 shadow-xl {platform === 'ios'
+				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
+				: 'bg-white dark:bg-text-strong rounded-t-3xl sm:rounded-lg'}"
 		>
 			<!-- Header -->
 			<div class="flex items-start mb-4">
