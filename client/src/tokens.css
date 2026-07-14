@@ -156,7 +156,7 @@
 	--color-accent-hover: var(--color-accent-700);
 
 	/* ==========================================================================
-     COLOR — status
+     COLOR — status (flat accents, in use today)
      ========================================================================== */
 	--color-danger: #b23b30; /* delete / hard danger */
 	--color-danger-deep: #a3402f; /* notification dot / expired / danger badge */
@@ -168,11 +168,55 @@
 	--color-success-alt: #2f7d4f; /* Directions valid */
 
 	/* ==========================================================================
-     COLOR — dark chrome
+     COLOR — status scales (danger / success / warning / purple, 50–900)
+     ----------------------------------------------------------------------------
+     TODO(design): the app uses ~370 raw Tailwind status utilities across full
+     scales (bg-50 tints … text-800 ink) for badges, banners, form errors and
+     the btn-danger/success/warning/purple classes. These token NAMES are the
+     target the code will map onto; the VALUES below are TEMPORARY Tailwind-stock
+     placeholders so nothing changes visually yet. Replace with the committed
+     Direction-B status ramps authored in claude.ai/design (Button primitive,
+     §2d step 0), THEN migrate the raw utilities to bg-danger-50 / text-danger-800
+     / etc. Only the steps actually used in the app are defined.
      ========================================================================== */
-	--color-chrome: #0d0c0b; /* device bezel / dynamic island */
-	--color-barcode: #20201e; /* barcode bar fill (tiles) */
-	--color-barcode-ink: #17140f; /* barcode bar fill (modal) */
+	/* danger (maps red-*) */
+	--color-danger-50: #fef2f2; /* TODO(design) */
+	--color-danger-100: #fee2e2; /* TODO(design) */
+	--color-danger-200: #fecaca; /* TODO(design) */
+	--color-danger-300: #fca5a5; /* TODO(design) */
+	--color-danger-400: #f87171; /* TODO(design) */
+	--color-danger-600: #dc2626; /* TODO(design) — btn-danger bg */
+	--color-danger-700: #b91c1c; /* TODO(design) — btn-danger hover */
+	--color-danger-800: #991b1b; /* TODO(design) — danger ink */
+	--color-danger-900: #7f1d1d; /* TODO(design) */
+
+	/* success (maps green-*) */
+	--color-success-50: #f0fdf4; /* TODO(design) */
+	--color-success-100: #dcfce7; /* TODO(design) */
+	--color-success-200: #bbf7d0; /* TODO(design) */
+	--color-success-400: #4ade80; /* TODO(design) */
+	--color-success-600: #16a34a; /* TODO(design) — btn-success bg */
+	--color-success-700: #15803d; /* TODO(design) — btn-success hover */
+	--color-success-800: #166534; /* TODO(design) — success ink */
+
+	/* warning (maps yellow/orange-*) */
+	--color-warning-50: #fefce8; /* TODO(design) */
+	--color-warning-100: #fef9c3; /* TODO(design) */
+	--color-warning-200: #fef08a; /* TODO(design) */
+	--color-warning-300: #fde047; /* TODO(design) */
+	--color-warning-400: #facc15; /* TODO(design) */
+	--color-warning-600: #ca8a04; /* TODO(design) — btn-warning bg */
+	--color-warning-700: #a16207; /* TODO(design) — btn-warning hover */
+	--color-warning-800: #854d0e; /* TODO(design) — warning ink */
+	--color-warning-900: #713f12; /* TODO(design) */
+
+	/* purple (maps purple-*, transfer UI) */
+	--color-purple-50: #faf5ff; /* TODO(design) */
+	--color-purple-200: #e9d5ff; /* TODO(design) */
+	--color-purple-400: #c084fc; /* TODO(design) */
+	--color-purple-600: #9333ea; /* TODO(design) — btn-purple bg */
+	--color-purple-700: #7e22ce; /* TODO(design) — btn-purple hover */
+	--color-purple-900: #581c87; /* TODO(design) */
 
 	/* ==========================================================================
      RADIUS

@@ -34,6 +34,21 @@
 		background-size: 1.25rem;
 		padding-right: 2.25rem;
 	}
+
+	/* iOS floating nav offset – single source of truth for nav, batch panel and
+	   main content. Custom-property definitions belong in @layer base (not
+	   components): property resolution ignores layer order, so keeping them here
+	   makes the layering intent explicit. */
+	:root {
+		--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 1rem);
+	}
+
+	/* PWA standalone: safe-area is larger without Safari toolbar, reduce extra spacing */
+	@media (display-mode: standalone) {
+		:root {
+			--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 0.5rem);
+		}
+	}
 }
 
 @layer components {
@@ -124,11 +139,6 @@
 		@apply block text-sm font-medium text-text-ink2 mb-1;
 	}
 
-	/* iOS floating nav offset – single source of truth for nav, batch panel, and main content */
-	:root {
-		--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 1rem);
-	}
-
 	/* Mobile bottom navigation safe area */
 	.mobile-nav {
 		padding-bottom: env(safe-area-inset-bottom);
@@ -150,13 +160,6 @@
 	   collides with the safe area. Call sites must not set a Tailwind bottom-* . */
 	.mobile-nav-fab {
 		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
-	}
-
-	/* PWA standalone: safe-area is larger without Safari toolbar, reduce extra spacing */
-	@media (display-mode: standalone) {
-		:root {
-			--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 0.5rem);
-		}
 	}
 
 	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
