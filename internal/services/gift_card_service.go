@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
@@ -65,7 +66,7 @@ func (s *GiftCardService) CreateGiftCard(ctx context.Context, giftCard *models.G
 		return fmt.Errorf("create gift card: %w", err)
 	}
 
-	slog.Info("Gift card created", "gift_card_id", giftCard.ID, "merchant", giftCard.MerchantName, "balance", giftCard.InitialBalance)
+	slog.Info("Gift card created", "gift_card_id", giftCard.ID, "merchant", logsafe.String(giftCard.MerchantName), "balance", giftCard.InitialBalance)
 	return nil
 }
 

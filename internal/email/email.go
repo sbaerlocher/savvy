@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net"
 	"net/smtp"
+	"savvy/internal/logsafe"
 	"strings"
 	"time"
 )
@@ -599,11 +600,11 @@ func NewLogEmailService() *LogEmailService {
 // SendPasswordReset logs the password reset email.
 func (s *LogEmailService) SendPasswordReset(_ context.Context, toEmail, toName, resetURL, expiresIn, language string) error {
 	slog.Info("Email: Password Reset",
-		"to", toEmail,
-		"name", toName,
-		"reset_url", resetURL,
-		"expires_in", expiresIn,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"reset_url", logsafe.String(resetURL),
+		"expires_in", logsafe.String(expiresIn),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -611,10 +612,10 @@ func (s *LogEmailService) SendPasswordReset(_ context.Context, toEmail, toName, 
 // SendEmailVerification logs the email verification email.
 func (s *LogEmailService) SendEmailVerification(_ context.Context, toEmail, toName, verifyURL, language string) error {
 	slog.Info("Email: Email Verification",
-		"to", toEmail,
-		"name", toName,
-		"verify_url", verifyURL,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"verify_url", logsafe.String(verifyURL),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -622,9 +623,9 @@ func (s *LogEmailService) SendEmailVerification(_ context.Context, toEmail, toNa
 // SendAccountDeletionConfirmation logs the account deletion confirmation email.
 func (s *LogEmailService) SendAccountDeletionConfirmation(_ context.Context, toEmail, toName, language string) error {
 	slog.Info("Email: Account Deletion Confirmation",
-		"to", toEmail,
-		"name", toName,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -632,16 +633,16 @@ func (s *LogEmailService) SendAccountDeletionConfirmation(_ context.Context, toE
 // SendExpiryReminder logs the expiry reminder email.
 func (s *LogEmailService) SendExpiryReminder(_ context.Context, toEmail, toName string, data ExpiryReminderData, unsubscribeURL, language string) error {
 	slog.Info("Email: Expiry Reminder",
-		"to", toEmail,
-		"name", toName,
-		"merchant", data.MerchantName,
-		"resource_type", data.ResourceType,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"merchant", logsafe.String(data.MerchantName),
+		"resource_type", logsafe.String(data.ResourceType),
 		"days_left", data.DaysLeft,
 		"expires_at", data.ExpiresAt,
-		"code", data.Code,
+		"code", logsafe.String(data.Code),
 		"value", data.Value,
-		"unsubscribe_url", unsubscribeURL,
-		"language", language,
+		"unsubscribe_url", logsafe.String(unsubscribeURL),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -649,14 +650,14 @@ func (s *LogEmailService) SendExpiryReminder(_ context.Context, toEmail, toName 
 // SendValidityStart logs the validity start notification email.
 func (s *LogEmailService) SendValidityStart(_ context.Context, toEmail, toName string, data ValidityStartData, unsubscribeURL, language string) error {
 	slog.Info("Email: Validity Start",
-		"to", toEmail,
-		"name", toName,
-		"merchant", data.MerchantName,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"merchant", logsafe.String(data.MerchantName),
 		"valid_from", data.ValidFrom,
-		"code", data.Code,
+		"code", logsafe.String(data.Code),
 		"value", data.Value,
-		"unsubscribe_url", unsubscribeURL,
-		"language", language,
+		"unsubscribe_url", logsafe.String(unsubscribeURL),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -664,13 +665,13 @@ func (s *LogEmailService) SendValidityStart(_ context.Context, toEmail, toName s
 // SendShareNotification logs the share notification email.
 func (s *LogEmailService) SendShareNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
 	slog.Info("Email: Share Notification",
-		"to", toEmail,
-		"name", toName,
-		"from", fromName,
-		"resource_type", resourceType,
-		"resource_url", resourceURL,
-		"unsubscribe_url", unsubscribeURL,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"from", logsafe.String(fromName),
+		"resource_type", logsafe.String(resourceType),
+		"resource_url", logsafe.String(resourceURL),
+		"unsubscribe_url", logsafe.String(unsubscribeURL),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -678,13 +679,13 @@ func (s *LogEmailService) SendShareNotification(_ context.Context, toEmail, toNa
 // SendTransferNotification logs the transfer notification email.
 func (s *LogEmailService) SendTransferNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
 	slog.Info("Email: Transfer Notification",
-		"to", toEmail,
-		"name", toName,
-		"from", fromName,
-		"resource_type", resourceType,
-		"resource_url", resourceURL,
-		"unsubscribe_url", unsubscribeURL,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"from", logsafe.String(fromName),
+		"resource_type", logsafe.String(resourceType),
+		"resource_url", logsafe.String(resourceURL),
+		"unsubscribe_url", logsafe.String(unsubscribeURL),
+		"language", logsafe.String(language),
 	)
 	return nil
 }
@@ -692,9 +693,9 @@ func (s *LogEmailService) SendTransferNotification(_ context.Context, toEmail, t
 // SendTestEmail logs the test email.
 func (s *LogEmailService) SendTestEmail(_ context.Context, toEmail, toName, language string) error {
 	slog.Info("Email: Test Email",
-		"to", toEmail,
-		"name", toName,
-		"language", language,
+		"to", logsafe.String(toEmail),
+		"name", logsafe.String(toName),
+		"language", logsafe.String(language),
 	)
 	return nil
 }

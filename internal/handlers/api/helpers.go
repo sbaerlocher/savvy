@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"savvy/internal/validation"
@@ -102,7 +103,7 @@ func resolveMerchant(
 		// Create new merchant
 		merchant := &models.Merchant{Name: *newMerchantName}
 		if err := merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", *newMerchantName, "error", err)
+			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(*newMerchantName), "error", err)
 			return nil, "", c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "server_error",
 				Message: "Failed to create merchant",

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"savvy/internal/audit"
 	"savvy/internal/email"
+	"savvy/internal/logsafe"
 	"savvy/internal/middleware"
 	"savvy/internal/models"
 	"savvy/internal/repository"
@@ -546,7 +547,7 @@ func (h *AdminHandler) RestoreResource(c *echo.Context) error {
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", resourceType, "resource_id", resourceID.String())
+	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", logsafe.String(resourceType), "resource_id", resourceID.String())
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Resource restored successfully",

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
@@ -53,7 +54,7 @@ func (s *CardService) CreateCard(ctx context.Context, card *models.Card) error {
 		return fmt.Errorf("create card: %w", err)
 	}
 
-	slog.Info("Card created", "card_id", card.ID, "merchant", card.MerchantName)
+	slog.Info("Card created", "card_id", card.ID, "merchant", logsafe.String(card.MerchantName))
 	return nil
 }
 
