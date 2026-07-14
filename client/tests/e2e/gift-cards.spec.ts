@@ -122,7 +122,9 @@ test.describe('Gift Cards Management', () => {
 		await giftCardDetailPage.enterEditMode();
 		await giftCardDetailPage.deleteResource();
 
-		await expect(page).toHaveURL(/\/gift-cards\/?$/);
+		// After delete the detail page navigates to the legacy /gift-cards list,
+		// which redirects into the unified /wallet?type=gift-cards overview.
+		await expect(page).toHaveURL(/\/wallet\?type=gift-cards$/);
 	});
 
 	test('should add a transaction to gift card', async ({

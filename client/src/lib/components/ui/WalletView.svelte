@@ -41,7 +41,7 @@
 		VoucherDTO
 	} from '$lib/types/api';
 	import { get } from 'svelte/store';
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -471,9 +471,10 @@
 		}
 	});
 
-	// Barcode toggle: load persisted preference once mounted (localStorage is
-	// browser-only, so this must not run during SSR).
-	$effect(() => {
+	// Barcode toggle: load persisted preference once mounted. localStorage is
+	// browser-only (must not run during SSR) and this is a one-shot read, not a
+	// reactive effect (which would re-read on dep change and clobber the toggle).
+	onMount(() => {
 		showBarcodes = localStorage.getItem(barcodeStorageKey) === 'true';
 	});
 
