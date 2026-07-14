@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
@@ -69,7 +70,7 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 		return fmt.Errorf("create merchant: %w", err)
 	}
 
-	slog.Info("Merchant created", "merchant_id", merchant.ID, "name", merchant.Name)
+	slog.Info("Merchant created", "merchant_id", merchant.ID, "name", logsafe.String(merchant.Name))
 	return nil
 }
 
@@ -132,7 +133,7 @@ func (s *MerchantService) UpdateMerchant(ctx context.Context, merchant *models.M
 		return fmt.Errorf("update merchant %s: %w", merchant.ID, err)
 	}
 
-	slog.Info("Merchant updated", "merchant_id", merchant.ID, "name", merchant.Name)
+	slog.Info("Merchant updated", "merchant_id", merchant.ID, "name", logsafe.String(merchant.Name))
 	return nil
 }
 

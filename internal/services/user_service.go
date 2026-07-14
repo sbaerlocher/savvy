@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
@@ -64,7 +65,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 		return fmt.Errorf("create user: %w", err)
 	}
 
-	slog.Info("User created", "user_id", user.ID, "email", user.Email)
+	slog.Info("User created", "user_id", user.ID, "email", logsafe.String(user.Email))
 	return nil
 }
 

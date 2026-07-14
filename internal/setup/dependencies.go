@@ -38,9 +38,9 @@ func InitLogger(cfg *config.Config) (*slog.Logger, func(context.Context) error, 
 	)
 	if err != nil {
 		// Fallback to basic logger if OTEL fails
-		basicLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		basicLogger := slog.New(telemetry.NewSanitizingHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			Level: logLevel,
-		}))
+		})))
 		slog.SetDefault(basicLogger)
 		return basicLogger, func(_ context.Context) error { return nil }, fmt.Errorf("telemetry init failed: %w", err)
 	}
