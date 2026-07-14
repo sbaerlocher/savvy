@@ -145,6 +145,13 @@
 		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
 	}
 
+	/* Floating action button (new / edit): sit above the bottom nav and clear
+	   the home indicator / gesture bar. Shares the nav offset token so it never
+	   collides with the safe area. Call sites must not set a Tailwind bottom-* . */
+	.mobile-nav-fab {
+		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
+	}
+
 	/* PWA standalone: safe-area is larger without Safari toolbar, reduce extra spacing */
 	@media (display-mode: standalone) {
 		:root {

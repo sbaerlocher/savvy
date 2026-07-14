@@ -211,7 +211,7 @@
 		type="button"
 		onclick={onNew}
 		aria-label={$t('common.new')}
-		class="sm:hidden fixed bottom-20 right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab"
+		class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab"
 	>
 		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
