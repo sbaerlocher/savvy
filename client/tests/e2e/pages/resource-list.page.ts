@@ -86,9 +86,16 @@ export class ResourceListPage extends BasePage {
 				timeout: 10000
 			});
 		} catch (error) {
+			// The legacy → /wallet redirect aborts the initial navigation. Depending
+			// on timing Playwright reports this as either "interrupted by another
+			// navigation" or a net::ERR_ABORTED; both are expected here — the
+			// waitForURL below confirms we actually landed on the wallet.
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
-			if (!errorMessage.includes('interrupted by another navigation')) {
+			if (
+				!errorMessage.includes('interrupted by another navigation') &&
+				!errorMessage.includes('net::ERR_ABORTED')
+			) {
 				throw error;
 			}
 		}

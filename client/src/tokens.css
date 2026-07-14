@@ -8,276 +8,215 @@
        @import "tailwindcss";
        @import "./tokens.css";
 
-   Sources scanned: Savvy Native Nav, Savvy Prototype, Savvy Redesign,
-   Savvy Directions (+ Standalone), ResourceTile, WalletToolbar, BottomNav,
-   AndroidNav, SheetMenu, TypeChoice, TypeIcon.
+   Sources scanned: Savvy Native Nav, Savvy Prototype, ResourceTile,
+   WalletToolbar, BottomNav, AndroidNav, SheetMenu, TypeChoice, TypeIcon.
 
-   Two coherent palettes coexist in the project and are both captured here:
-     • Core app  — warm neutrals + cyan accent  (Instrument Sans / IBM Plex Mono)
-     • Redesign  — warm paper + deep-teal brand  (Space Grotesk / Space Mono)
-   Recurring near-duplicates are folded; the accent/teal family is modelled as a
-   numbered scale and semantic tokens reference it.
+   Direction B (the committed design): warm neutrals + cyan accent, Instrument
+   Sans / IBM Plex Mono. The accent/teal family is a numbered scale and the
+   semantic accent tokens reference it. (The earlier deep-teal "Redesign"
+   direction was dropped; its dead tokens have been pruned.)
    ========================================================================== */
 
 @theme {
-
-  /* ==========================================================================
+	/* ==========================================================================
      TYPOGRAPHY — font families
      ========================================================================== */
-  /* Primary app UI (Prototype, Native Nav, all components).
+	/* Primary app UI (Prototype, Native Nav, all components).
      Family name matches the self-hosted @fontsource-variable package. */
-  --font-sans:    "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
-  /* Redesign direction + Directions option cards */
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-mono-alt:"Space Mono", ui-monospace, monospace;
-  /* Directions document chrome */
-  --font-doc:     "Hanken Grotesk", system-ui, sans-serif;
+	--font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
-  /* ==========================================================================
+	/* ==========================================================================
      TYPOGRAPHY — type steps  (size / line-height + weight + tracking companions)
      ========================================================================== */
-  /* Display — dashboard & prototype headers (34/32px, 700, tight) */
-  --text-display: 2.125rem;              /* 34px */
-  --text-display--line-height: 1.05;
-  --text-display--font-weight: 700;
-  --text-display--letter-spacing: -0.025em;
+	/* Display — dashboard & prototype headers (34/32px, 700, tight) */
+	--text-display: 2.125rem; /* 34px */
+	--text-display--line-height: 1.05;
+	--text-display--font-weight: 700;
+	--text-display--letter-spacing: -0.025em;
 
-  /* Screen title — "Wallet" / "Deine Favoriten" (25–30px, 700) */
-  --text-title: 1.5625rem;               /* 25px */
-  --text-title--line-height: 1.1;
-  --text-title--font-weight: 700;
-  --text-title--letter-spacing: -0.025em;
+	/* Screen title — "Wallet" / "Deine Favoriten" (25–30px, 700) */
+	--text-title: 1.5625rem; /* 25px */
+	--text-title--line-height: 1.1;
+	--text-title--font-weight: 700;
+	--text-title--letter-spacing: -0.025em;
 
-  /* Section heading — gallery / section titles (20px, 700) */
-  --text-heading: 1.25rem;               /* 20px */
-  --text-heading--line-height: 1.2;
-  --text-heading--font-weight: 700;
-  --text-heading--letter-spacing: -0.02em;
+	/* Section heading — gallery / section titles (20px, 700) */
+	--text-heading: 1.25rem; /* 20px */
+	--text-heading--line-height: 1.2;
+	--text-heading--font-weight: 700;
+	--text-heading--letter-spacing: -0.02em;
 
-  /* Merchant / row name (15.5px, 600) */
-  --text-subheading: 0.96875rem;         /* 15.5px */
-  --text-subheading--line-height: 1.2;
-  --text-subheading--font-weight: 600;
-  --text-subheading--letter-spacing: -0.01em;
+	/* Merchant / row name (15.5px, 600) */
+	--text-subheading: 0.96875rem; /* 15.5px */
+	--text-subheading--line-height: 1.2;
+	--text-subheading--font-weight: 600;
+	--text-subheading--letter-spacing: -0.01em;
 
-  /* Body — intros & descriptions (14px, 400) */
-  --text-body: 0.875rem;                 /* 14px */
-  --text-body--line-height: 1.5;
-  --text-body--font-weight: 400;
+	/* Body — intros & descriptions (14px, 400) */
+	--text-body: 0.875rem; /* 14px */
+	--text-body--line-height: 1.5;
+	--text-body--font-weight: 400;
 
-  /* Body small — helper / secondary copy (12.5px, 400) */
-  --text-body-sm: 0.78125rem;            /* 12.5px */
-  --text-body-sm--line-height: 1.55;
-  --text-body-sm--font-weight: 400;
+	/* Body small — helper / secondary copy (12.5px, 400) */
+	--text-body-sm: 0.78125rem; /* 12.5px */
+	--text-body-sm--line-height: 1.55;
+	--text-body-sm--font-weight: 400;
 
-  /* Label — button / nav labels (13px, 600) */
-  --text-label: 0.8125rem;               /* 13px */
-  --text-label--line-height: 1.3;
-  --text-label--font-weight: 600;
+	/* Label — button / nav labels (13px, 600) */
+	--text-label: 0.8125rem; /* 13px */
+	--text-label--line-height: 1.3;
+	--text-label--font-weight: 600;
 
-  /* Eyebrow — uppercase kicker (11px, 600, wide tracking) */
-  --text-eyebrow: 0.6875rem;             /* 11px */
-  --text-eyebrow--line-height: 1.2;
-  --text-eyebrow--font-weight: 600;
-  --text-eyebrow--letter-spacing: 0.05em;
+	/* Eyebrow — uppercase kicker (11px, 600, wide tracking) */
+	--text-eyebrow: 0.6875rem; /* 11px */
+	--text-eyebrow--line-height: 1.2;
+	--text-eyebrow--font-weight: 600;
+	--text-eyebrow--letter-spacing: 0.05em;
 
-  /* Type tag — tiny uppercase resource-type label (9.5px, 600, wider) */
-  --text-tag: 0.59375rem;                /* 9.5px */
-  --text-tag--line-height: 1.2;
-  --text-tag--font-weight: 600;
-  --text-tag--letter-spacing: 0.06em;
+	/* Type tag — tiny uppercase resource-type label (9.5px, 600, wider) */
+	--text-tag: 0.59375rem; /* 9.5px */
+	--text-tag--line-height: 1.2;
+	--text-tag--font-weight: 600;
+	--text-tag--letter-spacing: 0.06em;
 
-  /* Chip — filter / pill chips (12.5px, 600) */
-  --text-chip: 0.78125rem;               /* 12.5px */
-  --text-chip--line-height: 1;
-  --text-chip--font-weight: 600;
+	/* Chip — filter / pill chips (12.5px, 600) */
+	--text-chip: 0.78125rem; /* 12.5px */
+	--text-chip--line-height: 1;
+	--text-chip--font-weight: 600;
 
-  /* Amount — mono value on tiles (16px, 600) */
-  --text-amount: 1rem;                   /* 16px */
-  --text-amount--line-height: 1;
-  --text-amount--font-weight: 600;
+	/* Amount — mono value on tiles (16px, 600) */
+	--text-amount: 1rem; /* 16px */
+	--text-amount--line-height: 1;
+	--text-amount--font-weight: 600;
 
-  /* Mono code — full-screen barcode number (15px, 600, letter-spaced) */
-  --text-code: 0.9375rem;                /* 15px */
-  --text-code--line-height: 1.2;
-  --text-code--font-weight: 600;
-  --text-code--letter-spacing: 0.22em;
+	/* Mono code — full-screen barcode number (15px, 600, letter-spaced) */
+	--text-code: 0.9375rem; /* 15px */
+	--text-code--line-height: 1.2;
+	--text-code--font-weight: 600;
+	--text-code--letter-spacing: 0.22em;
 
-  /* Mono caption — masked number / barcode type (11px, 400) */
-  --text-mono-sm: 0.6875rem;             /* 11px */
-  --text-mono-sm--line-height: 1.2;
-  --text-mono-sm--font-weight: 400;
-  --text-mono-sm--letter-spacing: 0.06em;
+	/* Mono caption — masked number / barcode type (11px, 400) */
+	--text-mono-sm: 0.6875rem; /* 11px */
+	--text-mono-sm--line-height: 1.2;
+	--text-mono-sm--font-weight: 400;
+	--text-mono-sm--letter-spacing: 0.06em;
 
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — neutral ground & surfaces (warm greys)
      ========================================================================== */
-  --color-ground:        #eceae4;  /* app canvas / body background */
-  --color-ground-active: #eceae2;  /* pressed neutral (Android ripple) */
-  --color-paper:         #f4f2ee;  /* device screen / redesign paper */
-  --color-paper-warm:    #f4f2ec;  /* redesign --paper */
+	--color-ground: #eceae4; /* app canvas / body background */
+	--color-ground-active: #eceae2; /* pressed neutral (Android ripple) */
+	--color-paper: #f4f2ee; /* device screen */
 
-  --color-surface:       #ffffff;  /* cards, tiles, inputs */
-  --color-surface-raised:#fffdf8;  /* redesign --surface (raised card) */
-  --color-surface-1:     #fbfaf7;  /* subtle raised chip / badge bg */
-  --color-surface-2:     #faf9f5;  /* inset field / barcode box bg */
-  --color-surface-3:     #fdfcf9;  /* Android nav surface */
-  --color-surface-sunk:  #efece3;  /* redesign --surface2 (sunken) */
-  --color-tile-tint:     #efece6;  /* icon tile tint on surfaces */
+	--color-surface: #ffffff; /* cards, tiles, inputs */
+	--color-surface-1: #fbfaf7; /* subtle raised chip / badge bg */
+	--color-surface-2: #faf9f5; /* inset field / barcode box bg */
+	--color-surface-3: #fdfcf9; /* Android nav surface */
+	--color-tile-tint: #efece6; /* icon tile tint on surfaces */
 
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — text
      ========================================================================== */
-  --color-text:         #232120;  /* primary ink */
-  --color-text-strong:  #17140f;  /* redesign ink (deepest) */
-  --color-text-muted:   #6b655e;  /* secondary */
-  --color-text-subtle:  #8a8378;  /* tertiary / eyebrow */
-  --color-text-faint:   #a39c90;  /* faint kicker / meta */
-  --color-text-placeholder:#b7b0a4;/* input placeholder */
-  --color-text-mono-faint: #c3bcae;/* faint mono (barcode type) */
-  --color-text-ink2:    #57514a;  /* redesign --ink2 */
+	--color-text: #232120; /* primary ink */
+	--color-text-strong: #17140f; /* deepest ink (text-strong) */
+	--color-text-muted: #6b655e; /* secondary */
+	--color-text-subtle: #8a8378; /* tertiary / eyebrow */
+	--color-text-faint: #a39c90; /* faint kicker / meta */
+	--color-text-placeholder: #b7b0a4; /* input placeholder */
+	--color-text-mono-faint: #c3bcae; /* faint mono (barcode type) */
+	--color-text-ink2: #57514a; /* secondary ink (text-ink2) */
 
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — borders / lines
      ========================================================================== */
-  --color-border:        #e5e0d8;  /* default card / control border */
-  --color-border-soft:   #ece7de;  /* softer divider (nav, sections) */
-  --color-border-strong: #e0dace;  /* stronger phone frame border */
-  --color-line:          #ddd7cc;  /* hairline separators / redesign --line */
-  --color-line-warm:     #dcd7cc;  /* redesign --line */
-  --color-border-field:  #d8d2c8;  /* input / toolbar borders */
-  --color-border-chip:   #d3ccbe;  /* outlined chip border (M3) */
+	--color-border: #e5e0d8; /* default card / control border */
+	--color-border-soft: #ece7de; /* softer divider (nav, sections) */
+	--color-border-strong: #e0dace; /* stronger phone frame border */
+	--color-line: #ddd7cc; /* hairline separators */
+	--color-border-field: #d8d2c8; /* input / toolbar borders */
+	--color-border-chip: #d3ccbe; /* outlined chip border (M3) */
 
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — accent / brand (teal–cyan scale)
      Numbered scale; semantic tokens reference specific steps.
      ========================================================================== */
-  --color-accent-50:  #eef2f2;  /* faint teal tint (button/row bg) */
-  --color-accent-100: #cfe4e6;  /* M3 filter-chip tint */
-  --color-accent-200: #d3e0e0;  /* teal-neutral border */
-  --color-accent-300: #6fb9c0;  /* dark-theme brand */
-  --color-accent-400: #5fa9b0;  /* dark-theme card accent */
-  --color-accent-600: #2b808d;  /* PRIMARY cyan accent */
-  --color-accent-700: #236974;  /* hover */
-  --color-accent-800: #1d6470;  /* active (iOS nav ink) */
-  --color-accent-850: #1d5f69;  /* active (Android icon ink) */
-  --color-accent-900: #124c52;  /* redesign deep-teal brand */
-  --color-accent-950: #0c3a3f;  /* brand ink (pressed) */
-  --color-accent-ink: #12262a;  /* teal-tinted text ink (Directions) */
+	--color-accent-50: #eef2f2; /* faint teal tint (button/row bg) */
+	--color-accent-100: #cfe4e6; /* M3 filter-chip tint */
+	--color-accent-200: #d3e0e0; /* teal-neutral border */
+	--color-accent-400: #5fa9b0; /* card accent */
+	--color-accent-600: #2b808d; /* PRIMARY cyan accent */
+	--color-accent-700: #236974; /* hover */
+	--color-accent-800: #1d6470; /* active (iOS nav ink) */
+	--color-accent-850: #1d5f69; /* active (Android icon ink) */
+	--color-accent-900: #124c52; /* darkest hover ink (text-accent-900) */
 
-  /* Semantic accent roles */
-  --color-accent:        var(--color-accent-600);
-  --color-accent-hover:  var(--color-accent-700);
-  --color-accent-active: var(--color-accent-800);
-  --color-accent-tint:   var(--color-accent-100);
-  --color-brand:         var(--color-accent-900);
-  --color-brand-ink:     var(--color-accent-950);
-  --color-on-accent:     #ffffff;  /* text/icon on accent fill */
-  --color-on-brand:      #f4f2ec;  /* text on deep-teal brand */
+	/* Semantic accent roles */
+	--color-accent: var(--color-accent-600);
+	--color-accent-hover: var(--color-accent-700);
 
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — status
      ========================================================================== */
-  --color-danger:        #b23b30;  /* delete / hard danger (redesign) */
-  --color-danger-deep:   #a3402f;  /* notification dot / expired / danger badge */
-  --color-warn:          #a9760b;  /* amber / offline (redesign) */
-  --color-warn-deep:     #8a6410;  /* warn expiry badge text */
-  --color-warn-alt:      #9a6b08;  /* Directions warn */
-  --color-success:       #3f9d5a;  /* online dot */
-  --color-success-deep:  #4a6a4f;  /* valid expiry badge text */
-  --color-success-alt:   #2f7d4f;  /* Directions valid */
+	--color-danger: #b23b30; /* delete / hard danger */
+	--color-danger-deep: #a3402f; /* notification dot / expired / danger badge */
+	--color-warn: #a9760b; /* amber / offline */
+	--color-warn-deep: #8a6410; /* warn expiry badge text */
+	--color-warn-alt: #9a6b08; /* Directions warn */
+	--color-success: #3f9d5a; /* online dot */
+	--color-success-deep: #4a6a4f; /* valid expiry badge text */
+	--color-success-alt: #2f7d4f; /* Directions valid */
 
-  /* ==========================================================================
-     COLOR — resource accents (semantic, per resource type)
-     Redesign kind colors — used for card / voucher / gift card.
-     ========================================================================== */
-  --color-card:     #124c52;  /* Karte */
-  --color-voucher:  #3f7a4e;  /* Voucher */
-  --color-giftcard: #6b4fa3;  /* Geschenkkarte */
-
-  /* Per-tile accent palette (literal accents passed to ResourceTile) */
-  --color-accent-brown:  #b07d5f;  /* Migros / warm card */
-  --color-accent-green:  #7f9471;  /* Coop card */
-  --color-accent-blue:   #6b7f9c;  /* SBB card */
-  --color-accent-olive:  #9c8f6b;  /* Fust card */
-  --color-accent-slate:  #8a95a0;  /* Globus card */
-  --color-accent-purple: #8a7099;  /* Digitec voucher */
-  --color-accent-rose:   #b0757f;  /* Zalando voucher */
-  --color-accent-clay:   #a86b6b;  /* H&M voucher */
-  --color-accent-gold:   #c0a054;  /* IKEA gift card */
-
-  /* Merchant brand marks (Redesign) */
-  --color-merchant-migros:  #ff7a00;
-  --color-merchant-coop:    #e2001a;
-  --color-merchant-sbb:     #eb0000;
-  --color-merchant-ikea:    #0057a3;
-  --color-merchant-digitec: #3b3b3b;
-  --color-merchant-zalando: #ff6900;
-
-  /* ==========================================================================
+	/* ==========================================================================
      COLOR — dark chrome
      ========================================================================== */
-  --color-chrome:      #0d0c0b;  /* device bezel / dynamic island */
-  --color-barcode:     #20201e;  /* barcode bar fill (tiles) */
-  --color-barcode-ink: #17140f;  /* barcode bar fill (modal) */
+	--color-chrome: #0d0c0b; /* device bezel / dynamic island */
+	--color-barcode: #20201e; /* barcode bar fill (tiles) */
+	--color-barcode-ink: #17140f; /* barcode bar fill (modal) */
 
-  /* ==========================================================================
-     COLOR — dark theme (Redesign [data-theme="dark"])
-     ========================================================================== */
-  --color-dark-paper:      #131210;
-  --color-dark-surface:    #1d1b18;
-  --color-dark-surface-2:  #262320;
-  --color-dark-ink:        #f2efe8;
-  --color-dark-ink2:       #a49d92;
-  --color-dark-line:       #35302a;
-  --color-dark-brand:      #6fb9c0;
-  --color-dark-brand-ink:  #9ad3d8;
-  --color-dark-on-brand:   #0e2a2d;
-  --color-dark-accent:     #e88a4f;
-  --color-dark-danger:     #e0685c;
-  --color-dark-amber:      #d6a24a;
-
-  /* ==========================================================================
+	/* ==========================================================================
      RADIUS
      ========================================================================== */
-  --radius-xs:     4px;   /* tiny tags */
-  --radius-sm:     7px;   /* small controls / badges */
-  --radius-md:     9px;   /* chips, inset boxes */
-  --radius-lg:     11px;  /* buttons, icon squares */
-  --radius-xl:     13px;  /* inputs, list rows */
-  --radius-2xl:    15px;  /* tiles, cards */
-  --radius-3xl:    18px;  /* raised cards / bars */
-  --radius-4xl:    22px;  /* hero card / sheet body */
-  --radius-sheet:  24px;  /* bottom-sheet top */
-  --radius-modal:  26px;  /* barcode modal */
-  --radius-phone:  35px;  /* phone screen inner */
-  --radius-device: 45px;  /* device screen (iOS) */
-  --radius-bezel:  56px;  /* device outer bezel */
-  --radius-full:   999px; /* pills / circles */
+	--radius-xs: 4px; /* tiny tags */
+	--radius-sm: 7px; /* small controls / badges */
+	--radius-md: 9px; /* chips, inset boxes */
+	--radius-lg: 11px; /* buttons, icon squares */
+	--radius-xl: 13px; /* inputs, list rows */
+	--radius-2xl: 15px; /* tiles, cards */
+	--radius-3xl: 18px; /* raised cards / bars */
+	--radius-4xl: 22px; /* hero card / sheet body */
+	--radius-sheet: 24px; /* bottom-sheet top */
+	--radius-modal: 26px; /* barcode modal */
+	--radius-phone: 35px; /* phone screen inner */
+	--radius-device: 45px; /* device screen (iOS) */
+	--radius-bezel: 56px; /* device outer bezel */
+	--radius-full: 999px; /* pills / circles */
 
-  /* ==========================================================================
+	/* ==========================================================================
      SHADOW
      ========================================================================== */
-  --shadow-sm:     0 4px 12px rgba(43,128,141,0.28);                                          /* accent button */
-  --shadow-accent: 0 4px 12px rgba(43,128,141,0.34);                                          /* accent button (strong) */
-  --shadow-card:   0 8px 30px rgba(0,0,0,0.14);                                               /* floating nav / card */
-  --shadow-panel:  0 22px 60px rgba(40,36,32,0.13);                                           /* desktop / phone panel */
-  --shadow-hero:   0 10px 30px rgba(18,76,82,0.28);                                           /* redesign hero */
-  --shadow-fab:    0 8px 18px rgba(43,128,141,0.42), 0 2px 5px rgba(40,36,32,0.22);           /* Android FAB */
-  --shadow-glass:  0 14px 36px rgba(40,36,32,0.20), 0 2px 6px rgba(40,36,32,0.10), inset 0 1px 0 rgba(255,255,255,0.85); /* liquid-glass nav */
-  --shadow-device: 0 34px 80px rgba(40,36,32,0.24);                                           /* device drop */
-  --shadow-sheet:  0 -10px 34px rgba(0,0,0,0.16);                                             /* iOS bottom sheet */
-  --shadow-modal:  0 30px 70px rgba(0,0,0,0.40);                                              /* barcode modal */
-  --shadow-batch:  0 10px 30px rgba(0,0,0,0.25);                                              /* batch action bar */
+	--shadow-sm: 0 4px 12px rgba(43, 128, 141, 0.28); /* accent button */
+	--shadow-accent: 0 4px 12px rgba(43, 128, 141, 0.34); /* accent button (strong) */
+	--shadow-card: 0 8px 30px rgba(0, 0, 0, 0.14); /* floating nav / card */
+	--shadow-panel: 0 22px 60px rgba(40, 36, 32, 0.13); /* desktop / phone panel */
+	--shadow-hero: 0 10px 30px rgba(18, 76, 82, 0.28); /* hero elevation */
+	--shadow-fab:
+		0 8px 18px rgba(43, 128, 141, 0.42), 0 2px 5px rgba(40, 36, 32, 0.22); /* Android FAB */
+	--shadow-glass:
+		0 14px 36px rgba(40, 36, 32, 0.2), 0 2px 6px rgba(40, 36, 32, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.85); /* liquid-glass nav */
+	--shadow-device: 0 34px 80px rgba(40, 36, 32, 0.24); /* device drop */
+	--shadow-sheet: 0 -10px 34px rgba(0, 0, 0, 0.16); /* iOS bottom sheet */
+	--shadow-modal: 0 30px 70px rgba(0, 0, 0, 0.4); /* barcode modal */
+	--shadow-batch: 0 10px 30px rgba(0, 0, 0, 0.25); /* batch action bar */
 
-  /* ==========================================================================
+	/* ==========================================================================
      SPACING — recurring layout rhythm
      ========================================================================== */
-  --spacing-tile:    14px;  /* tile inner padding */
-  --spacing-screen:  17px;  /* phone screen side padding */
-  --spacing-card:    22px;  /* hero / large card padding */
-  --spacing-page-y:  44px;  /* canvas page padding (top) */
-  --spacing-page-x:  48px;  /* canvas page padding (sides) */
-  --spacing-section: 46px;  /* gap between major sections */
+	--spacing-tile: 14px; /* tile inner padding */
+	--spacing-screen: 17px; /* phone screen side padding */
+	--spacing-card: 22px; /* hero / large card padding */
+	--spacing-page-y: 44px; /* canvas page padding (top) */
+	--spacing-page-x: 48px; /* canvas page padding (sides) */
+	--spacing-section: 46px; /* gap between major sections */
 }
