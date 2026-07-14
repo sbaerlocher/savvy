@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
 	import { isOnline as isOnlineStore } from '$lib/stores/offline';
+	import { platform } from '$lib/utils/platform';
 	import { slide, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 
@@ -37,12 +38,10 @@
 		data-testid="offline-indicator"
 		in:slide={{ duration: 300, easing: quintOut }}
 		out:fade={{ duration: 200 }}
-		class="fixed top-0 left-0 right-0 z-[100] pb-3 border-b"
+		class="fixed top-0 left-0 right-0 z-[100] pb-3 border-b {platform === 'android'
+			? 'bg-[#FFFBFE] border-[#CAC4D0] shadow-[0_2px_6px_rgba(0,0,0,0.08)]'
+			: 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-white/40 shadow-lg'}"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));"
-		class:bg-yellow-50={bannerType === 'warning'}
-		class:bg-green-50={bannerType === 'success'}
-		class:border-yellow-200={bannerType === 'warning'}
-		class:border-green-200={bannerType === 'success'}
 	>
 		<div class="container mx-auto flex items-center justify-between">
 			<div class="flex items-center gap-2">
