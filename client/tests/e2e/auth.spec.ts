@@ -80,9 +80,17 @@ test.describe('Authentication', () => {
 		);
 		await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
 
-		for (const path of ['/cards', '/vouchers', '/gift-cards', '/dashboard']) {
+		// Legacy list routes redirect into the unified /wallet overview
+		// (type-filtered); /dashboard stays. Assert the effective URL after redirect.
+		const navigations: Array<[string, string]> = [
+			['/cards', '/wallet?type=cards'],
+			['/vouchers', '/wallet?type=vouchers'],
+			['/gift-cards', '/wallet?type=gift-cards'],
+			['/dashboard', '/dashboard']
+		];
+		for (const [path, expectedUrl] of navigations) {
 			await page.goto(path);
-			await expect(page).toHaveURL(path);
+			await expect(page).toHaveURL(expectedUrl);
 		}
 	});
 });

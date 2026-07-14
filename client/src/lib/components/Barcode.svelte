@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import bwipjs from 'bwip-js';
+	import type bwipjsType from 'bwip-js';
 	import { logger } from '$lib/utils/logger';
+
+	// bwip-js is ~1 MB and only needed once a barcode actually renders. A static
+	// import pulls it into the first-paint chunk of every route that mounts a
+	// ResourceTile (/wallet, /dashboard) even when all barcodes are collapsed.
+	// Load it on demand and cache the module across re-renders.
+	let bwipjs: typeof bwipjsType | undefined;
+	async function loadBwip() {
+		if (!bwipjs) bwipjs = (await import('bwip-js')).default;
+		return bwipjs;
+	}
 
 	const componentLogger = logger.child('Barcode');
 
@@ -62,8 +72,22 @@
 		generateBarcode();
 	});
 
-	function generateBarcode() {
+	async function generateBarcode() {
 		if (!canvas || !value) return;
+
+		// A newer render may have started while the module loaded; the canvas/value
+		// guard above plus bwip's synchronous draw make a stale draw harmless here.
+		// Guard the dynamic import so a ChunkLoadError (e.g. a stale service worker
+		// pointing at a rotated chunk hash) degrades to the error placeholder
+		// instead of an unhandled rejection + blank canvas.
+		let bwip: Awaited<ReturnType<typeof loadBwip>>;
+		try {
+			bwip = await loadBwip();
+		} catch (err) {
+			componentLogger.error('Failed to load bwip-js:', err);
+			hasError = true;
+			return;
+		}
 
 		const bcid = formatMap[type.toUpperCase()] || 'code128';
 
@@ -77,7 +101,7 @@
 		].includes(bcid);
 
 		// bwip-js options
-		const options: Parameters<typeof bwipjs.toCanvas>[1] = {
+		const options: Parameters<typeof bwip.toCanvas>[1] = {
 			bcid,
 			text: value,
 			includetext: displayValue,
@@ -100,7 +124,7 @@
 		}
 
 		try {
-			bwipjs.toCanvas(canvas, options);
+			bwip.toCanvas(canvas, options);
 			hasError = false;
 		} catch (err) {
 			// If a type-specific format failed, fall back to CODE128 (accepts any content)
@@ -110,7 +134,7 @@
 					err
 				);
 				try {
-					bwipjs.toCanvas(canvas, { ...options, bcid: 'code128' });
+					bwip.toCanvas(canvas, { ...options, bcid: 'code128' });
 					hasError = false;
 					return;
 				} catch {
