@@ -179,7 +179,10 @@
 
 	{#if isLoading}
 		<LoadingSpinner />
-	{:else if giftCard}
+	{:else}
+		<!-- Mounted unconditionally so ResourceDetail owns the not-found state
+		     ({#if resource}…{:else}) — prevents the #121 white screen when the
+		     resource is null and not loading (offline / 403 / 404). -->
 		<ResourceDetail
 			kind="gift_card"
 			bind:resource={giftCard}

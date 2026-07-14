@@ -159,7 +159,7 @@
 			favoriteApi: (id) => vouchersApi.toggleFavorite(id),
 			offlineDelete: (id) => offlineDB.deleteVoucher(id),
 			i18n: {
-				titleFallback: 'common.voucher',
+				titleFallback: 'vouchers.title',
 				sharedBy: 'vouchers.sharedBy',
 				deleteButton: 'vouchers.deleteButton',
 				deleteConfirm: 'vouchers.deleteConfirm',
