@@ -45,6 +45,7 @@
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { getGiftCardStatus } from '$lib/utils/resource-status';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -364,17 +365,17 @@
 		let result = giftCards;
 		if (filters.typeFilter === 'all') {
 			if (filters.statusFilter === 'active') {
-				result = result.filter((g) => getComputedStatus(g) === 'active');
+				result = result.filter((g) => getGiftCardStatus(g) === 'active');
 			} else if (filters.statusFilter === 'inactive') {
-				result = result.filter((g) => getComputedStatus(g) !== 'active');
+				result = result.filter((g) => getGiftCardStatus(g) !== 'active');
 			}
 		} else {
 			if (filters.statusFilter === 'active') {
-				result = result.filter((g) => getComputedStatus(g) === 'active');
+				result = result.filter((g) => getGiftCardStatus(g) === 'active');
 			} else if (filters.statusFilter === 'expired') {
-				result = result.filter((g) => getComputedStatus(g) === 'expired');
+				result = result.filter((g) => getGiftCardStatus(g) === 'expired');
 			} else if (filters.statusFilter === 'depleted') {
-				result = result.filter((g) => getComputedStatus(g) === 'depleted');
+				result = result.filter((g) => getGiftCardStatus(g) === 'depleted');
 			}
 		}
 		result = applyCommonFilters(result, (g) => g.expires_at);
@@ -684,14 +685,6 @@
 		} catch {
 			toastStore.error($t('batch.exportError'));
 		}
-	}
-
-	// Gift card computed status
-	function getComputedStatus(giftCard: GiftCardDTO): string {
-		if (giftCard.current_balance === 0) return 'depleted';
-		if (giftCard.expires_at && new Date(giftCard.expires_at) < new Date())
-			return 'expired';
-		return 'active';
 	}
 </script>
 
