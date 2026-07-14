@@ -686,7 +686,6 @@
 			toastStore.error($t('batch.exportError'));
 		}
 	}
-
 </script>
 
 {#snippet batchTypeFilter()}
