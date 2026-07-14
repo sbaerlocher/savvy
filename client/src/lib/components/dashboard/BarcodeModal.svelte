@@ -192,7 +192,12 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: space-between;
-		padding: 1rem;
+		/* Fullscreen overlay pins content top and bottom, so pad past the notch
+		   and home indicator on devices with a safe area. */
+		padding: max(1rem, env(safe-area-inset-top))
+			max(1rem, env(safe-area-inset-right))
+			max(1rem, env(safe-area-inset-bottom))
+			max(1rem, env(safe-area-inset-left));
 		touch-action: manipulation;
 		overflow: hidden;
 	}
