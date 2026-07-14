@@ -9,6 +9,7 @@
 		voucherToTileModel,
 		giftCardToTileModel
 	} from '$lib/utils/tile-model';
+	import { isVoucherValid, isGiftCardActive } from '$lib/utils/resource-status';
 	import type { DashboardResponse } from '$lib/types/api';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
@@ -23,27 +24,29 @@
 	const currentUserId = $derived($authStore.user?.id);
 	const currentLocale = $derived($locale || 'de');
 
-	// Show all favorites (no slice) — dashboard is the checkout quick-access.
+	// Dashboard is the checkout quick-access, so only surface usable favorites:
+	// hide expired/inactive vouchers and expired/depleted gift cards (matching
+	// the default status filter in WalletView). Cards have no expiry/balance.
 	const cardTiles = $derived(
 		data.recent_cards.map((c) =>
 			cardToTileModel(c, currentUserId, currentLocale)
 		)
 	);
 	const voucherTiles = $derived(
-		data.recent_vouchers.map((v) =>
-			voucherToTileModel(v, currentUserId, currentLocale)
-		)
+		data.recent_vouchers
+			.filter(isVoucherValid)
+			.map((v) => voucherToTileModel(v, currentUserId, currentLocale))
 	);
 	const giftCardTiles = $derived(
-		data.recent_gift_cards.map((g) =>
-			giftCardToTileModel(g, currentUserId, currentLocale)
-		)
+		data.recent_gift_cards
+			.filter(isGiftCardActive)
+			.map((g) => giftCardToTileModel(g, currentUserId, currentLocale))
 	);
 
 	const isEmpty = $derived(
-		data.recent_cards.length === 0 &&
-			data.recent_vouchers.length === 0 &&
-			data.recent_gift_cards.length === 0
+		cardTiles.length === 0 &&
+			voucherTiles.length === 0 &&
+			giftCardTiles.length === 0
 	);
 </script>
 
@@ -69,21 +72,15 @@
 			</div>
 		{:else}
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-				{#if !data.has_favorites || data.has_card_favorites}
-					{#each cardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
-					{/each}
-				{/if}
-				{#if !data.has_favorites || data.has_voucher_favorites}
-					{#each voucherTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
-					{/each}
-				{/if}
-				{#if !data.has_favorites || data.has_gift_card_favorites}
-					{#each giftCardTiles as model (model.id)}
-						<ResourceTile {model} showBarcode compact {onShowBarcode} />
-					{/each}
-				{/if}
+				{#each cardTiles as model (model.id)}
+					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+				{/each}
+				{#each voucherTiles as model (model.id)}
+					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+				{/each}
+				{#each giftCardTiles as model (model.id)}
+					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+				{/each}
 			</div>
 		{/if}
 	</div>
