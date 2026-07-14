@@ -146,6 +146,7 @@
 		tabindex="-1"
 	>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<!-- ponytail: overflow-y-auto clips the email-autocomplete dropdown to the sheet on very short viewports (keyboard open). Acceptable — the email input sits near the top so it fits in practice; move the suggestion list to a portal if a real cutoff shows up. -->
 		<div
 			class="w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
 			'ios'
