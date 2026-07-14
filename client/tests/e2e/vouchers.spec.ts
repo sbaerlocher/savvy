@@ -151,7 +151,7 @@ test.describe('Vouchers Management', () => {
 		await voucherDetailPage.enterEditMode();
 		await voucherDetailPage.deleteResource();
 
-		await expect(page).toHaveURL(/\/vouchers\/?$/);
+		await expect(page).toHaveURL(/\/wallet\?type=vouchers$/);
 	});
 
 	test('should show expiration warning for expiring vouchers', async ({
@@ -233,8 +233,7 @@ test.describe('Vouchers Management', () => {
 
 		await page.waitForURL(/\/vouchers\/[a-f0-9-]+$/, { timeout: 10000 });
 
-		await page.goto('/vouchers');
-		await vouchersListPage.waitForPageReady();
+		await vouchersListPage.goto();
 
 		// The wallet defaults to the "valid" status, which hides a future
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
