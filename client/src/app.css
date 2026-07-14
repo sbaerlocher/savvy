@@ -36,9 +36,10 @@
 	}
 
 	/* iOS floating nav offset – single source of truth for nav, batch panel and
-	   main content. Custom-property definitions belong in @layer base (not
-	   components): property resolution ignores layer order, so keeping them here
-	   makes the layering intent explicit. */
+	   main content. --mobile-nav-offset is defined in exactly one place (here,
+	   plus the standalone override below), so layer order never has to arbitrate
+	   a competing declaration; keeping it in @layer base just expresses the
+	   intent that custom-property definitions live there. */
 	:root {
 		--mobile-nav-offset: calc(env(safe-area-inset-bottom) + 1rem);
 	}
