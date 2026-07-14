@@ -42,8 +42,8 @@ test.describe('Soft-delete duplicate restore flow', () => {
 		await cardDetailPage.enterEditMode();
 		await cardDetailPage.deleteResource();
 
-		// After deletion the app redirects back to the cards list
-		await expect(page).toHaveURL(/\/cards\/?$/, { timeout: 10000 });
+		// After deletion the app redirects to the wallet list filtered to cards
+		await expect(page).toHaveURL(/\/wallet\?type=cards$/, { timeout: 10000 });
 
 		// ── Step 3: Attempt to create a new card with the SAME card number ───────
 		await cardsListPage.clickNewButton();

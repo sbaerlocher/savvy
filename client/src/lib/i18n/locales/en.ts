@@ -93,6 +93,7 @@ export const en: TranslationKeys = {
 		card: 'Card',
 		voucher: 'Voucher',
 		gift_card: 'Gift Card',
+		merchant: 'Merchant',
 		done: 'Done',
 		sort: 'Sort',
 		resetFilters: 'Reset Filters',

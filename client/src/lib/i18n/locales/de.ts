@@ -97,6 +97,7 @@ export const de: TranslationKeys = {
 		card: 'Kundenkarte',
 		voucher: 'Gutschein',
 		gift_card: 'Geschenkkarte',
+		merchant: 'Händler',
 		done: 'Fertig',
 		sort: 'Sortierung',
 		resetFilters: 'Filter zurücksetzen',
