@@ -37,7 +37,8 @@
 		data-testid="offline-indicator"
 		in:slide={{ duration: 300, easing: quintOut }}
 		out:fade={{ duration: 200 }}
-		class="fixed top-0 left-0 right-0 z-[100] px-4 py-3 border-b"
+		class="fixed top-0 left-0 right-0 z-[100] pb-3 border-b"
+		style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));"
 		class:bg-yellow-50={bannerType === 'warning'}
 		class:bg-green-50={bannerType === 'success'}
 		class:border-yellow-200={bannerType === 'warning'}
