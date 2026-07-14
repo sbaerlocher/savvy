@@ -295,6 +295,7 @@
 											class="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-subtle max-w-xs truncate"
 										>
 											{#if merchant.website}
+												<!-- eslint-disable svelte/no-navigation-without-resolve -- external merchant website URL, not an app route -->
 												<a
 													href={merchant.website}
 													target="_blank"
@@ -304,6 +305,7 @@
 												>
 													{merchant.website}
 												</a>
+												<!-- eslint-enable svelte/no-navigation-without-resolve -->
 											{:else}
 												—
 											{/if}
@@ -349,6 +351,7 @@
 															>
 															<p class="text-sm text-text">
 																{#if merchant.website}
+																	<!-- eslint-disable svelte/no-navigation-without-resolve -- external merchant website URL, not an app route -->
 																	<a
 																		href={merchant.website}
 																		target="_blank"
@@ -357,6 +360,7 @@
 																	>
 																		{merchant.website}
 																	</a>
+																	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 																{:else}
 																	—
 																{/if}
