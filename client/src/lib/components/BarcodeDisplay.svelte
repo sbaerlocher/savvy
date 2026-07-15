@@ -4,6 +4,7 @@
 	import { get } from 'svelte/store';
 	import { t, locale } from '$lib/stores/i18n';
 	import { formatCurrency } from '$lib/utils/currency';
+	import { formatDisplayDate } from '$lib/utils/date';
 	import { logger } from '$lib/utils/logger';
 	import { is2DType } from '$lib/utils/barcode';
 
@@ -172,19 +173,20 @@
 			{#if hasValidityInfo}
 				<span class="text-xs text-text-muted">
 					{#if validFrom && validUntil}
-						{new Date(validFrom.split('T')[0]).toLocaleDateString(
-							currentLocale
-						)} - {new Date(validUntil.split('T')[0]).toLocaleDateString(
+						{formatDisplayDate(validFrom, currentLocale)} - {formatDisplayDate(
+							validUntil,
 							currentLocale
 						)}
 					{:else if validUntil}
-						{tr('vouchers.validUntil')}: {new Date(
-							validUntil.split('T')[0]
-						).toLocaleDateString(currentLocale)}
+						{tr('vouchers.validUntil')}: {formatDisplayDate(
+							validUntil,
+							currentLocale
+						)}
 					{:else if validFrom}
-						{tr('vouchers.validFrom')}: {new Date(
-							validFrom.split('T')[0]
-						).toLocaleDateString(currentLocale)}
+						{tr('vouchers.validFrom')}: {formatDisplayDate(
+							validFrom,
+							currentLocale
+						)}
 					{/if}
 					{#if minPurchaseInfo}
 						· {minPurchaseInfo}
@@ -276,19 +278,20 @@
 						{#if hasValidityInfo}
 							<span class="barcode-info-validity">
 								{#if validFrom && validUntil}
-									{new Date(validFrom.split('T')[0]).toLocaleDateString(
-										currentLocale
-									)} - {new Date(validUntil.split('T')[0]).toLocaleDateString(
+									{formatDisplayDate(validFrom, currentLocale)} - {formatDisplayDate(
+										validUntil,
 										currentLocale
 									)}
 								{:else if validUntil}
-									{tr('vouchers.validUntil')}: {new Date(
-										validUntil.split('T')[0]
-									).toLocaleDateString(currentLocale)}
+									{tr('vouchers.validUntil')}: {formatDisplayDate(
+										validUntil,
+										currentLocale
+									)}
 								{:else if validFrom}
-									{tr('vouchers.validFrom')}: {new Date(
-										validFrom.split('T')[0]
-									).toLocaleDateString(currentLocale)}
+									{tr('vouchers.validFrom')}: {formatDisplayDate(
+										validFrom,
+										currentLocale
+									)}
 								{/if}
 								{#if minPurchaseInfo}
 									· {minPurchaseInfo}
@@ -306,9 +309,10 @@
 
 						{#if expiresAt}
 							<span class="barcode-info-validity">
-								{tr('giftCards.expiresAt')}: {new Date(
-									expiresAt.split('T')[0]
-								).toLocaleDateString(currentLocale)}
+								{tr('giftCards.expiresAt')}: {formatDisplayDate(
+									expiresAt,
+									currentLocale
+								)}
 							</span>
 						{/if}
 					</div>

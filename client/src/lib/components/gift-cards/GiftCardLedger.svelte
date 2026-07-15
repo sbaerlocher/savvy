@@ -7,6 +7,7 @@
 	import { logger } from '$lib/utils/logger';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
+	import { formatDisplayDate, todayInputValue } from '$lib/utils/date';
 	import type { GiftCardDTO, TransactionDTO } from '$lib/types/api';
 
 	interface Props {
@@ -32,7 +33,7 @@
 	// Transaction form
 	let transactionAmount = $state(0);
 	let transactionDescription = $state('');
-	let transactionDate = $state(new Date().toISOString().split('T')[0]);
+	let transactionDate = $state(todayInputValue());
 
 	let showDeleteTransactionModal = $state(false);
 	let transactionToDelete: string | null = null;
@@ -79,7 +80,7 @@
 			showTransactionForm = false;
 			transactionAmount = 0;
 			transactionDescription = '';
-			transactionDate = new Date().toISOString().split('T')[0];
+			transactionDate = todayInputValue();
 			await Promise.all([onRefresh?.(), loadTransactions()]);
 		} catch (err: unknown) {
 			toastStore.error(
@@ -199,7 +200,7 @@
 						type="date"
 						required
 						bind:value={transactionDate}
-						max={new Date().toISOString().split('T')[0]}
+						max={todayInputValue()}
 						class="input w-full text-base bg-white"
 					/>
 				</div>
@@ -278,9 +279,7 @@
 						</div>
 						<div class="flex items-center gap-3">
 							<div class="text-xs text-text-subtle">
-								{new Date(
-									transaction.transaction_date.split('T')[0]
-								).toLocaleDateString(currentLocale)}
+								{formatDisplayDate(transaction.transaction_date, currentLocale)}
 							</div>
 							{#if giftCard.permissions?.can_edit_transactions}
 								<button
