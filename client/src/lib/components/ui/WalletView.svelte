@@ -46,6 +46,11 @@
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { getGiftCardStatus } from '$lib/utils/resource-status';
+	import {
+		applyCommonFilters,
+		searchMerchant,
+		sortItems
+	} from '$lib/wallet/filter';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -195,86 +200,6 @@
 		{ value: '30', label: tr('merchantOverview.detail.expiring30') }
 	]);
 
-	// Helper: check if item expires within N days
-	function expiresWithinDays(
-		dateStr: string | undefined,
-		days: number
-	): boolean {
-		if (!dateStr) return false;
-		const expiry = new Date(dateStr);
-		const now = new Date();
-		const diffMs = expiry.getTime() - now.getTime();
-		return diffMs > 0 && diffMs <= days * 24 * 60 * 60 * 1000;
-	}
-
-	// Shared filter: ownership, favorites, expiring
-	function applyCommonFilters<
-		T extends { owner?: { id?: string }; is_favorite: boolean }
-	>(items: T[], getExpiryDate: (item: T) => string | undefined): T[] {
-		let result = items;
-		if (filters.ownerFilter === 'mine') {
-			result = result.filter(
-				(item) => !item.owner || item.owner.id === currentUserId
-			);
-		} else if (filters.ownerFilter === 'shared') {
-			result = result.filter(
-				(item) => item.owner && item.owner.id !== currentUserId
-			);
-		}
-		if (filters.favoritesOnly) {
-			result = result.filter((item) => item.is_favorite);
-		}
-		if (filters.expiringFilter === '7') {
-			result = result.filter((item) =>
-				expiresWithinDays(getExpiryDate(item), 7)
-			);
-		} else if (filters.expiringFilter === '30') {
-			result = result.filter((item) =>
-				expiresWithinDays(getExpiryDate(item), 30)
-			);
-		}
-		return result;
-	}
-
-	// Sort helper
-	function sortItems<T>(
-		items: T[],
-		getDate: (item: T) => string,
-		getValue: (item: T) => number,
-		getExpiry: (item: T) => string | undefined
-	): T[] {
-		return [...items].sort((a, b) => {
-			switch (filters.sortBy) {
-				case 'newest':
-					return (
-						new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime()
-					);
-				case 'oldest':
-					return (
-						new Date(getDate(a)).getTime() - new Date(getDate(b)).getTime()
-					);
-				case 'value-desc':
-					return getValue(b) - getValue(a);
-				case 'value-asc':
-					return getValue(a) - getValue(b);
-				case 'expiry-asc': {
-					const ea = getExpiry(a);
-					const eb = getExpiry(b);
-					if (!ea && !eb) return 0;
-					if (!ea) return 1;
-					if (!eb) return -1;
-					return new Date(ea).getTime() - new Date(eb).getTime();
-				}
-				default:
-					return 0;
-			}
-		});
-	}
-
-	function searchMerchant(name: string | undefined, q: string): boolean {
-		return matchMerchantName ? !!name?.toLowerCase().includes(q) : false;
-	}
-
 	// Filtered items
 	const filteredCards = $derived.by(() => {
 		if (!enabledTypes.cards) return [];
@@ -304,7 +229,7 @@
 			const q = filters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(c) =>
-					searchMerchant(c.merchant?.name, q) ||
+					searchMerchant(c.merchant?.name, q, matchMerchantName) ||
 					c.card_number.toLowerCase().includes(q) ||
 					c.program?.toLowerCase().includes(q) ||
 					c.notes?.toLowerCase().includes(q)
@@ -314,7 +239,8 @@
 			result,
 			(c) => c.created_at,
 			() => 0,
-			() => undefined
+			() => undefined,
+			filters.sortBy
 		);
 	});
 
@@ -340,12 +266,19 @@
 				);
 			}
 		}
-		result = applyCommonFilters(result, (v) => v.valid_until);
+		result = applyCommonFilters(
+			result,
+			(v) => v.valid_until,
+			filters.ownerFilter,
+			filters.favoritesOnly,
+			filters.expiringFilter,
+			currentUserId
+		);
 		if (filters.searchInput.trim()) {
 			const q = filters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(v) =>
-					searchMerchant(v.merchant?.name, q) ||
+					searchMerchant(v.merchant?.name, q, matchMerchantName) ||
 					v.code.toLowerCase().includes(q) ||
 					v.description?.toLowerCase().includes(q)
 			);
@@ -354,7 +287,8 @@
 			result,
 			(v) => v.created_at,
 			(v) => v.value,
-			(v) => v.valid_until
+			(v) => v.valid_until,
+			filters.sortBy
 		);
 	});
 
@@ -378,12 +312,19 @@
 				result = result.filter((g) => getGiftCardStatus(g) === 'depleted');
 			}
 		}
-		result = applyCommonFilters(result, (g) => g.expires_at);
+		result = applyCommonFilters(
+			result,
+			(g) => g.expires_at,
+			filters.ownerFilter,
+			filters.favoritesOnly,
+			filters.expiringFilter,
+			currentUserId
+		);
 		if (filters.searchInput.trim()) {
 			const q = filters.searchInput.trim().toLowerCase();
 			result = result.filter(
 				(g) =>
-					searchMerchant(g.merchant?.name, q) ||
+					searchMerchant(g.merchant?.name, q, matchMerchantName) ||
 					g.card_number.toLowerCase().includes(q) ||
 					g.notes?.toLowerCase().includes(q)
 			);
@@ -392,7 +333,8 @@
 			result,
 			(g) => g.created_at,
 			(g) => g.current_balance,
-			(g) => g.expires_at
+			(g) => g.expires_at,
+			filters.sortBy
 		);
 	});
 
