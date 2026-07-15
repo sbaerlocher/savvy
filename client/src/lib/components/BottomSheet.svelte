@@ -36,7 +36,7 @@
 			case 'ios':
 				return `${base} liquid-glass-surface rounded-t-3xl`;
 			case 'android':
-				return `${base} bg-surface rounded-t-2xl shadow-[0_-4px_16px_rgba(0,0,0,0.12)]`;
+				return `${base} bg-surface rounded-t-2xl shadow-[var(--shadow-sheet)]`;
 			default:
 				return `${base} bg-white rounded-t-2xl shadow-2xl`;
 		}
