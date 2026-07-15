@@ -140,6 +140,15 @@
 	}
 </script>
 
+{#snippet pingDot()}
+	<span class="relative inline-flex h-3 w-3 mr-2"
+		><span
+			class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
+		></span><span class="relative inline-flex rounded-full h-3 w-3 bg-accent"
+		></span></span
+	>
+{/snippet}
+
 <div class="overflow-hidden rounded-xl border border-border bg-white p-6">
 	<h2 class="text-lg font-semibold text-text mb-2">
 		{tr('settings.twoFactor.title')}
@@ -223,13 +232,7 @@
 				class="btn btn-primary text-sm w-full"
 			>
 				{#if isSettingUp}
-					<span class="relative inline-flex h-3 w-3 mr-2"
-						><span
-							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-						></span><span
-							class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-						></span></span
-					>
+					{@render pingDot()}
 				{/if}
 				{tr('settings.twoFactor.enableButton')}
 			</button>
@@ -348,13 +351,7 @@
 						class="btn btn-primary flex-1"
 					>
 						{#if isSettingUp}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-								></span></span
-							>
+							{@render pingDot()}
 							{tr('settings.twoFactor.verifying')}
 						{:else}
 							{tr('settings.twoFactor.verifyAndEnable')}
@@ -461,13 +458,7 @@
 						class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-md hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
 					>
 						{#if isDisabling}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-								></span></span
-							>
+							{@render pingDot()}
 						{/if}
 						{tr('settings.twoFactor.disableButton')}
 					</button>
@@ -524,13 +515,7 @@
 						class="btn btn-primary flex-1"
 					>
 						{#if isRegenerating}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-								></span></span
-							>
+							{@render pingDot()}
 						{/if}
 						{tr('settings.twoFactor.regenerateBackupCodes')}
 					</button>
