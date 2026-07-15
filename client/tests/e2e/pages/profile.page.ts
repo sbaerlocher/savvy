@@ -81,7 +81,7 @@ export class ProfilePage extends BasePage {
 	get deleteConfirmButton(): Locator {
 		return this.page
 			.locator(
-				'button.bg-red-600, button:has-text("Konto löschen"), button:has-text("Delete Account")'
+				'button.bg-danger-600, button:has-text("Konto löschen"), button:has-text("Delete Account")'
 			)
 			.last();
 	}
