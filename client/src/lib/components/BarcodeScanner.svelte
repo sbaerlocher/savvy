@@ -12,6 +12,7 @@
 		createBarcodeDetector,
 		type BarcodeDetectorWrapper
 	} from '$lib/utils/barcode-detector';
+	import { portal } from '$lib/actions/portal';
 	import { tick } from 'svelte';
 
 	const componentLogger = logger.child('BarcodeScanner');
@@ -56,19 +57,6 @@
 	function addDebugLog(message: string) {
 		const timestamp = new Date().toLocaleTimeString();
 		debugLogs = [`[${timestamp}] ${message}`, ...debugLogs].slice(0, 10);
-	}
-
-	function portal(node: HTMLElement) {
-		node.style.margin = '0';
-		document.body.appendChild(node);
-
-		return {
-			destroy() {
-				if (node.parentNode) {
-					node.parentNode.removeChild(node);
-				}
-			}
-		};
 	}
 
 	$effect(() => {
