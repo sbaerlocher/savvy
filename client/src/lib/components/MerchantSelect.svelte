@@ -26,7 +26,9 @@
 
 	$effect(() => {
 		if (required && inputEl) {
-			inputEl.setCustomValidity(value ? '' : 'Please select a merchant');
+			inputEl.setCustomValidity(
+				value ? '' : $t('vouchers.errors.merchantRequired')
+			);
 		}
 	});
 
