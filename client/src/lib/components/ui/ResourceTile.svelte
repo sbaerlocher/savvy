@@ -140,7 +140,7 @@
 				     lock private / people + N shared-out / people + first name
 				     received). Full text stays on the detail page. -->
 				<div
-					class="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
+					class="flex items-center gap-2 text-tag font-semibold uppercase tracking-wider text-text-faint"
 				>
 					<span>{typeLabel}</span>
 					<span class="flex items-center gap-1 normal-case tracking-normal">
@@ -205,7 +205,7 @@
 				{/if}
 				{#if model.expiryBadge}
 					<span
-						class="rounded-full px-2 py-0.5 text-[0.7rem] font-medium {model.expiryUrgent
+						class="rounded-full px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium {model.expiryUrgent
 							? 'bg-warning-50 text-warning-700'
 							: 'bg-border-soft text-text-subtle'}"
 					>
@@ -213,7 +213,7 @@
 					</span>
 				{:else if model.notYetValid}
 					<span
-						class="rounded-full bg-border-soft px-2 py-0.5 text-[0.7rem] font-medium text-text-subtle"
+						class="rounded-full bg-border-soft px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium text-text-subtle"
 					>
 						{model.notYetValid}
 					</span>
@@ -228,7 +228,7 @@
 			</p>
 			{#if model.usageMarker}
 				<span
-					class="text-[0.65rem] font-semibold uppercase tracking-wider text-text-faint"
+					class="text-tag font-semibold uppercase tracking-wider text-text-faint"
 				>
 					{model.usageMarker}
 				</span>

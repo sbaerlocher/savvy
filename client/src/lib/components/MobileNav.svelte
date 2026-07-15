@@ -128,7 +128,7 @@
 								d={place.icon}
 							/>
 						</svg>
-						<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span
+						<span class="text-[length:var(--text-tag)] leading-tight mt-1">{$t(place.label)}</span
 						>
 					</a>
 				{/each}
@@ -259,7 +259,7 @@
 							d={place.icon}
 						/>
 					</svg>
-					<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span>
+					<span class="text-[length:var(--text-tag)] leading-tight mt-1">{$t(place.label)}</span>
 				</a>
 			{/each}
 		</div>

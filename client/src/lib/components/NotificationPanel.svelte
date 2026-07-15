@@ -137,7 +137,7 @@
 
 	{#if unreadCount > 0}
 		<span
-			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-danger-600 rounded-full ring-2 ring-white"
+			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[length:var(--text-tag)] font-bold leading-none text-white bg-danger-600 rounded-full ring-2 ring-white"
 		>
 			{unreadCount > 99 ? '99+' : unreadCount}
 		</span>
