@@ -4,6 +4,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { notificationStore } from '$lib/stores/notifications';
 	import type { NotificationDTO } from '$lib/types/api';
+	import { resourceDetailPath } from '$lib/resource/routes';
 	import { onDestroy, onMount } from 'svelte';
 	import { platform } from '$lib/utils/platform';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
@@ -84,20 +85,12 @@
 		}
 		notificationStore.closePanel();
 
-		const params = { id: notification.resource_id };
-		switch (notification.resource_type) {
-			case 'card':
-				goto(resolve('/cards/[id]', params));
-				break;
-			case 'voucher':
-				goto(resolve('/vouchers/[id]', params));
-				break;
-			case 'gift_card':
-				goto(resolve('/gift-cards/[id]', params));
-				break;
-			default:
-				goto(resolve('/dashboard'));
-		}
+		const path = resourceDetailPath(
+			notification.resource_type,
+			notification.resource_id
+		);
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resourceDetailPath() already returns a resolve()'d path
+		goto(path);
 	}
 
 	function formatTimeAgo(dateString: string): string {

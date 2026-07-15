@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
-	import { resolve } from '$app/paths';
+	import { resourceDetailPath } from '$lib/resource/routes';
 	import Barcode from '$lib/components/Barcode.svelte';
 	import { platform } from '$lib/utils/platform';
 	import type { TileModel } from '$lib/utils/tile-model';
@@ -41,14 +41,7 @@
 				: $t('dashboard.giftCardType')
 	);
 
-	// Resolve-friendly literal per type (resolve needs the concrete [id] route).
-	const href = $derived(
-		model.type === 'card'
-			? resolve(`/cards/${model.id}`)
-			: model.type === 'voucher'
-				? resolve(`/vouchers/${model.id}`)
-				: resolve(`/gift-cards/${model.id}`)
-	);
+	const href = $derived(resourceDetailPath(model.type, model.id));
 
 	const contentClass = $derived(
 		`flex flex-col text-left ${compact ? 'p-3' : 'p-4'} ${
