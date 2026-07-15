@@ -375,7 +375,7 @@
 		position: fixed;
 		inset: 0;
 		z-index: 9999;
-		background: #fff;
+		background: var(--color-surface);
 		display: flex;
 		flex-direction: column;
 		align-items: center;

@@ -161,7 +161,7 @@
 
 	.view-existing-btn:hover {
 		background-color: var(--color-warning-800);
-		color: #fff;
+		color: var(--color-on-accent);
 	}
 
 	.view-existing-btn:focus {
