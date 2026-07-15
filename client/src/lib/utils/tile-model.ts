@@ -10,6 +10,7 @@
 import type { CardDTO, VoucherDTO, GiftCardDTO } from '$lib/types/api';
 import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
 import { formatCurrency } from '$lib/utils/currency';
+import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 import { t } from '$lib/stores/i18n';
 import { get } from 'svelte/store';
 
@@ -146,7 +147,7 @@ export function cardToTileModel(
 		id: card.id,
 		type: 'card',
 		merchantName: card.merchant?.name || tr('dashboard.cardType'),
-		merchantColor: card.merchant?.color || '#6B7280',
+		merchantColor: card.merchant?.color || MERCHANT_DEFAULT_COLOR,
 		identifier: card.program || undefined,
 		maskedNumber: maskNumber(card.card_number),
 		isActive: card.status === 'active',
@@ -227,7 +228,7 @@ export function voucherToTileModel(
 		id: voucher.id,
 		type: 'voucher',
 		merchantName: voucher.merchant?.name || tr('dashboard.voucherType'),
-		merchantColor: voucher.merchant?.color || '#6B7280',
+		merchantColor: voucher.merchant?.color || MERCHANT_DEFAULT_COLOR,
 		identifier: voucher.description || undefined,
 		amount,
 		maskedNumber: maskNumber(voucher.code),
@@ -289,7 +290,7 @@ export function giftCardToTileModel(
 		id: giftCard.id,
 		type: 'gift_card',
 		merchantName: giftCard.merchant?.name || tr('dashboard.giftCardType'),
-		merchantColor: giftCard.merchant?.color || '#6B7280',
+		merchantColor: giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR,
 		identifier: giftCard.notes || undefined,
 		amount: formatCurrency(giftCard.current_balance, giftCard.currency, locale),
 		maskedNumber: maskNumber(giftCard.card_number),

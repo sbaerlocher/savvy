@@ -119,6 +119,10 @@
 	--color-text-mono-faint: #c3bcae; /* faint mono (barcode type) */
 	--color-text-ink2: #57514a; /* secondary ink */
 
+	--color-merchant-default: var(
+		--color-text-subtle
+	); /* #8a8378 — fallback tint when a merchant has no color; TODO: confirm final value */
+
 	/* ==========================================================================
      COLOR — borders / lines
      ========================================================================== */

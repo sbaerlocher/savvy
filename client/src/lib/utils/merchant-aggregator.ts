@@ -4,6 +4,7 @@ import type {
 	GiftCardDTO,
 	MerchantDTO
 } from '$lib/types/api';
+import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 
 /** Aggregated merchant data derived client-side from cached items. */
 export interface MerchantOverview {
@@ -117,7 +118,7 @@ export function deriveMerchantOverview(
 	return Array.from(merchantMap.values()).map(({ merchant, ...counts }) => ({
 		id: merchant.id,
 		name: merchant.name,
-		color: merchant.color ?? '#3B82F6',
+		color: merchant.color ?? MERCHANT_DEFAULT_COLOR,
 		website: merchant.website,
 		...counts
 	}));

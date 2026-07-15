@@ -6,6 +6,7 @@
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import type { GiftCardDTO, TransactionDTO } from '$lib/types/api';
 
 	interface Props {
@@ -123,7 +124,7 @@
 		</p>
 		<p
 			class="text-3xl font-bold"
-			style="color: {giftCard.merchant?.color || '#F59E0B'}"
+			style="color: {giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}"
 		>
 			{giftCard.current_balance.toFixed(2)}
 			{giftCard.currency}

@@ -9,6 +9,7 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import type { MerchantDTO } from '$lib/types/api';
 
 	const pageLogger = logger.child('AdminMerchantsPage');
@@ -269,7 +270,7 @@
 													<span
 														class="w-4 h-4 rounded-full flex-shrink-0 border border-border"
 														style="background-color: {merchant.color ||
-															'#9ca3af'}"
+															MERCHANT_DEFAULT_COLOR}"
 													></span>
 													<span class="truncate">{merchant.name}</span>
 												</span>
@@ -392,7 +393,7 @@
 																<span
 																	class="w-4 h-4 rounded-full inline-block border border-border"
 																	style="background-color: {merchant.color ||
-																		'#9ca3af'}"
+																		MERCHANT_DEFAULT_COLOR}"
 																></span>
 																{merchant.color || '—'}
 															</p>

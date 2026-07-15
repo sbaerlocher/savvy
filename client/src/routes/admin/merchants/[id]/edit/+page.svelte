@@ -8,12 +8,13 @@
 	import { merchantsApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import type { MerchantDTO } from '$lib/types/api';
 
 	// Form state
 	let merchant = $state<MerchantDTO | null>(null);
 	let name = $state('');
-	let color = $state('#3B82F6');
+	let color = $state(MERCHANT_DEFAULT_COLOR);
 	// Writable derived: mirrors `color` but can be temporarily overridden by
 	// the text input while the user types an (possibly invalid) value.
 	let colorText = $derived(color);
@@ -48,7 +49,9 @@
 			// Validate and sanitize color value
 			const rawColor = (merchant.color || '').trim();
 			const validColor =
-				rawColor && isValidHexColor(rawColor) ? rawColor : '#3B82F6';
+				rawColor && isValidHexColor(rawColor)
+					? rawColor
+					: MERCHANT_DEFAULT_COLOR;
 			color = validColor;
 			logoUrl = merchant.logo_url || '';
 			website = merchant.website || '';
@@ -212,7 +215,7 @@
 											colorText = color;
 										}
 									}}
-									placeholder="#3B82F6"
+									placeholder={MERCHANT_DEFAULT_COLOR}
 									class="input flex-1"
 								/>
 							</div>
