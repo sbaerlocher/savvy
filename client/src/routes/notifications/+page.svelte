@@ -268,7 +268,7 @@
 								</svg>
 							{:else if notification.type === 'validity_start'}
 								<svg
-									class="w-5 h-5 text-emerald-500"
+									class="w-5 h-5 text-success-500"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"

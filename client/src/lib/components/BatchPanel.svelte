@@ -224,7 +224,7 @@
 					type="button"
 					onclick={onExport}
 					disabled={disableExport}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-success-50 hover:border-success-200 hover:text-success-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
