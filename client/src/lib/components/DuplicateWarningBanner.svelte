@@ -107,10 +107,10 @@
 		gap: 1rem;
 		padding: 1rem;
 		margin-bottom: 1.5rem;
-		background-color: #fef3cd;
-		border: 1px solid #ffc107;
+		background-color: var(--color-warning-50);
+		border: 1px solid var(--color-warning-400);
 		border-radius: 0.5rem;
-		color: #856404;
+		color: var(--color-warning-800);
 	}
 
 	.warning-icon {
@@ -120,7 +120,7 @@
 	.icon {
 		width: 1.5rem;
 		height: 1.5rem;
-		color: #ffc107;
+		color: var(--color-warning-400);
 	}
 
 	.warning-content {
@@ -131,14 +131,14 @@
 		margin: 0 0 0.5rem 0;
 		font-size: 1rem;
 		font-weight: 600;
-		color: #856404;
+		color: var(--color-warning-800);
 	}
 
 	.warning-message {
 		margin: 0 0 0.75rem 0;
 		font-size: 0.875rem;
 		line-height: 1.5;
-		color: #856404;
+		color: var(--color-warning-800);
 	}
 
 	.warning-actions {
@@ -151,21 +151,21 @@
 		padding: 0.5rem 1rem;
 		font-size: 0.875rem;
 		font-weight: 500;
-		color: #856404;
+		color: var(--color-warning-800);
 		background-color: transparent;
-		border: 1px solid #856404;
+		border: 1px solid var(--color-warning-800);
 		border-radius: 0.25rem;
 		cursor: pointer;
 		transition: all 0.2s;
 	}
 
 	.view-existing-btn:hover {
-		background-color: #856404;
+		background-color: var(--color-warning-800);
 		color: #fff;
 	}
 
 	.view-existing-btn:focus {
-		outline: 2px solid #ffc107;
+		outline: 2px solid var(--color-warning-400);
 		outline-offset: 2px;
 	}
 </style>

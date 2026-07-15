@@ -300,7 +300,7 @@
 	class="lg:hidden fixed left-0 right-0 z-[55] {platform === 'ios'
 		? 'liquid-glass-surface mx-4 rounded-2xl batch-panel-floating'
 		: platform === 'android'
-			? 'bottom-16 sm:bottom-0 bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
+			? 'bottom-16 sm:bottom-0 bg-surface border-t border-border shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
 			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.1)]'}"
 	style={platform === 'ios'
 		? ''
