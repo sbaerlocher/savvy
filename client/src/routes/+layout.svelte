@@ -13,6 +13,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { pwaStore } from '$lib/stores/pwa';
 	import { toastStore } from '$lib/stores/toast';
+	import { registerServiceWorker } from '$lib/pwa/register-sw';
 	import { showOfflineBanner } from '$lib/stores/offline';
 	import { showNewDialog } from '$lib/stores/newDialog';
 	import { browser } from '$app/environment';
@@ -82,74 +83,7 @@
 		);
 
 		// Register Service Worker manually (injectRegister: "inline" doesn't work with adapter-static)
-		if ('serviceWorker' in navigator) {
-			// SvelteKit generates service-worker.js from src/service-worker.ts
-			const swUrl = import.meta.env.DEV
-				? '/dev-sw.js?dev-sw'
-				: '/service-worker.js';
-
-			// Verify the SW file actually exists before registering.
-			// Prevents zombie registrations when accessing the Go dev server (port 8080)
-			// which doesn't serve static assets — only the Vite dev server (5173) or
-			// production builds have the SW file.
-			try {
-				const swCheck = await fetch(swUrl, { method: 'HEAD' });
-				if (!swCheck.ok) {
-					layoutLogger.debug(
-						`Service Worker not available (${swCheck.status}) - skipping registration`
-					);
-					return;
-				}
-			} catch {
-				layoutLogger.debug(
-					'Service Worker not reachable - skipping registration'
-				);
-				return;
-			}
-
-			try {
-				const registration = await navigator.serviceWorker.register(swUrl, {
-					type: import.meta.env.DEV ? 'module' : 'classic'
-				});
-				layoutLogger.info(`Service Worker registered: ${swUrl}`);
-				pwaStore.setRegistration(registration);
-
-				// Check if SW is installing (first time install)
-				if (registration.installing) {
-					layoutLogger.info(
-						'Service Worker installing (first time) - precache will run'
-					);
-					registration.installing.addEventListener('statechange', (e) => {
-						const target = e.target as ServiceWorker;
-						if (target.state === 'activated') {
-							layoutLogger.info(
-								'Service Worker activated - precache completed'
-							);
-						}
-					});
-				}
-
-				// Check for updates
-				registration.update();
-
-				// Notify user when new SW takes control (skipWaiting is automatic)
-				// Skip in dev mode — Vite HMR constantly regenerates the SW, causing reload loops
-				if (!import.meta.env.DEV) {
-					let refreshing = false;
-					navigator.serviceWorker.addEventListener('controllerchange', () => {
-						if (refreshing) return;
-						refreshing = true;
-						layoutLogger.info(
-							'New Service Worker activated - update available'
-						);
-						toastStore.info($t('pwa.updateAvailable'));
-					});
-				}
-			} catch (error) {
-				layoutLogger.error('Service Worker registration failed:', error);
-				toastStore.warning($t('pwa.offlineUnavailable'));
-			}
-		}
+		await registerServiceWorker();
 	});
 
 	async function handleLogout() {

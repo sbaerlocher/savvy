@@ -10,6 +10,7 @@
 import type { CardDTO, VoucherDTO, GiftCardDTO } from '$lib/types/api';
 import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
 import { formatCurrency } from '$lib/utils/currency';
+import { formatDisplayDate } from '$lib/utils/date';
 import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 import { t } from '$lib/stores/i18n';
 import { get } from 'svelte/store';
@@ -204,9 +205,7 @@ export function voucherToTileModel(
 	let notYetValid: string | undefined;
 	if (voucher.valid_from && daysUntil(voucher.valid_from) > 0) {
 		notYetValid = tr('tile.notYetValid', {
-			date: new Date(voucher.valid_from.split('T')[0]).toLocaleDateString(
-				localeString(locale)
-			)
+			date: formatDisplayDate(voucher.valid_from, localeString(locale))
 		});
 	}
 

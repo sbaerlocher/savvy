@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { checkSymbologySuitability } from './barcode';
+import {
+	checkSymbologySuitability,
+	barcodeBcid,
+	BARCODE_BCID_MAP,
+	is2DBcid,
+	is2DType,
+	sanitizeBarcodeValue,
+	isValidBarcodeLength,
+	cameraErrorKey
+} from './barcode';
 
 describe('checkSymbologySuitability', () => {
 	it('returns undefined for empty/whitespace content (nothing typed yet)', () => {
@@ -111,5 +120,121 @@ describe('checkSymbologySuitability', () => {
 		expect(
 			checkSymbologySuitability('  4006381333931  ', 'EAN13')
 		).toBeUndefined();
+	});
+});
+
+describe('barcodeBcid / BARCODE_BCID_MAP', () => {
+	it('maps known types (case-insensitive) to their BCID', () => {
+		expect(barcodeBcid('CODE128')).toBe('code128');
+		expect(barcodeBcid('qr')).toBe('qrcode');
+		expect(barcodeBcid('ItF')).toBe('interleaved2of5');
+		expect(barcodeBcid('ISBN13')).toBe('ean13');
+	});
+
+	it('falls back to code128 for unknown types', () => {
+		expect(barcodeBcid('NOPE')).toBe('code128');
+		expect(barcodeBcid('')).toBe('code128');
+	});
+
+	it('exposes the underlying map', () => {
+		expect(BARCODE_BCID_MAP.AZTEC).toBe('azteccode');
+	});
+});
+
+describe('is2DBcid', () => {
+	it('classifies 2D BCIDs as true', () => {
+		for (const bcid of [
+			'qrcode',
+			'pdf417',
+			'datamatrix',
+			'azteccode',
+			'maxicode'
+		]) {
+			expect(is2DBcid(bcid)).toBe(true);
+		}
+	});
+
+	it('classifies 1D / unknown BCIDs as false', () => {
+		for (const bcid of ['code128', 'ean13', 'interleaved2of5', 'QRCODE', '']) {
+			expect(is2DBcid(bcid)).toBe(false);
+		}
+	});
+});
+
+describe('is2DType', () => {
+	it('classifies 2D types (case-insensitive) as true', () => {
+		for (const type of [
+			'QR',
+			'qrcode',
+			'PDF417',
+			'DataMatrix',
+			'AZTEC',
+			'MAXICODE'
+		]) {
+			expect(is2DType(type)).toBe(true);
+		}
+	});
+
+	it('classifies 1D / unknown types as false', () => {
+		for (const type of ['CODE128', 'EAN13', 'ITF', 'azteccode', '']) {
+			expect(is2DType(type)).toBe(false);
+		}
+	});
+});
+
+describe('sanitizeBarcodeValue', () => {
+	it('strips C0/DEL/C1 control characters', () => {
+		expect(sanitizeBarcodeValue('ab\x00c\x1Fd\x7Fe\x9Ff')).toBe('abcdef');
+	});
+
+	it('leaves printable content untouched', () => {
+		expect(sanitizeBarcodeValue('Hello-123 $/+%')).toBe('Hello-123 $/+%');
+	});
+});
+
+describe('isValidBarcodeLength', () => {
+	it('accepts 1..255 chars', () => {
+		expect(isValidBarcodeLength('a')).toBe(true);
+		expect(isValidBarcodeLength('a'.repeat(255))).toBe(true);
+	});
+
+	it('rejects empty and >255 chars', () => {
+		expect(isValidBarcodeLength('')).toBe(false);
+		expect(isValidBarcodeLength('a'.repeat(256))).toBe(false);
+	});
+});
+
+describe('cameraErrorKey', () => {
+	it('maps each known error name to its i18n key', () => {
+		expect(cameraErrorKey('HttpsRequiredError')).toBe(
+			'common.scanHttpsRequired'
+		);
+		expect(cameraErrorKey('NotAllowedError')).toBe(
+			'common.scanCameraPermissionDenied'
+		);
+		expect(cameraErrorKey('PermissionDeniedError')).toBe(
+			'common.scanCameraPermissionDenied'
+		);
+		expect(cameraErrorKey('NotFoundError')).toBe('common.scanNoCameraFound');
+		expect(cameraErrorKey('NotReadableError')).toBe(
+			'common.scanCameraNotAvailable'
+		);
+		expect(cameraErrorKey('AbortError')).toBe('common.scanCameraNotAvailable');
+		expect(cameraErrorKey('OverconstrainedError')).toBe(
+			'common.scanCameraConstraintsError'
+		);
+		expect(cameraErrorKey('SecurityError')).toBe(
+			'common.scanCameraSecurityBlocked'
+		);
+		expect(cameraErrorKey('NotSupportedError')).toBe(
+			'common.scanCameraNotSupported'
+		);
+		expect(cameraErrorKey('TypeError')).toBe('common.scanCameraNotSupported');
+		expect(cameraErrorKey('TimeoutError')).toBe('common.scanCameraTimeout');
+	});
+
+	it('falls back to scanNoCameraFound for unknown / empty names', () => {
+		expect(cameraErrorKey('WeirdError')).toBe('common.scanNoCameraFound');
+		expect(cameraErrorKey('')).toBe('common.scanNoCameraFound');
 	});
 });

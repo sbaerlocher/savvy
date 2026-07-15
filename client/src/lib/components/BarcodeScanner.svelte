@@ -1,11 +1,18 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
 	import { logger } from '$lib/utils/logger';
-	import { mapBarcodeFormat, validateBarcodeFormat } from '$lib/utils/barcode';
+	import {
+		mapBarcodeFormat,
+		validateBarcodeFormat,
+		sanitizeBarcodeValue,
+		isValidBarcodeLength,
+		cameraErrorKey
+	} from '$lib/utils/barcode';
 	import {
 		createBarcodeDetector,
 		type BarcodeDetectorWrapper
 	} from '$lib/utils/barcode-detector';
+	import { portal } from '$lib/actions/portal';
 	import { tick } from 'svelte';
 
 	const componentLogger = logger.child('BarcodeScanner');
@@ -50,19 +57,6 @@
 	function addDebugLog(message: string) {
 		const timestamp = new Date().toLocaleTimeString();
 		debugLogs = [`[${timestamp}] ${message}`, ...debugLogs].slice(0, 10);
-	}
-
-	function portal(node: HTMLElement) {
-		node.style.margin = '0';
-		document.body.appendChild(node);
-
-		return {
-			destroy() {
-				if (node.parentNode) {
-					node.parentNode.removeChild(node);
-				}
-			}
-		};
 	}
 
 	$effect(() => {
@@ -175,34 +169,7 @@
 				err instanceof Error ? err.message : 'Camera access failed';
 
 			// Map error to user-friendly message
-			if (errorName === 'HttpsRequiredError') {
-				scanMessage = $t('common.scanHttpsRequired');
-			} else if (
-				errorName === 'NotAllowedError' ||
-				errorName === 'PermissionDeniedError'
-			) {
-				scanMessage = $t('common.scanCameraPermissionDenied');
-			} else if (errorName === 'NotFoundError') {
-				scanMessage = $t('common.scanNoCameraFound');
-			} else if (
-				errorName === 'NotReadableError' ||
-				errorName === 'AbortError'
-			) {
-				scanMessage = $t('common.scanCameraNotAvailable');
-			} else if (errorName === 'OverconstrainedError') {
-				scanMessage = $t('common.scanCameraConstraintsError');
-			} else if (errorName === 'SecurityError') {
-				scanMessage = $t('common.scanCameraSecurityBlocked');
-			} else if (
-				errorName === 'NotSupportedError' ||
-				errorName === 'TypeError'
-			) {
-				scanMessage = $t('common.scanCameraNotSupported');
-			} else if (errorName === 'TimeoutError') {
-				scanMessage = $t('common.scanCameraTimeout');
-			} else {
-				scanMessage = $t('common.scanNoCameraFound');
-			}
+			scanMessage = $t(cameraErrorKey(errorName));
 
 			addDebugLog(`Error: ${errorName} - ${errorMessage}`);
 			onerror?.({ message: scanMessage });
@@ -257,14 +224,9 @@
 		animationFrameId = requestAnimationFrame(scan);
 	}
 
-	// C0 (0x00-0x1F), DEL and C1 (0x7F-0x9F) control characters. Built via
-	// string concatenation so the intentional control-char range is preserved
-	// without tripping the no-control-regex lint rule on a regex literal.
-	const CONTROL_CHARS_RE = new RegExp('[\\x00-\\x1F' + '\\x7F-\\x9F]', 'g');
-
 	function handleBarcodeDetected(barcode: string, format: string) {
-		const sanitized = barcode.replace(CONTROL_CHARS_RE, '');
-		if (sanitized.length === 0 || sanitized.length > 255) {
+		const sanitized = sanitizeBarcodeValue(barcode);
+		if (!isValidBarcodeLength(sanitized)) {
 			componentLogger.warn('Invalid barcode rejected:', {
 				length: sanitized.length,
 				format

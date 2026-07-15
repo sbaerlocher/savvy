@@ -3,6 +3,7 @@
 	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
 	import type { ShareDTO } from '$lib/types/api';
+	import { formatUserName } from '$lib/utils/user';
 
 	interface Props {
 		share: ShareDTO;
@@ -50,10 +51,7 @@
 	}: Props = $props();
 
 	function userName(s: ShareDTO) {
-		const u = s.shared_with_user;
-		if (u?.first_name && u?.last_name) return `${u.first_name} ${u.last_name}`;
-		if (u?.first_name) return u.first_name;
-		return u?.email || get(t)('giftCards.unknownUser');
+		return formatUserName(s.shared_with_user, get(t)('giftCards.unknownUser'));
 	}
 </script>
 

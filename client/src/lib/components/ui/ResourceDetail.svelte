@@ -10,6 +10,7 @@
 	import { formatCurrency } from '$lib/utils/currency';
 	import { platform } from '$lib/utils/platform';
 	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
+	import { resourceDetailPath } from '$lib/resource/routes';
 	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -490,11 +491,7 @@
 	}
 
 	function detailHref(id: string): string {
-		return kind === 'card'
-			? resolve(`/cards/${id}`)
-			: kind === 'voucher'
-				? resolve(`/vouchers/${id}`)
-				: resolve(`/gift-cards/${id}`);
+		return resourceDetailPath(kind, id);
 	}
 
 	// eslint can't see through the Href helpers that resolve() the target, so
