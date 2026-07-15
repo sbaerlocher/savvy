@@ -169,18 +169,19 @@
 								for="name"
 								class="block text-sm font-medium text-text-ink2 mb-2"
 							>
-								{$t('admin.merchants.name')} <span class="text-red-500">*</span>
+								{$t('admin.merchants.name')}
+								<span class="text-danger-500">*</span>
 							</label>
 							<input
 								id="name"
 								type="text"
 								bind:value={name}
 								placeholder={$t('admin.merchants.namePlaceholder')}
-								class="input {errors.name ? 'border-red-500' : ''}"
+								class="input {errors.name ? 'border-danger-500' : ''}"
 								required
 							/>
 							{#if errors.name}
-								<p class="mt-1 text-sm text-red-600">{errors.name}</p>
+								<p class="mt-1 text-sm text-danger-600">{errors.name}</p>
 							{/if}
 						</div>
 
@@ -319,7 +320,7 @@
 						</div>
 
 						{#if isOffline}
-							<div class="text-center text-sm text-red-600">
+							<div class="text-center text-sm text-danger-600">
 								{$t('common.offlineWarning')}
 							</div>
 						{/if}
@@ -414,7 +415,7 @@
 			<div class="flex items-start mb-4">
 				<div class="flex-shrink-0 mr-3">
 					<svg
-						class="h-6 w-6 text-red-600"
+						class="h-6 w-6 text-danger-600"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -430,7 +431,7 @@
 				<div class="flex-1">
 					<h3
 						id="delete-merchant-dialog-title"
-						class="text-lg font-semibold text-red-600"
+						class="text-lg font-semibold text-danger-600"
 					>
 						{$t('admin.merchants.confirmDeleteTitle')}
 					</h3>

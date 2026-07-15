@@ -175,6 +175,7 @@
   --color-danger-200: #eec3bb;  /* Chip-bg / weicher Rand */
   --color-danger-300: #e09d90;  /* Rand */
   --color-danger-400: #cf6d5d;  /* Border / Icon */
+  --color-danger-500: #c0503f;  /* Icon / dot (interp. 400↔600) */
   --color-danger-600: #b23b30;  /* Button-Fill (AA weiss 5.90:1) */
   --color-danger-700: #98342a;  /* Button-Hover */
   --color-danger-800: #7a2820;  /* Text/Ink (AA auf -100 7.57:1) */
@@ -185,6 +186,7 @@
   --color-success-100: #d7ebdb;  /* Tint (kräftiger) */
   --color-success-200: #b6d8bf;  /* Chip-bg / weicher Rand */
   --color-success-400: #5a9e6d;  /* Border / Icon */
+  --color-success-500: #4a8a5d;  /* Icon / dot (interp. 400↔600) */
   --color-success-600: #3f7a4e;  /* Button-Fill (AA weiss 5.12:1) */
   --color-success-700: #356a43;  /* Button-Hover */
   --color-success-800: #285233;  /* Text/Ink (AA auf -100 7.16:1) */
@@ -195,6 +197,7 @@
   --color-warning-200: #e7cf95;  /* Chip-bg / weicher Rand */
   --color-warning-300: #d9b464;  /* Rand */
   --color-warning-400: #c49635;  /* Border / Icon */
+  --color-warning-500: #af7d1f;  /* Icon / dot (interp. 400↔600) */
   --color-warning-600: #9a6b08;  /* Button-Fill (AA weiss 4.68:1) */
   --color-warning-700: #8a6410;  /* Button-Hover */
   --color-warning-800: #6b4d0f;  /* Text/Ink (AA auf -100 6.18:1) */
@@ -204,6 +207,7 @@
   --color-purple-50:  #f2eef7;  /* Badge/Banner-Tint */
   --color-purple-200: #d9cde8;  /* Chip-bg / weicher Rand */
   --color-purple-400: #9d84c0;  /* Border / Icon */
+  --color-purple-500: #82649e;  /* Icon / dot (interp. 400↔600) */
   --color-purple-600: #6a4b93;  /* Button-Fill (AA weiss 6.91:1) */
   --color-purple-700: #58407b;  /* Button-Hover */
   --color-purple-900: #3a2a54;  /* tiefster Ink */

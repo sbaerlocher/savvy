@@ -478,7 +478,7 @@
 			<!-- Scanner Method Indicator -->
 			{#if scannerReady}
 				<div class="text-xs text-text-subtle mb-2 flex items-center gap-2">
-					<div class="w-2 h-2 rounded-full bg-green-500"></div>
+					<div class="w-2 h-2 rounded-full bg-success-500"></div>
 					BarcodeDetector
 				</div>
 			{/if}
@@ -604,7 +604,7 @@
 				{/if}
 				{#if validationWarning}
 					<p
-						class="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
+						class="text-xs text-warning-600 text-center flex items-center justify-center gap-1"
 					>
 						<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
 							<path

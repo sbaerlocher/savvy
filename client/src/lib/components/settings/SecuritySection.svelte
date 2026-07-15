@@ -207,7 +207,7 @@
 				<span class="text-sm text-text-muted break-all">{profile.email}</span>
 				{#if profile.email_verified}
 					<span
-						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800"
 					>
 						<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 							<path
@@ -220,7 +220,7 @@
 					</span>
 				{:else}
 					<span
-						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-800"
 					>
 						{tr('settings.emailVerification.notVerified')}
 					</span>
@@ -395,8 +395,8 @@
 	</div>
 
 	<!-- Danger Zone -->
-	<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-red-200">
-		<h3 class="text-lg font-semibold text-red-600 mb-4">
+	<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-danger-200">
+		<h3 class="text-lg font-semibold text-danger-600 mb-4">
 			{tr('settings.dangerZone.title')}
 		</h3>
 
@@ -412,7 +412,7 @@
 			<button
 				type="button"
 				onclick={() => (showDeleteModal = true)}
-				class="btn btn-ghost text-red-600 border-red-300 hover:bg-red-50"
+				class="btn btn-ghost text-danger-600 border-danger-300 hover:bg-danger-50"
 			>
 				{tr('settings.dangerZone.deleteButton')}
 			</button>
@@ -433,7 +433,7 @@
 		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
 			<h3
 				id="delete-modal-title"
-				class="text-lg font-semibold text-red-600 mb-2"
+				class="text-lg font-semibold text-danger-600 mb-2"
 			>
 				{tr('settings.dangerZone.deleteConfirmTitle')}
 			</h3>
@@ -493,14 +493,14 @@
 						disabled={isDeleting ||
 							deleteConfirmation !== 'DELETE' ||
 							(profile.auth_provider === 'local' && !deletePassword)}
-						class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+						class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-md hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
 					>
 						{#if isDeleting}
 							<span class="relative inline-flex h-3 w-3 mr-2"
 								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger-400 opacity-75"
 								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-red-500"
+									class="relative inline-flex rounded-full h-3 w-3 bg-danger-500"
 								></span></span
 							>
 							{tr('settings.dangerZone.deleting')}

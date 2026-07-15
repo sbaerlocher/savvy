@@ -350,17 +350,17 @@
 					};
 				case 'expired':
 					return {
-						class: 'bg-red-200 text-red-700',
+						class: 'bg-danger-200 text-danger-700',
 						text: tr('cards.status.expired')
 					};
 				case 'lost':
 					return {
-						class: 'bg-orange-200 text-orange-700',
+						class: 'bg-warning-200 text-warning-700',
 						text: tr('cards.status.lost')
 					};
 				case 'blocked':
 					return {
-						class: 'bg-red-200 text-red-700',
+						class: 'bg-danger-200 text-danger-700',
 						text: tr('cards.status.blocked')
 					};
 				default:
@@ -376,12 +376,12 @@
 					};
 				case 'expired':
 					return {
-						class: 'bg-red-200 text-red-700',
+						class: 'bg-danger-200 text-danger-700',
 						text: tr('vouchers.status.expired')
 					};
 				case 'used':
 					return {
-						class: 'bg-green-200 text-green-700',
+						class: 'bg-success-200 text-success-700',
 						text: tr('vouchers.status.used')
 					};
 				default:
@@ -396,12 +396,12 @@
 				};
 			case 'expired':
 				return {
-					class: 'bg-red-200 text-red-700',
+					class: 'bg-danger-200 text-danger-700',
 					text: tr('giftCards.status.expired')
 				};
 			case 'depleted':
 				return {
-					class: 'bg-orange-200 text-orange-700',
+					class: 'bg-warning-200 text-warning-700',
 					text: tr('giftCards.status.depleted')
 				};
 			default:
@@ -816,7 +816,7 @@
 
 						{#if notes}
 							<div
-								class="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded"
+								class="mt-4 bg-warning-50 border-l-4 border-warning-400 p-3 rounded"
 							>
 								<p class="text-sm text-text-ink2">{notes}</p>
 							</div>
@@ -1020,12 +1020,12 @@
 											promptDeleteShare(share.shared_with_user.id)}
 									>
 										<div
-											class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+											class="bg-warning-50 border border-warning-200 rounded-lg p-3"
 										>
-											<p class="text-xs font-medium text-yellow-800 mb-1">
+											<p class="text-xs font-medium text-warning-800 mb-1">
 												{tr(c.alwaysReadOnly)}
 											</p>
-											<p class="text-xs text-yellow-700">
+											<p class="text-xs text-warning-700">
 												{tr(c.canOnlyRemove)}
 											</p>
 										</div>
@@ -1066,7 +1066,7 @@
 							type="button"
 							onclick={promptRevokeAll}
 							disabled={isOffline}
-							class="btn btn-ghost text-red-600 mt-3 w-full disabled:opacity-50"
+							class="btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50"
 						>
 							{tr(c.revokeAll)}
 						</button>

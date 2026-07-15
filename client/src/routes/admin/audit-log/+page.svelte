@@ -315,10 +315,10 @@
 													<span
 														class="px-2 py-1 text-xs font-medium rounded-full {log.action ===
 														'delete'
-															? 'bg-yellow-100 text-yellow-800'
+															? 'bg-warning-100 text-warning-800'
 															: log.action === 'hard_delete'
-																? 'bg-red-100 text-red-800'
-																: 'bg-green-100 text-green-800'}"
+																? 'bg-danger-100 text-danger-800'
+																: 'bg-success-100 text-success-800'}"
 													>
 														{log.action}
 													</span>

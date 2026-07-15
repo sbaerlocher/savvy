@@ -100,18 +100,19 @@
 							for="name"
 							class="block text-sm font-medium text-text-ink2 mb-2"
 						>
-							{$t('admin.merchants.name')} <span class="text-red-500">*</span>
+							{$t('admin.merchants.name')}
+							<span class="text-danger-500">*</span>
 						</label>
 						<input
 							id="name"
 							type="text"
 							bind:value={name}
 							placeholder={$t('admin.merchants.namePlaceholder')}
-							class="input {errors.name ? 'border-red-500' : ''}"
+							class="input {errors.name ? 'border-danger-500' : ''}"
 							required
 						/>
 						{#if errors.name}
-							<p class="mt-1 text-sm text-red-600">{errors.name}</p>
+							<p class="mt-1 text-sm text-danger-600">{errors.name}</p>
 						{/if}
 					</div>
 
@@ -208,7 +209,7 @@
 					</div>
 
 					{#if isOffline}
-						<div class="text-center text-sm text-red-600">
+						<div class="text-center text-sm text-danger-600">
 							{$t('common.offlineWarning')}
 						</div>
 					{/if}
@@ -243,14 +244,14 @@
 						<p class="text-text-muted">{$t('admin.merchants.colorHint')}</p>
 					</div>
 
-					<div class="border-l-4 border-green-500 pl-4">
+					<div class="border-l-4 border-success-500 pl-4">
 						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.logoUrl')}
 						</h3>
 						<p class="text-text-muted">{$t('admin.merchants.logoUrlHint')}</p>
 					</div>
 
-					<div class="border-l-4 border-orange-500 pl-4">
+					<div class="border-l-4 border-warning-500 pl-4">
 						<h3 class="font-semibold text-text mb-1">
 							{$t('admin.merchants.website')}
 						</h3>

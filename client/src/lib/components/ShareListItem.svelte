@@ -157,12 +157,16 @@
 				</span>
 			{:else}
 				{#if share.can_edit}
-					<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-success-100 text-success-800 px-2 py-0.5 rounded"
+					>
 						{$t('giftCards.sharing.permEdit')}
 					</span>
 				{/if}
 				{#if share.can_delete}
-					<span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
+					<span
+						class="text-xs bg-danger-100 text-danger-800 px-2 py-0.5 rounded"
+					>
 						{$t('giftCards.sharing.permDelete')}
 					</span>
 				{/if}

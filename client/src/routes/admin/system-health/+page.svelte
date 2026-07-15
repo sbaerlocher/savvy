@@ -128,7 +128,7 @@
 
 	function getStatusColor(check: CheckResult): string {
 		if (!check.enabled) return 'text-text-faint';
-		return check.status === 'healthy' ? 'text-green-600' : 'text-red-600';
+		return check.status === 'healthy' ? 'text-success-600' : 'text-danger-600';
 	}
 
 	function getStatusLabel(status: string): string {
@@ -186,7 +186,7 @@
 			{:else if health}
 				{#if health.status === 'ready'}
 					<svg
-						class="w-5 h-5 text-green-600 shrink-0"
+						class="w-5 h-5 text-success-600 shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -198,12 +198,12 @@
 							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-green-600"
+					<span class="text-sm font-medium text-success-600"
 						>{$t('admin.systemHealth.ready')}</span
 					>
 				{:else if health.status === 'degraded'}
 					<svg
-						class="w-5 h-5 text-yellow-600 shrink-0"
+						class="w-5 h-5 text-warning-600 shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -215,12 +215,12 @@
 							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-yellow-600"
+					<span class="text-sm font-medium text-warning-600"
 						>{$t('admin.systemHealth.degraded')}</span
 					>
 				{:else}
 					<svg
-						class="w-5 h-5 text-red-600 shrink-0"
+						class="w-5 h-5 text-danger-600 shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -232,7 +232,7 @@
 							d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-red-600"
+					<span class="text-sm font-medium text-danger-600"
 						>{$t('admin.systemHealth.notReady')}</span
 					>
 				{/if}
@@ -346,8 +346,8 @@
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 						.database.enabled
 						? health.checks.database.status === 'healthy'
-							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'
+							? 'bg-success-100 text-success-800'
+							: 'bg-danger-100 text-danger-800'
 						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.database.status)}
@@ -372,7 +372,7 @@
 			{#if expandedService === 'database'}
 				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.database.error}
-						<span class="text-red-600">{health.checks.database.error}</span>
+						<span class="text-danger-600">{health.checks.database.error}</span>
 					{:else if health.checks.database.latency_ms !== undefined}
 						{$t('admin.systemHealth.latency').replace(
 							'{ms}',
@@ -413,8 +413,8 @@
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.smtp
 						.enabled
 						? health.checks.smtp.status === 'healthy'
-							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'
+							? 'bg-success-100 text-success-800'
+							: 'bg-danger-100 text-danger-800'
 						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.smtp.status)}
@@ -440,7 +440,7 @@
 				<div class="px-4 py-3 bg-surface-1 space-y-3">
 					<div class="text-sm text-text-muted">
 						{#if health.checks.smtp.error}
-							<span class="text-red-600">{health.checks.smtp.error}</span>
+							<span class="text-danger-600">{health.checks.smtp.error}</span>
 						{:else if !health.checks.smtp.enabled}
 							{$t('admin.systemHealth.emailDisabled')}
 						{/if}
@@ -501,8 +501,8 @@
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.oauth
 						.enabled
 						? health.checks.oauth.status === 'healthy'
-							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'
+							? 'bg-success-100 text-success-800'
+							: 'bg-danger-100 text-danger-800'
 						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.oauth.status)}
@@ -527,7 +527,7 @@
 			{#if expandedService === 'oauth'}
 				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.oauth.error}
-						<span class="text-red-600">{health.checks.oauth.error}</span>
+						<span class="text-danger-600">{health.checks.oauth.error}</span>
 					{:else if health.checks.oauth.enabled}
 						{$t('admin.systemHealth.oauthConnectivity')}
 					{:else}
@@ -563,8 +563,8 @@
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.vapid
 						.enabled
 						? health.checks.vapid.status === 'healthy'
-							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'
+							? 'bg-success-100 text-success-800'
+							: 'bg-danger-100 text-danger-800'
 						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.vapid.status)}
@@ -590,7 +590,7 @@
 				<div class="px-4 py-3 bg-surface-1 space-y-3">
 					<div class="text-sm text-text-muted">
 						{#if health.checks.vapid.error}
-							<span class="text-red-600">{health.checks.vapid.error}</span>
+							<span class="text-danger-600">{health.checks.vapid.error}</span>
 						{:else if !health.checks.vapid.enabled}
 							{$t('admin.systemHealth.pushDisabled')}
 						{/if}
@@ -651,8 +651,8 @@
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 						.totp_encryption.enabled
 						? health.checks.totp_encryption.status === 'healthy'
-							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'
+							? 'bg-success-100 text-success-800'
+							: 'bg-danger-100 text-danger-800'
 						: 'bg-border-soft text-text-strong'}"
 				>
 					{getStatusLabel(health.checks.totp_encryption.status)}
@@ -677,7 +677,7 @@
 			{#if expandedService === 'totp'}
 				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.totp_encryption.error}
-						<span class="text-red-600"
+						<span class="text-danger-600"
 							>{health.checks.totp_encryption.error}</span
 						>
 					{:else if health.checks.totp_encryption.enabled}
@@ -743,7 +743,9 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.database.error}
-								<span class="text-red-600">{health.checks.database.error}</span>
+								<span class="text-danger-600"
+									>{health.checks.database.error}</span
+								>
 							{:else if health.checks.database.latency_ms !== undefined}
 								{$t('admin.systemHealth.latency').replace(
 									'{ms}',
@@ -761,8 +763,8 @@
 								class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 									.database.enabled
 									? health.checks.database.status === 'healthy'
-										? 'bg-green-100 text-green-800'
-										: 'bg-red-100 text-red-800'
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
 									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.database.status)}
@@ -796,7 +798,7 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.smtp.error}
-								<span class="text-red-600">{health.checks.smtp.error}</span>
+								<span class="text-danger-600">{health.checks.smtp.error}</span>
 							{:else if !health.checks.smtp.enabled}
 								{$t('admin.systemHealth.emailDisabled')}
 							{/if}
@@ -834,8 +836,8 @@
 								class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 									.smtp.enabled
 									? health.checks.smtp.status === 'healthy'
-										? 'bg-green-100 text-green-800'
-										: 'bg-red-100 text-red-800'
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
 									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.smtp.status)}
@@ -869,7 +871,7 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.oauth.error}
-								<span class="text-red-600">{health.checks.oauth.error}</span>
+								<span class="text-danger-600">{health.checks.oauth.error}</span>
 							{:else if health.checks.oauth.enabled}
 								{$t('admin.systemHealth.oauthConnectivity')}
 							{:else}
@@ -882,8 +884,8 @@
 								class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 									.oauth.enabled
 									? health.checks.oauth.status === 'healthy'
-										? 'bg-green-100 text-green-800'
-										: 'bg-red-100 text-red-800'
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
 									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.oauth.status)}
@@ -917,7 +919,7 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.vapid.error}
-								<span class="text-red-600">{health.checks.vapid.error}</span>
+								<span class="text-danger-600">{health.checks.vapid.error}</span>
 							{:else if !health.checks.vapid.enabled}
 								{$t('admin.systemHealth.pushDisabled')}
 							{/if}
@@ -955,8 +957,8 @@
 								class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 									.vapid.enabled
 									? health.checks.vapid.status === 'healthy'
-										? 'bg-green-100 text-green-800'
-										: 'bg-red-100 text-red-800'
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
 									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.vapid.status)}
@@ -990,7 +992,7 @@
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.totp_encryption.error}
-								<span class="text-red-600"
+								<span class="text-danger-600"
 									>{health.checks.totp_encryption.error}</span
 								>
 							{:else if health.checks.totp_encryption.enabled}
@@ -1005,8 +1007,8 @@
 								class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 									.totp_encryption.enabled
 									? health.checks.totp_encryption.status === 'healthy'
-										? 'bg-green-100 text-green-800'
-										: 'bg-red-100 text-red-800'
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
 									: 'bg-border-soft text-text-strong'}"
 							>
 								{getStatusLabel(health.checks.totp_encryption.status)}
@@ -1018,10 +1020,10 @@
 		</div>
 	{:else}
 		<!-- Error State -->
-		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+		<div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
 			<div class="flex items-center gap-3">
 				<svg
-					class="w-6 h-6 text-red-600"
+					class="w-6 h-6 text-danger-600"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -1033,7 +1035,7 @@
 						d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					/>
 				</svg>
-				<span class="text-red-800"
+				<span class="text-danger-800"
 					>{$t('admin.systemHealth.loadErrorRetry')}</span
 				>
 			</div>

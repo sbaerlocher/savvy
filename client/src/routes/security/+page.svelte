@@ -230,16 +230,16 @@
 														class="h-1 flex-1 rounded-full transition-colors {passwordStrength.score >=
 														i
 															? passwordStrength.score <= 2
-																? 'bg-red-400'
+																? 'bg-danger-400'
 																: passwordStrength.score === 3
-																	? 'bg-yellow-400'
-																	: 'bg-green-400'
+																	? 'bg-warning-400'
+																	: 'bg-success-400'
 															: 'bg-border'}"
 													></div>
 												{/each}
 											</div>
 											{#if passwordStrength.label}
-												<p class="text-xs text-red-500 mt-1">
+												<p class="text-xs text-danger-500 mt-1">
 													{passwordStrength.label}
 												</p>
 											{/if}
@@ -372,7 +372,7 @@
 											</span>
 											{#if session.is_current}
 												<span
-													class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+													class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800"
 												>
 													{tr('settings.sessions.current')}
 												</span>
@@ -395,7 +395,7 @@
 											type="button"
 											onclick={() => handleRevokeSession(session.id)}
 											disabled={revokingSessionId === session.id}
-											class="flex-shrink-0 p-1.5 text-text-faint hover:text-red-500 transition-colors disabled:opacity-50"
+											class="flex-shrink-0 p-1.5 text-text-faint hover:text-danger-500 transition-colors disabled:opacity-50"
 											title={tr('settings.sessions.revoke')}
 											aria-label={tr('settings.sessions.revoke')}
 										>

@@ -254,7 +254,7 @@
 								</svg>
 							{:else if notification.type === 'expiry_reminder'}
 								<svg
-									class="w-5 h-5 text-amber-500"
+									class="w-5 h-5 text-warning-500"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -325,7 +325,7 @@
 							{/if}
 
 							<button
-								class="text-text-faint hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+								class="text-text-faint hover:text-danger-600 p-1.5 rounded-md hover:bg-danger-50 transition-colors"
 								onclick={(e) => {
 									e.stopPropagation();
 									handleDelete(notification.id);

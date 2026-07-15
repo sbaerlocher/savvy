@@ -78,11 +78,11 @@
 
 	{#if showForm}
 		<div class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4">
-			<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-				<p class="text-sm font-medium text-yellow-800">
+			<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
+				<p class="text-sm font-medium text-warning-800">
 					<strong>{warningTitle}</strong>
 				</p>
-				<p class="text-xs text-yellow-700 mt-1">{warningDetails}</p>
+				<p class="text-xs text-warning-700 mt-1">{warningDetails}</p>
 			</div>
 
 			<EmailAutocomplete

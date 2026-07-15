@@ -14,26 +14,26 @@
 		success: {
 			bg: isIOS
 				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-green-50',
-			border: isIOS ? 'border-white/30' : 'border-green-200',
-			text: 'text-green-800',
-			icon: 'text-green-500'
+				: 'bg-success-50',
+			border: isIOS ? 'border-white/30' : 'border-success-200',
+			text: 'text-success-800',
+			icon: 'text-success-500'
 		},
 		error: {
 			bg: isIOS
 				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-red-50',
-			border: isIOS ? 'border-white/30' : 'border-red-200',
-			text: 'text-red-800',
-			icon: 'text-red-500'
+				: 'bg-danger-50',
+			border: isIOS ? 'border-white/30' : 'border-danger-200',
+			text: 'text-danger-800',
+			icon: 'text-danger-500'
 		},
 		warning: {
 			bg: isIOS
 				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-yellow-50',
-			border: isIOS ? 'border-white/30' : 'border-yellow-200',
-			text: 'text-yellow-800',
-			icon: 'text-yellow-500'
+				: 'bg-warning-50',
+			border: isIOS ? 'border-white/30' : 'border-warning-200',
+			text: 'text-warning-800',
+			icon: 'text-warning-500'
 		},
 		info: {
 			bg: isIOS

@@ -282,11 +282,11 @@
 					<!-- Impersonation Indicator -->
 					{#if $authStore.user?.is_impersonating}
 						<div
-							class="hidden sm:flex items-center bg-yellow-50 border border-yellow-300 rounded-lg px-3 py-2 gap-2"
+							class="hidden sm:flex items-center bg-warning-50 border border-warning-300 rounded-lg px-3 py-2 gap-2"
 						>
 							<!-- Admin Icon -->
 							<svg
-								class="w-5 h-5 text-yellow-700"
+								class="w-5 h-5 text-warning-700"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -301,7 +301,7 @@
 
 							<!-- Arrow -->
 							<svg
-								class="w-4 h-4 text-yellow-600"
+								class="w-4 h-4 text-warning-600"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -317,7 +317,7 @@
 							<!-- User Icon + Email -->
 							<div class="flex items-center gap-1.5">
 								<svg
-									class="w-5 h-5 text-yellow-700"
+									class="w-5 h-5 text-warning-700"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -329,7 +329,7 @@
 										d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
 									></path>
 								</svg>
-								<span class="text-sm text-yellow-800 font-medium">
+								<span class="text-sm text-warning-800 font-medium">
 									{$authStore.user.email}
 								</span>
 							</div>
@@ -343,7 +343,7 @@
 									layoutLogger.debug('About to call handleStopImpersonation');
 									handleStopImpersonation();
 								}}
-								class="ml-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded font-medium transition-colors"
+								class="ml-2 text-xs bg-warning-600 hover:bg-warning-700 text-white px-3 py-1 rounded font-medium transition-colors"
 							>
 								{$t('admin.stop_impersonating')}
 							</button>
@@ -647,7 +647,7 @@
 									<button
 										type="button"
 										onclick={handleLogout}
-										class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-surface-1 transition-colors"
+										class="flex items-center w-full px-4 py-3 text-sm text-danger-600 hover:bg-surface-1 transition-colors"
 									>
 										<svg
 											class="w-5 h-5 mr-3"
@@ -864,7 +864,7 @@
 				<div class="flex items-center space-x-2 text-sm text-text-subtle">
 					<span>{$t('footer.developedWith')}</span>
 					<svg
-						class="w-4 h-4 text-red-500"
+						class="w-4 h-4 text-danger-500"
 						fill="currentColor"
 						viewBox="0 0 20 20"
 					>

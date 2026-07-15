@@ -91,8 +91,8 @@
 				<div class="flex items-center gap-2">
 					<svg
 						class="w-4 h-4 transition-colors {favoritesOnly
-							? 'text-amber-500'
-							: 'text-text-faint group-hover:text-amber-400'}"
+							? 'text-accent-600'
+							: 'text-text-faint group-hover:text-accent-400'}"
 						fill={favoritesOnly ? 'currentColor' : 'none'}
 						stroke="currentColor"
 						viewBox="0 0 24 24"
