@@ -454,7 +454,7 @@
 	}
 
 	.barcode-fullscreen-overlay .barcode-value {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 1rem;
 		font-weight: 600;
 		color: var(--color-text-strong);
@@ -477,7 +477,7 @@
 	}
 
 	.barcode-fullscreen-overlay .barcode-pin-value {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-text-strong);
@@ -496,7 +496,7 @@
 	}
 
 	.barcode-fullscreen-overlay .barcode-info-value {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-text-strong);
@@ -515,7 +515,7 @@
 	}
 
 	.barcode-fullscreen-overlay .barcode-info-balance {
-		font-family: monospace;
+		font-family: var(--font-mono);
 		font-size: 1rem;
 		font-weight: 700;
 		color: var(--color-success-600);

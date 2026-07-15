@@ -174,12 +174,7 @@
 
 	<div>
 		<label for="barcodeType" class="label">{$t('vouchers.barcodeType')}</label>
-		<select
-			id="barcodeType"
-			bind:value={barcodeType}
-			class="input"
-			style="font-size: 16px;"
-		>
+		<select id="barcodeType" bind:value={barcodeType} class="input">
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
 			<option value="CODE93">CODE93</option>
@@ -223,13 +218,7 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 		<div>
 			<label for="type" class="label">{$t('vouchers.type')} *</label>
-			<select
-				id="type"
-				bind:value={type}
-				required
-				class="input"
-				style="font-size: 16px;"
-			>
+			<select id="type" bind:value={type} required class="input">
 				<option value="percentage">{$t('vouchers.typePercentage')}</option>
 				<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
 				<option value="points_multiplier"
@@ -269,7 +258,6 @@
 							bind:value={currency}
 							required
 							class="w-28 input"
-							style="font-size: 16px;"
 						>
 							{#each SUPPORTED_CURRENCIES as c (c)}
 								<option value={c}>{c}</option>
@@ -314,7 +302,6 @@
 					id="minPurchaseCurrency"
 					bind:value={currency}
 					class="w-28 input"
-					style="font-size: 16px;"
 				>
 					{#each SUPPORTED_CURRENCIES as c (c)}
 						<option value={c}>{c}</option>
@@ -330,12 +317,7 @@
 			<label for="usageLimitType" class="label"
 				>{$t('vouchers.usageLimitType')}</label
 			>
-			<select
-				id="usageLimitType"
-				bind:value={usageLimitType}
-				class="input"
-				style="font-size: 16px;"
-			>
+			<select id="usageLimitType" bind:value={usageLimitType} class="input">
 				<option value="single_use"
 					>{$t('vouchers.usageLimitTypes.single_use')}</option
 				>

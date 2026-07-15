@@ -116,7 +116,6 @@
 			aria-autocomplete="list"
 			aria-required={required}
 			class="input pr-10"
-			style="font-size: 16px;"
 			placeholder={$t('merchants.searchPlaceholder')}
 			value={displayValue}
 			onfocus={onFocus}

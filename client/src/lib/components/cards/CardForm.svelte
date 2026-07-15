@@ -155,12 +155,7 @@
 
 	<div>
 		<label for="barcodeType" class="label">{$t('cards.barcodeType')}</label>
-		<select
-			id="barcodeType"
-			bind:value={barcodeType}
-			class="input"
-			style="font-size: 16px;"
-		>
+		<select id="barcodeType" bind:value={barcodeType} class="input">
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
 			<option value="CODE93">CODE93</option>
@@ -193,12 +188,7 @@
 	{#if status !== undefined}
 		<div>
 			<label for="status" class="label">{$t('cards.statusLabel')}</label>
-			<select
-				id="status"
-				bind:value={status}
-				class="input"
-				style="font-size: 16px;"
-			>
+			<select id="status" bind:value={status} class="input">
 				<option value="active">{$t('giftCards.status.active')}</option>
 				<option value="inactive">{$t('cards.status.inactive')}</option>
 				<option value="expired">{$t('cards.status.expired')}</option>

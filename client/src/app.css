@@ -134,6 +134,9 @@
 	/* Input styles */
 	.input {
 		@apply w-full rounded-md border border-border-field bg-white px-3 py-2 text-text placeholder:text-text-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+		/* 16px prevents iOS Safari from zooming the page on input focus; this is
+		   a platform constraint, not a design size, so it stays a literal 1rem. */
+		font-size: 1rem;
 	}
 
 	.label {
