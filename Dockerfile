@@ -62,8 +62,9 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS frontend-dev
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# Install wget for healthcheck and su-exec to drop the dev server to the dde
+# user (dde's overlay forces the container to start as root; see CMD below)
+RUN apk add --no-cache wget su-exec
 
 WORKDIR /app/client
 
@@ -85,7 +86,12 @@ ENV NODE_ENV=development
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:5173 || exit 1
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# dde's runtime overlay forces the container to start as root (user 0:0) and
+# overrides the entrypoint, but preserves this CMD. Drop the dev server to the
+# dde user via su-exec so it owns the Vite caches it creates in node_modules and
+# `dde project:exec` (same uid) can write them. sh -c defers $DDE_UID/$DDE_GID
+# expansion to runtime, where dde injects the host uid/gid into the container.
+CMD ["sh", "-c", "exec su-exec \"$DDE_UID:$DDE_GID\" npm run dev -- --host 0.0.0.0"]
 
 # ==============================================================================
 # FRONTEND BUILDER STAGE (Build SvelteKit)
