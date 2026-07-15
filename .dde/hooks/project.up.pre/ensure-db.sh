@@ -18,15 +18,24 @@ set -euo pipefail
 hook_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 cd "$hook_dir/../../.."
 
-# DATABASE_URL from compose config is the source of truth (worktree-aware).
-db_url=$(docker compose config --format json 2>/dev/null |
-	python3 -c "import sys,json; print(json.load(sys.stdin)['services']['api']['environment'].get('DATABASE_URL',''))" \
-		2>/dev/null || true)
+# Resolved compose config (worktree-aware DATABASE_URL). jq is already a
+# common dev/docker dependency; avoid adding a python3 host requirement no
+# other dde hook has.
+compose_config=$(docker compose config --format json 2>/dev/null || true)
 
-if [ -z "$db_url" ]; then
-	# No api service (e.g. e2e-only profile) — the e2e binary owns its own db.
-	echo "ensure-db: no api DATABASE_URL in compose config, skipping"
+# No api service (e.g. e2e-only profile) — the e2e binary owns its own db.
+if ! printf '%s' "$compose_config" | jq -e '.services.api' >/dev/null 2>&1; then
+	echo "ensure-db: no api service in compose config, skipping"
 	exit 0
+fi
+
+# api exists, so a missing/empty DATABASE_URL is a real error — fail loud
+# rather than swallowing it and letting the api crash-loop against a missing
+# db. `// empty` keeps a null value from becoming the literal string "None".
+db_url=$(printf '%s' "$compose_config" | jq -r '.services.api.environment.DATABASE_URL // empty')
+if [ -z "$db_url" ]; then
+	echo "ensure-db: api service has no DATABASE_URL set" >&2
+	exit 1
 fi
 
 # Strip query string, then take the path segment after the last slash.
@@ -60,7 +69,8 @@ for i in $(seq 1 10); do
 	sleep 2
 done
 
-# CREATE DATABASE has no IF NOT EXISTS, so guard on pg_database.
+# CREATE DATABASE has no IF NOT EXISTS, so guard on pg_database. The name is
+# a branch-derived identifier; quote it so hyphens/leading digits stay valid.
 exists=$(docker exec "$postgres_container" psql -U postgres -tAc \
 	"SELECT 1 FROM pg_database WHERE datname = '${db_name}';")
 if [ "$exists" = "1" ]; then
@@ -69,5 +79,5 @@ if [ "$exists" = "1" ]; then
 fi
 
 docker exec "$postgres_container" psql -U postgres -v ON_ERROR_STOP=1 \
-	-c "CREATE DATABASE ${db_name} OWNER postgres;"
+	-c "CREATE DATABASE \"${db_name}\" OWNER postgres;"
 echo "ensure-db: ${db_name} created"
