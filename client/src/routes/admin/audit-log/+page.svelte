@@ -232,7 +232,7 @@
 				e.stopPropagation();
 				showFilterMenu = !showFilterMenu;
 			}}
-			class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+			class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 			title={$t('common.filter')}
 			aria-label={$t('common.filter')}
 			aria-expanded={showFilterMenu}

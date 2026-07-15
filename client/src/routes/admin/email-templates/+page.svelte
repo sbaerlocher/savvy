@@ -104,7 +104,7 @@
 	<!-- Controls Row: Language Selector -->
 	<div class="flex flex-col sm:flex-row gap-3 mb-6">
 		<div
-			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-border-field rounded-md"
+			class="sm:flex-1 flex items-center gap-3 control px-4 bg-white border border-border-field rounded-md"
 		>
 			<svg
 				class="w-5 h-5 text-text-faint shrink-0"

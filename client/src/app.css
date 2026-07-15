@@ -139,6 +139,12 @@
 		font-size: 1rem;
 	}
 
+	/* Control height — buttons/toolbar controls that align with .input height.
+	   42px is a platform control size, not a design token, so it stays literal. */
+	.control {
+		height: 42px;
+	}
+
 	.label {
 		@apply block text-sm font-medium text-text-ink2 mb-1;
 	}
