@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import type bwipjsType from 'bwip-js';
 	import { logger } from '$lib/utils/logger';
+	import { barcodeBcid, is2DBcid } from '$lib/utils/barcode';
 
 	// bwip-js is ~1 MB and only needed once a barcode actually renders. A static
 	// import pulls it into the first-paint chunk of every route that mounts a
@@ -38,36 +39,6 @@
 	let barcodeSection = $state<HTMLDivElement>();
 	let hasError = $state(false);
 
-	// Map barcode types to bwip-js BCID (Barcode ID)
-	const formatMap: Record<string, string> = {
-		// 1D Barcodes
-		CODE128: 'code128',
-		CODE39: 'code39',
-		CODE93: 'code93',
-		EAN13: 'ean13',
-		EAN8: 'ean8',
-		UPC: 'upca',
-		UPCA: 'upca',
-		UPCE: 'upce',
-		ITF: 'interleaved2of5',
-		ITF14: 'itf14',
-		MSI: 'msi',
-		CODABAR: 'codabar',
-		Pharmacode: 'pharmacode',
-		// ISBN/ISSN
-		ISBN13: 'ean13', // ISBN-13 uses EAN-13 format
-		ISBN10: 'isbn', // ISBN-10 (bwip-js: 'isbn')
-		ISBN: 'isbn', // Alias for ISBN-10
-		ISSN: 'issn', // International Standard Serial Number
-		// 2D Barcodes
-		QR: 'qrcode',
-		QRCODE: 'qrcode',
-		PDF417: 'pdf417',
-		DATAMATRIX: 'datamatrix',
-		AZTEC: 'azteccode',
-		MAXICODE: 'maxicode'
-	};
-
 	onMount(() => {
 		generateBarcode();
 	});
@@ -89,16 +60,10 @@
 			return;
 		}
 
-		const bcid = formatMap[type.toUpperCase()] || 'code128';
+		const bcid = barcodeBcid(type);
 
 		// Check if this is a 2D barcode
-		const is2D = [
-			'qrcode',
-			'pdf417',
-			'datamatrix',
-			'azteccode',
-			'maxicode'
-		].includes(bcid);
+		const is2D = is2DBcid(bcid);
 
 		// bwip-js options
 		const options: Parameters<typeof bwip.toCanvas>[1] = {

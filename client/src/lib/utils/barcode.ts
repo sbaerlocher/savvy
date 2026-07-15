@@ -115,6 +115,104 @@ export function checkSymbologySuitability(
 	return rule.test.test(trimmed) ? undefined : rule.warningKey;
 }
 
+/** Map barcode types (form values) to bwip-js BCID (Barcode ID). */
+export const BARCODE_BCID_MAP: Record<string, string> = {
+	// 1D Barcodes
+	CODE128: 'code128',
+	CODE39: 'code39',
+	CODE93: 'code93',
+	EAN13: 'ean13',
+	EAN8: 'ean8',
+	UPC: 'upca',
+	UPCA: 'upca',
+	UPCE: 'upce',
+	ITF: 'interleaved2of5',
+	ITF14: 'itf14',
+	MSI: 'msi',
+	CODABAR: 'codabar',
+	Pharmacode: 'pharmacode',
+	// ISBN/ISSN
+	ISBN13: 'ean13', // ISBN-13 uses EAN-13 format
+	ISBN10: 'isbn', // ISBN-10 (bwip-js: 'isbn')
+	ISBN: 'isbn', // Alias for ISBN-10
+	ISSN: 'issn', // International Standard Serial Number
+	// 2D Barcodes
+	QR: 'qrcode',
+	QRCODE: 'qrcode',
+	PDF417: 'pdf417',
+	DATAMATRIX: 'datamatrix',
+	AZTEC: 'azteccode',
+	MAXICODE: 'maxicode'
+};
+
+/** Resolve a barcode type to its bwip-js BCID, defaulting to 'code128'. */
+export function barcodeBcid(type: string): string {
+	return BARCODE_BCID_MAP[type.toUpperCase()] || 'code128';
+}
+
+/** bwip-js BCIDs that render as 2D (matrix) codes. */
+const TWO_D_BCIDS = ['qrcode', 'pdf417', 'datamatrix', 'azteccode', 'maxicode'];
+
+/** Barcode types (form values, uppercased) that render as 2D (matrix) codes. */
+const TWO_D_TYPES = [
+	'QR',
+	'QRCODE',
+	'PDF417',
+	'DATAMATRIX',
+	'AZTEC',
+	'MAXICODE'
+];
+
+/** Whether a bwip-js BCID is a 2D (matrix) code. */
+export function is2DBcid(bcid: string): boolean {
+	return TWO_D_BCIDS.includes(bcid);
+}
+
+/** Whether a barcode type (form value) is a 2D (matrix) code. */
+export function is2DType(type: string): boolean {
+	return TWO_D_TYPES.includes(type.toUpperCase());
+}
+
+/** Strip C0/DEL/C1 control characters from a scanned barcode value. Built via
+ *  string concatenation so the intentional control-char range survives the
+ *  no-control-regex lint rule. */
+const CONTROL_CHARS_RE = new RegExp('[\\x00-\\x1F' + '\\x7F-\\x9F]', 'g');
+export function sanitizeBarcodeValue(raw: string): string {
+	return raw.replace(CONTROL_CHARS_RE, '');
+}
+
+/** Whether a (sanitized) barcode value has an acceptable length: 0 < len <= 255. */
+export function isValidBarcodeLength(value: string): boolean {
+	return value.length > 0 && value.length <= 255;
+}
+
+/** Map a camera getUserMedia error name to its i18n message key. */
+export function cameraErrorKey(errorName: string): string {
+	switch (errorName) {
+		case 'HttpsRequiredError':
+			return 'common.scanHttpsRequired';
+		case 'NotAllowedError':
+		case 'PermissionDeniedError':
+			return 'common.scanCameraPermissionDenied';
+		case 'NotFoundError':
+			return 'common.scanNoCameraFound';
+		case 'NotReadableError':
+		case 'AbortError':
+			return 'common.scanCameraNotAvailable';
+		case 'OverconstrainedError':
+			return 'common.scanCameraConstraintsError';
+		case 'SecurityError':
+			return 'common.scanCameraSecurityBlocked';
+		case 'NotSupportedError':
+		case 'TypeError':
+			return 'common.scanCameraNotSupported';
+		case 'TimeoutError':
+			return 'common.scanCameraTimeout';
+		default:
+			return 'common.scanNoCameraFound';
+	}
+}
+
 /**
  * Validates an EAN/UPC check digit using the standard algorithm.
  * Works for EAN-13, EAN-8, UPC-A, and ITF-14.

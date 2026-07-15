@@ -5,6 +5,7 @@
 	import { t, locale } from '$lib/stores/i18n';
 	import { formatCurrency } from '$lib/utils/currency';
 	import { logger } from '$lib/utils/logger';
+	import { is2DType } from '$lib/utils/barcode';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -62,11 +63,7 @@
 
 	// 2D codes (QR, PDF417, …) stay square and benefit from a much larger
 	// fullscreen size than the wide-but-short 1D barcodes.
-	const is2DType = $derived(
-		['QR', 'QRCODE', 'PDF417', 'DATAMATRIX', 'AZTEC', 'MAXICODE'].includes(
-			type.toUpperCase()
-		)
-	);
+	const is2D = $derived(is2DType(type));
 
 	onMount(() => {
 		// Only enable orientation detection on touch devices
@@ -319,11 +316,11 @@
 			</div>
 
 			<!-- Barcode Container (fixed height) -->
-			<div class="barcode-container" class:is-2d={is2DType}>
+			<div class="barcode-container" class:is-2d={is2D}>
 				<Barcode
 					{value}
 					{type}
-					width={is2DType ? 6 : 4}
+					width={is2D ? 6 : 4}
 					height={100}
 					displayValue={false}
 				/>
