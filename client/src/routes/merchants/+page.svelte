@@ -15,7 +15,6 @@
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
-	import { categoryColors } from '$lib/utils/category-colors';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -479,8 +478,7 @@
 									<div class="mt-3 flex flex-wrap gap-2">
 										{#if merchant.cards_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {categoryColors
-													.cards.badge}"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
 											>
 												{merchant.cards_count}
 												{tr('merchantOverview.cards')}
@@ -488,8 +486,7 @@
 										{/if}
 										{#if merchant.vouchers_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {categoryColors
-													.vouchers.badge}"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
 											>
 												{merchant.vouchers_count}
 												{tr('merchantOverview.vouchers')}
@@ -497,8 +494,7 @@
 										{/if}
 										{#if merchant.gift_cards_count > 0}
 											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {categoryColors
-													.giftCards.badge}"
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
 											>
 												{merchant.gift_cards_count}
 												{tr('merchantOverview.giftCards')}

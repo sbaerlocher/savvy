@@ -226,7 +226,7 @@
 		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
 		'android'
-			? 'bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
+			? 'bg-surface border-t border-border shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
 			: 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-t border-white/40 shadow-lg'}"
 		style="-webkit-tap-highlight-color: transparent;"
 	>

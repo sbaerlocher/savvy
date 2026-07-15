@@ -115,7 +115,7 @@
 			}}
 		/>
 		{#if errors?.merchant}
-			<p class="text-red-600 text-sm mt-1">{errors.merchant}</p>
+			<p class="text-danger-600 text-sm mt-1">{errors.merchant}</p>
 		{/if}
 	</div>
 
@@ -200,7 +200,10 @@
 			<option value="MAXICODE">MaxiCode</option>
 		</select>
 		{#if symbologyWarning}
-			<p class="mt-1 text-sm text-amber-600 dark:text-amber-400" role="alert">
+			<p
+				class="mt-1 text-sm text-warning-600 dark:text-warning-400"
+				role="alert"
+			>
 				{$t(symbologyWarning)}
 			</p>
 		{/if}
@@ -256,7 +259,7 @@
 							if (errors) errors = { ...errors, value: undefined };
 						}}
 						class="flex-1 input {errors?.value
-							? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+							? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
 							: ''}"
 						placeholder="10.00"
 					/>
@@ -275,7 +278,7 @@
 					{/if}
 				</div>
 				{#if errors?.value}
-					<p class="text-red-600 text-sm mt-1">{errors.value}</p>
+					<p class="text-danger-600 text-sm mt-1">{errors.value}</p>
 				{:else}
 					<p class="text-sm text-text-subtle mt-1">
 						{type === 'percentage'
@@ -400,12 +403,12 @@
 				}}
 				required
 				class="input w-full text-base {errors?.validUntil
-					? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+					? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
 					: ''}"
 				style="min-width: 0;"
 			/>
 			{#if errors?.validUntil}
-				<p class="text-red-600 text-sm mt-1">{errors.validUntil}</p>
+				<p class="text-danger-600 text-sm mt-1">{errors.validUntil}</p>
 			{:else}
 				<p class="text-xs text-text-subtle mt-1 hidden sm:block">
 					{$t('vouchers.validUntilHint')}

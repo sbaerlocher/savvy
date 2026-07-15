@@ -73,10 +73,10 @@
 			<!-- Back Online -->
 			<div class="text-center">
 				<div
-					class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+					class="w-20 h-20 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4"
 				>
 					<svg
-						class="w-10 h-10 text-green-600"
+						class="w-10 h-10 text-success-600"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -100,10 +100,10 @@
 			<!-- Offline -->
 			<div class="text-center mb-6">
 				<div
-					class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4"
+					class="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4"
 				>
 					<svg
-						class="w-10 h-10 text-orange-600"
+						class="w-10 h-10 text-warning-600"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

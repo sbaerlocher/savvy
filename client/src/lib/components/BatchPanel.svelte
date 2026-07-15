@@ -141,10 +141,10 @@
 			{#if sharedSelectedCount > 0}
 				<div class="pb-4">
 					<div
-						class="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3"
+						class="flex items-start gap-2 bg-warning-50 border border-warning-200 rounded-lg p-3"
 					>
 						<svg
-							class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0"
+							class="w-4 h-4 text-warning-600 mt-0.5 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -156,7 +156,7 @@
 								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 							></path>
 						</svg>
-						<p class="text-xs text-amber-800">
+						<p class="text-xs text-warning-800">
 							{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
 						</p>
 					</div>
@@ -224,7 +224,7 @@
 					type="button"
 					onclick={onExport}
 					disabled={disableExport}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-success-50 hover:border-success-200 hover:text-success-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -247,7 +247,7 @@
 					type="button"
 					onclick={onDelete}
 					disabled={disableDelete}
-					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
+					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-danger-50 hover:border-danger-200 hover:text-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
 				>
 					<svg
 						class="w-4 h-4"
@@ -300,7 +300,7 @@
 	class="lg:hidden fixed left-0 right-0 z-[55] {platform === 'ios'
 		? 'liquid-glass-surface mx-4 rounded-2xl batch-panel-floating'
 		: platform === 'android'
-			? 'bottom-16 sm:bottom-0 bg-[#FFFBFE] border-t border-[#CAC4D0] shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
+			? 'bottom-16 sm:bottom-0 bg-surface border-t border-border shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
 			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.1)]'}"
 	style={platform === 'ios'
 		? ''
@@ -333,7 +333,7 @@
 		</div>
 
 		{#if sharedSelectedCount > 0}
-			<p class="px-4 pb-1 text-center text-xs text-amber-700">
+			<p class="px-4 pb-1 text-center text-xs text-warning-700">
 				{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
 			</p>
 		{/if}
@@ -412,7 +412,7 @@
 				onclick={onDelete}
 				disabled={disableDelete}
 				aria-label={tr('common.delete')}
-				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-red-600 transition-colors active:opacity-60 disabled:opacity-40"
+				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-danger-600 transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
 					class="h-6 w-6"
@@ -487,8 +487,8 @@
 		{/if}
 
 		{#if sharedSelectedCount > 0}
-			<div class="px-4 py-2 bg-amber-50 border-t border-amber-200">
-				<p class="text-xs text-amber-800 text-center">
+			<div class="px-4 py-2 bg-warning-50 border-t border-warning-200">
+				<p class="text-xs text-warning-800 text-center">
 					{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
 				</p>
 			</div>
@@ -571,7 +571,7 @@
 				type="button"
 				onclick={onDelete}
 				disabled={disableDelete}
-				class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+				class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-danger-50 hover:text-danger-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 			>
 				<svg
 					class="w-5 h-5"

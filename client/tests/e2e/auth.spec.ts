@@ -47,7 +47,7 @@ test.describe('Authentication', () => {
 		await userMenuButton.waitFor({ state: 'visible', timeout: 10000 });
 		await userMenuButton.click();
 
-		const logoutButton = page.locator('button.text-red-600');
+		const logoutButton = page.locator('button.text-danger-600');
 		await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
 		await logoutButton.click();
 

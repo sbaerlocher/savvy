@@ -132,10 +132,10 @@
 		<div class="mt-3 bg-border rounded-full h-3">
 			<div
 				class="h-3 rounded-full transition-all {percentageRemaining > 50
-					? 'bg-green-500'
+					? 'bg-success-500'
 					: percentageRemaining > 20
-						? 'bg-orange-500'
-						: 'bg-red-600'}"
+						? 'bg-warning-500'
+						: 'bg-danger-600'}"
 				style="width: {percentageRemaining}%"
 			></div>
 		</div>
@@ -184,7 +184,7 @@
 
 		{#if showTransactionForm}
 			<div
-				class="border border-red-200 bg-red-50 rounded-lg p-4 space-y-4 mb-4"
+				class="border border-danger-200 bg-danger-50 rounded-lg p-4 space-y-4 mb-4"
 			>
 				<div>
 					<label
@@ -265,7 +265,7 @@
 						class="flex items-center justify-between p-3 bg-surface-1 rounded gap-3"
 					>
 						<div class="flex-1">
-							<div class="font-medium text-red-600">
+							<div class="font-medium text-danger-600">
 								-{transaction.amount.toFixed(2)}
 								{giftCard.currency}
 							</div>
@@ -316,7 +316,7 @@
 		{:else}
 			<div class="text-center py-8 bg-surface-1 rounded">
 				{#if isOffline}
-					<p class="text-amber-600 text-sm">
+					<p class="text-warning-600 text-sm">
 						{tr('giftCards.transactions.notCachedOffline')}
 					</p>
 				{:else}

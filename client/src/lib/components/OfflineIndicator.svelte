@@ -39,16 +39,16 @@
 		out:fade={{ duration: 200 }}
 		class="fixed top-0 left-0 right-0 z-[100] pb-3 border-b"
 		style="padding-top: max(0.75rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));"
-		class:bg-yellow-50={bannerType === 'warning'}
-		class:bg-green-50={bannerType === 'success'}
-		class:border-yellow-200={bannerType === 'warning'}
-		class:border-green-200={bannerType === 'success'}
+		class:bg-warning-50={bannerType === 'warning'}
+		class:bg-success-50={bannerType === 'success'}
+		class:border-warning-200={bannerType === 'warning'}
+		class:border-success-200={bannerType === 'success'}
 	>
 		<div class="container mx-auto flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				{#if bannerType === 'warning'}
 					<svg
-						class="h-4 w-4 text-yellow-600 shrink-0"
+						class="h-4 w-4 text-warning-600 shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -62,7 +62,7 @@
 					</svg>
 				{:else}
 					<svg
-						class="h-4 w-4 text-green-600 shrink-0"
+						class="h-4 w-4 text-success-600 shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -78,8 +78,8 @@
 
 				<span
 					class="text-sm font-medium"
-					class:text-yellow-800={bannerType === 'warning'}
-					class:text-green-800={bannerType === 'success'}
+					class:text-warning-800={bannerType === 'warning'}
+					class:text-success-800={bannerType === 'success'}
 				>
 					{#if bannerType === 'warning'}
 						{$t('common.offlineBannerMessage')}
@@ -92,7 +92,7 @@
 			{#if bannerType === 'warning'}
 				<button
 					onclick={dismiss}
-					class="text-yellow-600 hover:text-yellow-800 p-1 rounded-md hover:bg-yellow-100 transition-colors"
+					class="text-warning-600 hover:text-warning-800 p-1 rounded-md hover:bg-warning-100 transition-colors"
 					aria-label="Close"
 				>
 					<svg

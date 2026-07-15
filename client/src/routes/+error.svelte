@@ -33,10 +33,10 @@
 			{#if isOffline}
 				<!-- Offline Error -->
 				<div
-					class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4"
+					class="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4"
 				>
 					<svg
-						class="w-10 h-10 text-orange-600"
+						class="w-10 h-10 text-warning-600"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -86,10 +86,10 @@
 			{:else}
 				<!-- Generic Error (500, etc.) -->
 				<div
-					class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+					class="w-20 h-20 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4"
 				>
 					<svg
-						class="w-10 h-10 text-red-600"
+						class="w-10 h-10 text-danger-600"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

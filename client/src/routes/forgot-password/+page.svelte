@@ -59,10 +59,10 @@
 					{#if submitted}
 						<div class="text-center py-8">
 							<div
-								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4"
+								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4"
 							>
 								<svg
-									class="h-8 w-8 text-green-600"
+									class="h-8 w-8 text-success-600"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"

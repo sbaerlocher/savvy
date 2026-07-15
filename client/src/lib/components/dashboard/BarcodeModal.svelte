@@ -99,7 +99,7 @@
 				<div class="barcode-header-info">
 					{#if item.status === 'valid'}
 						<span
-							class="inline-block px-3 py-1 text-xs rounded-full bg-green-100 text-green-800"
+							class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
 						>
 							{$t('vouchers.status.valid')}
 						</span>
@@ -124,7 +124,7 @@
 						</span>
 					{/if}
 					{#if item.balance && item.currency}
-						<span class="font-mono text-base font-bold text-green-600">
+						<span class="font-mono text-base font-bold text-success-600">
 							{formatCurrency(parseFloat(item.balance), item.currency, $locale)}
 						</span>
 					{/if}

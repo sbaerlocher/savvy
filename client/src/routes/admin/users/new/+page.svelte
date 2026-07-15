@@ -207,10 +207,10 @@
 				</div>
 
 				<!-- Admin Role -->
-				<div class="border border-red-200 bg-red-50 rounded-lg p-4">
+				<div class="border border-danger-200 bg-danger-50 rounded-lg p-4">
 					<div class="flex items-center mb-2">
 						<svg
-							class="w-5 h-5 text-red-500 mr-2"
+							class="w-5 h-5 text-danger-500 mr-2"
 							fill="currentColor"
 							viewBox="0 0 20 20"
 						>
@@ -220,14 +220,14 @@
 								clip-rule="evenodd"
 							/>
 						</svg>
-						<h3 class="text-sm font-bold text-red-900">
+						<h3 class="text-sm font-bold text-danger-900">
 							{tr('admin.users.roleAdmin')}
 						</h3>
 					</div>
-					<p class="text-xs text-red-800 mb-2">
+					<p class="text-xs text-danger-800 mb-2">
 						{tr('admin.users.roleInfo.adminDesc')}
 					</p>
-					<ul class="text-xs text-red-800 space-y-1 ml-4">
+					<ul class="text-xs text-danger-800 space-y-1 ml-4">
 						<li class="flex items-start">
 							<span class="mr-2">•</span>
 							<span>{tr('admin.users.roleInfo.adminPerm1')}</span>
@@ -251,7 +251,7 @@
 			<div class="mt-6 pt-6 border-t border-border">
 				<div class="flex items-start text-sm text-text-muted">
 					<svg
-						class="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5"
+						class="w-5 h-5 text-warning-500 mr-2 flex-shrink-0 mt-0.5"
 						fill="currentColor"
 						viewBox="0 0 20 20"
 					>

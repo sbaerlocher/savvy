@@ -169,7 +169,10 @@
 			<option value="MAXICODE">MaxiCode</option>
 		</select>
 		{#if symbologyWarning}
-			<p class="mt-1 text-sm text-amber-600 dark:text-amber-400" role="alert">
+			<p
+				class="mt-1 text-sm text-warning-600 dark:text-warning-400"
+				role="alert"
+			>
 				{$t(symbologyWarning)}
 			</p>
 		{/if}

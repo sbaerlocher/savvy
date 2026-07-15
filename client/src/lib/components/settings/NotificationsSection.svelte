@@ -193,7 +193,7 @@
 			/>
 
 			{#if $pushStore.permission === 'denied' && preferences.push_notifications_enabled}
-				<p class="text-xs text-red-500 mt-2">
+				<p class="text-xs text-danger-500 mt-2">
 					{tr('settings.pushNotifications.permissionDenied')}
 				</p>
 			{/if}

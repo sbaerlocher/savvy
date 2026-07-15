@@ -137,7 +137,7 @@
 
 	{#if unreadCount > 0}
 		<span
-			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full ring-2 ring-white"
+			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold leading-none text-white bg-danger-600 rounded-full ring-2 ring-white"
 		>
 			{unreadCount > 99 ? '99+' : unreadCount}
 		</span>
@@ -304,7 +304,7 @@
 								</svg>
 							{:else if notification.type === 'expiry_reminder'}
 								<svg
-									class="w-5 h-5 text-amber-500"
+									class="w-5 h-5 text-warning-500"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -318,7 +318,7 @@
 								</svg>
 							{:else if notification.type === 'validity_start'}
 								<svg
-									class="w-5 h-5 text-emerald-500"
+									class="w-5 h-5 text-success-500"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -375,7 +375,7 @@
 							{/if}
 
 							<button
-								class="text-text-faint hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+								class="text-text-faint hover:text-danger-600 p-1.5 rounded-md hover:bg-danger-50 transition-colors"
 								onclick={(e) => {
 									e.stopPropagation();
 									notificationStore.delete(notification.id);

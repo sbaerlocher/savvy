@@ -366,7 +366,7 @@
 											<span
 												class="px-2 py-1 text-xs font-medium rounded-full {user.role ===
 												'admin'
-													? 'bg-red-100 text-red-800'
+													? 'bg-danger-100 text-danger-800'
 													: 'bg-border-soft text-text-strong'}"
 											>
 												{user.role === 'admin'
@@ -410,7 +410,7 @@
 																<span
 																	class="px-2 py-1 text-xs font-medium rounded-full {user.role ===
 																	'admin'
-																		? 'bg-red-100 text-red-800'
+																		? 'bg-danger-100 text-danger-800'
 																		: 'bg-border-soft text-text-strong'}"
 																>
 																	{user.role === 'admin'

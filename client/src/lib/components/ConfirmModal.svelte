@@ -71,7 +71,7 @@
 				{#if variant === 'danger'}
 					<div class="flex-shrink-0 mr-3">
 						<svg
-							class="h-6 w-6 text-red-600"
+							class="h-6 w-6 text-danger-600"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -87,7 +87,7 @@
 				{:else if variant === 'warning'}
 					<div class="flex-shrink-0 mr-3">
 						<svg
-							class="h-6 w-6 text-yellow-600"
+							class="h-6 w-6 text-warning-600"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -137,9 +137,9 @@
 					<h3
 						id="modal-title"
 						class="text-lg font-semibold {variant === 'danger'
-							? 'text-red-600 dark:text-red-400'
+							? 'text-danger-600 dark:text-danger-400'
 							: variant === 'warning'
-								? 'text-yellow-600 dark:text-yellow-400'
+								? 'text-warning-600 dark:text-warning-400'
 								: variant === 'transfer'
 									? 'text-purple-600 dark:text-purple-400'
 									: 'text-accent dark:text-accent-400'}"
@@ -168,9 +168,9 @@
 					type="button"
 					class="px-4 py-2 rounded-md text-white transition-colors
             {variant === 'danger'
-						? 'bg-red-600 hover:bg-red-700'
+						? 'bg-danger-600 hover:bg-danger-700'
 						: variant === 'warning'
-							? 'bg-yellow-600 hover:bg-yellow-700'
+							? 'bg-warning-600 hover:bg-warning-700'
 							: variant === 'transfer'
 								? 'bg-purple-600 hover:bg-purple-700'
 								: 'bg-accent hover:bg-accent-hover'}"

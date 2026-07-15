@@ -177,11 +177,11 @@
 							</div>
 
 							{#if $authStore.error}
-								<div class="rounded-md bg-red-50 p-4">
+								<div class="rounded-md bg-danger-50 p-4">
 									<div class="flex">
 										<div class="flex-shrink-0">
 											<svg
-												class="h-5 w-5 text-red-400"
+												class="h-5 w-5 text-danger-400"
 												viewBox="0 0 20 20"
 												fill="currentColor"
 											>
@@ -193,7 +193,7 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-red-800">
+											<p class="text-sm font-medium text-danger-800">
 												{$authStore.error}
 											</p>
 										</div>
@@ -247,7 +247,7 @@
 						<div class="space-y-4">
 							<div class="flex items-start">
 								<svg
-									class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 									fill="currentColor"
 									viewBox="0 0 20 20"
 								>
@@ -269,7 +269,7 @@
 
 							<div class="flex items-start">
 								<svg
-									class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 									fill="currentColor"
 									viewBox="0 0 20 20"
 								>
@@ -291,7 +291,7 @@
 
 							<div class="flex items-start">
 								<svg
-									class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 									fill="currentColor"
 									viewBox="0 0 20 20"
 								>
@@ -313,7 +313,7 @@
 
 							<div class="flex items-start">
 								<svg
-									class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 									fill="currentColor"
 									viewBox="0 0 20 20"
 								>

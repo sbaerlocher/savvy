@@ -416,7 +416,7 @@
 														<button
 															onclick={() => (deleteTarget = merchant)}
 															disabled={isOffline}
-															class="btn btn-sm btn-ghost text-red-600 hover:text-red-700 {isOffline
+															class="btn btn-sm btn-ghost text-danger-600 hover:text-danger-700 {isOffline
 																? 'opacity-50 cursor-not-allowed'
 																: ''}"
 														>

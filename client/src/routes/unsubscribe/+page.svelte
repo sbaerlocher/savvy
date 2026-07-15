@@ -74,10 +74,10 @@
 					{:else if status === 'success'}
 						<div class="text-center py-8">
 							<div
-								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4"
+								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4"
 							>
 								<svg
-									class="h-8 w-8 text-green-600"
+									class="h-8 w-8 text-success-600"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -115,10 +115,10 @@
 					{:else if status === 'error'}
 						<div class="text-center py-8">
 							<div
-								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4"
+								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-danger-100 mb-4"
 							>
 								<svg
-									class="h-8 w-8 text-red-600"
+									class="h-8 w-8 text-danger-600"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -180,7 +180,7 @@
 					<div class="space-y-4">
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 								fill="currentColor"
 								viewBox="0 0 20 20"
 							>
@@ -202,7 +202,7 @@
 
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 								fill="currentColor"
 								viewBox="0 0 20 20"
 							>
@@ -224,7 +224,7 @@
 
 						<div class="flex items-start">
 							<svg
-								class="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0"
+								class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
 								fill="currentColor"
 								viewBox="0 0 20 20"
 							>

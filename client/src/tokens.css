@@ -1,30 +1,22 @@
 /* ============================================================================
    Savvy — Design Tokens (Tailwind v4 @theme)
    ----------------------------------------------------------------------------
-   Every value below is extracted from the existing Savvy design files — no
-   invented values. Import into a Tailwind v4 app.css to expose these as
-   utilities (bg-*, text-*, font-*, rounded-*, shadow-*):
+   One design: warm neutrals + cyan accent, Instrument Sans / IBM Plex Mono.
+   All values extracted from the Savvy design files — no invented values.
+   Import into a Tailwind v4 app.css to expose these as utilities
+   (bg-*, text-*, font-*, rounded-*, shadow-*):
 
        @import "tailwindcss";
        @import "./tokens.css";
-
-   Sources scanned: Savvy Native Nav, Savvy Prototype, ResourceTile,
-   WalletToolbar, BottomNav, AndroidNav, SheetMenu, TypeChoice, TypeIcon.
-
-   Direction B (the committed design): warm neutrals + cyan accent, Instrument
-   Sans / IBM Plex Mono. The accent/teal family is a numbered scale and the
-   semantic accent tokens reference it. (The earlier deep-teal "Redesign"
-   direction was dropped; its dead tokens have been pruned.)
    ========================================================================== */
 
 @theme {
 	/* ==========================================================================
      TYPOGRAPHY — font families
      ========================================================================== */
-	/* Primary app UI (Prototype, Native Nav, all components).
-     Family name matches the self-hosted @fontsource-variable package. */
-	--font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+	/* self-hosted @fontsource-variable family name is exact */
+	--font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
 	/* ==========================================================================
      TYPOGRAPHY — type steps  (size / line-height + weight + tracking companions)
@@ -107,7 +99,7 @@
      ========================================================================== */
 	--color-ground: #eceae4; /* app canvas / body background */
 	--color-ground-active: #eceae2; /* pressed neutral (Android ripple) */
-	--color-paper: #f4f2ee; /* device screen */
+	--color-paper: #f4f2ee; /* device screen background */
 
 	--color-surface: #ffffff; /* cards, tiles, inputs */
 	--color-surface-1: #fbfaf7; /* subtle raised chip / badge bg */
@@ -119,13 +111,13 @@
      COLOR — text
      ========================================================================== */
 	--color-text: #232120; /* primary ink */
-	--color-text-strong: #17140f; /* deepest ink (text-strong) */
+	--color-text-strong: #17140f; /* deepest ink */
 	--color-text-muted: #6b655e; /* secondary */
 	--color-text-subtle: #8a8378; /* tertiary / eyebrow */
 	--color-text-faint: #a39c90; /* faint kicker / meta */
 	--color-text-placeholder: #b7b0a4; /* input placeholder */
 	--color-text-mono-faint: #c3bcae; /* faint mono (barcode type) */
-	--color-text-ink2: #57514a; /* secondary ink (text-ink2) */
+	--color-text-ink2: #57514a; /* secondary ink */
 
 	/* ==========================================================================
      COLOR — borders / lines
@@ -144,19 +136,22 @@
 	--color-accent-50: #eef2f2; /* faint teal tint (button/row bg) */
 	--color-accent-100: #cfe4e6; /* M3 filter-chip tint */
 	--color-accent-200: #d3e0e0; /* teal-neutral border */
-	--color-accent-400: #5fa9b0; /* card accent */
+	--color-accent-400: #5fa9b0; /* light card accent */
 	--color-accent-600: #2b808d; /* PRIMARY cyan accent */
 	--color-accent-700: #236974; /* hover */
 	--color-accent-800: #1d6470; /* active (iOS nav ink) */
 	--color-accent-850: #1d5f69; /* active (Android icon ink) */
-	--color-accent-900: #124c52; /* darkest hover ink (text-accent-900) */
+	--color-accent-900: #124c52; /* deepest teal */
 
 	/* Semantic accent roles */
 	--color-accent: var(--color-accent-600);
 	--color-accent-hover: var(--color-accent-700);
+	--color-accent-active: var(--color-accent-800);
+	--color-accent-tint: var(--color-accent-100);
+	--color-on-accent: #ffffff; /* text/icon on accent fill */
 
 	/* ==========================================================================
-     COLOR — status (flat accents, in use today)
+     COLOR — status (flat semantic accents)
      ========================================================================== */
 	--color-danger: #b23b30; /* delete / hard danger */
 	--color-danger-deep: #a3402f; /* notification dot / expired / danger badge */
@@ -167,56 +162,69 @@
 	--color-success-deep: #4a6a4f; /* valid expiry badge text */
 	--color-success-alt: #2f7d4f; /* Directions valid */
 
+	/* --------------------------------------------------------------------------
+     Status scales — Savvy (warm-neutral, gedämpft, Cyan-verträglich)
+     50–200 tint · 400 border/icon · 600 fill · 700 hover · 800 ink · 900 deep
+     Anker: flache Status-Akzente oben landen im 600/700-Bereich.
+     -------------------------------------------------------------------------- */
+
+	/* danger — warmes Backstein-Rot (Anker #b23b30 / #a3402f) */
+	--color-danger-50: #fbf0ee; /* Badge/Banner-Tint */
+	--color-danger-100: #f6ddd8; /* Tint (kräftiger) */
+	--color-danger-200: #eec3bb; /* Chip-bg / weicher Rand */
+	--color-danger-300: #e09d90; /* Rand */
+	--color-danger-400: #cf6d5d; /* Border / Icon */
+	--color-danger-500: #c0503f; /* Icon / dot (interp. 400↔600) */
+	--color-danger-600: #b23b30; /* Button-Fill (AA weiss 5.90:1) */
+	--color-danger-700: #98342a; /* Button-Hover */
+	--color-danger-800: #7a2820; /* Text/Ink (AA auf -100 7.57:1) */
+	--color-danger-900: #5e201a; /* tiefster Ink */
+
+	/* success — gedämpftes Wald-/Voucher-Grün (Anker #3f9d5a / #4a6a4f) */
+	--color-success-50: #eef5ef; /* Badge/Banner-Tint */
+	--color-success-100: #d7ebdb; /* Tint (kräftiger) */
+	--color-success-200: #b6d8bf; /* Chip-bg / weicher Rand */
+	--color-success-400: #5a9e6d; /* Border / Icon */
+	--color-success-500: #4a8a5d; /* Icon / dot (interp. 400↔600) */
+	--color-success-600: #3f7a4e; /* Button-Fill (AA weiss 5.12:1) */
+	--color-success-700: #356a43; /* Button-Hover */
+	--color-success-800: #285233; /* Text/Ink (AA auf -100 7.16:1) */
+
+	/* warning — warmes Ocker/Amber (Anker #a9760b / #8a6410) */
+	--color-warning-50: #f8f1e2; /* Badge/Banner-Tint */
+	--color-warning-100: #f2e4c4; /* Tint (kräftiger) */
+	--color-warning-200: #e7cf95; /* Chip-bg / weicher Rand */
+	--color-warning-300: #d9b464; /* Rand */
+	--color-warning-400: #c49635; /* Border / Icon */
+	--color-warning-500: #af7d1f; /* Icon / dot (interp. 400↔600) */
+	--color-warning-600: #9a6b08; /* Button-Fill (AA weiss 4.68:1) */
+	--color-warning-700: #8a6410; /* Button-Hover */
+	--color-warning-800: #6b4d0f; /* Text/Ink (AA auf -100 6.18:1) */
+	--color-warning-900: #4f390c; /* tiefster Ink */
+
+	/* purple — gedämpftes Pflaumen-Lila (Transfer-UI) */
+	--color-purple-50: #f2eef7; /* Badge/Banner-Tint */
+	--color-purple-200: #d9cde8; /* Chip-bg / weicher Rand */
+	--color-purple-400: #9d84c0; /* Border / Icon */
+	--color-purple-500: #82649e; /* Icon / dot (interp. 400↔600) */
+	--color-purple-600: #6a4b93; /* Button-Fill (AA weiss 6.91:1) */
+	--color-purple-700: #58407b; /* Button-Hover */
+	--color-purple-900: #3a2a54; /* tiefster Ink */
+
 	/* ==========================================================================
-     COLOR — status scales (danger / success / warning / purple, 50–900)
-     ----------------------------------------------------------------------------
-     TODO(design): the app uses ~370 raw Tailwind status utilities across full
-     scales (bg-50 tints … text-800 ink) for badges, banners, form errors and
-     the btn-danger/success/warning/purple classes. These token NAMES are the
-     target the code will map onto; the VALUES below are TEMPORARY Tailwind-stock
-     placeholders so nothing changes visually yet. Replace with the committed
-     Direction-B status ramps authored in claude.ai/design (Button primitive,
-     §2d step 0), THEN migrate the raw utilities to bg-danger-50 / text-danger-800
-     / etc. Only the steps actually used in the app are defined.
+     COLOR — dark chrome
      ========================================================================== */
-	/* danger (maps red-*) */
-	--color-danger-50: #fef2f2; /* TODO(design) */
-	--color-danger-100: #fee2e2; /* TODO(design) */
-	--color-danger-200: #fecaca; /* TODO(design) */
-	--color-danger-300: #fca5a5; /* TODO(design) */
-	--color-danger-400: #f87171; /* TODO(design) */
-	--color-danger-600: #dc2626; /* TODO(design) — btn-danger bg */
-	--color-danger-700: #b91c1c; /* TODO(design) — btn-danger hover */
-	--color-danger-800: #991b1b; /* TODO(design) — danger ink */
-	--color-danger-900: #7f1d1d; /* TODO(design) */
+	--color-chrome: #0d0c0b; /* device bezel / dynamic island */
+	--color-barcode: #20201e; /* barcode bar fill (tiles) */
+	--color-barcode-ink: #17140f; /* barcode bar fill (modal) */
 
-	/* success (maps green-*) */
-	--color-success-50: #f0fdf4; /* TODO(design) */
-	--color-success-100: #dcfce7; /* TODO(design) */
-	--color-success-200: #bbf7d0; /* TODO(design) */
-	--color-success-400: #4ade80; /* TODO(design) */
-	--color-success-600: #16a34a; /* TODO(design) — btn-success bg */
-	--color-success-700: #15803d; /* TODO(design) — btn-success hover */
-	--color-success-800: #166534; /* TODO(design) — success ink */
-
-	/* warning (maps yellow/orange-*) */
-	--color-warning-50: #fefce8; /* TODO(design) */
-	--color-warning-100: #fef9c3; /* TODO(design) */
-	--color-warning-200: #fef08a; /* TODO(design) */
-	--color-warning-300: #fde047; /* TODO(design) */
-	--color-warning-400: #facc15; /* TODO(design) */
-	--color-warning-600: #ca8a04; /* TODO(design) — btn-warning bg */
-	--color-warning-700: #a16207; /* TODO(design) — btn-warning hover */
-	--color-warning-800: #854d0e; /* TODO(design) — warning ink */
-	--color-warning-900: #713f12; /* TODO(design) */
-
-	/* purple (maps purple-*, transfer UI) */
-	--color-purple-50: #faf5ff; /* TODO(design) */
-	--color-purple-200: #e9d5ff; /* TODO(design) */
-	--color-purple-400: #c084fc; /* TODO(design) */
-	--color-purple-600: #9333ea; /* TODO(design) — btn-purple bg */
-	--color-purple-700: #7e22ce; /* TODO(design) — btn-purple hover */
-	--color-purple-900: #581c87; /* TODO(design) */
+	/* Fullscreen barcode scanner — intentionally dark chrome (not the light app) */
+	--color-scanner-surface: #1f2937; /* scanner panel bg */
+	--color-scanner-raised: #374151; /* raised control bg */
+	--color-scanner-ink: #f3f4f6; /* scanner primary text */
+	--color-scanner-muted: #9ca3af; /* scanner muted text */
+	--color-scanner-line: #4b5563; /* scanner divider */
+	--color-scanner-accent: #60a5fa; /* scanner link/accent */
 
 	/* ==========================================================================
      RADIUS
@@ -243,7 +251,6 @@
 	--shadow-accent: 0 4px 12px rgba(43, 128, 141, 0.34); /* accent button (strong) */
 	--shadow-card: 0 8px 30px rgba(0, 0, 0, 0.14); /* floating nav / card */
 	--shadow-panel: 0 22px 60px rgba(40, 36, 32, 0.13); /* desktop / phone panel */
-	--shadow-hero: 0 10px 30px rgba(18, 76, 82, 0.28); /* hero elevation */
 	--shadow-fab:
 		0 8px 18px rgba(43, 128, 141, 0.42), 0 2px 5px rgba(40, 36, 32, 0.22); /* Android FAB */
 	--shadow-glass:

@@ -133,11 +133,11 @@
 				{/if}
 
 				{#if error}
-					<div class="rounded-md bg-red-50 p-4">
+					<div class="rounded-md bg-danger-50 p-4">
 						<div class="flex">
 							<div class="flex-shrink-0">
 								<svg
-									class="h-5 w-5 text-red-400"
+									class="h-5 w-5 text-danger-400"
 									viewBox="0 0 20 20"
 									fill="currentColor"
 								>
@@ -149,7 +149,7 @@
 								</svg>
 							</div>
 							<div class="ml-3">
-								<p class="text-sm font-medium text-red-800">{error}</p>
+								<p class="text-sm font-medium text-danger-800">{error}</p>
 							</div>
 						</div>
 					</div>

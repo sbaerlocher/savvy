@@ -172,7 +172,7 @@
 			<div class="flex items-center gap-2">
 				{#if isEnabled}
 					<span
-						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800"
 					>
 						<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 							<path
@@ -210,7 +210,7 @@
 					onclick={() => {
 						showDisable = true;
 					}}
-					class="btn btn-ghost text-sm w-full text-red-600 border-red-300 hover:bg-red-50"
+					class="btn btn-ghost text-sm w-full text-danger-600 border-danger-300 hover:bg-danger-50"
 				>
 					{tr('settings.twoFactor.disableButton')}
 				</button>
@@ -420,7 +420,7 @@
 		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
 	>
 		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-			<h3 class="text-lg font-semibold text-red-600 mb-2">
+			<h3 class="text-lg font-semibold text-danger-600 mb-2">
 				{tr('settings.twoFactor.disableButton')}
 			</h3>
 			<p class="text-sm text-text-muted mb-4">
@@ -458,7 +458,7 @@
 					<button
 						type="submit"
 						disabled={isDisabling || disableCode.length !== 6}
-						class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+						class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-md hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
 					>
 						{#if isDisabling}
 							<span class="relative inline-flex h-3 w-3 mr-2"

@@ -314,11 +314,11 @@
 									</div>
 								{/if}
 								{#if preview.vouchers > 0}
-									<div class="bg-green-50 rounded-lg p-3 text-center">
-										<div class="text-2xl font-bold text-green-600">
+									<div class="bg-success-50 rounded-lg p-3 text-center">
+										<div class="text-2xl font-bold text-success-600">
 											{preview.vouchers}
 										</div>
-										<div class="text-xs text-green-500">
+										<div class="text-xs text-success-500">
 											{tr('settings.import.previewVouchers')}
 										</div>
 									</div>
@@ -372,11 +372,11 @@
 									</div>
 								{/if}
 								{#if result.vouchers_imported > 0}
-									<div class="bg-green-50 rounded-lg p-3">
-										<div class="text-lg font-bold text-green-600">
+									<div class="bg-success-50 rounded-lg p-3">
+										<div class="text-lg font-bold text-success-600">
 											{result.vouchers_imported}
 										</div>
-										<div class="text-xs text-green-500">
+										<div class="text-xs text-success-500">
 											{tr('settings.import.previewVouchers')}
 											{tr('settings.import.imported').toLowerCase()}
 										</div>
@@ -394,11 +394,11 @@
 									</div>
 								{/if}
 								{#if result.skipped > 0}
-									<div class="bg-yellow-50 rounded-lg p-3">
-										<div class="text-lg font-bold text-yellow-600">
+									<div class="bg-warning-50 rounded-lg p-3">
+										<div class="text-lg font-bold text-warning-600">
 											{result.skipped}
 										</div>
-										<div class="text-xs text-yellow-500">
+										<div class="text-xs text-warning-500">
 											{tr('settings.import.skipped')}
 										</div>
 									</div>
@@ -406,13 +406,13 @@
 							</div>
 
 							{#if result.errors && result.errors.length > 0}
-								<div class="border border-red-200 rounded-lg p-3">
-									<h4 class="text-sm font-medium text-red-700 mb-2">
+								<div class="border border-danger-200 rounded-lg p-3">
+									<h4 class="text-sm font-medium text-danger-700 mb-2">
 										{tr('settings.import.errors')}
 									</h4>
 									<ul class="space-y-1 max-h-32 overflow-y-auto">
 										{#each result.errors as error (`${error.row ?? ''}-${error.field ?? ''}-${error.message}`)}
-											<li class="text-xs text-red-600">
+											<li class="text-xs text-danger-600">
 												{#if error.row}{tr('settings.import.row', {
 														row: error.row
 													})}:

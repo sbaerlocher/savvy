@@ -158,7 +158,7 @@
 			<!-- Valid Status Badge (green for vouchers) -->
 			{#if showValidStatusBadge}
 				<span
-					class="inline-block px-3 py-1 text-xs rounded-full bg-green-100 text-green-800"
+					class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
 				>
 					{tr('vouchers.status.valid')}
 				</span>
@@ -264,7 +264,7 @@
 					<div class="barcode-header-info">
 						{#if showValidStatusBadge}
 							<span
-								class="inline-block px-3 py-1 text-xs rounded-full bg-green-100 text-green-800"
+								class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
 							>
 								{tr('vouchers.status.valid')}
 							</span>
@@ -457,7 +457,7 @@
 		font-family: monospace;
 		font-size: 1rem;
 		font-weight: 600;
-		color: #111827;
+		color: var(--color-text-strong);
 		margin: 0;
 	}
 
@@ -473,14 +473,14 @@
 
 	.barcode-fullscreen-overlay .barcode-pin-label {
 		font-size: 0.875rem;
-		color: #6b7280;
+		color: var(--color-text-muted);
 	}
 
 	.barcode-fullscreen-overlay .barcode-pin-value {
 		font-family: monospace;
 		font-size: 1.125rem;
 		font-weight: 600;
-		color: #111827;
+		color: var(--color-text-strong);
 	}
 
 	.barcode-fullscreen-overlay .barcode-value-desc-row {
@@ -499,18 +499,18 @@
 		font-family: monospace;
 		font-size: 1.125rem;
 		font-weight: 600;
-		color: #111827;
+		color: var(--color-text-strong);
 	}
 
 	.barcode-fullscreen-overlay .barcode-info-desc {
 		font-size: 0.875rem;
-		color: #6b7280;
+		color: var(--color-text-muted);
 		text-align: center;
 	}
 
 	.barcode-fullscreen-overlay .barcode-info-validity {
 		font-size: 0.875rem;
-		color: #6b7280;
+		color: var(--color-text-muted);
 		text-align: center;
 	}
 
@@ -518,12 +518,12 @@
 		font-family: monospace;
 		font-size: 1rem;
 		font-weight: 700;
-		color: #059669;
+		color: var(--color-success-600);
 		text-align: center;
 	}
 
 	.barcode-fullscreen-overlay .barcode-close-hint {
-		color: #6b7280;
+		color: var(--color-text-muted);
 		font-size: 0.875rem;
 		text-align: center;
 		flex-shrink: 0;

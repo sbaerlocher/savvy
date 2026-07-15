@@ -160,7 +160,7 @@
 				<div class="flex items-start mb-4">
 					<div class="flex-shrink-0 mr-3">
 						<svg
-							class="h-6 w-6 text-red-600"
+							class="h-6 w-6 text-danger-600"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -176,7 +176,7 @@
 					<div class="flex-1">
 						<h3
 							id="batch-modal-title"
-							class="text-lg font-semibold text-red-600"
+							class="text-lg font-semibold text-danger-600"
 						>
 							{tr('batch.confirmDeleteTitle')}
 						</h3>
@@ -198,7 +198,7 @@
 						type="button"
 						onclick={handleConfirm}
 						disabled={isLoading}
-						class="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						class="px-4 py-2 rounded-md text-white bg-danger-600 hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if isLoading}
 							<span class="inline-flex items-center gap-2">
@@ -427,11 +427,11 @@
 					class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
 				>
 					<!-- Warning Banner -->
-					<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-						<p class="text-sm font-medium text-yellow-800">
+					<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
+						<p class="text-sm font-medium text-warning-800">
 							<strong>{tr('cards.transfer.warning')}</strong>
 						</p>
-						<p class="text-xs text-yellow-700 mt-1">
+						<p class="text-xs text-warning-700 mt-1">
 							{tr('giftCards.transfer.warningDetails')}
 						</p>
 					</div>

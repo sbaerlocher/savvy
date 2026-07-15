@@ -36,7 +36,7 @@
 			case 'ios':
 				return `${base} liquid-glass-surface rounded-t-3xl`;
 			case 'android':
-				return `${base} bg-[#FFFBFE] rounded-t-2xl shadow-[0_-4px_16px_rgba(0,0,0,0.12)]`;
+				return `${base} bg-surface rounded-t-2xl shadow-[0_-4px_16px_rgba(0,0,0,0.12)]`;
 			default:
 				return `${base} bg-white rounded-t-2xl shadow-2xl`;
 		}
@@ -47,7 +47,7 @@
 			case 'ios':
 				return 'w-10 h-1 bg-text-faint/50 rounded-full';
 			case 'android':
-				return 'w-8 h-1 bg-[#CAC4D0] rounded-full';
+				return 'w-8 h-1 bg-border rounded-full';
 			default:
 				return 'w-12 h-1.5 bg-border-field rounded-full';
 		}
