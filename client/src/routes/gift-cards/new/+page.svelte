@@ -215,7 +215,7 @@
 						onkeydown={handleKeydown}
 						onblur={hideSuggestions}
 						class="w-full px-3 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-						placeholder="benutzer@example.com"
+						placeholder={tr('giftCards.sharing.emailPlaceholder')}
 						autocomplete="off"
 					/>
 					<p class="text-xs text-text-subtle mt-1">

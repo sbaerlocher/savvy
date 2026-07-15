@@ -5,10 +5,11 @@
 	import { t } from '$lib/stores/i18n';
 	import { merchantsApi } from '$lib/api';
 	import { toastStore } from '$lib/stores/toast';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 
 	// Form state
 	let name = $state('');
-	let color = $state('#3B82F6');
+	let color = $state(MERCHANT_DEFAULT_COLOR);
 	let colorText = $derived(color);
 	let logoUrl = $state('');
 	let website = $state('');
@@ -143,7 +144,7 @@
 										colorText = color;
 									}
 								}}
-								placeholder="#3B82F6"
+								placeholder={MERCHANT_DEFAULT_COLOR}
 								class="input flex-1"
 							/>
 						</div>

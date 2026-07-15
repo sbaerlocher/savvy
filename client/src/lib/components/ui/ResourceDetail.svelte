@@ -19,6 +19,7 @@
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import {
 		formatShareResult,
 		shareResponseFromError
@@ -92,7 +93,7 @@
 	const CONFIG: Record<Kind, KindConfig> = {
 		card: {
 			listPath: '/cards',
-			accentFallback: '#3B82F6',
+			accentFallback: MERCHANT_DEFAULT_COLOR,
 			activeSentinel: 'active',
 			notesPresent: true,
 			sharePermissions: true,
@@ -148,7 +149,7 @@
 		},
 		voucher: {
 			listPath: '/vouchers',
-			accentFallback: '#10B981',
+			accentFallback: MERCHANT_DEFAULT_COLOR,
 			activeSentinel: 'valid',
 			notesPresent: false,
 			sharePermissions: false,
@@ -208,7 +209,7 @@
 		},
 		gift_card: {
 			listPath: '/gift-cards',
-			accentFallback: '#F59E0B',
+			accentFallback: MERCHANT_DEFAULT_COLOR,
 			activeSentinel: 'active',
 			notesPresent: true,
 			sharePermissions: true,

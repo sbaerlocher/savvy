@@ -128,7 +128,8 @@
 								d={place.icon}
 							/>
 						</svg>
-						<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span
+						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
+							>{$t(place.label)}</span
 						>
 					</a>
 				{/each}
@@ -226,7 +227,7 @@
 		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
 		'android'
-			? 'bg-surface border-t border-border shadow-[0_-2px_6px_rgba(0,0,0,0.08)]'
+			? 'bg-surface border-t border-border shadow-[var(--shadow-sheet)]'
 			: 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-t border-white/40 shadow-lg'}"
 		style="-webkit-tap-highlight-color: transparent;"
 	>
@@ -259,7 +260,9 @@
 							d={place.icon}
 						/>
 					</svg>
-					<span class="text-[10px] leading-tight mt-1">{$t(place.label)}</span>
+					<span class="text-[length:var(--text-tag)] leading-tight mt-1"
+						>{$t(place.label)}</span
+					>
 				</a>
 			{/each}
 		</div>

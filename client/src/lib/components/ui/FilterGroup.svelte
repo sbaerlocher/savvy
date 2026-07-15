@@ -87,7 +87,9 @@
 			>
 				{label}
 			</span>
-			<span class="flex items-center gap-1 text-[15px] text-text">
+			<span
+				class="flex items-center gap-1 text-[length:var(--text-code)] text-text"
+			>
 				{currentLabel}
 				<svg
 					class="h-4 w-4 text-text-faint transition-transform {menuOpen
@@ -132,7 +134,7 @@
 							role="menuitemradio"
 							aria-checked={selected}
 							onclick={() => pick(opt.value)}
-							class="flex w-full items-center justify-between gap-4 px-4 py-2.5 text-left text-[15px] hover:bg-black/5 {selected
+							class="flex w-full items-center justify-between gap-4 px-4 py-2.5 text-left text-[length:var(--text-code)] hover:bg-black/5 {selected
 								? 'text-text'
 								: 'text-text-muted'}"
 						>

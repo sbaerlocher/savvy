@@ -924,7 +924,7 @@
 		background-color: var(--color-scanner-surface);
 		color: var(--color-scanner-ink);
 		border-radius: 0.5rem;
-		font-family: 'Monaco', 'Courier New', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.75rem;
 		max-height: 300px;
 		overflow-y: auto;

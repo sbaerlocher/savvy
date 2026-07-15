@@ -9,6 +9,7 @@
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import type { MerchantDTO } from '$lib/types/api';
 
 	const pageLogger = logger.child('AdminMerchantsPage');
@@ -135,7 +136,7 @@
 					e.stopPropagation();
 					showFilterMenu = !showFilterMenu;
 				}}
-				class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+				class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				title={$t('common.filter')}
 				aria-label={$t('common.filter')}
 				aria-expanded={showFilterMenu}
@@ -179,7 +180,7 @@
 					e.stopPropagation();
 					showFilterMenu = !showFilterMenu;
 				}}
-				class="flex-1 flex items-center justify-center h-[42px] px-3 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+				class="flex-1 flex items-center justify-center control px-3 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				aria-label={$t('common.filter')}
 				aria-expanded={showFilterMenu}
 			>
@@ -269,7 +270,7 @@
 													<span
 														class="w-4 h-4 rounded-full flex-shrink-0 border border-border"
 														style="background-color: {merchant.color ||
-															'#9ca3af'}"
+															MERCHANT_DEFAULT_COLOR}"
 													></span>
 													<span class="truncate">{merchant.name}</span>
 												</span>
@@ -392,7 +393,7 @@
 																<span
 																	class="w-4 h-4 rounded-full inline-block border border-border"
 																	style="background-color: {merchant.color ||
-																		'#9ca3af'}"
+																		MERCHANT_DEFAULT_COLOR}"
 																></span>
 																{merchant.color || '—'}
 															</p>

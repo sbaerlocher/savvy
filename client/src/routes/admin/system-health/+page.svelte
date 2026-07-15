@@ -179,7 +179,7 @@
 	<div class="flex flex-col sm:flex-row gap-3 mb-6">
 		<!-- Overall Status (left, where search bar is on other pages) -->
 		<div
-			class="sm:flex-1 flex items-center gap-3 h-[42px] px-4 bg-white border border-border-field rounded-md"
+			class="sm:flex-1 flex items-center gap-3 control px-4 bg-white border border-border-field rounded-md"
 		>
 			{#if isLoading && !health}
 				<span class="text-sm text-text-subtle">{$t('common.loading')}</span>
@@ -247,7 +247,7 @@
 		</div>
 
 		<!-- Action Buttons (right, full-width on mobile) -->
-		<div class="grid grid-cols-3 sm:flex gap-3 w-full sm:w-auto h-[42px]">
+		<div class="grid grid-cols-3 sm:flex gap-3 w-full sm:w-auto control">
 			<button
 				class="col-span-1 sm:flex-none flex items-center justify-center gap-2 h-full px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors {autoRefresh
 					? 'ring-2 ring-accent border-accent'

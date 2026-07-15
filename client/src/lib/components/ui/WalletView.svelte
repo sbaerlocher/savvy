@@ -762,7 +762,7 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+					class="flex items-center justify-center gap-2 control px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
 						? 'ring-2 ring-accent border-accent'
 						: 'border-border-field'}"
 					title={tr('batch.selectMode')}
@@ -790,7 +790,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+					class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					title={tr('common.filter')}
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
@@ -818,7 +818,7 @@
 				<button
 					type="button"
 					onclick={toggleBarcodes}
-					class="flex items-center justify-center gap-2 h-[42px] {barcodeButtonVariant ===
+					class="flex items-center justify-center gap-2 control {barcodeButtonVariant ===
 					'label'
 						? 'px-6'
 						: 'px-4'} bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
@@ -883,7 +883,7 @@
 					type="button"
 					onclick={toggleSelectMode}
 					disabled={isOffline}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+					class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
 						? 'ring-2 ring-accent border-accent'
 						: ''}"
 					aria-label={tr('batch.selectMode')}
@@ -909,7 +909,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+					class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
@@ -936,7 +936,7 @@
 				<button
 					type="button"
 					onclick={toggleBarcodes}
-					class="flex-[2] flex items-center justify-center gap-2 h-[42px] bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
+					class="flex-[2] flex items-center justify-center gap-2 control bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
 						? 'ring-2 ring-accent border-accent'
 						: 'border-border-field'}"
 					aria-label={showBarcodes

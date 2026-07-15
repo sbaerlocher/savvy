@@ -26,7 +26,9 @@
 
 	$effect(() => {
 		if (required && inputEl) {
-			inputEl.setCustomValidity(value ? '' : 'Please select a merchant');
+			inputEl.setCustomValidity(
+				value ? '' : $t('vouchers.errors.merchantRequired')
+			);
 		}
 	});
 
@@ -116,7 +118,6 @@
 			aria-autocomplete="list"
 			aria-required={required}
 			class="input pr-10"
-			style="font-size: 16px;"
 			placeholder={$t('merchants.searchPlaceholder')}
 			value={displayValue}
 			onfocus={onFocus}

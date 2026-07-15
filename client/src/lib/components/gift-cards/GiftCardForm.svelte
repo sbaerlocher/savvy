@@ -143,12 +143,7 @@
 
 	<div>
 		<label for="barcodeType" class="label">{$t('giftCards.barcodeType')}</label>
-		<select
-			id="barcodeType"
-			bind:value={barcodeType}
-			class="input"
-			style="font-size: 16px;"
-		>
+		<select id="barcodeType" bind:value={barcodeType} class="input">
 			<option value="CODE128">CODE128</option>
 			<option value="CODE39">CODE39</option>
 			<option value="CODE93">CODE93</option>
@@ -197,13 +192,7 @@
 				placeholder="50.00"
 				class="input flex-1"
 			/>
-			<select
-				id="currency"
-				bind:value={currency}
-				required
-				class="w-28 input"
-				style="font-size: 16px;"
-			>
+			<select id="currency" bind:value={currency} required class="w-28 input">
 				<option value="CHF">CHF</option>
 				<option value="EUR">EUR</option>
 				<option value="USD">USD</option>

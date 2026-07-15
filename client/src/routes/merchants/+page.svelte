@@ -276,7 +276,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex items-center justify-center gap-2 h-[42px] px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+					class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					title={tr('common.filter')}
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
@@ -340,7 +340,7 @@
 						e.stopPropagation();
 						showFilterMenu = !showFilterMenu;
 					}}
-					class="flex-1 flex items-center justify-center h-[42px] bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+					class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>

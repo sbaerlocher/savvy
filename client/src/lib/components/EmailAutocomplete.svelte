@@ -190,7 +190,7 @@
 		onkeydown={onKeydown}
 		required={required && !multiple}
 		name="share-recipient"
-		placeholder="benutzer@example.com"
+		placeholder={$t('giftCards.sharing.emailPlaceholder')}
 		autocomplete="new-password"
 		data-1p-ignore
 		data-lpignore="true"

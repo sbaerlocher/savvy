@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { get } from 'svelte/store';
 	import { t } from '$lib/stores/i18n';
 	import type { ShareDTO } from '$lib/types/api';
 
@@ -52,7 +53,7 @@
 		const u = s.shared_with_user;
 		if (u?.first_name && u?.last_name) return `${u.first_name} ${u.last_name}`;
 		if (u?.first_name) return u.first_name;
-		return u?.email || 'Unknown User';
+		return u?.email || get(t)('giftCards.unknownUser');
 	}
 </script>
 
