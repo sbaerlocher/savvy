@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ICON_INFO_CIRCLE, ICON_TRANSFER, ICON_WARNING } from '$lib/icons';
 	import { platform } from '$lib/utils/platform';
 
 	let {
@@ -80,7 +81,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+								d={ICON_WARNING}
 							/>
 						</svg>
 					</div>
@@ -96,7 +97,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+								d={ICON_WARNING}
 							/>
 						</svg>
 					</div>
@@ -112,7 +113,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+								d={ICON_TRANSFER}
 							/>
 						</svg>
 					</div>
@@ -128,7 +129,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								d={ICON_INFO_CIRCLE}
 							/>
 						</svg>
 					</div>

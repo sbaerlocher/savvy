@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ICON_LOCK } from '$lib/icons';
 	import { t } from '$lib/stores/i18n';
 	import EmailAutocomplete from './EmailAutocomplete.svelte';
 
@@ -20,8 +21,7 @@
 		ontransfer?: () => void;
 	}
 
-	const LOCK_ICON_PATH =
-		'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z';
+	const LOCK_ICON_PATH = ICON_LOCK;
 
 	let {
 		isOffline,

@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import { ICON_CLIPBOARD_CHECK, ICON_CLOSE, ICON_FUNNEL } from '$lib/icons';
 	// Shared filter shape for the wallet-style list screens (wallet + merchant
 	// detail). The wallet passes the module-level `walletFilters` $state; merchant
 	// detail declares its own inline $state instance so the two scopes stay
@@ -721,7 +722,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+							d={ICON_CLIPBOARD_CHECK}
 						/>
 					</svg>
 				</button>
@@ -747,7 +748,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+							d={ICON_FUNNEL}
 						/>
 					</svg>
 					{#if hasActiveFilters}
@@ -840,7 +841,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+							d={ICON_CLIPBOARD_CHECK}
 						/>
 					</svg>
 				</button>
@@ -865,7 +866,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+							d={ICON_FUNNEL}
 						/>
 					</svg>
 					{#if hasActiveFilters}
@@ -993,7 +994,7 @@
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+												d={ICON_FUNNEL}
 											/>
 										</svg>
 										<h3 class="text-sm font-semibold text-text">
@@ -1022,7 +1023,7 @@
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
+													d={ICON_CLOSE}
 												></path>
 											</svg>
 										</button>
@@ -1109,7 +1110,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
+						d={ICON_CLOSE}
 					/>
 				</svg>
 			</button>
