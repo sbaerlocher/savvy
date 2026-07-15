@@ -5,6 +5,7 @@
 	import type { UserDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
+	import { formatUserName } from '$lib/utils/user';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -272,13 +273,7 @@
 										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
 									>
 										<div class="font-medium text-sm text-text">
-											{#if user.first_name && user.last_name}
-												{user.first_name} {user.last_name}
-											{:else if user.first_name}
-												{user.first_name}
-											{:else}
-												{user.email}
-											{/if}
+											{formatUserName(user)}
 										</div>
 										<div class="text-xs text-text-subtle">{user.email}</div>
 									</button>
@@ -468,13 +463,7 @@
 										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
 									>
 										<div class="font-medium text-sm text-text">
-											{#if user.first_name && user.last_name}
-												{user.first_name} {user.last_name}
-											{:else if user.first_name}
-												{user.first_name}
-											{:else}
-												{user.email}
-											{/if}
+											{formatUserName(user)}
 										</div>
 										<div class="text-xs text-text-subtle">{user.email}</div>
 									</button>

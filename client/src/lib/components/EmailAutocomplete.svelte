@@ -4,6 +4,7 @@
 	import type { UserDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
 	import { t } from '$lib/stores/i18n';
+	import { formatUserName } from '$lib/utils/user';
 
 	interface Props {
 		value?: string;
@@ -217,14 +218,7 @@
 						: ''}"
 				>
 					<div class="font-medium text-sm text-text">
-						{#if user.first_name && user.last_name}
-							{user.first_name}
-							{user.last_name}
-						{:else if user.first_name}
-							{user.first_name}
-						{:else}
-							{user.email}
-						{/if}
+						{formatUserName(user)}
 					</div>
 					<div class="text-xs text-text-subtle">{user.email}</div>
 				</button>
