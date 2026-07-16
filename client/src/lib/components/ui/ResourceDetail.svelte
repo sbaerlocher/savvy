@@ -6,12 +6,12 @@
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { t, locale } from '$lib/stores/i18n';
-	import { offlineDB } from '$lib/stores/offline-db';
 	import { toastStore } from '$lib/stores/toast';
 	import { formatCurrency } from '$lib/utils/currency';
 	import { platform } from '$lib/utils/platform';
 	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
 	import { resourceDetailPath } from '$lib/resource/routes';
+	import { CONFIG, type Kind } from '$lib/resource/config';
 	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
@@ -21,7 +21,6 @@
 	import ShareListItem from '$lib/components/ShareListItem.svelte';
 	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
 	import {
 		formatShareResult,
 		shareResponseFromError
@@ -35,7 +34,6 @@
 		ShareCreateResponse
 	} from '$lib/types/api';
 
-	type Kind = 'card' | 'voucher' | 'gift_card';
 	type ResourceDTO = CardDTO | VoucherDTO | GiftCardDTO;
 
 	interface Props {
@@ -72,205 +70,6 @@
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-
-	// --- Kind config -------------------------------------------------------
-	// Per-kind i18n key map + behaviour flags. Keys copied verbatim from the
-	// three source routes — several are deliberately borrowed cross-namespace
-	// (see the giftCards.* borrows below); do not "clean up".
-	interface KindConfig {
-		listPath: string;
-		accentFallback: string;
-		activeSentinel: string; // status value that counts as active/not-dimmed
-		notesPresent: boolean;
-		sharePermissions: boolean; // show SharePermissions in share create form
-		showEditTransactions: boolean; // gift-card only
-		favoriteAdd: string;
-		favoriteRemove: string;
-		deleteApi: (id: string) => Promise<unknown>;
-		favoriteApi: (id: string) => Promise<{ is_favorite: boolean }>;
-		offlineDelete: (id: string) => Promise<void>;
-		i18n: Record<string, string>;
-	}
-
-	const CONFIG: Record<Kind, KindConfig> = {
-		card: {
-			listPath: '/cards',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'active',
-			notesPresent: true,
-			sharePermissions: true,
-			showEditTransactions: false,
-			favoriteAdd: 'common.addToFavorites',
-			favoriteRemove: 'common.removeFromFavorites',
-			deleteApi: (id) => cardsApi.delete(id),
-			favoriteApi: (id) => cardsApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteCard(id),
-			i18n: {
-				titleFallback: 'common.card',
-				sharedBy: 'cards.sharedBy',
-				deleteButton: 'cards.deleteButton',
-				deleteConfirm: 'cards.deleteConfirm',
-				deleteConfirmMessage: 'cards.deleteConfirmMessage',
-				deleteSuccess: 'cards.deleteSuccess',
-				deleteError: 'cards.deleteError',
-				shareTitle: 'common.share',
-				shareAddButton: 'common.add',
-				shareUserEmail: 'cards.sharing.userEmail',
-				shareHint: 'giftCards.sharing.userMustBeRegistered',
-				shareNow: 'giftCards.sharing.shareNow',
-				shareError: 'cards.sharing.shareError',
-				updateSuccess: 'cards.sharing.updateSuccess',
-				updateError: 'cards.sharing.updateError',
-				removeSuccess: 'cards.sharing.removeSuccess',
-				removeError: 'cards.sharing.removeError',
-				removeConfirm: 'cards.sharing.removeConfirm',
-				removeConfirmMessage: 'cards.sharing.removeConfirmMessage',
-				revokeAll: 'cards.sharing.revokeAll',
-				revokeAllConfirm: 'cards.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'cards.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'cards.sharing.revokeAllSuccess',
-				revokeAllError: 'cards.sharing.revokeAllError',
-				notSharedYet: 'giftCards.sharing.notSharedYet',
-				canEdit: 'cards.sharing.canEdit',
-				canEditDesc: 'cards.sharing.canEditDesc',
-				canDelete: 'cards.sharing.canDelete',
-				canDeleteDesc: 'cards.sharing.canDeleteDesc',
-				whatIsShared: 'cards.sharing.whatIsShared',
-				transferButton: 'cards.transfer.button',
-				transferTransferButton: 'cards.transfer.transferButton',
-				transferWarning: 'cards.transfer.warning',
-				transferWarningDetails: 'giftCards.transfer.warningDetails',
-				transferEmailLabel: 'cards.transfer.newOwnerEmail',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'cards.transfer.whatHappens',
-				transferConfirmTitle: 'cards.transfer.confirmTitle',
-				transferConfirmMessage: 'cards.transfer.confirmMessage',
-				transferSuccess: 'cards.transfer.success',
-				transferError: 'cards.transfer.error'
-			}
-		},
-		voucher: {
-			listPath: '/vouchers',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'valid',
-			notesPresent: false,
-			sharePermissions: false,
-			showEditTransactions: false,
-			favoriteAdd: 'common.addToFavorites',
-			favoriteRemove: 'common.removeFromFavorites',
-			deleteApi: (id) => vouchersApi.delete(id),
-			favoriteApi: (id) => vouchersApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteVoucher(id),
-			i18n: {
-				titleFallback: 'vouchers.title',
-				sharedBy: 'vouchers.sharedBy',
-				deleteButton: 'vouchers.deleteButton',
-				deleteConfirm: 'vouchers.deleteConfirm',
-				deleteConfirmMessage: 'vouchers.deleteConfirmMessage',
-				deleteSuccess: 'vouchers.deleteSuccess',
-				deleteError: 'vouchers.deleteError',
-				shareTitle: 'common.share',
-				shareAddButton: 'common.add',
-				shareUserEmail: 'vouchers.sharing.userEmail',
-				shareHint: 'vouchers.sharing.hint',
-				shareNow: 'vouchers.sharing.shareNow',
-				shareError: 'vouchers.sharing.shareError',
-				updateSuccess: 'vouchers.sharing.updateSuccess',
-				updateError: 'vouchers.sharing.updateError',
-				removeSuccess: 'vouchers.sharing.removeSuccess',
-				removeError: 'vouchers.sharing.removeError',
-				removeConfirm: 'vouchers.sharing.removeConfirm',
-				removeConfirmMessage: 'vouchers.sharing.removeConfirmMessage',
-				revokeAll: 'vouchers.sharing.revokeAll',
-				revokeAllConfirm: 'vouchers.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'vouchers.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'vouchers.sharing.revokeAllSuccess',
-				revokeAllError: 'vouchers.sharing.revokeAllError',
-				notSharedYet: 'vouchers.sharing.notSharedYet',
-				whatIsShared: 'vouchers.sharing.whatIsShared',
-				readOnlyNote: 'vouchers.sharing.readOnlyNote',
-				manage: 'common.manage',
-				removeShare: 'vouchers.sharing.removeShare',
-				alwaysReadOnly: 'vouchers.sharing.alwaysReadOnly',
-				canOnlyRemove: 'vouchers.sharing.canOnlyRemove',
-				sharedCode: 'vouchers.sharing.sharedCode',
-				sharedDetails: 'vouchers.sharing.sharedDetails',
-				sharedDescription: 'vouchers.sharing.sharedDescription',
-				transferButton: 'vouchers.transfer.button',
-				transferTransferButton: 'vouchers.transfer.transferButton',
-				transferWarning: 'vouchers.transfer.warning',
-				transferWarningDetails: 'vouchers.transfer.warningDetail',
-				transferEmailLabel: 'vouchers.transfer.newOwner',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'vouchers.transfer.whatHappens',
-				transferConfirmTitle: 'vouchers.transfer.confirmTitle',
-				transferConfirmMessage: 'vouchers.transfer.confirmMessage',
-				transferSuccess: 'vouchers.transfer.success',
-				transferError: 'vouchers.transfer.error'
-			}
-		},
-		gift_card: {
-			listPath: '/gift-cards',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'active',
-			notesPresent: true,
-			sharePermissions: true,
-			showEditTransactions: true,
-			favoriteAdd: 'common.addFavorite',
-			favoriteRemove: 'common.removeFavorite',
-			deleteApi: (id) => giftCardsApi.delete(id),
-			favoriteApi: (id) => giftCardsApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteGiftCard(id),
-			i18n: {
-				titleFallback: 'giftCards.title',
-				sharedBy: 'giftCards.sharedBy',
-				notFound: 'giftCards.notFound',
-				backToList: 'giftCards.backToList',
-				deleteButton: 'giftCards.deleteButton',
-				deleteConfirm: 'giftCards.deleteConfirm',
-				deleteConfirmMessage: 'giftCards.deleteConfirmMessage',
-				deleteSuccess: 'giftCards.deleteSuccess',
-				deleteError: 'giftCards.deleteError',
-				shareTitle: 'giftCards.sharing.title',
-				shareAddButton: 'giftCards.sharing.addButton',
-				shareUserEmail: 'giftCards.sharing.userEmail',
-				shareHint: 'giftCards.sharing.userMustBeRegistered',
-				shareNow: 'giftCards.sharing.shareNow',
-				shareError: 'giftCards.sharing.shareError',
-				updateSuccess: 'giftCards.sharing.updateSuccess',
-				updateError: 'giftCards.sharing.updateError',
-				removeSuccess: 'giftCards.sharing.removeSuccess',
-				removeError: 'giftCards.sharing.removeError',
-				removeConfirm: 'giftCards.sharing.removeConfirm',
-				removeConfirmMessage: 'giftCards.sharing.removeConfirmMessage',
-				revokeAll: 'giftCards.sharing.revokeAll',
-				revokeAllConfirm: 'giftCards.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'giftCards.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'giftCards.sharing.revokeAllSuccess',
-				revokeAllError: 'giftCards.sharing.revokeAllError',
-				notSharedYet: 'giftCards.sharing.notSharedYet',
-				canEdit: 'giftCards.sharing.canEdit',
-				canEditDesc: 'giftCards.sharing.canEditDesc',
-				canDelete: 'giftCards.sharing.canDelete',
-				canDeleteDesc: 'giftCards.sharing.canDeleteDesc',
-				canManageTransactions: 'giftCards.sharing.canManageTransactions',
-				canManageTransactionsDesc:
-					'giftCards.sharing.canManageTransactionsDesc',
-				whatIsShared: 'giftCards.sharing.whatIsShared',
-				transferTitle: 'giftCards.transfer.title',
-				transferTransferButton: 'giftCards.transfer.transferButton',
-				transferWarning: 'giftCards.transfer.warning',
-				transferWarningDetails: 'giftCards.transfer.warningDetails',
-				transferEmailLabel: 'giftCards.transfer.newOwnerEmail',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'giftCards.transfer.whatHappens',
-				transferConfirmTitle: 'giftCards.transfer.confirmTitle',
-				transferConfirmMessage: 'giftCards.transfer.confirmMessage',
-				transferSuccess: 'giftCards.transfer.success',
-				transferError: 'giftCards.transfer.error'
-			}
-		}
-	};
 
 	const cfg = $derived(CONFIG[kind]);
 	const c = $derived(cfg.i18n);
