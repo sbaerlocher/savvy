@@ -122,12 +122,16 @@ test.describe('Offline Storage', () => {
 		await page.goto('/cards');
 		await page.waitForLoadState('networkidle');
 
-		const dbsBefore = await getIndexedDBDatabases(page);
+		// Only assert on the app-owned offline database. Workbox creates its
+		// own IndexedDB (workbox-expiration) for service-worker cache metadata;
+		// that is not user data and is intentionally not touched by logout.
+		const isAppDb = (name: string) => !name.startsWith('workbox-');
+		const dbsBefore = (await getIndexedDBDatabases(page)).filter(isAppDb);
 
 		await logoutUser(page);
 		await page.waitForLoadState('networkidle');
 
-		const dbsAfter = await getIndexedDBDatabases(page);
+		const dbsAfter = (await getIndexedDBDatabases(page)).filter(isAppDb);
 
 		if (dbsBefore.length > 0) {
 			let dataCleared = true;

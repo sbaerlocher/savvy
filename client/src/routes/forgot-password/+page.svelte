@@ -14,14 +14,24 @@
 	let email = $state('');
 	let isLoading = $state(false);
 	let submitted = $state(false);
+	let configLoaded = $state(false);
 
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
 			goto(resolve('/dashboard'));
 			return;
 		}
-		// Initialize CSRF cookie by hitting a public GET endpoint
-		await fetch('/api/v1/config').catch(() => {});
+		// Initialize CSRF cookie by hitting a public GET endpoint. Gate the
+		// form on this so the submit button can't fire a mutation before the
+		// csrf_token cookie exists (the API client throws without it).
+		try {
+			await fetch('/api/v1/config');
+		} catch {
+			// Ignore: a failed config fetch still lets the user try; the
+			// mutation surfaces its own error if CSRF is genuinely missing.
+		} finally {
+			configLoaded = true;
+		}
 	});
 
 	async function handleSubmit(e: Event) {
@@ -114,7 +124,7 @@
 							<div class="pt-2">
 								<button
 									type="submit"
-									disabled={isLoading}
+									disabled={isLoading || !configLoaded}
 									class="btn btn-primary w-full"
 								>
 									{#if isLoading}
