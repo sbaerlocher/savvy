@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import { ICON_CLIPBOARD_CHECK, ICON_CLOSE, ICON_FUNNEL } from '$lib/icons';
 	// Shared filter shape for the wallet-style list screens (wallet + merchant
 	// detail). The wallet passes the module-level `walletFilters` $state; merchant
 	// detail declares its own inline $state instance so the two scopes stay
@@ -30,7 +31,8 @@
 	import {
 		cardToTileModel,
 		voucherToTileModel,
-		giftCardToTileModel
+		giftCardToTileModel,
+		type TileModel
 	} from '$lib/utils/tile-model';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
@@ -640,6 +642,88 @@
 	/>
 {/snippet}
 
+<!-- Toolbar icon (select/filter buttons, desktop + mobile share the same 5x5 glyph). -->
+{#snippet toolbarIcon(d: string)}
+	<svg
+		class="w-5 h-5 text-text-muted"
+		fill="none"
+		stroke="currentColor"
+		viewBox="0 0 24 24"
+	>
+		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" {d} />
+	</svg>
+{/snippet}
+
+<!-- Active-filter dot on the filter button (desktop + mobile). -->
+{#snippet activeFilterDot()}
+	{#if hasActiveFilters}
+		<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
+		></span>
+	{/if}
+{/snippet}
+
+<!-- Barcode-toggle button body: label variant vs inline barcode glyph (desktop + mobile). -->
+{#snippet barcodeButtonContent()}
+	{#if barcodeButtonVariant === 'label'}
+		<span class="text-sm font-medium text-text-muted whitespace-nowrap">
+			{tr('barcodeToggle.label')}
+		</span>
+	{:else}
+		<svg
+			class="w-5 h-5 text-text-muted"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
+			></path>
+		</svg>
+	{/if}
+{/snippet}
+
+<!-- One tile grid; the three resource lists render identical ResourceTiles. -->
+{#snippet tileGrid(tiles: TileModel[])}
+	{#each tiles as model (model.id)}
+		<ResourceTile
+			{model}
+			showBarcode={showBarcodes}
+			{selectMode}
+			selected={selectedIds.has(model.id)}
+			onSelect={toggleSelection}
+			onShowBarcode={(item) => (barcodeModalItem = item)}
+		/>
+	{/each}
+{/snippet}
+
+<!-- MerchantFilters panel; desktop and mobile differ only by the idPrefix suffix. -->
+{#snippet merchantFilterPanel(panelIdPrefix: string)}
+	<MerchantFilters
+		bind:typeFilter={filters.typeFilter}
+		bind:statusFilter={filters.statusFilter}
+		bind:sortBy={filters.sortBy}
+		bind:ownerFilter={filters.ownerFilter}
+		bind:favoritesOnly={filters.favoritesOnly}
+		bind:expiringFilter={filters.expiringFilter}
+		sortOptions={detailSortOptions}
+		statusOptions={detailStatusOptions}
+		cardsCount={cards.length}
+		vouchersCount={vouchers.length}
+		giftCardsCount={giftCards.length}
+		{showStatusFilter}
+		ownerOptions={detailOwnerOptions}
+		expiringOptions={detailExpiringOptions}
+		showExpiringFilter={filters.typeFilter !== 'cards'}
+		{hasActiveFilters}
+		onReset={resetFilters}
+		showAll={filterShowAll}
+		idPrefix={panelIdPrefix}
+	/>
+{/snippet}
+
 <BatchConfirmModal
 	action={batchAction}
 	count={selectedCount}
@@ -711,19 +795,7 @@
 					aria-label={tr('batch.selectMode')}
 					aria-pressed={selectMode}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-						/>
-					</svg>
+					{@render toolbarIcon(ICON_CLIPBOARD_CHECK)}
 				</button>
 				<!-- Filter Button -->
 				<button
@@ -737,24 +809,8 @@
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-						/>
-					</svg>
-					{#if hasActiveFilters}
-						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
-						></span>
-					{/if}
+					{@render toolbarIcon(ICON_FUNNEL)}
+					{@render activeFilterDot()}
 				</button>
 				<!-- Barcode Toggle Button -->
 				<button
@@ -774,25 +830,7 @@
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					{#if barcodeButtonVariant === 'label'}
-						<span class="text-sm font-medium text-text-muted whitespace-nowrap">
-							{tr('barcodeToggle.label')}
-						</span>
-					{:else}
-						<svg
-							class="w-5 h-5 text-text-muted"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-							></path>
-						</svg>
-					{/if}
+					{@render barcodeButtonContent()}
 				</button>
 				<!-- Import Button -->
 				<button
@@ -830,19 +868,7 @@
 						: ''}"
 					aria-label={tr('batch.selectMode')}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-						/>
-					</svg>
+					{@render toolbarIcon(ICON_CLIPBOARD_CHECK)}
 				</button>
 				<!-- Filter Button (Mobile) -->
 				<button
@@ -855,24 +881,8 @@
 					aria-label={tr('common.filter')}
 					aria-expanded={showFilterMenu}
 				>
-					<svg
-						class="w-5 h-5 text-text-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-						/>
-					</svg>
-					{#if hasActiveFilters}
-						<span
-							class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
-						></span>
-					{/if}
+					{@render toolbarIcon(ICON_FUNNEL)}
+					{@render activeFilterDot()}
 				</button>
 				<!-- Barcode Toggle Button (Mobile) -->
 				<button
@@ -886,25 +896,7 @@
 						: tr('barcodeToggle.show')}
 					aria-pressed={showBarcodes}
 				>
-					{#if barcodeButtonVariant === 'label'}
-						<span class="text-sm font-medium text-text-muted whitespace-nowrap">
-							{tr('barcodeToggle.label')}
-						</span>
-					{:else}
-						<svg
-							class="w-5 h-5 text-text-muted"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 5h1v14H4V5zm3 0h1v14H7V5zm3 0h2v14h-2V5zm4 0h1v14h-1V5zm3 0h2v14h-2V5z"
-							></path>
-						</svg>
-					{/if}
+					{@render barcodeButtonContent()}
 				</button>
 			</div>
 		</div>
@@ -934,40 +926,13 @@
 							: 'lg:grid-cols-3'} gap-6"
 					>
 						<!-- Cards -->
-						{#each cardTiles as model (model.id)}
-							<ResourceTile
-								{model}
-								showBarcode={showBarcodes}
-								{selectMode}
-								selected={selectedIds.has(model.id)}
-								onSelect={toggleSelection}
-								onShowBarcode={(item) => (barcodeModalItem = item)}
-							/>
-						{/each}
+						{@render tileGrid(cardTiles)}
 
 						<!-- Vouchers -->
-						{#each voucherTiles as model (model.id)}
-							<ResourceTile
-								{model}
-								showBarcode={showBarcodes}
-								{selectMode}
-								selected={selectedIds.has(model.id)}
-								onSelect={toggleSelection}
-								onShowBarcode={(item) => (barcodeModalItem = item)}
-							/>
-						{/each}
+						{@render tileGrid(voucherTiles)}
 
 						<!-- Gift Cards -->
-						{#each giftCardTiles as model (model.id)}
-							<ResourceTile
-								{model}
-								showBarcode={showBarcodes}
-								{selectMode}
-								selected={selectedIds.has(model.id)}
-								onSelect={toggleSelection}
-								onShowBarcode={(item) => (barcodeModalItem = item)}
-							/>
-						{/each}
+						{@render tileGrid(giftCardTiles)}
 					</div>
 				</div>
 
@@ -993,7 +958,7 @@
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+												d={ICON_FUNNEL}
 											/>
 										</svg>
 										<h3 class="text-sm font-semibold text-text">
@@ -1022,7 +987,7 @@
 													stroke-linecap="round"
 													stroke-linejoin="round"
 													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
+													d={ICON_CLOSE}
 												></path>
 											</svg>
 										</button>
@@ -1031,27 +996,7 @@
 							</div>
 
 							<div class="p-5">
-								<MerchantFilters
-									bind:typeFilter={filters.typeFilter}
-									bind:statusFilter={filters.statusFilter}
-									bind:sortBy={filters.sortBy}
-									bind:ownerFilter={filters.ownerFilter}
-									bind:favoritesOnly={filters.favoritesOnly}
-									bind:expiringFilter={filters.expiringFilter}
-									sortOptions={detailSortOptions}
-									statusOptions={detailStatusOptions}
-									cardsCount={cards.length}
-									vouchersCount={vouchers.length}
-									giftCardsCount={giftCards.length}
-									{showStatusFilter}
-									ownerOptions={detailOwnerOptions}
-									expiringOptions={detailExpiringOptions}
-									showExpiringFilter={filters.typeFilter !== 'cards'}
-									{hasActiveFilters}
-									onReset={resetFilters}
-									showAll={filterShowAll}
-									idPrefix="{idPrefix}-desktop"
-								/>
+								{@render merchantFilterPanel(`${idPrefix}-desktop`)}
 							</div>
 						</div>
 					</div>
@@ -1109,34 +1054,14 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
+						d={ICON_CLOSE}
 					/>
 				</svg>
 			</button>
 		</div>
 
 		<div class="pt-1">
-			<MerchantFilters
-				bind:typeFilter={filters.typeFilter}
-				bind:statusFilter={filters.statusFilter}
-				bind:sortBy={filters.sortBy}
-				bind:ownerFilter={filters.ownerFilter}
-				bind:favoritesOnly={filters.favoritesOnly}
-				bind:expiringFilter={filters.expiringFilter}
-				sortOptions={detailSortOptions}
-				statusOptions={detailStatusOptions}
-				cardsCount={cards.length}
-				vouchersCount={vouchers.length}
-				giftCardsCount={giftCards.length}
-				{showStatusFilter}
-				ownerOptions={detailOwnerOptions}
-				expiringOptions={detailExpiringOptions}
-				showExpiringFilter={filters.typeFilter !== 'cards'}
-				{hasActiveFilters}
-				onReset={resetFilters}
-				showAll={filterShowAll}
-				idPrefix="{idPrefix}-mobile"
-			/>
+			{@render merchantFilterPanel(`${idPrefix}-mobile`)}
 		</div>
 
 		<div class="px-6 pb-6 pt-2">

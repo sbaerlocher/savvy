@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ICON_CLOSE, ICON_SPINNER } from '$lib/icons';
 	import { t } from '$lib/stores/i18n';
 	import { logger } from '$lib/utils/logger';
 	import {
@@ -431,7 +432,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
+							d={ICON_CLOSE}
 						></path>
 					</svg>
 				</button>
@@ -481,10 +482,7 @@
 									stroke="currentColor"
 									stroke-width="4"
 								></circle>
-								<path
-									class="opacity-75"
-									fill="currentColor"
-									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
 								></path>
 							</svg>
 						</div>
@@ -601,7 +599,7 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M6 18L18 6M6 6l12 12"
+									d={ICON_CLOSE}
 								></path>
 							</svg>
 						</button>

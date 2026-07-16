@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ICON_CLOSE, ICON_SEARCH } from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -92,11 +93,7 @@
 			stroke-width="2"
 			viewBox="0 0 24 24"
 		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-			/>
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
 		</svg>
 		<input
 			bind:this={searchEl}
@@ -121,11 +118,7 @@
 				stroke-width="2"
 				viewBox="0 0 24 24"
 			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M6 18L18 6M6 6l12 12"
-				/>
+				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE} />
 			</svg>
 		</button>
 	</div>
@@ -181,7 +174,7 @@
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+								d={ICON_SEARCH}
 							/>
 						</svg>
 					</button>

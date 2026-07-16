@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
@@ -60,6 +61,11 @@
 		].filter((tpe) => tpe.enabled)
 	);
 
+	function handleClose() {
+		open = false;
+		onClose();
+	}
+
 	function choose(href: string) {
 		open = false;
 		onClose();
@@ -68,79 +74,58 @@
 	}
 </script>
 
-{#if open}
-	<!-- Backdrop -->
+<Modal
+	{open}
+	onclose={handleClose}
+	layer="default"
+	mobileLayout="sheet"
+	backdrop="glass"
+	label={tr('typeChoice.title')}
+>
+	<!-- Sheet (mobile) / Dialog (desktop) -->
 	<div
-		class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-		role="button"
-		tabindex="0"
-		aria-label={tr('common.close')}
-		onclick={() => {
-			open = false;
-			onClose();
-		}}
-		onkeydown={(e) => {
-			if (e.key === 'Escape') {
-				open = false;
-				onClose();
-			}
-		}}
+		bind:this={dialogEl}
+		tabindex="-1"
+		class="pointer-events-auto w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
+		'ios'
+			? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
+			: 'bg-white border border-border'}"
 	>
-		<!-- Sheet (mobile) / Dialog (desktop) -->
-		<div
-			bind:this={dialogEl}
-			role="dialog"
-			tabindex="-1"
-			aria-modal="true"
-			aria-label={tr('typeChoice.title')}
-			class="w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
-			'ios'
-				? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
-				: 'bg-white border border-border'}"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => {
-				if (e.key === 'Escape') {
-					open = false;
-					onClose();
-				}
-			}}
-		>
-			{#if platform === 'ios'}
-				<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-border-field"></div>
-			{/if}
-			<h2 class="text-lg font-semibold text-text mb-1">
-				{tr('typeChoice.title')}
-			</h2>
-			<p class="text-sm text-text-subtle mb-4">{tr('typeChoice.subtitle')}</p>
+		{#if platform === 'ios'}
+			<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-border-field"></div>
+		{/if}
+		<h2 class="text-lg font-semibold text-text mb-1">
+			{tr('typeChoice.title')}
+		</h2>
+		<p class="text-sm text-text-subtle mb-4">{tr('typeChoice.subtitle')}</p>
 
-			<div class="flex flex-col gap-2">
-				{#each types as type (type.key)}
-					<button
-						type="button"
-						onclick={() => choose(type.href)}
-						class="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-border hover:border-accent hover:bg-accent-50 transition-colors text-left"
+		<div class="flex flex-col gap-2">
+			{#each types as type (type.key)}
+				<button
+					type="button"
+					onclick={() => choose(type.href)}
+					class="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-border hover:border-accent hover:bg-accent-50 transition-colors text-left"
+				>
+					<span
+						class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-100 text-accent-hover shrink-0"
 					>
-						<span
-							class="flex items-center justify-center w-10 h-10 rounded-full bg-accent-100 text-accent-hover shrink-0"
+						<svg
+							class="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
 						>
-							<svg
-								class="w-5 h-5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d={type.path}
-								/>
-							</svg>
-						</span>
-						<span class="font-medium text-text">{type.label}</span>
-					</button>
-				{/each}
-			</div>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d={type.path}
+							/>
+						</svg>
+					</span>
+					<span class="font-medium text-text">{type.label}</span>
+				</button>
+			{/each}
 		</div>
 	</div>
-{/if}
+</Modal>

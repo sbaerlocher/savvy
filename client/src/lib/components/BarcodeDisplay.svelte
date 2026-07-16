@@ -149,52 +149,63 @@
 	});
 </script>
 
+<!--
+	Status badge + validity markup is rendered identically in the inline block
+	and the fullscreen overlay. Snippets dedupe the truly-identical parts;
+	`validityInfo` takes the wrapper span class because inline and fullscreen
+	differ only by that class. The value/description/PIN footer is NOT shared:
+	inline and fullscreen use genuinely different layouts.
+-->
+{#snippet statusBadges()}
+	{#if showValidStatusBadge}
+		<span
+			class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
+		>
+			{tr('vouchers.status.valid')}
+		</span>
+	{:else if showStatusBadge && statusBadge}
+		<span
+			class="inline-block px-3 py-1 text-xs rounded-full {statusBadge.class}"
+		>
+			{statusBadge.text}
+		</span>
+	{/if}
+{/snippet}
+
+{#snippet validityInfo(spanClass: string)}
+	{#if hasValidityInfo}
+		<span class={spanClass}>
+			{#if validFrom && validUntil}
+				{formatDisplayDate(validFrom, currentLocale)} - {formatDisplayDate(
+					validUntil,
+					currentLocale
+				)}
+			{:else if validUntil}
+				{tr('vouchers.validUntil')}: {formatDisplayDate(
+					validUntil,
+					currentLocale
+				)}
+			{:else if validFrom}
+				{tr('vouchers.validFrom')}: {formatDisplayDate(
+					validFrom,
+					currentLocale
+				)}
+			{/if}
+			{#if minPurchaseInfo}
+				· {minPurchaseInfo}
+			{/if}
+		</span>
+	{:else if minPurchaseInfo}
+		<span class={spanClass}>{minPurchaseInfo}</span>
+	{/if}
+{/snippet}
+
 <div class="bg-surface-1 rounded-lg p-4 text-center border-t border-border">
 	<!-- Status Badge + Validity Period (for Vouchers) -->
 	{#if showValidStatusBadge || showStatusBadge || hasValidityInfo}
 		<div class="flex items-center justify-center gap-4 mb-4 flex-wrap">
-			<!-- Valid Status Badge (green for vouchers) -->
-			{#if showValidStatusBadge}
-				<span
-					class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
-				>
-					{tr('vouchers.status.valid')}
-				</span>
-			{:else if showStatusBadge && statusBadge}
-				<!-- Other Status Badges -->
-				<span
-					class="inline-block px-3 py-1 text-xs rounded-full {statusBadge.class}"
-				>
-					{statusBadge.text}
-				</span>
-			{/if}
-
-			<!-- Validity Period (for vouchers) -->
-			{#if hasValidityInfo}
-				<span class="text-xs text-text-muted">
-					{#if validFrom && validUntil}
-						{formatDisplayDate(validFrom, currentLocale)} - {formatDisplayDate(
-							validUntil,
-							currentLocale
-						)}
-					{:else if validUntil}
-						{tr('vouchers.validUntil')}: {formatDisplayDate(
-							validUntil,
-							currentLocale
-						)}
-					{:else if validFrom}
-						{tr('vouchers.validFrom')}: {formatDisplayDate(
-							validFrom,
-							currentLocale
-						)}
-					{/if}
-					{#if minPurchaseInfo}
-						· {minPurchaseInfo}
-					{/if}
-				</span>
-			{:else if minPurchaseInfo}
-				<span class="text-xs text-text-muted">{minPurchaseInfo}</span>
-			{/if}
+			{@render statusBadges()}
+			{@render validityInfo('text-xs text-text-muted')}
 		</div>
 	{/if}
 
@@ -261,45 +272,8 @@
 			<div class="barcode-header-section">
 				{#if showValidStatusBadge || showStatusBadge || hasValidityInfo || balance || expiresAt}
 					<div class="barcode-header-info">
-						{#if showValidStatusBadge}
-							<span
-								class="inline-block px-3 py-1 text-xs rounded-full bg-success-100 text-success-800"
-							>
-								{tr('vouchers.status.valid')}
-							</span>
-						{:else if showStatusBadge && statusBadge}
-							<span
-								class="inline-block px-3 py-1 text-xs rounded-full {statusBadge.class}"
-							>
-								{statusBadge.text}
-							</span>
-						{/if}
-
-						{#if hasValidityInfo}
-							<span class="barcode-info-validity">
-								{#if validFrom && validUntil}
-									{formatDisplayDate(validFrom, currentLocale)} - {formatDisplayDate(
-										validUntil,
-										currentLocale
-									)}
-								{:else if validUntil}
-									{tr('vouchers.validUntil')}: {formatDisplayDate(
-										validUntil,
-										currentLocale
-									)}
-								{:else if validFrom}
-									{tr('vouchers.validFrom')}: {formatDisplayDate(
-										validFrom,
-										currentLocale
-									)}
-								{/if}
-								{#if minPurchaseInfo}
-									· {minPurchaseInfo}
-								{/if}
-							</span>
-						{:else if minPurchaseInfo}
-							<span class="barcode-info-validity">{minPurchaseInfo}</span>
-						{/if}
+						{@render statusBadges()}
+						{@render validityInfo('barcode-info-validity')}
 
 						{#if balance && currency}
 							<span class="barcode-info-balance">

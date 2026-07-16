@@ -1,40 +1,31 @@
 <script lang="ts">
+	import { ICON_LOCK } from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { t, locale } from '$lib/stores/i18n';
-	import { offlineDB } from '$lib/stores/offline-db';
 	import { toastStore } from '$lib/stores/toast';
 	import { formatCurrency } from '$lib/utils/currency';
 	import { platform } from '$lib/utils/platform';
 	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
 	import { resourceDetailPath } from '$lib/resource/routes';
+	import { CONFIG, type Kind } from '$lib/resource/config';
 	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
 	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
-	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
-	import SharePermissions from '$lib/components/SharePermissions.svelte';
-	import ShareListItem from '$lib/components/ShareListItem.svelte';
+	import ShareSection from '$lib/components/resource/ShareSection.svelte';
 	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-	import {
-		formatShareResult,
-		shareResponseFromError
-	} from '$lib/utils/share-result';
 	import type {
 		CardDTO,
 		VoucherDTO,
 		GiftCardDTO,
-		ShareDTO,
-		ShareCreateRequest,
-		ShareCreateResponse
+		ShareDTO
 	} from '$lib/types/api';
 
-	type Kind = 'card' | 'voucher' | 'gift_card';
 	type ResourceDTO = CardDTO | VoucherDTO | GiftCardDTO;
 
 	interface Props {
@@ -71,205 +62,6 @@
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-
-	// --- Kind config -------------------------------------------------------
-	// Per-kind i18n key map + behaviour flags. Keys copied verbatim from the
-	// three source routes — several are deliberately borrowed cross-namespace
-	// (see the giftCards.* borrows below); do not "clean up".
-	interface KindConfig {
-		listPath: string;
-		accentFallback: string;
-		activeSentinel: string; // status value that counts as active/not-dimmed
-		notesPresent: boolean;
-		sharePermissions: boolean; // show SharePermissions in share create form
-		showEditTransactions: boolean; // gift-card only
-		favoriteAdd: string;
-		favoriteRemove: string;
-		deleteApi: (id: string) => Promise<unknown>;
-		favoriteApi: (id: string) => Promise<{ is_favorite: boolean }>;
-		offlineDelete: (id: string) => Promise<void>;
-		i18n: Record<string, string>;
-	}
-
-	const CONFIG: Record<Kind, KindConfig> = {
-		card: {
-			listPath: '/cards',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'active',
-			notesPresent: true,
-			sharePermissions: true,
-			showEditTransactions: false,
-			favoriteAdd: 'common.addToFavorites',
-			favoriteRemove: 'common.removeFromFavorites',
-			deleteApi: (id) => cardsApi.delete(id),
-			favoriteApi: (id) => cardsApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteCard(id),
-			i18n: {
-				titleFallback: 'common.card',
-				sharedBy: 'cards.sharedBy',
-				deleteButton: 'cards.deleteButton',
-				deleteConfirm: 'cards.deleteConfirm',
-				deleteConfirmMessage: 'cards.deleteConfirmMessage',
-				deleteSuccess: 'cards.deleteSuccess',
-				deleteError: 'cards.deleteError',
-				shareTitle: 'common.share',
-				shareAddButton: 'common.add',
-				shareUserEmail: 'cards.sharing.userEmail',
-				shareHint: 'giftCards.sharing.userMustBeRegistered',
-				shareNow: 'giftCards.sharing.shareNow',
-				shareError: 'cards.sharing.shareError',
-				updateSuccess: 'cards.sharing.updateSuccess',
-				updateError: 'cards.sharing.updateError',
-				removeSuccess: 'cards.sharing.removeSuccess',
-				removeError: 'cards.sharing.removeError',
-				removeConfirm: 'cards.sharing.removeConfirm',
-				removeConfirmMessage: 'cards.sharing.removeConfirmMessage',
-				revokeAll: 'cards.sharing.revokeAll',
-				revokeAllConfirm: 'cards.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'cards.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'cards.sharing.revokeAllSuccess',
-				revokeAllError: 'cards.sharing.revokeAllError',
-				notSharedYet: 'giftCards.sharing.notSharedYet',
-				canEdit: 'cards.sharing.canEdit',
-				canEditDesc: 'cards.sharing.canEditDesc',
-				canDelete: 'cards.sharing.canDelete',
-				canDeleteDesc: 'cards.sharing.canDeleteDesc',
-				whatIsShared: 'cards.sharing.whatIsShared',
-				transferButton: 'cards.transfer.button',
-				transferTransferButton: 'cards.transfer.transferButton',
-				transferWarning: 'cards.transfer.warning',
-				transferWarningDetails: 'giftCards.transfer.warningDetails',
-				transferEmailLabel: 'cards.transfer.newOwnerEmail',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'cards.transfer.whatHappens',
-				transferConfirmTitle: 'cards.transfer.confirmTitle',
-				transferConfirmMessage: 'cards.transfer.confirmMessage',
-				transferSuccess: 'cards.transfer.success',
-				transferError: 'cards.transfer.error'
-			}
-		},
-		voucher: {
-			listPath: '/vouchers',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'valid',
-			notesPresent: false,
-			sharePermissions: false,
-			showEditTransactions: false,
-			favoriteAdd: 'common.addToFavorites',
-			favoriteRemove: 'common.removeFromFavorites',
-			deleteApi: (id) => vouchersApi.delete(id),
-			favoriteApi: (id) => vouchersApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteVoucher(id),
-			i18n: {
-				titleFallback: 'vouchers.title',
-				sharedBy: 'vouchers.sharedBy',
-				deleteButton: 'vouchers.deleteButton',
-				deleteConfirm: 'vouchers.deleteConfirm',
-				deleteConfirmMessage: 'vouchers.deleteConfirmMessage',
-				deleteSuccess: 'vouchers.deleteSuccess',
-				deleteError: 'vouchers.deleteError',
-				shareTitle: 'common.share',
-				shareAddButton: 'common.add',
-				shareUserEmail: 'vouchers.sharing.userEmail',
-				shareHint: 'vouchers.sharing.hint',
-				shareNow: 'vouchers.sharing.shareNow',
-				shareError: 'vouchers.sharing.shareError',
-				updateSuccess: 'vouchers.sharing.updateSuccess',
-				updateError: 'vouchers.sharing.updateError',
-				removeSuccess: 'vouchers.sharing.removeSuccess',
-				removeError: 'vouchers.sharing.removeError',
-				removeConfirm: 'vouchers.sharing.removeConfirm',
-				removeConfirmMessage: 'vouchers.sharing.removeConfirmMessage',
-				revokeAll: 'vouchers.sharing.revokeAll',
-				revokeAllConfirm: 'vouchers.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'vouchers.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'vouchers.sharing.revokeAllSuccess',
-				revokeAllError: 'vouchers.sharing.revokeAllError',
-				notSharedYet: 'vouchers.sharing.notSharedYet',
-				whatIsShared: 'vouchers.sharing.whatIsShared',
-				readOnlyNote: 'vouchers.sharing.readOnlyNote',
-				manage: 'common.manage',
-				removeShare: 'vouchers.sharing.removeShare',
-				alwaysReadOnly: 'vouchers.sharing.alwaysReadOnly',
-				canOnlyRemove: 'vouchers.sharing.canOnlyRemove',
-				sharedCode: 'vouchers.sharing.sharedCode',
-				sharedDetails: 'vouchers.sharing.sharedDetails',
-				sharedDescription: 'vouchers.sharing.sharedDescription',
-				transferButton: 'vouchers.transfer.button',
-				transferTransferButton: 'vouchers.transfer.transferButton',
-				transferWarning: 'vouchers.transfer.warning',
-				transferWarningDetails: 'vouchers.transfer.warningDetail',
-				transferEmailLabel: 'vouchers.transfer.newOwner',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'vouchers.transfer.whatHappens',
-				transferConfirmTitle: 'vouchers.transfer.confirmTitle',
-				transferConfirmMessage: 'vouchers.transfer.confirmMessage',
-				transferSuccess: 'vouchers.transfer.success',
-				transferError: 'vouchers.transfer.error'
-			}
-		},
-		gift_card: {
-			listPath: '/gift-cards',
-			accentFallback: MERCHANT_DEFAULT_COLOR,
-			activeSentinel: 'active',
-			notesPresent: true,
-			sharePermissions: true,
-			showEditTransactions: true,
-			favoriteAdd: 'common.addFavorite',
-			favoriteRemove: 'common.removeFavorite',
-			deleteApi: (id) => giftCardsApi.delete(id),
-			favoriteApi: (id) => giftCardsApi.toggleFavorite(id),
-			offlineDelete: (id) => offlineDB.deleteGiftCard(id),
-			i18n: {
-				titleFallback: 'giftCards.title',
-				sharedBy: 'giftCards.sharedBy',
-				notFound: 'giftCards.notFound',
-				backToList: 'giftCards.backToList',
-				deleteButton: 'giftCards.deleteButton',
-				deleteConfirm: 'giftCards.deleteConfirm',
-				deleteConfirmMessage: 'giftCards.deleteConfirmMessage',
-				deleteSuccess: 'giftCards.deleteSuccess',
-				deleteError: 'giftCards.deleteError',
-				shareTitle: 'giftCards.sharing.title',
-				shareAddButton: 'giftCards.sharing.addButton',
-				shareUserEmail: 'giftCards.sharing.userEmail',
-				shareHint: 'giftCards.sharing.userMustBeRegistered',
-				shareNow: 'giftCards.sharing.shareNow',
-				shareError: 'giftCards.sharing.shareError',
-				updateSuccess: 'giftCards.sharing.updateSuccess',
-				updateError: 'giftCards.sharing.updateError',
-				removeSuccess: 'giftCards.sharing.removeSuccess',
-				removeError: 'giftCards.sharing.removeError',
-				removeConfirm: 'giftCards.sharing.removeConfirm',
-				removeConfirmMessage: 'giftCards.sharing.removeConfirmMessage',
-				revokeAll: 'giftCards.sharing.revokeAll',
-				revokeAllConfirm: 'giftCards.sharing.revokeAllConfirm',
-				revokeAllConfirmMessage: 'giftCards.sharing.revokeAllConfirmMessage',
-				revokeAllSuccess: 'giftCards.sharing.revokeAllSuccess',
-				revokeAllError: 'giftCards.sharing.revokeAllError',
-				notSharedYet: 'giftCards.sharing.notSharedYet',
-				canEdit: 'giftCards.sharing.canEdit',
-				canEditDesc: 'giftCards.sharing.canEditDesc',
-				canDelete: 'giftCards.sharing.canDelete',
-				canDeleteDesc: 'giftCards.sharing.canDeleteDesc',
-				canManageTransactions: 'giftCards.sharing.canManageTransactions',
-				canManageTransactionsDesc:
-					'giftCards.sharing.canManageTransactionsDesc',
-				whatIsShared: 'giftCards.sharing.whatIsShared',
-				transferTitle: 'giftCards.transfer.title',
-				transferTransferButton: 'giftCards.transfer.transferButton',
-				transferWarning: 'giftCards.transfer.warning',
-				transferWarningDetails: 'giftCards.transfer.warningDetails',
-				transferEmailLabel: 'giftCards.transfer.newOwnerEmail',
-				transferEmailHint: 'giftCards.sharing.userMustBeRegistered',
-				transferWhatHappens: 'giftCards.transfer.whatHappens',
-				transferConfirmTitle: 'giftCards.transfer.confirmTitle',
-				transferConfirmMessage: 'giftCards.transfer.confirmMessage',
-				transferSuccess: 'giftCards.transfer.success',
-				transferError: 'giftCards.transfer.error'
-			}
-		}
-	};
 
 	const cfg = $derived(CONFIG[kind]);
 	const c = $derived(cfg.i18n);
@@ -444,32 +236,15 @@
 		return {};
 	});
 
-	// --- Share create form state ------------------------------------------
-	let showShareForm = $state(false);
-	let shareEmails = $state<string[]>([]);
-	let canEdit = $state(false);
-	let canDelete = $state(false);
-	let canEditTransactions = $state(false);
-
-	// Share editing state (editable kinds: cards, gift-cards).
-	let editingShareId = $state<string | null>(null);
-	let editShareCanEdit = $state(false);
-	let editShareCanDelete = $state(false);
-	let editShareCanEditTransactions = $state(false);
-	// Voucher "manage" mode (delete-only, no permission editing).
-	let managingShareId = $state<string | null>(null);
-
 	let transferEmail = $state('');
 
 	// Modal state
 	let showDeleteModal = $state(false);
-	let showDeleteShareModal = $state(false);
-	let showRevokeAllModal = $state(false);
 	let showTransferModal = $state(false);
-	let shareToDelete: string | null = null;
 
 	let isTogglingFavorite = $state(false);
 
+	// Transfer targets the same per-kind resource API as sharing.
 	const shareApi = $derived(
 		kind === 'card' ? cardsApi : kind === 'voucher' ? vouchersApi : giftCardsApi
 	);
@@ -547,140 +322,6 @@
 		}
 	}
 
-	async function loadShares() {
-		if (!resource?.permissions?.is_owner) return;
-		try {
-			const response = await shareApi.get(resource.id);
-			shares = response.shares || [];
-		} catch (err) {
-			// Non-fatal: keep existing shares.
-			console.error('Failed to load shares:', err);
-		}
-	}
-
-	function buildSharePayload(): ShareCreateRequest {
-		if (kind === 'voucher') return { emails: shareEmails };
-		if (kind === 'gift_card')
-			return {
-				emails: shareEmails,
-				can_edit: canEdit,
-				can_delete: canDelete,
-				can_edit_transactions: canEditTransactions
-			};
-		return { emails: shareEmails, can_edit: canEdit, can_delete: canDelete };
-	}
-
-	function resetShareForm() {
-		showShareForm = false;
-		shareEmails = [];
-		canEdit = false;
-		canDelete = false;
-		canEditTransactions = false;
-	}
-
-	async function handleShare() {
-		if (shareEmails.length === 0 || !resource) return;
-		try {
-			const response: ShareCreateResponse = await shareApi.createShare(
-				resource.id,
-				buildSharePayload()
-			);
-			shares = response.shares || [];
-			const { message, isError } = formatShareResult(response, tr);
-			if (isError) toastStore.error(message);
-			else toastStore.success(message);
-			resetShareForm();
-		} catch (err: unknown) {
-			const failed = shareResponseFromError(err);
-			if (failed) {
-				shares = failed.shares || shares;
-				toastStore.error(formatShareResult(failed, tr).message);
-			} else {
-				toastStore.error(err instanceof Error ? err.message : tr(c.shareError));
-			}
-		}
-	}
-
-	function startEditShare(share: ShareDTO) {
-		editingShareId = share.shared_with_user.id;
-		editShareCanEdit = share.can_edit;
-		editShareCanDelete = share.can_delete;
-		editShareCanEditTransactions = share.can_edit_transactions || false;
-	}
-
-	function cancelEditShare() {
-		editingShareId = null;
-		editShareCanEdit = false;
-		editShareCanDelete = false;
-		editShareCanEditTransactions = false;
-	}
-
-	async function saveShareEdit(sharedWithID: string) {
-		try {
-			// updateShare only exists on editable kinds (cards, gift-cards).
-			if (!resource || !('updateShare' in shareApi)) return;
-			const response = await shareApi.updateShare(resource.id, sharedWithID, {
-				can_edit: editShareCanEdit,
-				can_delete: editShareCanDelete,
-				...(cfg.showEditTransactions
-					? { can_edit_transactions: editShareCanEditTransactions }
-					: {})
-			});
-			shares = response.shares || [];
-			editingShareId = null;
-			toastStore.success(tr(c.updateSuccess));
-		} catch (err: unknown) {
-			toastStore.error(err instanceof Error ? err.message : tr(c.updateError));
-		}
-	}
-
-	function startManageShare(shareId: string) {
-		managingShareId = shareId;
-	}
-
-	function cancelManageShare() {
-		managingShareId = null;
-	}
-
-	function promptDeleteShare(sharedWithID: string) {
-		shareToDelete = sharedWithID;
-		showDeleteShareModal = true;
-	}
-
-	async function confirmDeleteShare() {
-		if (!shareToDelete || !resource) return;
-		try {
-			await shareApi.deleteShare(resource.id, shareToDelete);
-			toastStore.success(tr(c.removeSuccess));
-			managingShareId = null;
-			showDeleteShareModal = false;
-			await loadShares();
-		} catch {
-			toastStore.error(tr(c.removeError));
-		} finally {
-			shareToDelete = null;
-			showDeleteShareModal = false;
-		}
-	}
-
-	function promptRevokeAll() {
-		showRevokeAllModal = true;
-	}
-
-	async function confirmRevokeAll() {
-		if (!resource) return;
-		try {
-			await shareApi.deleteAllShares(resource.id);
-			toastStore.success(tr(c.revokeAllSuccess));
-			managingShareId = null;
-			await loadShares();
-		} catch {
-			toastStore.error(tr(c.revokeAllError));
-		} finally {
-			showRevokeAllModal = false;
-		}
-	}
-
 	function promptTransfer() {
 		showTransferModal = true;
 	}
@@ -720,8 +361,7 @@
 		];
 	});
 
-	const LOCK_PATH =
-		'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z';
+	const LOCK_PATH = ICON_LOCK;
 </script>
 
 {#if resource}
@@ -885,195 +525,14 @@
 					ontransfer={promptTransfer}
 				/>
 
-				<!-- Sharing Box -->
-				<div class="rounded-xl border border-border bg-white p-6">
-					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-text">
-							{tr(c.shareTitle)}
-						</h3>
-						{#if !showShareForm}
-							<button
-								onclick={() => (showShareForm = true)}
-								disabled={isOffline}
-								class="btn btn-xs btn-primary whitespace-nowrap flex items-center gap-1.5 {isOffline
-									? 'pointer-events-none blur-[0.5px]'
-									: ''}"
-							>
-								{#if isOffline}
-									<svg
-										class="w-3.5 h-3.5"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d={LOCK_PATH}
-										></path>
-									</svg>
-								{:else}
-									<span>+</span>
-								{/if}
-								{tr(c.shareAddButton)}
-							</button>
-						{/if}
-					</div>
-
-					{#if showShareForm}
-						<div
-							class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
-						>
-							<EmailAutocomplete
-								multiple
-								bind:values={shareEmails}
-								label={tr(c.shareUserEmail)}
-								hint={tr(c.shareHint)}
-								inputId="share-email-input"
-								disabled={isOffline}
-							/>
-
-							{#if cfg.sharePermissions}
-								<SharePermissions
-									bind:canEdit
-									bind:canDelete
-									bind:canEditTransactions
-									showEditTransactions={cfg.showEditTransactions}
-									labelEdit={tr(c.canEdit)}
-									labelEditDesc={tr(c.canEditDesc)}
-									labelDelete={tr(c.canDelete)}
-									labelDeleteDesc={tr(c.canDeleteDesc)}
-									labelEditTransactions={cfg.showEditTransactions
-										? tr(c.canManageTransactions)
-										: undefined}
-									labelEditTransactionsDesc={cfg.showEditTransactions
-										? tr(c.canManageTransactionsDesc)
-										: undefined}
-								/>
-							{/if}
-
-							<div class="bg-white border border-accent-200 rounded-lg p-3">
-								<h4 class="font-medium text-accent-900 text-sm mb-2">
-									{tr(c.whatIsShared)}
-								</h4>
-								{#if kind === 'voucher'}
-									<ul class="text-xs text-accent-800 space-y-1">
-										<li>{tr(c.sharedCode)}</li>
-										<li>{tr(c.sharedDetails)}</li>
-										<li>{tr(c.sharedDescription)}</li>
-									</ul>
-									<p class="text-xs text-accent-hover mt-2 italic">
-										{tr(c.readOnlyNote)}
-									</p>
-								{:else if kind === 'gift_card'}
-									<ul class="text-xs text-accent-800 space-y-1">
-										<li>{tr('giftCards.sharing.sharedItemCardNumber')}</li>
-										<li>{tr('giftCards.sharing.sharedItemBalance')}</li>
-										<li>{tr('giftCards.sharing.sharedItemDetails')}</li>
-										<li>{tr('giftCards.sharing.sharedItemTransactions')}</li>
-										<li>{tr('giftCards.sharing.sharedItemNotes')}</li>
-									</ul>
-								{:else}
-									<ul class="text-xs text-accent-800 space-y-1">
-										<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
-										<li>{tr('cards.sharing.sharedItemDetails')}</li>
-										<li>{tr('cards.sharing.sharedItemNotes')}</li>
-									</ul>
-								{/if}
-							</div>
-
-							<div class="flex gap-2">
-								<button
-									onclick={handleShare}
-									disabled={isOffline}
-									class="btn btn-primary flex-1 {isOffline
-										? 'opacity-50 cursor-not-allowed'
-										: ''}"
-								>
-									{tr(c.shareNow)}
-								</button>
-								<button onclick={resetShareForm} class="btn btn-ghost">
-									{tr('common.cancel')}
-								</button>
-							</div>
-						</div>
-					{/if}
-
-					{#if shares.length > 0}
-						<div class="space-y-3">
-							{#each shares as share (share.shared_with_user.id)}
-								{#if shareMode === 'readonly'}
-									<ShareListItem
-										{share}
-										isEditing={managingShareId === share.shared_with_user.id}
-										{isOffline}
-										editButtonLabel={tr(c.manage)}
-										deleteButtonLabel={tr(c.removeShare)}
-										alwaysViewOnly={true}
-										onstartEdit={() =>
-											startManageShare(share.shared_with_user.id)}
-										oncancel={cancelManageShare}
-										ondelete={() =>
-											promptDeleteShare(share.shared_with_user.id)}
-									>
-										<div
-											class="bg-warning-50 border border-warning-200 rounded-lg p-3"
-										>
-											<p class="text-xs font-medium text-warning-800 mb-1">
-												{tr(c.alwaysReadOnly)}
-											</p>
-											<p class="text-xs text-warning-700">
-												{tr(c.canOnlyRemove)}
-											</p>
-										</div>
-									</ShareListItem>
-								{:else}
-									<ShareListItem
-										{share}
-										isEditing={editingShareId === share.shared_with_user.id}
-										{isOffline}
-										showTransactionsBadge={cfg.showEditTransactions}
-										onstartEdit={() => startEditShare(share)}
-										onsave={() => saveShareEdit(share.shared_with_user.id)}
-										oncancel={cancelEditShare}
-										ondelete={() =>
-											promptDeleteShare(share.shared_with_user.id)}
-									>
-										<SharePermissions
-											bind:canEdit={editShareCanEdit}
-											bind:canDelete={editShareCanDelete}
-											bind:canEditTransactions={editShareCanEditTransactions}
-											showEditTransactions={cfg.showEditTransactions}
-											labelEdit={tr(c.canEdit)}
-											labelEditDesc={tr(c.canEditDesc)}
-											labelDelete={tr(c.canDelete)}
-											labelDeleteDesc={tr(c.canDeleteDesc)}
-											labelEditTransactions={cfg.showEditTransactions
-												? tr(c.canManageTransactions)
-												: undefined}
-											labelEditTransactionsDesc={cfg.showEditTransactions
-												? tr(c.canManageTransactionsDesc)
-												: undefined}
-										/>
-									</ShareListItem>
-								{/if}
-							{/each}
-						</div>
-						<button
-							type="button"
-							onclick={promptRevokeAll}
-							disabled={isOffline}
-							class="btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50"
-						>
-							{tr(c.revokeAll)}
-						</button>
-					{:else}
-						<p class="text-sm text-text-subtle text-center py-4">
-							{tr(c.notSharedYet)}
-						</p>
-					{/if}
-				</div>
+				<!-- Sharing (own state + API calls → dedicated component). -->
+				<ShareSection
+					{kind}
+					resource={resource!}
+					bind:shares
+					{isOffline}
+					{shareMode}
+				/>
 			{/if}
 		</div>
 	</div>
@@ -1088,28 +547,6 @@
 		variant="danger"
 		onconfirm={confirmDelete}
 		oncancel={() => (showDeleteModal = false)}
-	/>
-
-	<ConfirmModal
-		isOpen={showDeleteShareModal}
-		title={tr(c.removeConfirm)}
-		message={tr(c.removeConfirmMessage)}
-		confirmText={tr('common.remove')}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmDeleteShare}
-		oncancel={() => (showDeleteShareModal = false)}
-	/>
-
-	<ConfirmModal
-		isOpen={showRevokeAllModal}
-		title={tr(c.revokeAllConfirm)}
-		message={tr(c.revokeAllConfirmMessage)}
-		confirmText={tr(c.revokeAll)}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmRevokeAll}
-		oncancel={() => (showRevokeAllModal = false)}
 	/>
 
 	<ConfirmModal

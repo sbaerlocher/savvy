@@ -1,4 +1,12 @@
 <script lang="ts">
+	import {
+		ICON_CLIPBOARD_CHECK,
+		ICON_CLOSE,
+		ICON_SHARE,
+		ICON_TRANSFER,
+		ICON_TRASH,
+		ICON_WARNING
+	} from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { t } from '$lib/stores/i18n';
 	import { isOnline } from '$lib/stores/offline';
@@ -67,7 +75,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+							d={ICON_CLIPBOARD_CHECK}
 						></path>
 					</svg>
 					<h3 class="text-sm font-semibold text-text">
@@ -96,7 +104,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
+								d={ICON_CLOSE}
 							></path>
 						</svg>
 					</button>
@@ -153,7 +161,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+								d={ICON_WARNING}
 							></path>
 						</svg>
 						<p class="text-xs text-warning-800">
@@ -190,7 +198,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+							d={ICON_SHARE}
 						></path>
 					</svg>
 					{tr('batch.shareSelected')}
@@ -213,7 +221,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+							d={ICON_TRANSFER}
 						></path>
 					</svg>
 					{tr('batch.transferSelected')}
@@ -259,7 +267,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+							d={ICON_TRASH}
 						></path>
 					</svg>
 					{tr('batch.deleteSelected')}
@@ -285,7 +293,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
+							d={ICON_CLOSE}
 						></path>
 					</svg>
 					{tr('batch.exitSelectMode')}
@@ -357,11 +365,7 @@
 					stroke-width="1.8"
 					viewBox="0 0 24 24"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-					/>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SHARE} />
 				</svg>
 				<span class="text-[length:var(--text-tag)]">{tr('common.share')}</span>
 			</button>
@@ -382,7 +386,7 @@
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+						d={ICON_TRANSFER}
 					/>
 				</svg>
 				<span class="text-[length:var(--text-tag)]"
@@ -425,11 +429,7 @@
 					stroke-width="1.8"
 					viewBox="0 0 24 24"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-					/>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_TRASH} />
 				</svg>
 				<span class="text-[length:var(--text-tag)]">{tr('common.delete')}</span>
 			</button>
@@ -448,7 +448,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+						d={ICON_CLIPBOARD_CHECK}
 					></path>
 				</svg>
 				<h3 class="text-sm font-semibold text-text">
@@ -477,7 +477,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
+							d={ICON_CLOSE}
 						></path>
 					</svg>
 				</button>
@@ -541,7 +541,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+						d={ICON_SHARE}
 					></path>
 				</svg>
 				<span class="text-[length:var(--text-tag)] font-medium"
@@ -565,7 +565,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+						d={ICON_TRANSFER}
 					></path>
 				</svg>
 				<span class="text-[length:var(--text-tag)] font-medium"
@@ -589,7 +589,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+						d={ICON_TRASH}
 					></path>
 				</svg>
 				<span class="text-[length:var(--text-tag)] font-medium"

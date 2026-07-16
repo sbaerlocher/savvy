@@ -1,15 +1,14 @@
 <script lang="ts">
+	import { ICON_INFO_CIRCLE, ICON_SPINNER, ICON_WARNING } from '$lib/icons';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import { t } from '$lib/stores/i18n';
 	import { get } from 'svelte/store';
-	import { sharedUsersApi } from '$lib/api';
-	import type { UserDTO } from '$lib/types/api';
-	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
-	import { formatUserName } from '$lib/utils/user';
+	import EmailAutocomplete from './EmailAutocomplete.svelte';
+	import SharePermissions from './SharePermissions.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const componentLogger = logger.child('BatchConfirmModal');
 
 	type BatchAction = 'delete' | 'share' | 'transfer';
 
@@ -47,19 +46,8 @@
 	let canDelete = $state(false);
 	let canEditTransactions = $state(false);
 
-	// Autocomplete state
-	let suggestedUsers = $state<UserDTO[]>([]);
-	let showSuggestions = $state(false);
-	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
 	function handleConfirm() {
 		onConfirm(email, { canEdit, canDelete, canEditTransactions });
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			onCancel();
-		}
 	}
 
 	function reset() {
@@ -67,9 +55,6 @@
 		canEdit = false;
 		canDelete = false;
 		canEditTransactions = false;
-		suggestedUsers = [];
-		showSuggestions = false;
-		if (searchTimeout) clearTimeout(searchTimeout);
 	}
 
 	// Reset state when modal opens
@@ -78,128 +63,159 @@
 			reset();
 		}
 	});
-
-	// Autocomplete functions
-	async function searchSharedUsers(query: string) {
-		if (searchTimeout) clearTimeout(searchTimeout);
-
-		if (query.length < 2) {
-			suggestedUsers = [];
-			showSuggestions = false;
-			return;
-		}
-
-		searchTimeout = setTimeout(async () => {
-			try {
-				const response = await sharedUsersApi.search(query);
-				suggestedUsers = response.users;
-				showSuggestions = true;
-			} catch (err) {
-				componentLogger.error('Failed to search users:', err);
-				suggestedUsers = [];
-			}
-		}, 300); // 300ms debounce
-	}
-
-	function selectUser(user: UserDTO) {
-		email = user.email;
-		showSuggestions = false;
-		suggestedUsers = [];
-	}
-
-	function onEmailInput(event: Event) {
-		const input = event.target as HTMLInputElement;
-		email = input.value;
-		searchSharedUsers(input.value);
-	}
-
-	function onEmailFocus() {
-		if (email.length >= 2) {
-			searchSharedUsers(email);
-		}
-	}
-
-	function onEmailBlur() {
-		// Delay to allow click on suggestion
-		setTimeout(() => {
-			showSuggestions = false;
-		}, 200);
-	}
 </script>
 
-{#if isOpen}
-	<!-- Backdrop -->
+<Modal
+	open={isOpen}
+	onclose={onCancel}
+	layer="elevated"
+	mobileLayout="sheet"
+	labelledby="batch-modal-title"
+>
+	<!-- ponytail: overflow-y-auto clips the email-autocomplete dropdown to the sheet on very short viewports (keyboard open). Acceptable — the email input sits near the top so it fits in practice; move the suggestion list to a portal if a real cutoff shows up. -->
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="fixed inset-0 z-[70] {platform === 'ios'
-			? 'bg-black/40 backdrop-blur-sm'
-			: 'bg-black bg-opacity-50'}"
-		onclick={onCancel}
-		role="presentation"
-	></div>
-
-	<!-- Modal: bottom sheet on mobile, centered dialog on desktop -->
-	<div
-		class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center pb-[env(safe-area-inset-bottom)] sm:p-4"
-		onkeydown={handleKeydown}
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="batch-modal-title"
-		tabindex="-1"
+		class="pointer-events-auto w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
+		'ios'
+			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
+			: 'bg-white rounded-t-3xl sm:rounded-lg'}"
+		onclick={(e) => e.stopPropagation()}
+		onkeydown={(e) => e.stopPropagation()}
+		role="document"
 	>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<!-- ponytail: overflow-y-auto clips the email-autocomplete dropdown to the sheet on very short viewports (keyboard open). Acceptable — the email input sits near the top so it fits in practice; move the suggestion list to a portal if a real cutoff shows up. -->
-		<div
-			class="w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
-			'ios'
-				? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
-				: 'bg-white rounded-t-3xl sm:rounded-lg'}"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			{#if action === 'delete'}
-				<!-- Delete Confirmation -->
-				<div class="flex items-start mb-4">
-					<div class="flex-shrink-0 mr-3">
+		{#if action === 'delete'}
+			<!-- Delete Confirmation -->
+			<div class="flex items-start mb-4">
+				<div class="flex-shrink-0 mr-3">
+					<svg
+						class="h-6 w-6 text-danger-600"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d={ICON_WARNING}
+						/>
+					</svg>
+				</div>
+				<div class="flex-1">
+					<h3
+						id="batch-modal-title"
+						class="text-lg font-semibold text-danger-600"
+					>
+						{tr('batch.confirmDeleteTitle')}
+					</h3>
+				</div>
+			</div>
+			<p class="text-text-muted mb-6 ml-9">
+				{tr('batch.confirmDeleteMessage', { count })}
+			</p>
+			<div class="flex gap-3 justify-end">
+				<button
+					type="button"
+					onclick={onCancel}
+					disabled={isLoading}
+					class="px-4 py-2 rounded-md border border-border-field hover:bg-surface-1 transition-colors text-text-ink2"
+				>
+					{tr('common.cancel')}
+				</button>
+				<button
+					type="button"
+					onclick={handleConfirm}
+					disabled={isLoading}
+					class="px-4 py-2 rounded-md text-white bg-danger-600 hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					{#if isLoading}
+						<span class="inline-flex items-center gap-2">
+							<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
+								></path>
+							</svg>
+							{tr('common.loading')}
+						</span>
+					{:else}
+						{tr('batch.deleteSelected')}
+					{/if}
+				</button>
+			</div>
+		{:else if action === 'share'}
+			<!-- Share -->
+			<h3 id="batch-modal-title" class="text-lg font-semibold text-text mb-2">
+				{tr('batch.confirmShareTitle')}
+			</h3>
+			<p class="text-sm text-text-muted mb-4">
+				{tr('batch.confirmShareMessage', { count })}
+			</p>
+
+			<div
+				class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+			>
+				<!-- Email with Autocomplete -->
+				<EmailAutocomplete
+					bind:value={email}
+					label={tr('batch.email')}
+					hint={tr('giftCards.sharing.userMustBeRegistered')}
+					inputId="batch-email"
+					disabled={isLoading}
+				/>
+
+				<!-- Permissions -->
+				{#if hidePermissions}
+					<div
+						class="flex items-start gap-2 bg-surface-1 border border-border rounded-lg p-3"
+					>
 						<svg
-							class="h-6 w-6 text-danger-600"
+							class="w-4 h-4 text-text-subtle mt-0.5 flex-shrink-0"
 							fill="none"
-							viewBox="0 0 24 24"
 							stroke="currentColor"
+							viewBox="0 0 24 24"
 						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-							/>
+								d={ICON_INFO_CIRCLE}
+							></path>
 						</svg>
+						<p class="text-sm text-text-muted">{tr('batch.readOnlyShare')}</p>
 					</div>
-					<div class="flex-1">
-						<h3
-							id="batch-modal-title"
-							class="text-lg font-semibold text-danger-600"
-						>
-							{tr('batch.confirmDeleteTitle')}
-						</h3>
-					</div>
-				</div>
-				<p class="text-text-muted mb-6 ml-9">
-					{tr('batch.confirmDeleteMessage', { count })}
-				</p>
-				<div class="flex gap-3 justify-end">
-					<button
-						type="button"
-						onclick={onCancel}
-						disabled={isLoading}
-						class="px-4 py-2 rounded-md border border-border-field hover:bg-surface-1 transition-colors text-text-ink2"
-					>
-						{tr('common.cancel')}
-					</button>
+				{:else}
+					<SharePermissions
+						bind:canEdit
+						bind:canDelete
+						bind:canEditTransactions
+						showEditTransactions={showTransactionPermission}
+						labelEdit={tr('cards.sharing.canEdit')}
+						labelEditDesc={tr('cards.sharing.canEditDesc')}
+						labelDelete={tr('cards.sharing.canDelete')}
+						labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+						labelEditTransactions={showTransactionPermission
+							? tr('giftCards.sharing.canManageTransactions')
+							: undefined}
+						labelEditTransactionsDesc={showTransactionPermission
+							? tr('giftCards.sharing.canManageTransactionsDesc')
+							: undefined}
+					/>
+				{/if}
+
+				<!-- Action Buttons -->
+				<div class="flex gap-2">
 					<button
 						type="button"
 						onclick={handleConfirm}
-						disabled={isLoading}
-						class="px-4 py-2 rounded-md text-white bg-danger-600 hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						disabled={isLoading || !email.trim()}
+						class="btn btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if isLoading}
 							<span class="inline-flex items-center gap-2">
@@ -216,325 +232,114 @@
 										stroke="currentColor"
 										stroke-width="4"
 									></circle>
-									<path
-										class="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
 									></path>
 								</svg>
 								{tr('common.loading')}
 							</span>
 						{:else}
-							{tr('batch.deleteSelected')}
+							{tr('giftCards.sharing.shareNow')}
 						{/if}
 					</button>
+					<button
+						type="button"
+						onclick={onCancel}
+						disabled={isLoading}
+						class="btn btn-ghost"
+					>
+						{tr('common.cancel')}
+					</button>
 				</div>
-			{:else if action === 'share'}
-				<!-- Share -->
-				<h3 id="batch-modal-title" class="text-lg font-semibold text-text mb-2">
-					{tr('batch.confirmShareTitle')}
-				</h3>
-				<p class="text-sm text-text-muted mb-4">
-					{tr('batch.confirmShareMessage', { count })}
-				</p>
+			</div>
+		{:else}
+			<!-- Transfer -->
+			<h3
+				id="batch-modal-title"
+				class="text-lg font-semibold text-purple-900 mb-2"
+			>
+				{tr('batch.confirmTransferTitle')}
+			</h3>
+			<p class="text-sm text-text-muted mb-4">
+				{tr('batch.confirmTransferMessage', { count })}
+			</p>
 
-				<div
-					class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
-				>
-					<!-- Email with Autocomplete -->
-					<div class="relative">
-						<label
-							for="batch-email"
-							class="block text-sm font-medium text-text-ink2 mb-1"
-						>
-							{tr('batch.email')} *
-						</label>
-						<input
-							id="batch-email"
-							type="email"
-							value={email}
-							oninput={onEmailInput}
-							onfocus={onEmailFocus}
-							onblur={onEmailBlur}
-							placeholder={tr('batch.emailPlaceholder')}
-							autocomplete="off"
-							class="input bg-white w-full"
-							disabled={isLoading}
-						/>
+			<div
+				class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
+			>
+				<!-- Warning Banner -->
+				<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
+					<p class="text-sm font-medium text-warning-800">
+						<strong>{tr('cards.transfer.warning')}</strong>
+					</p>
+					<p class="text-xs text-warning-700 mt-1">
+						{tr('giftCards.transfer.warningDetails')}
+					</p>
+				</div>
 
-						{#if showSuggestions && suggestedUsers.length > 0}
-							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
-							>
-								{#each suggestedUsers as user (user.id)}
-									<button
-										type="button"
-										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
-									>
-										<div class="font-medium text-sm text-text">
-											{formatUserName(user)}
-										</div>
-										<div class="text-xs text-text-subtle">{user.email}</div>
-									</button>
-								{/each}
-							</div>
+				<!-- Email with Autocomplete -->
+				<EmailAutocomplete
+					bind:value={email}
+					label={tr('cards.transfer.newOwnerEmail')}
+					hint={tr('giftCards.sharing.userMustBeRegistered')}
+					inputId="batch-transfer-email"
+					disabled={isLoading}
+				/>
+
+				<!-- What Happens -->
+				<div>
+					<p class="text-sm font-medium text-text-ink2 mb-2">
+						{tr('cards.transfer.whatHappens')}
+					</p>
+					<ul class="text-xs text-text-muted space-y-1">
+						<li>{tr('cards.transfer.newOwnerGetsRights')}</li>
+						<li>{tr('cards.transfer.allSharesDeleted')}</li>
+						<li>{tr('cards.transfer.youLoseAccess')}</li>
+						<li>{tr('cards.transfer.transferLogged')}</li>
+					</ul>
+				</div>
+
+				<!-- Action Buttons -->
+				<div class="flex gap-2">
+					<button
+						type="button"
+						onclick={handleConfirm}
+						disabled={isLoading || !email.trim()}
+						class="btn btn-purple flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{#if isLoading}
+							<span class="inline-flex items-center gap-2">
+								<svg
+									class="animate-spin w-4 h-4"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
+									></path>
+								</svg>
+								{tr('common.loading')}
+							</span>
+						{:else}
+							{tr('cards.transfer.transferButton')}
 						{/if}
-
-						<p class="text-xs text-text-subtle mt-1">
-							{tr('giftCards.sharing.userMustBeRegistered')}
-						</p>
-					</div>
-
-					<!-- Permissions -->
-					{#if hidePermissions}
-						<div
-							class="flex items-start gap-2 bg-surface-1 border border-border rounded-lg p-3"
-						>
-							<svg
-								class="w-4 h-4 text-text-subtle mt-0.5 flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								></path>
-							</svg>
-							<p class="text-sm text-text-muted">{tr('batch.readOnlyShare')}</p>
-						</div>
-					{:else}
-						<div class="space-y-2">
-							<label class="flex items-start cursor-pointer">
-								<input
-									type="checkbox"
-									bind:checked={canEdit}
-									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-								/>
-								<div class="ml-2">
-									<span class="block text-sm font-medium text-text"
-										>{tr('cards.sharing.canEdit')}</span
-									>
-									<span class="text-xs text-text-subtle"
-										>{tr('cards.sharing.canEditDesc')}</span
-									>
-								</div>
-							</label>
-							<label class="flex items-start cursor-pointer">
-								<input
-									type="checkbox"
-									bind:checked={canDelete}
-									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-								/>
-								<div class="ml-2">
-									<span class="block text-sm font-medium text-text"
-										>{tr('cards.sharing.canDelete')}</span
-									>
-									<span class="text-xs text-text-subtle"
-										>{tr('cards.sharing.canDeleteDesc')}</span
-									>
-								</div>
-							</label>
-							{#if showTransactionPermission}
-								<label class="flex items-start cursor-pointer">
-									<input
-										type="checkbox"
-										bind:checked={canEditTransactions}
-										disabled={isLoading}
-										class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-									/>
-									<div class="ml-2">
-										<span class="block text-sm font-medium text-text"
-											>{tr('giftCards.sharing.canManageTransactions')}</span
-										>
-										<span class="text-xs text-text-subtle"
-											>{tr('giftCards.sharing.canManageTransactionsDesc')}</span
-										>
-									</div>
-								</label>
-							{/if}
-						</div>
-					{/if}
-
-					<!-- Action Buttons -->
-					<div class="flex gap-2">
-						<button
-							type="button"
-							onclick={handleConfirm}
-							disabled={isLoading || !email.trim()}
-							class="btn btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							{#if isLoading}
-								<span class="inline-flex items-center gap-2">
-									<svg
-										class="animate-spin w-4 h-4"
-										fill="none"
-										viewBox="0 0 24 24"
-									>
-										<circle
-											class="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											stroke-width="4"
-										></circle>
-										<path
-											class="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-										></path>
-									</svg>
-									{tr('common.loading')}
-								</span>
-							{:else}
-								{tr('giftCards.sharing.shareNow')}
-							{/if}
-						</button>
-						<button
-							type="button"
-							onclick={onCancel}
-							disabled={isLoading}
-							class="btn btn-ghost"
-						>
-							{tr('common.cancel')}
-						</button>
-					</div>
+					</button>
+					<button
+						type="button"
+						onclick={onCancel}
+						disabled={isLoading}
+						class="btn btn-ghost"
+					>
+						{tr('common.cancel')}
+					</button>
 				</div>
-			{:else}
-				<!-- Transfer -->
-				<h3
-					id="batch-modal-title"
-					class="text-lg font-semibold text-purple-900 mb-2"
-				>
-					{tr('batch.confirmTransferTitle')}
-				</h3>
-				<p class="text-sm text-text-muted mb-4">
-					{tr('batch.confirmTransferMessage', { count })}
-				</p>
-
-				<div
-					class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
-				>
-					<!-- Warning Banner -->
-					<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
-						<p class="text-sm font-medium text-warning-800">
-							<strong>{tr('cards.transfer.warning')}</strong>
-						</p>
-						<p class="text-xs text-warning-700 mt-1">
-							{tr('giftCards.transfer.warningDetails')}
-						</p>
-					</div>
-
-					<!-- Email with Autocomplete -->
-					<div class="relative">
-						<label
-							for="batch-transfer-email"
-							class="block text-sm font-medium text-text-ink2 mb-1"
-						>
-							{tr('cards.transfer.newOwnerEmail')} *
-						</label>
-						<input
-							id="batch-transfer-email"
-							type="email"
-							value={email}
-							oninput={onEmailInput}
-							onfocus={onEmailFocus}
-							onblur={onEmailBlur}
-							placeholder={tr('batch.emailPlaceholder')}
-							autocomplete="off"
-							class="input bg-white w-full"
-							disabled={isLoading}
-						/>
-
-						{#if showSuggestions && suggestedUsers.length > 0}
-							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
-							>
-								{#each suggestedUsers as user (user.id)}
-									<button
-										type="button"
-										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
-									>
-										<div class="font-medium text-sm text-text">
-											{formatUserName(user)}
-										</div>
-										<div class="text-xs text-text-subtle">{user.email}</div>
-									</button>
-								{/each}
-							</div>
-						{/if}
-
-						<p class="text-xs text-text-subtle mt-1">
-							{tr('giftCards.sharing.userMustBeRegistered')}
-						</p>
-					</div>
-
-					<!-- What Happens -->
-					<div>
-						<p class="text-sm font-medium text-text-ink2 mb-2">
-							{tr('cards.transfer.whatHappens')}
-						</p>
-						<ul class="text-xs text-text-muted space-y-1">
-							<li>{tr('cards.transfer.newOwnerGetsRights')}</li>
-							<li>{tr('cards.transfer.allSharesDeleted')}</li>
-							<li>{tr('cards.transfer.youLoseAccess')}</li>
-							<li>{tr('cards.transfer.transferLogged')}</li>
-						</ul>
-					</div>
-
-					<!-- Action Buttons -->
-					<div class="flex gap-2">
-						<button
-							type="button"
-							onclick={handleConfirm}
-							disabled={isLoading || !email.trim()}
-							class="btn btn-purple flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-						>
-							{#if isLoading}
-								<span class="inline-flex items-center gap-2">
-									<svg
-										class="animate-spin w-4 h-4"
-										fill="none"
-										viewBox="0 0 24 24"
-									>
-										<circle
-											class="opacity-25"
-											cx="12"
-											cy="12"
-											r="10"
-											stroke="currentColor"
-											stroke-width="4"
-										></circle>
-										<path
-											class="opacity-75"
-											fill="currentColor"
-											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-										></path>
-									</svg>
-									{tr('common.loading')}
-								</span>
-							{:else}
-								{tr('cards.transfer.transferButton')}
-							{/if}
-						</button>
-						<button
-							type="button"
-							onclick={onCancel}
-							disabled={isLoading}
-							class="btn btn-ghost"
-						>
-							{tr('common.cancel')}
-						</button>
-					</div>
-				</div>
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
-{/if}
+</Modal>

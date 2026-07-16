@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ICON_BELL, ICON_LOCK } from '$lib/icons';
 	import { resolve } from '$app/paths';
 	import type { ProfileDTO } from '$lib/api';
 	import { authApi, exportApi, profileApi } from '$lib/api';
@@ -277,7 +278,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					stroke-width="2"
-					d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+					d={ICON_LOCK}
 				/>
 			</svg>
 		</div>
@@ -324,7 +325,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					stroke-width="2"
-					d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+					d={ICON_BELL}
 				/>
 			</svg>
 		</div>
