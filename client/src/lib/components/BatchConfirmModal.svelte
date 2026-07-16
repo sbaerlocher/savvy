@@ -75,7 +75,7 @@
 	<!-- ponytail: overflow-y-auto clips the email-autocomplete dropdown to the sheet on very short viewports (keyboard open). Acceptable — the email input sits near the top so it fits in practice; move the suggestion list to a portal if a real cutoff shows up. -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
+		class="pointer-events-auto w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
 		'ios'
 			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
 			: 'bg-white rounded-t-3xl sm:rounded-lg'}"

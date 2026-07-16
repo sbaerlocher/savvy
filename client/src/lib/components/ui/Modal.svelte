@@ -78,16 +78,20 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<!-- Backdrop -->
+	<!-- Backdrop carries the outside-click close. The panel div below is stacked
+	     above and covers the viewport, so the panel is pointer-events-none and the
+	     content sets pointer-events-auto — empty-area clicks fall through here. -->
 	<div
 		class="fixed inset-0 {z.backdrop} {backdropClass}"
 		onclick={handleClose}
 		role="presentation"
 	></div>
 
-	<!-- Panel positioning: bottom sheet on mobile, centered dialog on desktop -->
+	<!-- Panel positioning: bottom sheet on mobile, centered dialog on desktop.
+	     pointer-events-none lets outside clicks reach the backdrop; the content
+	     re-enables pointer events (see caller wrappers). -->
 	<div
-		class="fixed inset-0 {z.panel} flex {alignClass} justify-center {padClass}"
+		class="pointer-events-none fixed inset-0 {z.panel} flex {alignClass} justify-center {padClass}"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={labelledby}

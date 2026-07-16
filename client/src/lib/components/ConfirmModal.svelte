@@ -37,7 +37,8 @@
 
 <Modal open={show} onclose={handleCancel} labelledby="modal-title">
 	<div
-		class="w-full sm:max-w-md p-6 shadow-xl {platform === 'ios'
+		class="pointer-events-auto w-full sm:max-w-md p-6 shadow-xl {platform ===
+		'ios'
 			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
 			: 'bg-white dark:bg-text-strong rounded-t-3xl sm:rounded-lg'}"
 	>

@@ -269,7 +269,7 @@
 	label={tr('settings.twoFactor.setupTitle')}
 >
 	<div
-		class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
+		class="pointer-events-auto bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
 	>
 		<h3 class="text-lg font-semibold text-text mb-4">
 			{tr('settings.twoFactor.setupTitle')}
@@ -388,7 +388,9 @@
 	mobileLayout="center"
 	label={tr('settings.twoFactor.backupCodesTitle')}
 >
-	<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+	<div
+		class="pointer-events-auto bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+	>
 		<h3 class="text-lg font-semibold text-text mb-2">
 			{tr('settings.twoFactor.backupCodesTitle')}
 		</h3>
@@ -438,7 +440,9 @@
 	mobileLayout="center"
 	label={tr('settings.twoFactor.disableButton')}
 >
-	<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+	<div
+		class="pointer-events-auto bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+	>
 		<h3 class="text-lg font-semibold text-danger-600 mb-2">
 			{tr('settings.twoFactor.disableButton')}
 		</h3>
@@ -494,7 +498,9 @@
 	mobileLayout="center"
 	label={tr('settings.twoFactor.regenerateBackupCodes')}
 >
-	<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+	<div
+		class="pointer-events-auto bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+	>
 		<h3 class="text-lg font-semibold text-text mb-2">
 			{tr('settings.twoFactor.regenerateBackupCodes')}
 		</h3>

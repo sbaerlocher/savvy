@@ -86,7 +86,7 @@
 	<div
 		bind:this={dialogEl}
 		tabindex="-1"
-		class="w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
+		class="pointer-events-auto w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
 		'ios'
 			? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
 			: 'bg-white border border-border'}"
