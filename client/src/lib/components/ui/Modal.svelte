@@ -36,7 +36,7 @@
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
+		if (open && event.key === 'Escape') {
 			handleClose();
 		}
 	}
@@ -47,7 +47,20 @@
 	const alignClass = $derived(
 		mobileLayout === 'sheet' ? 'items-end sm:items-center' : 'items-center'
 	);
+	// 'sheet' hugs the safe area so the sheet meets the screen edge; 'center'
+	// insets the panel (p-4) and clears the mobile bottom nav (pb-40),
+	// collapsing to a plain p-4 on desktop — this reproduces ImportDialog's
+	// original outer padding byte-for-byte.
+	const padClass = $derived(
+		mobileLayout === 'sheet'
+			? 'pb-[env(safe-area-inset-bottom)] sm:p-4'
+			: 'p-4 pb-40 sm:pb-4'
+	);
 </script>
+
+<!-- Escape closes from anywhere; the backdrop is not focusable so a window
+     listener is the only way keydown reaches this shell (guarded by open). -->
+<svelte:window onkeydown={handleKeydown} />
 
 {#if open}
 	<!-- Backdrop -->
@@ -56,13 +69,12 @@
 			? 'bg-black/40 backdrop-blur-sm'
 			: 'bg-black bg-opacity-50'}"
 		onclick={handleClose}
-		onkeydown={handleKeydown}
 		role="presentation"
 	></div>
 
 	<!-- Panel positioning: bottom sheet on mobile, centered dialog on desktop -->
 	<div
-		class="fixed inset-0 {z.panel} flex {alignClass} justify-center pb-[env(safe-area-inset-bottom)] sm:p-4"
+		class="fixed inset-0 {z.panel} flex {alignClass} justify-center {padClass}"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={labelledby}
