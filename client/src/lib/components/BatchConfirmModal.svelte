@@ -2,15 +2,12 @@
 	import { ICON_INFO_CIRCLE, ICON_SPINNER, ICON_WARNING } from '$lib/icons';
 	import { t } from '$lib/stores/i18n';
 	import { get } from 'svelte/store';
-	import { sharedUsersApi } from '$lib/api';
-	import type { UserDTO } from '$lib/types/api';
-	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
-	import { formatUserName } from '$lib/utils/user';
+	import EmailAutocomplete from './EmailAutocomplete.svelte';
+	import SharePermissions from './SharePermissions.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const componentLogger = logger.child('BatchConfirmModal');
 
 	type BatchAction = 'delete' | 'share' | 'transfer';
 
@@ -48,11 +45,6 @@
 	let canDelete = $state(false);
 	let canEditTransactions = $state(false);
 
-	// Autocomplete state
-	let suggestedUsers = $state<UserDTO[]>([]);
-	let showSuggestions = $state(false);
-	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
 	function handleConfirm() {
 		onConfirm(email, { canEdit, canDelete, canEditTransactions });
 	}
@@ -68,9 +60,6 @@
 		canEdit = false;
 		canDelete = false;
 		canEditTransactions = false;
-		suggestedUsers = [];
-		showSuggestions = false;
-		if (searchTimeout) clearTimeout(searchTimeout);
 	}
 
 	// Reset state when modal opens
@@ -79,53 +68,6 @@
 			reset();
 		}
 	});
-
-	// Autocomplete functions
-	async function searchSharedUsers(query: string) {
-		if (searchTimeout) clearTimeout(searchTimeout);
-
-		if (query.length < 2) {
-			suggestedUsers = [];
-			showSuggestions = false;
-			return;
-		}
-
-		searchTimeout = setTimeout(async () => {
-			try {
-				const response = await sharedUsersApi.search(query);
-				suggestedUsers = response.users;
-				showSuggestions = true;
-			} catch (err) {
-				componentLogger.error('Failed to search users:', err);
-				suggestedUsers = [];
-			}
-		}, 300); // 300ms debounce
-	}
-
-	function selectUser(user: UserDTO) {
-		email = user.email;
-		showSuggestions = false;
-		suggestedUsers = [];
-	}
-
-	function onEmailInput(event: Event) {
-		const input = event.target as HTMLInputElement;
-		email = input.value;
-		searchSharedUsers(input.value);
-	}
-
-	function onEmailFocus() {
-		if (email.length >= 2) {
-			searchSharedUsers(email);
-		}
-	}
-
-	function onEmailBlur() {
-		// Delay to allow click on suggestion
-		setTimeout(() => {
-			showSuggestions = false;
-		}, 200);
-	}
 </script>
 
 {#if isOpen}
@@ -240,49 +182,13 @@
 					class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
 				>
 					<!-- Email with Autocomplete -->
-					<div class="relative">
-						<label
-							for="batch-email"
-							class="block text-sm font-medium text-text-ink2 mb-1"
-						>
-							{tr('batch.email')} *
-						</label>
-						<input
-							id="batch-email"
-							type="email"
-							value={email}
-							oninput={onEmailInput}
-							onfocus={onEmailFocus}
-							onblur={onEmailBlur}
-							placeholder={tr('batch.emailPlaceholder')}
-							autocomplete="off"
-							class="input bg-white w-full"
-							disabled={isLoading}
-						/>
-
-						{#if showSuggestions && suggestedUsers.length > 0}
-							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
-							>
-								{#each suggestedUsers as user (user.id)}
-									<button
-										type="button"
-										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
-									>
-										<div class="font-medium text-sm text-text">
-											{formatUserName(user)}
-										</div>
-										<div class="text-xs text-text-subtle">{user.email}</div>
-									</button>
-								{/each}
-							</div>
-						{/if}
-
-						<p class="text-xs text-text-subtle mt-1">
-							{tr('giftCards.sharing.userMustBeRegistered')}
-						</p>
-					</div>
+					<EmailAutocomplete
+						bind:value={email}
+						label={tr('batch.email')}
+						hint={tr('giftCards.sharing.userMustBeRegistered')}
+						inputId="batch-email"
+						disabled={isLoading}
+					/>
 
 					<!-- Permissions -->
 					{#if hidePermissions}
@@ -305,58 +211,22 @@
 							<p class="text-sm text-text-muted">{tr('batch.readOnlyShare')}</p>
 						</div>
 					{:else}
-						<div class="space-y-2">
-							<label class="flex items-start cursor-pointer">
-								<input
-									type="checkbox"
-									bind:checked={canEdit}
-									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-								/>
-								<div class="ml-2">
-									<span class="block text-sm font-medium text-text"
-										>{tr('cards.sharing.canEdit')}</span
-									>
-									<span class="text-xs text-text-subtle"
-										>{tr('cards.sharing.canEditDesc')}</span
-									>
-								</div>
-							</label>
-							<label class="flex items-start cursor-pointer">
-								<input
-									type="checkbox"
-									bind:checked={canDelete}
-									disabled={isLoading}
-									class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-								/>
-								<div class="ml-2">
-									<span class="block text-sm font-medium text-text"
-										>{tr('cards.sharing.canDelete')}</span
-									>
-									<span class="text-xs text-text-subtle"
-										>{tr('cards.sharing.canDeleteDesc')}</span
-									>
-								</div>
-							</label>
-							{#if showTransactionPermission}
-								<label class="flex items-start cursor-pointer">
-									<input
-										type="checkbox"
-										bind:checked={canEditTransactions}
-										disabled={isLoading}
-										class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
-									/>
-									<div class="ml-2">
-										<span class="block text-sm font-medium text-text"
-											>{tr('giftCards.sharing.canManageTransactions')}</span
-										>
-										<span class="text-xs text-text-subtle"
-											>{tr('giftCards.sharing.canManageTransactionsDesc')}</span
-										>
-									</div>
-								</label>
-							{/if}
-						</div>
+						<SharePermissions
+							bind:canEdit
+							bind:canDelete
+							bind:canEditTransactions
+							showEditTransactions={showTransactionPermission}
+							labelEdit={tr('cards.sharing.canEdit')}
+							labelEditDesc={tr('cards.sharing.canEditDesc')}
+							labelDelete={tr('cards.sharing.canDelete')}
+							labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+							labelEditTransactions={showTransactionPermission
+								? tr('giftCards.sharing.canManageTransactions')
+								: undefined}
+							labelEditTransactionsDesc={showTransactionPermission
+								? tr('giftCards.sharing.canManageTransactionsDesc')
+								: undefined}
+						/>
 					{/if}
 
 					<!-- Action Buttons -->
@@ -430,49 +300,13 @@
 					</div>
 
 					<!-- Email with Autocomplete -->
-					<div class="relative">
-						<label
-							for="batch-transfer-email"
-							class="block text-sm font-medium text-text-ink2 mb-1"
-						>
-							{tr('cards.transfer.newOwnerEmail')} *
-						</label>
-						<input
-							id="batch-transfer-email"
-							type="email"
-							value={email}
-							oninput={onEmailInput}
-							onfocus={onEmailFocus}
-							onblur={onEmailBlur}
-							placeholder={tr('batch.emailPlaceholder')}
-							autocomplete="off"
-							class="input bg-white w-full"
-							disabled={isLoading}
-						/>
-
-						{#if showSuggestions && suggestedUsers.length > 0}
-							<div
-								class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
-							>
-								{#each suggestedUsers as user (user.id)}
-									<button
-										type="button"
-										onclick={() => selectUser(user)}
-										class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none"
-									>
-										<div class="font-medium text-sm text-text">
-											{formatUserName(user)}
-										</div>
-										<div class="text-xs text-text-subtle">{user.email}</div>
-									</button>
-								{/each}
-							</div>
-						{/if}
-
-						<p class="text-xs text-text-subtle mt-1">
-							{tr('giftCards.sharing.userMustBeRegistered')}
-						</p>
-					</div>
+					<EmailAutocomplete
+						bind:value={email}
+						label={tr('cards.transfer.newOwnerEmail')}
+						hint={tr('giftCards.sharing.userMustBeRegistered')}
+						inputId="batch-transfer-email"
+						disabled={isLoading}
+					/>
 
 					<!-- What Happens -->
 					<div>
