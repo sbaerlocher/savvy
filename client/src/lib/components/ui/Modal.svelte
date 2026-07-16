@@ -20,14 +20,21 @@
 		onclose = () => {},
 		layer = 'default' as keyof typeof LAYERS,
 		mobileLayout = 'sheet' as 'sheet' | 'center',
+		backdrop = 'platform' as 'platform' | 'glass',
 		labelledby,
+		label,
 		children
 	}: {
 		open?: boolean;
 		onclose?: () => void;
 		layer?: keyof typeof LAYERS;
 		mobileLayout?: 'sheet' | 'center';
+		// 'platform' = iOS blur vs Android opacity (ConfirmModal/ImportDialog);
+		// 'glass' = always iOS-style blur on both platforms (TypeChoiceDialog).
+		backdrop?: 'platform' | 'glass';
+		// Pass whichever the caller uses: labelledby (id ref) or label (literal).
 		labelledby?: string;
+		label?: string;
 		children: Snippet;
 	} = $props();
 
@@ -56,6 +63,14 @@
 			? 'pb-[env(safe-area-inset-bottom)] sm:p-4'
 			: 'p-4 pb-40 sm:pb-4'
 	);
+	// Full literal class strings so the Tailwind JIT scanner sees them.
+	const backdropClass = $derived(
+		backdrop === 'glass'
+			? 'bg-black/40 backdrop-blur-sm'
+			: platform === 'ios'
+				? 'bg-black/40 backdrop-blur-sm'
+				: 'bg-black bg-opacity-50'
+	);
 </script>
 
 <!-- Escape closes from anywhere; the backdrop is not focusable so a window
@@ -65,9 +80,7 @@
 {#if open}
 	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 {z.backdrop} {platform === 'ios'
-			? 'bg-black/40 backdrop-blur-sm'
-			: 'bg-black bg-opacity-50'}"
+		class="fixed inset-0 {z.backdrop} {backdropClass}"
 		onclick={handleClose}
 		role="presentation"
 	></div>
@@ -78,6 +91,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={labelledby}
+		aria-label={label}
 	>
 		{@render children()}
 	</div>
