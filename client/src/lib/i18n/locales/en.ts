@@ -329,7 +329,14 @@ export const en: TranslationKeys = {
 		snoozeUpdate: 'Snooze (1 Min)',
 		snoozeUpdateDesc: 'Postpone update by 1 minute',
 		offlineWarning: '⚠️ Offline Mode - Some features are limited',
-		offlineUnavailable: 'Offline mode not available'
+		offlineUnavailable: 'Offline mode not available',
+		reregisterTitle: 'App Installation',
+		reregisterDesc:
+			'Re-register the app if the installed shortcut behaves oddly or shows an outdated version. Your data stays untouched.',
+		reregisterButton: 'Re-register App',
+		reregistering: 'Re-registering…',
+		reregisterSuccess: 'App re-registered successfully',
+		reregisterError: 'Re-registration failed'
 	},
 	giftCards: {
 		title: 'Gift Cards',

@@ -336,7 +336,14 @@ export const fr: TranslationKeys = {
 		snoozeUpdateDesc: "Reporter la mise à jour d'1 minute",
 		offlineWarning:
 			'⚠️ Mode hors ligne - Certaines fonctionnalités sont limitées',
-		offlineUnavailable: 'Mode hors ligne non disponible'
+		offlineUnavailable: 'Mode hors ligne non disponible',
+		reregisterTitle: "Installation de l'application",
+		reregisterDesc:
+			"Réenregistrez l'application si le raccourci installé se comporte étrangement ou affiche une version obsolète. Vos données restent intactes.",
+		reregisterButton: "Réenregistrer l'application",
+		reregistering: 'Réenregistrement…',
+		reregisterSuccess: 'Application réenregistrée avec succès',
+		reregisterError: 'Échec du réenregistrement'
 	},
 	giftCards: {
 		title: 'Cartes-cadeaux',

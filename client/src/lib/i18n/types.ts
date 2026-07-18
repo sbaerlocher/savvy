@@ -312,6 +312,12 @@ export type TranslationKeys = {
 		snoozeUpdateDesc: string;
 		offlineWarning: string;
 		offlineUnavailable: string;
+		reregisterTitle: string;
+		reregisterDesc: string;
+		reregisterButton: string;
+		reregistering: string;
+		reregisterSuccess: string;
+		reregisterError: string;
 	};
 	giftCards: {
 		title: string;

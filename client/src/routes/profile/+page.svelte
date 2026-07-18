@@ -7,6 +7,7 @@
 	import SecuritySection from '$lib/components/settings/SecuritySection.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
+	import { pwaStore } from '$lib/stores/pwa';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import { onMount } from 'svelte';
@@ -19,8 +20,12 @@
 
 	let profile = $state<ProfileDTO | null>(null);
 	let isLoadingProfile = $state(true);
+	let isReregistering = $state(false);
+	let swSupported = $state(false);
 
 	onMount(async () => {
+		swSupported = 'serviceWorker' in navigator;
+
 		if (!$authStore.isAuthenticated) {
 			goto(resolve('/login'));
 			return;
@@ -41,6 +46,20 @@
 		profile = updatedProfile;
 		authStore.checkAuth();
 	}
+
+	async function handleReregister() {
+		isReregistering = true;
+
+		try {
+			await pwaStore.reregisterServiceWorker();
+			toastStore.success(tr('pwa.reregisterSuccess'));
+		} catch (error) {
+			pageLogger.error('Service Worker re-registration failed', { error });
+			toastStore.error(tr('pwa.reregisterError'));
+		} finally {
+			isReregistering = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -57,8 +76,31 @@
 			<div class="w-full lg:w-2/3">
 				<ProfileSection {profile} onProfileUpdated={handleProfileUpdated} />
 			</div>
-			<div class="w-full lg:w-1/3">
+			<div class="w-full lg:w-1/3 space-y-6">
 				<SecuritySection {profile} />
+
+				{#if swSupported}
+					<div
+						class="overflow-hidden rounded-xl border border-border bg-white p-6"
+					>
+						<h3 class="text-lg font-semibold text-text mb-2">
+							{tr('pwa.reregisterTitle')}
+						</h3>
+						<p class="text-sm text-text-muted mb-4">
+							{tr('pwa.reregisterDesc')}
+						</p>
+						<button
+							type="button"
+							onclick={handleReregister}
+							disabled={isReregistering}
+							class="btn btn-ghost w-full"
+						>
+							{isReregistering
+								? tr('pwa.reregistering')
+								: tr('pwa.reregisterButton')}
+						</button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}
