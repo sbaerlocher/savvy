@@ -40,6 +40,29 @@ function createPWAStore() {
 			update((state) => ({ ...state, needsRefresh: false }));
 		},
 
+		/**
+		 * Unregisters every service worker for this origin and registers a fresh
+		 * one. Unlike updateServiceWorker() (an update check), this recovers a
+		 * stuck/zombie registration — e.g. inside an installed desktop shortcut.
+		 * Caches and IndexedDB are left untouched; reset.html covers the nuclear
+		 * variant.
+		 *
+		 * Returns true only when a fresh worker was actually registered.
+		 */
+		async reregisterServiceWorker(): Promise<boolean> {
+			if (!('serviceWorker' in navigator)) {
+				return false;
+			}
+
+			const registrations = await navigator.serviceWorker.getRegistrations();
+			await Promise.all(registrations.map((r) => r.unregister()));
+
+			update((state) => ({ ...state, registration: null }));
+
+			const { registerServiceWorker } = await import('$lib/pwa/register-sw');
+			return registerServiceWorker();
+		},
+
 		setAutoUpdate(enabled: boolean): void {
 			update((state) => ({ ...state, autoUpdateEnabled: enabled }));
 		}

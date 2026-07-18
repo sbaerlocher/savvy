@@ -337,7 +337,14 @@ export const de: TranslationKeys = {
 		snoozeUpdate: 'Später (1 Min)',
 		snoozeUpdateDesc: 'Update um 1 Minute verschieben',
 		offlineWarning: '⚠️ Offline-Modus - Einige Funktionen sind eingeschränkt',
-		offlineUnavailable: 'Offline-Modus nicht verfügbar'
+		offlineUnavailable: 'Offline-Modus nicht verfügbar',
+		reregisterTitle: 'App-Installation',
+		reregisterDesc:
+			'Registriere die App neu, wenn die installierte Verknüpfung sich seltsam verhält oder eine veraltete Version zeigt. Deine Daten bleiben unberührt.',
+		reregisterButton: 'App neu registrieren',
+		reregistering: 'Wird neu registriert…',
+		reregisterSuccess: 'App erfolgreich neu registriert',
+		reregisterError: 'Neuregistrierung fehlgeschlagen'
 	},
 	giftCards: {
 		title: 'Geschenkkarten',
