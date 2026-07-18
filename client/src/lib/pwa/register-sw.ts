@@ -6,18 +6,25 @@ import { logger } from '$lib/utils/logger';
 
 const swLogger = logger.child('Layout');
 
+// The controllerchange listener is global, not per-registration: attach it once
+// per page load, otherwise re-registering stacks duplicate "update available"
+// toasts.
+let controllerChangeBound = false;
+
 /**
  * Registers the service worker manually.
  *
  * injectRegister: "inline" doesn't work with adapter-static, so registration is
- * done imperatively here. Runs once (from onMount), so i18n is read via get(t)
- * rather than the reactive $t.
+ * done imperatively here. May run more than once per page load (re-registration
+ * from the profile page), so i18n is read via get(t) rather than the reactive $t.
  *
- * No-op when the browser lacks service worker support.
+ * Returns true when a service worker is registered, false when registration was
+ * skipped (no browser support, SW file unreachable) or failed — callers use this
+ * to avoid reporting success for a registration that never happened.
  */
-export async function registerServiceWorker(): Promise<void> {
+export async function registerServiceWorker(): Promise<boolean> {
 	if (!('serviceWorker' in navigator)) {
-		return;
+		return false;
 	}
 
 	// SvelteKit generates service-worker.js from src/service-worker.ts
@@ -35,11 +42,11 @@ export async function registerServiceWorker(): Promise<void> {
 			swLogger.debug(
 				`Service Worker not available (${swCheck.status}) - skipping registration`
 			);
-			return;
+			return false;
 		}
 	} catch {
 		swLogger.debug('Service Worker not reachable - skipping registration');
-		return;
+		return false;
 	}
 
 	try {
@@ -67,7 +74,8 @@ export async function registerServiceWorker(): Promise<void> {
 
 		// Notify user when new SW takes control (skipWaiting is automatic)
 		// Skip in dev mode — Vite HMR constantly regenerates the SW, causing reload loops
-		if (!import.meta.env.DEV) {
+		if (!import.meta.env.DEV && !controllerChangeBound) {
+			controllerChangeBound = true;
 			let refreshing = false;
 			navigator.serviceWorker.addEventListener('controllerchange', () => {
 				if (refreshing) return;
@@ -76,8 +84,11 @@ export async function registerServiceWorker(): Promise<void> {
 				toastStore.info(get(t)('pwa.updateAvailable'));
 			});
 		}
+
+		return true;
 	} catch (error) {
 		swLogger.error('Service Worker registration failed:', error);
 		toastStore.warning(get(t)('pwa.offlineUnavailable'));
+		return false;
 	}
 }

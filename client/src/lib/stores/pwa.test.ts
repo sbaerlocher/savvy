@@ -32,7 +32,9 @@ describe('pwaStore.reregisterServiceWorker', () => {
 			}
 		});
 
-		await pwaStore.reregisterServiceWorker();
+		registerServiceWorker.mockResolvedValue(true);
+
+		await expect(pwaStore.reregisterServiceWorker()).resolves.toBe(true);
 
 		expect(unregisterA).toHaveBeenCalledOnce();
 		expect(unregisterB).toHaveBeenCalledOnce();
@@ -40,10 +42,21 @@ describe('pwaStore.reregisterServiceWorker', () => {
 		expect(registerServiceWorker).toHaveBeenCalledOnce();
 	});
 
+	it('reports failure when no fresh worker could be registered', async () => {
+		vi.stubGlobal('navigator', {
+			serviceWorker: {
+				getRegistrations: vi.fn().mockResolvedValue([])
+			}
+		});
+		registerServiceWorker.mockResolvedValue(false);
+
+		await expect(pwaStore.reregisterServiceWorker()).resolves.toBe(false);
+	});
+
 	it('is a no-op without service worker support', async () => {
 		vi.stubGlobal('navigator', {});
 
-		await pwaStore.reregisterServiceWorker();
+		await expect(pwaStore.reregisterServiceWorker()).resolves.toBe(false);
 
 		expect(registerServiceWorker).not.toHaveBeenCalled();
 	});

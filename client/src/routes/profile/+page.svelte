@@ -51,8 +51,12 @@
 		isReregistering = true;
 
 		try {
-			await pwaStore.reregisterServiceWorker();
-			toastStore.success(tr('pwa.reregisterSuccess'));
+			const registered = await pwaStore.reregisterServiceWorker();
+			if (registered) {
+				toastStore.success(tr('pwa.reregisterSuccess'));
+			} else {
+				toastStore.error(tr('pwa.reregisterError'));
+			}
 		} catch (error) {
 			pageLogger.error('Service Worker re-registration failed', { error });
 			toastStore.error(tr('pwa.reregisterError'));

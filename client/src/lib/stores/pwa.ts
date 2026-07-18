@@ -46,10 +46,12 @@ function createPWAStore() {
 		 * stuck/zombie registration — e.g. inside an installed desktop shortcut.
 		 * Caches and IndexedDB are left untouched; reset.html covers the nuclear
 		 * variant.
+		 *
+		 * Returns true only when a fresh worker was actually registered.
 		 */
-		async reregisterServiceWorker(): Promise<void> {
+		async reregisterServiceWorker(): Promise<boolean> {
 			if (!('serviceWorker' in navigator)) {
-				return;
+				return false;
 			}
 
 			const registrations = await navigator.serviceWorker.getRegistrations();
@@ -58,7 +60,7 @@ function createPWAStore() {
 			update((state) => ({ ...state, registration: null }));
 
 			const { registerServiceWorker } = await import('$lib/pwa/register-sw');
-			await registerServiceWorker();
+			return registerServiceWorker();
 		},
 
 		setAutoUpdate(enabled: boolean): void {
