@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Post-merge revalidation workflow** - `.github/workflows/merge.yml` reruns Go CI,
+  Client CI and Helm test on `push: main` (plus `workflow_dispatch`). Without a
+  merge queue, two individually-green PRs can break once combined; this catches it
+  on merge instead of on the next PR's red base. E2E and the Claude review are
+  intentionally excluded (E2E dominates wall-clock and already gates every PR;
+  the review has no post-merge PR to comment on).
+
 ## [1.5.0] - 2026-07-13
 
 ### Added
