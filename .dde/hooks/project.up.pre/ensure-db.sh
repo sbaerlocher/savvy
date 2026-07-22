@@ -50,7 +50,17 @@ if [ -z "$db_name" ]; then
 fi
 
 # In a worktree dde rewrites the db name to <base>_<suffix>; mirror that.
-worktree_suffix=$(dde project:describe --output=json 2>/dev/null |
+# Unlike `docker compose config` above this is NOT guarded with `|| true`:
+# an empty suffix is indistinguishable from "main clone", so a failing
+# describe in a worktree would silently create the base db and reintroduce
+# the crash-loop — fail loud instead. Note the naming scheme (<base>_<suffix>,
+# hyphens → underscores) is dde-private; project:describe does not expose the
+# resolved db name, so keep this in sync with dde's worktree rewrite.
+if ! describe_json=$(dde project:describe --output=json 2>/dev/null); then
+	echo "ensure-db: dde project:describe failed — cannot derive worktree db name" >&2
+	exit 1
+fi
+worktree_suffix=$(printf '%s' "$describe_json" |
 	jq -r '.data.worktree.suffix // empty')
 if [ -n "$worktree_suffix" ]; then
 	db_name="${db_name}_$(printf '%s' "$worktree_suffix" | tr '-' '_')"
