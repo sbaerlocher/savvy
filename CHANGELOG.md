@@ -5,16 +5,113 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.6.0] - 2026-07-22
 
 ### Added
 
-- **Post-merge revalidation workflow** - `.github/workflows/merge.yml` reruns Go CI,
+- **Admin merchant management (#246)** - New `/admin/merchants` table (mirroring
+  `/admin/users`) for listing, searching, editing and deleting merchants, linked from
+  the desktop admin menu. Creating a merchant is also an admin-only entry in the
+  global "new" dialog, so it works on mobile where the admin menu is not available.
+- **Cross-category batch selection (#243)** - Entering select mode no longer forces
+  the wallet to a single type; items can be selected across cards, vouchers and gift
+  cards. The selection is grouped by type at action time and dispatched per type
+  (delete, share, transfer, export) via `Promise.allSettled`, aggregating partial
+  success so a failed group never hides a committed one.
+- **Service worker re-registration button (#268)** - An installed PWA shortcut can get
+  stuck on a zombie service worker; the existing update check only called
+  `registration.update()`. A new profile button unregisters all workers and registers
+  a fresh one, leaving caches and stored data intact, and reports whether registration
+  actually succeeded.
+- **Post-merge revalidation workflow (#274)** - `.github/workflows/merge.yml` reruns Go CI,
   Client CI and Helm test on `push: main` (plus `workflow_dispatch`). Without a
   merge queue, two individually-green PRs can break once combined; this catches it
   on merge instead of on the next PR's red base. E2E and the Claude review are
   intentionally excluded (E2E dominates wall-clock and already gates every PR;
   the review has no post-merge PR to comment on).
+- **Frontend vitest via dde plugin (#259)** - `dde project:client:test` runs the Vitest
+  suite inside the running client container, so developers no longer need a matching
+  local Node toolchain or the `--root` workaround.
+
+### Changed
+
+- **Design tokens consolidated onto a single Savvy scale (#250, #252, #258, #262)** -
+  `tokens.css` reduced to one design direction and made the single source for status
+  colors: dead Redesign tokens pruned, numbered danger/success/warning/purple scales
+  added (WCAG-AA warm-neutral ramps), and the raw Tailwind red/green/yellow/amber/
+  orange/emerald/purple utilities across 44 components migrated onto them. Per-type
+  resource colors dropped (`category-colors.ts` removed); merchant fallbacks unified
+  on one `--color-merchant-default` token. Off-scale `text-[Npx]`/`h-[42px]`/raw
+  shadow values replaced with scale tokens and shared `.control` utility.
+- **Shared ResourceDetail for the three detail pages (#253)** - The card, voucher and
+  gift-card detail pages were the same screen three times over (~2700 lines). Collapsed
+  into one kind-parameterized `ui/ResourceDetail.svelte` plus a `GiftCardLedger` slot;
+  per-type variance lives in a kind config table. Also adds the missing not-found
+  branch to card and voucher, closing a latent white screen.
+- **Shared WalletView for wallet and merchant detail (#245)** - `/wallet` and
+  `/merchants/[id]` were ~90% copy-paste, including two drifting copies of the batch
+  logic. The shared list surface (toolbar, filters, tile grid, batch flow, modals) is
+  now one `ui/WalletView.svelte`; merchant detail gains the active-default status
+  filter and cross-type batch handling for free.
+- **Shared client lib modules and UI primitives (#263, #267)** - Duplicated logic
+  extracted into `lib/` (barcode helpers, date/user formatting, wallet filter/sort,
+  detail-route mapping, service-worker registration, portal action) with unit tests;
+  repeated UI extracted into shared components (Modal shell for all dialogs, icon
+  constants, BarcodeFields, ShareSection, DesktopNav/AppFooter shell splits).
+- **Dashboard stat tiles aligned with platform mockups (#279)** - iOS keeps bordered
+  cards, Android uses borderless M3 surfaces with larger radii, desktop adds a card
+  shadow. Stat values render in the mono face; the favorites empty-state title gains
+  proper emphasis.
+
+### Performance
+
+- **bwip-js loaded on demand (#244)** - The static import pulled its ~930 KB chunk
+  into the first-paint bundle of every route mounting a ResourceTile, even though
+  barcodes there are collapsed by default. It is now dynamically imported inside the
+  draw path and cached, shipping only when a barcode actually renders.
+
+### Security
+
+- **Log injection hardening (#251, #280)** - CodeQL flagged user-controlled strings
+  (emails, merchant names, voucher codes) written to slog without sanitization,
+  allowing CRLF-based log forging. New `internal/logsafe` helper strips control
+  characters at every flagged call site, plus a `SanitizingHandler` wrapping the slog
+  chain as defense-in-depth so any future log call is covered.
+
+### Fixed
+
+- **Wallet defaults to active items (#243)** - The wallet opened with status filter
+  "all", so expired vouchers, expired gift cards and inactive loyalty cards showed by
+  default. It now defaults to active/valid (also on `?type=` deep links), and cards
+  are status-filtered for the first time.
+- **Dashboard favorites hide unusable items (#254)** - Expired vouchers, inactive
+  vouchers and depleted/expired gift cards no longer surface in the favorites
+  quick-access; the favorite itself stays visible on wallet and detail pages.
+- **Mobile safe-area fixes (#247, #248, #249)** - The floating action button no longer
+  overlaps the home indicator (missing `.mobile-nav-fab` rule added); the offline
+  banner and fullscreen barcode overlay respect `safe-area-inset-*`; confirm dialogs
+  present as bottom sheets on mobile (above the bottom nav) instead of centered
+  dialogs with padding hacks.
+- **dde stack bootstrapping (#260, #261)** - The app database is created in a pre-up
+  hook (reading the resolved `DATABASE_URL`, so git worktrees get their per-branch
+  database) instead of crash-looping until the post-up seed; the client dev server and
+  tooling run as the dde user.
+
+### Tests
+
+- **E2E stabilization (#265, #266)** - Host `node_modules` installed before Playwright
+  runs; the forgot-password submit gates on config load so the CSRF cookie exists
+  before the mutation, and the logout IndexedDB assertion scopes to the app-owned
+  database instead of Workbox internals.
+
+### Dependencies
+
+- Updated all non-major dependencies (#257, #264, #270), `@sveltejs/kit` 2.70.0 (#273),
+  svelte-check 4.7.3 (#269), happy-dom 20.11.0 (#277), `google.golang.org/grpc`
+  1.82.1 \[SECURITY\] (#278).
+- Updated Docker digests: distroless static-debian12 (#256, #272), Grafana 13.0 (#275).
+- Updated `sbaerlocher/.github` action to v2026-07-19 (#271, #276) and
+  v2026-07-21 (#281).
 
 ## [1.5.0] - 2026-07-13
 
@@ -534,7 +631,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sbaerlocher/savvy/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/sbaerlocher/savvy/releases/tag/v1.3.2
