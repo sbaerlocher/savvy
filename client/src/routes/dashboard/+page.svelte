@@ -6,6 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
@@ -24,6 +25,15 @@
 	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
 
 	const firstName = $derived($authStore.user?.first_name || '');
+	// Stat tile chrome per platform (dashboard mockups): iOS = bordered card,
+	// Android = borderless M3 surface with larger radius, desktop = bordered
+	// card with shadow.
+	const statTileClass =
+		platform === 'android'
+			? 'rounded-2xl bg-white px-4.5 py-4'
+			: platform === 'ios'
+				? 'rounded-xl border border-border bg-white px-4 py-3'
+				: 'rounded-xl border border-border bg-white px-5 py-4 shadow-card lg:min-w-36';
 	// Total entries across all resource types (drives the "Einträge" stat).
 	const entriesCount = $derived(
 		data
@@ -116,25 +126,23 @@
 			<div
 				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
 			>
-				<div
-					data-testid="dashboard-stat-balance"
-					class="rounded-xl border border-border/80 bg-white px-4 py-3 lg:min-w-32"
-				>
-					<p class="text-2xl font-bold tabular-nums text-text">
+				<div data-testid="dashboard-stat-balance" class={statTileClass}>
+					<p
+						class="font-mono text-2xl font-semibold tabular-nums text-text-strong"
+					>
 						CHF {Math.round(data.stats.total_balance)}
 					</p>
-					<p class="text-sm text-text-subtle">
+					<p class="mt-1 text-sm text-text-subtle">
 						{$t('dashboard.totalBalanceShort')}
 					</p>
 				</div>
-				<div
-					data-testid="dashboard-stat-entries"
-					class="rounded-xl border border-border/80 bg-white px-4 py-3 lg:min-w-32"
-				>
-					<p class="text-2xl font-bold tabular-nums text-text">
+				<div data-testid="dashboard-stat-entries" class={statTileClass}>
+					<p
+						class="font-mono text-2xl font-semibold tabular-nums text-text-strong"
+					>
 						{entriesCount}
 					</p>
-					<p class="text-sm text-text-subtle">{$t('dashboard.entries')}</p>
+					<p class="mt-1 text-sm text-text-subtle">{$t('dashboard.entries')}</p>
 				</div>
 			</div>
 
