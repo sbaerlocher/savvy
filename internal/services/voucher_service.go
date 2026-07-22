@@ -73,7 +73,7 @@ func (s *VoucherService) CreateVoucher(ctx context.Context, voucher *models.Vouc
 		return fmt.Errorf("create voucher: %w", err)
 	}
 
-	slog.Info("Voucher created", "voucher_id", voucher.ID, "merchant", logsafe.String(voucher.MerchantName))
+	slog.Info("Voucher created", "voucher_id", logsafe.UUID(voucher.ID), "merchant", logsafe.String(voucher.MerchantName))
 	return nil
 }
 

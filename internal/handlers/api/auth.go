@@ -293,7 +293,7 @@ func (h *AuthHandler) Register(c *echo.Context) error {
 			bgCtx := context.Background()
 			token, tokenErr := h.emailTokenService.CreateVerificationToken(bgCtx, user.ID)
 			if tokenErr != nil {
-				slog.Error("Failed to create verification token", "email", logsafe.String(user.Email), "error", tokenErr)
+				slog.Error("Failed to create verification token", "email", logsafe.String(user.Email), "error", logsafe.Error(tokenErr))
 				return
 			}
 
@@ -304,7 +304,7 @@ func (h *AuthHandler) Register(c *echo.Context) error {
 			}
 
 			if sendErr := h.emailService.SendEmailVerification(bgCtx, user.Email, displayName, verifyURL, user.Language); sendErr != nil {
-				slog.Error("Failed to send verification email", "email", logsafe.String(user.Email), "error", sendErr)
+				slog.Error("Failed to send verification email", "email", logsafe.String(user.Email), "error", logsafe.Error(sendErr))
 			}
 		}()
 	}

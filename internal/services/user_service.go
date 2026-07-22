@@ -65,7 +65,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 		return fmt.Errorf("create user: %w", err)
 	}
 
-	slog.Info("User created", "user_id", user.ID, "email", logsafe.String(user.Email))
+	slog.Info("User created", "user_id", logsafe.UUID(user.ID), "email", logsafe.String(user.Email))
 	return nil
 }
 

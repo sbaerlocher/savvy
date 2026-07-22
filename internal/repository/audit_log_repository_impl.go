@@ -167,6 +167,6 @@ func (r *GormAuditLogRepository) RestoreResource(ctx context.Context, resourceTy
 		return fmt.Errorf("restore %s %s: %w", resourceType, resourceID, err)
 	}
 
-	slog.Info("Resource restored", "resource_type", logsafe.String(resourceType), "resource_id", resourceID)
+	slog.Info("Resource restored", "resource_type", logsafe.String(resourceType), "resource_id", logsafe.UUID(resourceID))
 	return nil
 }

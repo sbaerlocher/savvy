@@ -66,7 +66,7 @@ func (s *GiftCardService) CreateGiftCard(ctx context.Context, giftCard *models.G
 		return fmt.Errorf("create gift card: %w", err)
 	}
 
-	slog.Info("Gift card created", "gift_card_id", giftCard.ID, "merchant", logsafe.String(giftCard.MerchantName), "balance", giftCard.InitialBalance)
+	slog.Info("Gift card created", "gift_card_id", logsafe.UUID(giftCard.ID), "merchant", logsafe.String(giftCard.MerchantName), "balance", giftCard.InitialBalance)
 	return nil
 }
 
@@ -193,7 +193,7 @@ func (s *GiftCardService) CreateTransaction(ctx context.Context, transaction *mo
 		return fmt.Errorf("create transaction: %w", err)
 	}
 
-	slog.Info("Gift card transaction created", "transaction_id", transaction.ID, "gift_card_id", transaction.GiftCardID, "amount", transaction.Amount)
+	slog.Info("Gift card transaction created", "transaction_id", logsafe.UUID(transaction.ID), "gift_card_id", logsafe.UUID(transaction.GiftCardID), "amount", transaction.Amount)
 	return nil
 }
 
