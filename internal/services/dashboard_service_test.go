@@ -204,6 +204,66 @@ func TestDashboardService_GetDashboardData_WithFavorites(t *testing.T) {
 	assert.False(t, data.HasGiftCardFavorites)
 }
 
+func TestDashboardService_GetDashboardData_FavoritesExcludeRecentOfOtherTypes(t *testing.T) {
+	db := setupDirectTestDB(t)
+	service := NewDashboardService(repository.NewDashboardRepository(db))
+	ctx := context.Background()
+
+	userID := uuid.New()
+	user := &models.User{
+		ID:           userID,
+		Email:        "dashboard-fav-mixed@example.com",
+		PasswordHash: "hashed",
+		FirstName:    "Test",
+		LastName:     "User",
+	}
+	db.Create(user)
+
+	// A card and a gift card that are NOT favorited
+	card := &models.Card{
+		UserID:       &userID,
+		CardNumber:   "DASH-NOFAV-CARD",
+		MerchantName: "Test",
+	}
+	db.Create(card)
+	giftCard := &models.GiftCard{
+		UserID:         &userID,
+		CardNumber:     "DASH-NOFAV-GC",
+		MerchantName:   "Test",
+		InitialBalance: 50,
+		CurrentBalance: 50,
+		Currency:       "CHF",
+	}
+	db.Create(giftCard)
+
+	// A voucher that IS favorited
+	voucher := &models.Voucher{
+		UserID:         &userID,
+		Code:           "DASH-FAV-VOUCHER",
+		MerchantName:   "Test",
+		ValidFrom:      time.Now(),
+		ValidUntil:     time.Now().Add(24 * time.Hour),
+		UsageLimitType: "single_use",
+	}
+	db.Create(voucher)
+	db.Create(&models.UserFavorite{
+		UserID:       userID,
+		ResourceType: "voucher",
+		ResourceID:   voucher.ID,
+	})
+
+	data, err := service.GetDashboardData(ctx, userID)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.True(t, data.HasFavorites)
+	// Favorites exist, so the section must contain ONLY favorites: the
+	// non-favorited card must not fall back to "recent cards".
+	assert.Empty(t, data.RecentCards)
+	assert.Empty(t, data.RecentGiftCards)
+	assert.Len(t, data.RecentVouchers, 1)
+}
+
 func TestDashboardService_GetDashboardData_MixedScenario(t *testing.T) {
 	db := setupDirectTestDB(t)
 	service := NewDashboardService(repository.NewDashboardRepository(db))

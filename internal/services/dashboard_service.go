@@ -51,6 +51,13 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 		return nil, fmt.Errorf("get favorite counts: %w", err)
 	}
 
+	// The dashboard section is a single "favorites" list across all types, so
+	// the favorites-vs-recent fallback must be decided globally: as soon as ANY
+	// favorite exists, every type returns only its favorites (possibly empty).
+	// Deciding per type would mix recent, non-favorited items of the other
+	// types into the favorites section.
+	hasAnyFavorites := favoriteCounts["card"] > 0 || favoriteCounts["voucher"] > 0 || favoriteCounts["gift_card"] > 0
+
 	// Add timeout protection for goroutines to prevent hanging on slow DB queries
 	loadCtx, loadCancel := context.WithTimeout(ctx, 10*time.Second)
 	defer loadCancel()
@@ -66,17 +73,17 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 	resultsChan := make(chan itemsResult, 3)
 
 	go func() {
-		cards, err := s.loadCards(loadCtx, userID, favoriteCounts["card"] > 0)
+		cards, err := s.loadCards(loadCtx, userID, hasAnyFavorites)
 		resultsChan <- itemsResult{cards: cards, err: err, resultType: "cards"}
 	}()
 
 	go func() {
-		vouchers, err := s.loadVouchers(loadCtx, userID, favoriteCounts["voucher"] > 0)
+		vouchers, err := s.loadVouchers(loadCtx, userID, hasAnyFavorites)
 		resultsChan <- itemsResult{vouchers: vouchers, err: err, resultType: "vouchers"}
 	}()
 
 	go func() {
-		giftCards, err := s.loadGiftCards(loadCtx, userID, favoriteCounts["gift_card"] > 0)
+		giftCards, err := s.loadGiftCards(loadCtx, userID, hasAnyFavorites)
 		resultsChan <- itemsResult{giftCards: giftCards, err: err, resultType: "gift_cards"}
 	}()
 
@@ -112,7 +119,7 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 		RecentCards:          recentCards,
 		RecentVouchers:       recentVouchers,
 		RecentGiftCards:      recentGiftCards,
-		HasFavorites:         favoriteCounts["card"] > 0 || favoriteCounts["voucher"] > 0 || favoriteCounts["gift_card"] > 0,
+		HasFavorites:         hasAnyFavorites,
 		HasCardFavorites:     favoriteCounts["card"] > 0,
 		HasVoucherFavorites:  favoriteCounts["voucher"] > 0,
 		HasGiftCardFavorites: favoriteCounts["gift_card"] > 0,
