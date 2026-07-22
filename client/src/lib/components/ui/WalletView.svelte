@@ -50,6 +50,7 @@
 	import { getGiftCardStatus } from '$lib/utils/resource-status';
 	import {
 		applyCommonFilters,
+		matchesCardStatus,
 		searchMerchant,
 		sortItems
 	} from '$lib/wallet/filter';
@@ -213,12 +214,10 @@
 		let result = cards;
 		// Expiring filter does not apply to cards (no expiry) - skip if set
 		if (filters.expiringFilter !== 'all') return [];
-		// Cards have no expiry, only active/inactive status
-		if (filters.statusFilter === 'active') {
-			result = result.filter((c) => c.status !== 'inactive');
-		} else if (filters.statusFilter === 'inactive') {
-			result = result.filter((c) => c.status === 'inactive');
-		}
+		// Cards have no expiry, only a manual status (active/inactive/expired/…)
+		result = result.filter((c) =>
+			matchesCardStatus(c.status, filters.statusFilter)
+		);
 		if (filters.ownerFilter === 'mine') {
 			result = result.filter((c) => !c.owner || c.owner.id === currentUserId);
 		} else if (filters.ownerFilter === 'shared') {

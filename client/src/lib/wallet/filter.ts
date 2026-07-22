@@ -82,6 +82,18 @@ export function sortItems<T>(
 	});
 }
 
+// Card status filter. Cards carry a manual status (active | inactive |
+// expired | lost | blocked): 'active' must match exactly, 'inactive' groups
+// every non-active status so expired/lost/blocked cards stay reachable.
+export function matchesCardStatus(
+	status: string | undefined,
+	filter: string
+): boolean {
+	if (filter === 'active') return status === 'active';
+	if (filter === 'inactive') return status !== 'active';
+	return true;
+}
+
 export function searchMerchant(
 	name: string | undefined,
 	q: string,

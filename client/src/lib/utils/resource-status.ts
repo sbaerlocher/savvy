@@ -1,4 +1,4 @@
-import type { GiftCardDTO } from '$lib/types/api';
+import type { CardDTO, GiftCardDTO } from '$lib/types/api';
 
 export type GiftCardStatus = 'active' | 'depleted' | 'expired';
 
@@ -20,6 +20,15 @@ export function getGiftCardStatus(giftCard: GiftCardDTO): GiftCardStatus {
  */
 export function isGiftCardActive(giftCard: GiftCardDTO): boolean {
 	return getGiftCardStatus(giftCard) === 'active';
+}
+
+/**
+ * Whether a card is currently usable. Cards carry a manual status
+ * (active | inactive | expired | lost | blocked); only active cards should
+ * surface in quick-access views like the dashboard.
+ */
+export function isCardActive(card: CardDTO): boolean {
+	return card.status === 'active';
 }
 
 /**
