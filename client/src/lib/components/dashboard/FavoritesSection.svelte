@@ -9,7 +9,11 @@
 		voucherToTileModel,
 		giftCardToTileModel
 	} from '$lib/utils/tile-model';
-	import { isVoucherValid, isGiftCardActive } from '$lib/utils/resource-status';
+	import {
+		isCardActive,
+		isVoucherValid,
+		isGiftCardActive
+	} from '$lib/utils/resource-status';
 	import { platform } from '$lib/utils/platform';
 	import type { DashboardResponse } from '$lib/types/api';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
@@ -26,12 +30,13 @@
 	const currentLocale = $derived($locale || 'de');
 
 	// Dashboard is the checkout quick-access, so only surface usable favorites:
-	// hide expired/inactive vouchers and expired/depleted gift cards (matching
-	// the default status filter in WalletView). Cards have no expiry/balance.
+	// hide non-active cards (inactive/expired/lost/blocked), expired/inactive
+	// vouchers and expired/depleted gift cards (matching the default status
+	// filter in WalletView).
 	const cardTiles = $derived(
-		data.recent_cards.map((c) =>
-			cardToTileModel(c, currentUserId, currentLocale)
-		)
+		data.recent_cards
+			.filter(isCardActive)
+			.map((c) => cardToTileModel(c, currentUserId, currentLocale))
 	);
 	const voucherTiles = $derived(
 		data.recent_vouchers

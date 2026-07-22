@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	applyCommonFilters,
 	expiresWithinDays,
+	matchesCardStatus,
 	searchMerchant,
 	sortItems
 } from './filter';
@@ -146,6 +147,31 @@ describe('sortItems', () => {
 		const input = [...sortFixtures];
 		sortItems(input, gd, gv, ge, 'newest');
 		expect(input.map((i) => i.id)).toEqual(['x', 'y', 'z']);
+	});
+});
+
+describe('matchesCardStatus', () => {
+	it("'active' matches only exactly active", () => {
+		expect(matchesCardStatus('active', 'active')).toBe(true);
+		expect(matchesCardStatus('inactive', 'active')).toBe(false);
+		// Regression: expired/lost/blocked cards leaked into the default view
+		// because the filter only excluded 'inactive'.
+		expect(matchesCardStatus('expired', 'active')).toBe(false);
+		expect(matchesCardStatus('lost', 'active')).toBe(false);
+		expect(matchesCardStatus('blocked', 'active')).toBe(false);
+	});
+
+	it("'inactive' groups every non-active status", () => {
+		expect(matchesCardStatus('inactive', 'inactive')).toBe(true);
+		expect(matchesCardStatus('expired', 'inactive')).toBe(true);
+		expect(matchesCardStatus('lost', 'inactive')).toBe(true);
+		expect(matchesCardStatus('active', 'inactive')).toBe(false);
+	});
+
+	it("'all' matches everything", () => {
+		expect(matchesCardStatus('active', 'all')).toBe(true);
+		expect(matchesCardStatus('expired', 'all')).toBe(true);
+		expect(matchesCardStatus(undefined, 'all')).toBe(true);
 	});
 });
 
