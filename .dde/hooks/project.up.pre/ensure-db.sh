@@ -8,9 +8,12 @@
 # before the project.up.post seed hook ever gets a chance to create it.
 #
 # Running as a pre-up hook removes that race: the db exists before compose
-# starts the api. The db name is read from the api service's DATABASE_URL as
-# resolved by `docker compose config`, which honours dde's per-worktree
-# COMPOSE_FILE override — so this stays correct in both main and worktrees.
+# starts the api. The base db name comes from the api service's DATABASE_URL
+# in docker-compose.yml; dde's per-worktree rewrite lives in a temp compose
+# override that is deleted after project:up, so `docker compose config` never
+# sees it. The worktree suffix is therefore re-derived via
+# `dde project:describe` the same way dde builds it: <base>_<suffix> with
+# hyphens mapped to underscores.
 
 set -euo pipefail
 
@@ -18,9 +21,9 @@ set -euo pipefail
 hook_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 cd "$hook_dir/../../.."
 
-# Resolved compose config (worktree-aware DATABASE_URL). jq is already a
-# common dev/docker dependency; avoid adding a python3 host requirement no
-# other dde hook has.
+# Resolved base compose config (worktree rewrite applied further below). jq
+# is already a common dev/docker dependency; avoid adding a python3 host
+# requirement no other dde hook has.
 compose_config=$(docker compose config --format json 2>/dev/null || true)
 
 # No api service (e.g. e2e-only profile) — the e2e binary owns its own db.
@@ -44,6 +47,23 @@ db_name=${db_name##*/}
 if [ -z "$db_name" ]; then
 	echo "ensure-db: could not parse database name from DATABASE_URL" >&2
 	exit 1
+fi
+
+# In a worktree dde rewrites the db name to <base>_<suffix>; mirror that.
+# Unlike `docker compose config` above this is NOT guarded with `|| true`:
+# an empty suffix is indistinguishable from "main clone", so a failing
+# describe in a worktree would silently create the base db and reintroduce
+# the crash-loop — fail loud instead. Note the naming scheme (<base>_<suffix>,
+# hyphens → underscores) is dde-private; project:describe does not expose the
+# resolved db name, so keep this in sync with dde's worktree rewrite.
+if ! describe_json=$(dde project:describe --output=json 2>/dev/null); then
+	echo "ensure-db: dde project:describe failed — cannot derive worktree db name" >&2
+	exit 1
+fi
+worktree_suffix=$(printf '%s' "$describe_json" |
+	jq -r '.data.worktree.suffix // empty')
+if [ -n "$worktree_suffix" ]; then
+	db_name="${db_name}_$(printf '%s' "$worktree_suffix" | tr '-' '_')"
 fi
 
 postgres_container=$(docker ps \

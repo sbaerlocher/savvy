@@ -10,6 +10,7 @@
 		giftCardToTileModel
 	} from '$lib/utils/tile-model';
 	import { isVoucherValid, isGiftCardActive } from '$lib/utils/resource-status';
+	import { platform } from '$lib/utils/platform';
 	import type { DashboardResponse } from '$lib/types/api';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
@@ -48,13 +49,25 @@
 			voucherTiles.length === 0 &&
 			giftCardTiles.length === 0
 	);
+
+	// Empty-state chrome per platform (dashboard mockups): iOS = bordered card,
+	// Android = borderless M3 surface with large radius, desktop = bordered
+	// card, roomier.
+	const emptyStateClass =
+		platform === 'android'
+			? 'rounded-3xl bg-white px-6 py-9'
+			: platform === 'ios'
+				? 'rounded-xl border border-border bg-white px-6 py-9'
+				: 'rounded-2xl border border-border bg-white px-6 py-11';
 </script>
 
 <div data-testid="favorites-section">
 	<div data-testid="favorites-list">
 		{#if isEmpty}
-			<div class="rounded-xl border border-border/80 bg-white py-8 text-center">
-				<p class="text-sm text-text-subtle">{$t('dashboard.noActivity')}</p>
+			<div class="{emptyStateClass} text-center">
+				<p class="text-sm font-semibold text-text">
+					{$t('dashboard.noActivity')}
+				</p>
 				<p class="mt-1 mb-4 text-xs text-text-faint">
 					{$t('dashboard.noActivityHint')}
 				</p>
@@ -63,7 +76,7 @@
 					onclick={(e) => {
 						if (!$isOnline) e.preventDefault();
 					}}
-					class="inline-flex items-center gap-1 text-sm font-medium text-accent transition hover:text-accent-800 {!$isOnline
+					class="inline-flex items-center gap-1 text-sm font-semibold text-accent transition hover:text-accent-800 {!$isOnline
 						? 'pointer-events-none opacity-50'
 						: ''}"
 				>
