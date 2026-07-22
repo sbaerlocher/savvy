@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-07-23
+
+### Fixed
+
+- **Dashboard favorites showed non-favorited cards and gift cards (#284)** - The
+  favorites-vs-recent fallback was decided per resource type, so a user with only
+  voucher favorites got recent, non-favorited cards and gift cards mixed into the
+  favorites section. The decision is now global: as soon as any favorite exists,
+  every type returns only its favorites; the recent-items fallback remains for
+  users without any favorites.
+- **Wallet default view showed expired cards (#284)** - Cards carry a manual status
+  (active/inactive/expired/lost/blocked), but the default "active" filter only
+  excluded `inactive`, letting expired, lost and blocked cards leak through. The
+  status match now lives in `wallet/filter.ts` ('active' matches exactly active,
+  'inactive' groups every non-active status), and the dashboard checkout section
+  applies the same rule via a new `isCardActive` helper.
+
 ## [1.6.0] - 2026-07-22
 
 ### Added
@@ -631,7 +648,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/sbaerlocher/savvy/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/sbaerlocher/savvy/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sbaerlocher/savvy/compare/v1.3.2...v1.4.0
