@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"savvy/internal/audit"
+	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 	"strings"
@@ -531,7 +532,7 @@ func (s *ShareService) UpdateCardShare(ctx context.Context, callerUserID, cardID
 	}
 
 	slog.Info("Card share permissions updated",
-		"card_id", cardID, "shared_with_id", sharedWithID,
+		"card_id", logsafe.UUID(cardID), "shared_with_id", logsafe.UUID(sharedWithID),
 		"can_edit", canEdit, "can_delete", canDelete)
 
 	return nil
@@ -590,7 +591,7 @@ func (s *ShareService) UpdateGiftCardShare(ctx context.Context, callerUserID, gi
 	}
 
 	slog.Info("Gift card share permissions updated",
-		"gift_card_id", giftCardID, "shared_with_id", sharedWithID,
+		"gift_card_id", logsafe.UUID(giftCardID), "shared_with_id", logsafe.UUID(sharedWithID),
 		"can_edit", canEdit, "can_delete", canDelete, "can_edit_transactions", canEditTransactions)
 
 	return nil

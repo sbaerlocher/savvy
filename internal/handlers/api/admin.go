@@ -162,14 +162,14 @@ func (h *AdminHandler) CreateUser(c *echo.Context) error {
 	}
 
 	if err := h.adminService.CreateLocalUser(c.Request().Context(), user); err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to create user", "email", email, "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create user", "email", logsafe.String(email), "error", logsafe.Error(err))
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to create user",
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "user created successfully", "email", user.Email)
+	slog.InfoContext(c.Request().Context(), "user created successfully", "email", logsafe.String(user.Email))
 
 	return c.JSON(http.StatusCreated, map[string]interface{}{
 		"message": "User created successfully",
@@ -540,14 +540,14 @@ func (h *AdminHandler) RestoreResource(c *echo.Context) error {
 			})
 		}
 
-		slog.ErrorContext(c.Request().Context(), "failed to restore resource", "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to restore resource", "error", logsafe.Error(err))
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "server_error",
 			Message: "Failed to restore resource",
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", logsafe.String(resourceType), "resource_id", resourceID.String())
+	slog.InfoContext(c.Request().Context(), "admin restored resource", "resource_type", logsafe.String(resourceType), "resource_id", logsafe.UUID(resourceID))
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Resource restored successfully",

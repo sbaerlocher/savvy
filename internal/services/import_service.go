@@ -138,7 +138,7 @@ func (s *ImportService) ImportJSON(ctx context.Context, userID uuid.UUID, data *
 		}
 
 		if err := s.cardService.CreateCard(ctx, card); err != nil {
-			slog.WarnContext(ctx, "import card failed", "card_number", logsafe.String(ec.CardNumber), "error", err)
+			slog.WarnContext(ctx, "import card failed", "card_number", logsafe.String(ec.CardNumber), "error", logsafe.Error(err))
 			result.Errors = append(result.Errors, ImportError{
 				Row:     i + 1,
 				Message: fmt.Sprintf("Card %q: %s", ec.CardNumber, sanitizeImportError(err)),
@@ -213,7 +213,7 @@ func (s *ImportService) ImportJSON(ctx context.Context, userID uuid.UUID, data *
 		}
 
 		if err := s.voucherService.CreateVoucher(ctx, voucher); err != nil {
-			slog.WarnContext(ctx, "import voucher failed", "code", logsafe.String(ev.Code), "error", err)
+			slog.WarnContext(ctx, "import voucher failed", "code", logsafe.String(ev.Code), "error", logsafe.Error(err))
 			result.Errors = append(result.Errors, ImportError{
 				Row:     i + 1,
 				Message: fmt.Sprintf("Voucher %q: %s", ev.Code, sanitizeImportError(err)),
@@ -276,7 +276,7 @@ func (s *ImportService) ImportJSON(ctx context.Context, userID uuid.UUID, data *
 		}
 
 		if err := s.giftCardService.CreateGiftCard(ctx, giftCard); err != nil {
-			slog.WarnContext(ctx, "import gift card failed", "card_number", logsafe.String(egc.CardNumber), "error", err)
+			slog.WarnContext(ctx, "import gift card failed", "card_number", logsafe.String(egc.CardNumber), "error", logsafe.Error(err))
 			result.Errors = append(result.Errors, ImportError{
 				Row:     i + 1,
 				Message: fmt.Sprintf("Gift card %q: %s", egc.CardNumber, sanitizeImportError(err)),

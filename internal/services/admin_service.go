@@ -118,7 +118,7 @@ func (s *AdminService) UpdateUser(ctx context.Context, userID uuid.UUID, email, 
 		return fmt.Errorf("update user %s: %w", userID, err)
 	}
 
-	slog.Info("User updated by admin", "user_id", userID, "email", logsafe.String(email), "role", logsafe.String(role))
+	slog.Info("User updated by admin", "user_id", logsafe.UUID(userID), "email", logsafe.String(email), "role", logsafe.String(role))
 	return nil
 }
 
@@ -131,7 +131,7 @@ func (s *AdminService) CreateLocalUser(ctx context.Context, user *models.User) e
 		return fmt.Errorf("create local user: %w", err)
 	}
 
-	slog.Info("Local user created by admin", "user_id", user.ID, "email", logsafe.String(user.Email))
+	slog.Info("Local user created by admin", "user_id", logsafe.UUID(user.ID), "email", logsafe.String(user.Email))
 	return nil
 }
 

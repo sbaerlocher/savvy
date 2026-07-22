@@ -121,7 +121,7 @@ func (h *MerchantsHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(req.Name), "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(req.Name), "error", logsafe.Error(err))
 
 		// Check for duplicate name error
 		if err.Error() == "merchant with this name already exists" {
@@ -137,7 +137,7 @@ func (h *MerchantsHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "merchant created", "name", logsafe.String(merchant.Name), "id", merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant created", "name", logsafe.String(merchant.Name), "id", logsafe.UUID(merchant.ID))
 
 	return c.JSON(http.StatusCreated, map[string]any{
 		"message":  "Merchant created successfully",
@@ -209,7 +209,7 @@ func (h *MerchantsHandler) Update(c *echo.Context) error {
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "merchant updated", "name", logsafe.String(merchant.Name), "id", merchant.ID)
+	slog.InfoContext(c.Request().Context(), "merchant updated", "name", logsafe.String(merchant.Name), "id", logsafe.UUID(merchant.ID))
 
 	return c.JSON(http.StatusOK, map[string]any{
 		"message":  "Merchant updated successfully",

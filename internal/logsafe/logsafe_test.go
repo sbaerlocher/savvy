@@ -1,6 +1,11 @@
 package logsafe
 
-import "testing"
+import (
+	"errors"
+	"testing"
+
+	"github.com/google/uuid"
+)
 
 func TestString(t *testing.T) {
 	tests := []struct {
@@ -23,5 +28,21 @@ func TestString(t *testing.T) {
 				t.Errorf("String(%q) = %q, want %q", tt.in, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestError(t *testing.T) {
+	if got := Error(nil); got != "" {
+		t.Errorf("Error(nil) = %q, want \"\"", got)
+	}
+	if got := Error(errors.New("fail\nFATAL forged")); got != "failFATAL forged" {
+		t.Errorf("Error() = %q, want %q", got, "failFATAL forged")
+	}
+}
+
+func TestUUID(t *testing.T) {
+	id := uuid.MustParse("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+	if got := UUID(id); got != id.String() {
+		t.Errorf("UUID() = %q, want %q", got, id.String())
 	}
 }

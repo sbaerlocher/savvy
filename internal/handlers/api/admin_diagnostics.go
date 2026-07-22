@@ -190,14 +190,14 @@ func (h *AdminHandler) SendPreviewEmail(c *echo.Context) error {
 	}
 
 	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to send preview email", "template", logsafe.String(req.Template), "email", logsafe.String(user.Email), "error", err)
+		slog.ErrorContext(c.Request().Context(), "failed to send preview email", "template", logsafe.String(req.Template), "email", logsafe.String(user.Email), "error", logsafe.Error(err))
 		return c.JSON(http.StatusServiceUnavailable, ErrorResponse{
 			Error:   "smtp_error",
 			Message: "Failed to send preview email. Check server logs for details.",
 		})
 	}
 
-	slog.InfoContext(c.Request().Context(), "preview email sent", "template", logsafe.String(req.Template), "email", logsafe.String(user.Email), "language", lang)
+	slog.InfoContext(c.Request().Context(), "preview email sent", "template", logsafe.String(req.Template), "email", logsafe.String(user.Email), "language", logsafe.String(lang))
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "Preview email sent successfully! Check your inbox.",
