@@ -128,21 +128,21 @@ func (s *DashboardService) GetDashboardData(ctx context.Context, userID uuid.UUI
 
 func (s *DashboardService) loadCards(ctx context.Context, userID uuid.UUID, hasFavorites bool) ([]models.Card, error) {
 	if hasFavorites {
-		return s.dashboardRepo.LoadFavoriteCards(ctx, userID, 5)
+		return s.dashboardRepo.LoadFavoriteCards(ctx, userID)
 	}
 	return s.dashboardRepo.LoadRecentCards(ctx, userID, 5)
 }
 
 func (s *DashboardService) loadVouchers(ctx context.Context, userID uuid.UUID, hasFavorites bool) ([]models.Voucher, error) {
 	if hasFavorites {
-		return s.dashboardRepo.LoadFavoriteVouchers(ctx, userID, 5)
+		return s.dashboardRepo.LoadFavoriteVouchers(ctx, userID)
 	}
 	return s.dashboardRepo.LoadRecentVouchers(ctx, userID, 5)
 }
 
 func (s *DashboardService) loadGiftCards(ctx context.Context, userID uuid.UUID, hasFavorites bool) ([]models.GiftCard, error) {
 	if hasFavorites {
-		return s.dashboardRepo.LoadFavoriteGiftCards(ctx, userID, 5)
+		return s.dashboardRepo.LoadFavoriteGiftCards(ctx, userID)
 	}
 	return s.dashboardRepo.LoadRecentGiftCards(ctx, userID, 5)
 }

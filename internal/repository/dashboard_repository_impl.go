@@ -139,15 +139,14 @@ func (r *GormDashboardRepository) GetFavoriteCounts(ctx context.Context, userID 
 	return counts, nil
 }
 
-// LoadFavoriteCards returns the user's favorite cards up to the given limit.
-func (r *GormDashboardRepository) LoadFavoriteCards(ctx context.Context, userID uuid.UUID, limit int) ([]models.Card, error) {
+// LoadFavoriteCards returns all of the user's favorite cards.
+func (r *GormDashboardRepository) LoadFavoriteCards(ctx context.Context, userID uuid.UUID) ([]models.Card, error) {
 	var cards []models.Card
 	err := r.db.WithContext(ctx).
 		Preload("Merchant").
 		Preload("User").
 		Joins("INNER JOIN user_favorites ON user_favorites.resource_id = cards.id AND user_favorites.resource_type = 'card' AND user_favorites.user_id = ? AND user_favorites.deleted_at IS NULL", userID).
 		Order("cards.created_at DESC").
-		Limit(limit).
 		Find(&cards).Error
 	return cards, err
 }
@@ -165,15 +164,14 @@ func (r *GormDashboardRepository) LoadRecentCards(ctx context.Context, userID uu
 	return cards, err
 }
 
-// LoadFavoriteVouchers returns the user's favorite vouchers up to the given limit.
-func (r *GormDashboardRepository) LoadFavoriteVouchers(ctx context.Context, userID uuid.UUID, limit int) ([]models.Voucher, error) {
+// LoadFavoriteVouchers returns all of the user's favorite vouchers.
+func (r *GormDashboardRepository) LoadFavoriteVouchers(ctx context.Context, userID uuid.UUID) ([]models.Voucher, error) {
 	var vouchers []models.Voucher
 	err := r.db.WithContext(ctx).
 		Preload("Merchant").
 		Preload("User").
 		Joins("INNER JOIN user_favorites ON user_favorites.resource_id = vouchers.id AND user_favorites.resource_type = 'voucher' AND user_favorites.user_id = ? AND user_favorites.deleted_at IS NULL", userID).
 		Order("vouchers.created_at DESC").
-		Limit(limit).
 		Find(&vouchers).Error
 	return vouchers, err
 }
@@ -191,8 +189,8 @@ func (r *GormDashboardRepository) LoadRecentVouchers(ctx context.Context, userID
 	return vouchers, err
 }
 
-// LoadFavoriteGiftCards returns the user's favorite gift cards up to the given limit.
-func (r *GormDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, userID uuid.UUID, limit int) ([]models.GiftCard, error) {
+// LoadFavoriteGiftCards returns all of the user's favorite gift cards.
+func (r *GormDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, userID uuid.UUID) ([]models.GiftCard, error) {
 	var giftCards []models.GiftCard
 	err := r.db.WithContext(ctx).
 		Preload("Merchant").
@@ -202,7 +200,6 @@ func (r *GormDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, use
 		}).
 		Joins("INNER JOIN user_favorites ON user_favorites.resource_id = gift_cards.id AND user_favorites.resource_type = 'gift_card' AND user_favorites.user_id = ? AND user_favorites.deleted_at IS NULL", userID).
 		Order("gift_cards.created_at DESC").
-		Limit(limit).
 		Find(&giftCards).Error
 	return giftCards, err
 }
