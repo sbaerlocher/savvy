@@ -142,9 +142,9 @@ func (_c *MockDashboardRepository_GetStats_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
-// LoadFavoriteCards provides a mock function with given fields: ctx, userID, limit
-func (_m *MockDashboardRepository) LoadFavoriteCards(ctx context.Context, userID uuid.UUID, limit int) ([]models.Card, error) {
-	ret := _m.Called(ctx, userID, limit)
+// LoadFavoriteCards provides a mock function with given fields: ctx, userID
+func (_m *MockDashboardRepository) LoadFavoriteCards(ctx context.Context, userID uuid.UUID) ([]models.Card, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LoadFavoriteCards")
@@ -152,19 +152,19 @@ func (_m *MockDashboardRepository) LoadFavoriteCards(ctx context.Context, userID
 
 	var r0 []models.Card
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) ([]models.Card, error)); ok {
-		return rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]models.Card, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) []models.Card); ok {
-		r0 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []models.Card); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Card)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int) error); ok {
-		r1 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -180,14 +180,13 @@ type MockDashboardRepository_LoadFavoriteCards_Call struct {
 // LoadFavoriteCards is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uuid.UUID
-//   - limit int
-func (_e *MockDashboardRepository_Expecter) LoadFavoriteCards(ctx interface{}, userID interface{}, limit interface{}) *MockDashboardRepository_LoadFavoriteCards_Call {
-	return &MockDashboardRepository_LoadFavoriteCards_Call{Call: _e.mock.On("LoadFavoriteCards", ctx, userID, limit)}
+func (_e *MockDashboardRepository_Expecter) LoadFavoriteCards(ctx interface{}, userID interface{}) *MockDashboardRepository_LoadFavoriteCards_Call {
+	return &MockDashboardRepository_LoadFavoriteCards_Call{Call: _e.mock.On("LoadFavoriteCards", ctx, userID)}
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteCards_Call) Run(run func(ctx context.Context, userID uuid.UUID, limit int)) *MockDashboardRepository_LoadFavoriteCards_Call {
+func (_c *MockDashboardRepository_LoadFavoriteCards_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockDashboardRepository_LoadFavoriteCards_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -197,14 +196,14 @@ func (_c *MockDashboardRepository_LoadFavoriteCards_Call) Return(_a0 []models.Ca
 	return _c
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteCards_Call) RunAndReturn(run func(context.Context, uuid.UUID, int) ([]models.Card, error)) *MockDashboardRepository_LoadFavoriteCards_Call {
+func (_c *MockDashboardRepository_LoadFavoriteCards_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]models.Card, error)) *MockDashboardRepository_LoadFavoriteCards_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// LoadFavoriteGiftCards provides a mock function with given fields: ctx, userID, limit
-func (_m *MockDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, userID uuid.UUID, limit int) ([]models.GiftCard, error) {
-	ret := _m.Called(ctx, userID, limit)
+// LoadFavoriteGiftCards provides a mock function with given fields: ctx, userID
+func (_m *MockDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, userID uuid.UUID) ([]models.GiftCard, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LoadFavoriteGiftCards")
@@ -212,19 +211,19 @@ func (_m *MockDashboardRepository) LoadFavoriteGiftCards(ctx context.Context, us
 
 	var r0 []models.GiftCard
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) ([]models.GiftCard, error)); ok {
-		return rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]models.GiftCard, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) []models.GiftCard); ok {
-		r0 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []models.GiftCard); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.GiftCard)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int) error); ok {
-		r1 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -240,14 +239,13 @@ type MockDashboardRepository_LoadFavoriteGiftCards_Call struct {
 // LoadFavoriteGiftCards is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uuid.UUID
-//   - limit int
-func (_e *MockDashboardRepository_Expecter) LoadFavoriteGiftCards(ctx interface{}, userID interface{}, limit interface{}) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
-	return &MockDashboardRepository_LoadFavoriteGiftCards_Call{Call: _e.mock.On("LoadFavoriteGiftCards", ctx, userID, limit)}
+func (_e *MockDashboardRepository_Expecter) LoadFavoriteGiftCards(ctx interface{}, userID interface{}) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
+	return &MockDashboardRepository_LoadFavoriteGiftCards_Call{Call: _e.mock.On("LoadFavoriteGiftCards", ctx, userID)}
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteGiftCards_Call) Run(run func(ctx context.Context, userID uuid.UUID, limit int)) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
+func (_c *MockDashboardRepository_LoadFavoriteGiftCards_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -257,14 +255,14 @@ func (_c *MockDashboardRepository_LoadFavoriteGiftCards_Call) Return(_a0 []model
 	return _c
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteGiftCards_Call) RunAndReturn(run func(context.Context, uuid.UUID, int) ([]models.GiftCard, error)) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
+func (_c *MockDashboardRepository_LoadFavoriteGiftCards_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]models.GiftCard, error)) *MockDashboardRepository_LoadFavoriteGiftCards_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// LoadFavoriteVouchers provides a mock function with given fields: ctx, userID, limit
-func (_m *MockDashboardRepository) LoadFavoriteVouchers(ctx context.Context, userID uuid.UUID, limit int) ([]models.Voucher, error) {
-	ret := _m.Called(ctx, userID, limit)
+// LoadFavoriteVouchers provides a mock function with given fields: ctx, userID
+func (_m *MockDashboardRepository) LoadFavoriteVouchers(ctx context.Context, userID uuid.UUID) ([]models.Voucher, error) {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LoadFavoriteVouchers")
@@ -272,19 +270,19 @@ func (_m *MockDashboardRepository) LoadFavoriteVouchers(ctx context.Context, use
 
 	var r0 []models.Voucher
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) ([]models.Voucher, error)); ok {
-		return rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]models.Voucher, error)); ok {
+		return rf(ctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, int) []models.Voucher); ok {
-		r0 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []models.Voucher); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Voucher)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, int) error); ok {
-		r1 = rf(ctx, userID, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -300,14 +298,13 @@ type MockDashboardRepository_LoadFavoriteVouchers_Call struct {
 // LoadFavoriteVouchers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uuid.UUID
-//   - limit int
-func (_e *MockDashboardRepository_Expecter) LoadFavoriteVouchers(ctx interface{}, userID interface{}, limit interface{}) *MockDashboardRepository_LoadFavoriteVouchers_Call {
-	return &MockDashboardRepository_LoadFavoriteVouchers_Call{Call: _e.mock.On("LoadFavoriteVouchers", ctx, userID, limit)}
+func (_e *MockDashboardRepository_Expecter) LoadFavoriteVouchers(ctx interface{}, userID interface{}) *MockDashboardRepository_LoadFavoriteVouchers_Call {
+	return &MockDashboardRepository_LoadFavoriteVouchers_Call{Call: _e.mock.On("LoadFavoriteVouchers", ctx, userID)}
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteVouchers_Call) Run(run func(ctx context.Context, userID uuid.UUID, limit int)) *MockDashboardRepository_LoadFavoriteVouchers_Call {
+func (_c *MockDashboardRepository_LoadFavoriteVouchers_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockDashboardRepository_LoadFavoriteVouchers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(int))
+		run(args[0].(context.Context), args[1].(uuid.UUID))
 	})
 	return _c
 }
@@ -317,7 +314,7 @@ func (_c *MockDashboardRepository_LoadFavoriteVouchers_Call) Return(_a0 []models
 	return _c
 }
 
-func (_c *MockDashboardRepository_LoadFavoriteVouchers_Call) RunAndReturn(run func(context.Context, uuid.UUID, int) ([]models.Voucher, error)) *MockDashboardRepository_LoadFavoriteVouchers_Call {
+func (_c *MockDashboardRepository_LoadFavoriteVouchers_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]models.Voucher, error)) *MockDashboardRepository_LoadFavoriteVouchers_Call {
 	_c.Call.Return(run)
 	return _c
 }
