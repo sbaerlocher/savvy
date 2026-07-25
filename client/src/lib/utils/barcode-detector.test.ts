@@ -16,9 +16,16 @@ import { createBarcodeDetector } from './barcode-detector';
 describe('createBarcodeDetector', () => {
 	beforeEach(() => {
 		detectSpy.mockReset();
+		// happy-dom has no real 2D canvas context; stub the minimal surface the
+		// detector uses (drawImage) so construction doesn't throw NotSupportedError.
+		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+			drawImage: vi.fn()
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} as any);
 	});
 
 	afterEach(() => {
+		vi.restoreAllMocks();
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		delete (globalThis as any).BarcodeDetector;
 	});
