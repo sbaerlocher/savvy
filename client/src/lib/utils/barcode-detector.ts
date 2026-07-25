@@ -27,15 +27,21 @@ export interface DetectedBarcode {
 }
 
 export interface BarcodeDetectorWrapper {
-	readonly method: 'native' | 'polyfill';
+	readonly method: 'polyfill';
 	detect(video: HTMLVideoElement): Promise<DetectedBarcode[]>;
 	destroy(): void;
 }
 
 /**
- * Create a barcode detector that prefers the native BarcodeDetector API
- * (Chrome 83+, Chrome Android) and falls back to the WASM polyfill
- * with canvas frame capture for iOS Safari and Firefox compatibility.
+ * Create a barcode detector backed by the WASM polyfill (ZXing-C++) with
+ * canvas frame capture, on every platform.
+ *
+ * The native `BarcodeDetector` API is deliberately not used: on Chrome Android
+ * it constructs successfully even when the Google Play Services barcode module
+ * is missing/broken, in which case `detect()` returns `[]` forever (scanner
+ * stuck in the orange `detecting` state, never turning green). The polyfill
+ * path already runs reliably on iOS Safari and Firefox, so it is the single
+ * path for all platforms.
  *
  * The polyfill path always uses canvas because `createImageBitmap(HTMLVideoElement)`
  * is unsupported on iOS Safari, causing `detect(video)` to silently return empty results.
@@ -44,31 +50,8 @@ export function createBarcodeDetector(
 	videoWidth: number,
 	videoHeight: number
 ): BarcodeDetectorWrapper {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const NativeDetector = (globalThis as any).BarcodeDetector as
-		typeof PolyfillBarcodeDetector | undefined;
-
 	const formats = [...SCANNER_FORMATS];
 
-	if (NativeDetector) {
-		const detector = new NativeDetector({ formats });
-		detectorLogger.info('Using native BarcodeDetector');
-
-		return {
-			method: 'native',
-			async detect(video: HTMLVideoElement): Promise<DetectedBarcode[]> {
-				const results = await detector.detect(video);
-				return results.map((b) => ({ rawValue: b.rawValue, format: b.format }));
-			},
-			destroy() {
-				// Native detector has no resources to clean up
-			}
-		};
-	}
-
-	// Polyfill path: Firefox, all iOS browsers (WebKit limitation)
-	// Always use canvas frame capture — detect(video) fails on iOS Safari
-	// because createImageBitmap(HTMLVideoElement) is not supported in WebKit.
 	const detector = new PolyfillBarcodeDetector({ formats });
 	const canvas = document.createElement('canvas');
 	canvas.width = videoWidth || 1280;
