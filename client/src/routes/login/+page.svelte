@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	const pageLogger = logger.child('LoginPage');
 
@@ -242,24 +243,13 @@
 								{/if}
 
 								<div class="pt-2">
-									<button
-										type="submit"
-										disabled={isLoading}
-										class="btn btn-primary w-full"
-									>
+									<Button type="submit" class="w-full" loading={isLoading}>
 										{#if isLoading}
-											<span class="relative inline-flex h-3 w-3 mr-2"
-												><span
-													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-												></span><span
-													class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-												></span></span
-											>
 											{tr('auth.login.loggingIn')}
 										{:else}
 											{tr('auth.login.loginButton')}
 										{/if}
-									</button>
+									</Button>
 								</div>
 
 								<div class="flex items-center justify-between pt-4">

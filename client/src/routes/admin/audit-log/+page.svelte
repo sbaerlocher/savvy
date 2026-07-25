@@ -7,6 +7,7 @@
 	import { logger } from '$lib/utils/logger';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import type { AuditLogDTO, AdminUserDTO } from '$lib/types/api';
 
 	const pageLogger = logger.child('AuditLogPage');
@@ -265,9 +266,7 @@
 			{#if isLoading}
 				<LoadingSpinner />
 			{:else if logs.length === 0}
-				<div class="text-center py-12 text-text-subtle">
-					{$t('admin.auditLog.noLogs')}
-				</div>
+				<EmptyState title={$t('admin.auditLog.noLogs')} />
 			{:else}
 				<div class="bg-white shadow rounded-lg overflow-hidden">
 					<div class="overflow-x-auto">

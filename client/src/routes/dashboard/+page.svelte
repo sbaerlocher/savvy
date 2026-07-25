@@ -7,7 +7,7 @@
 	import { resolve } from '$app/paths';
 	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
 	import BarcodeModal, {
@@ -93,7 +93,20 @@
 
 <div class="mx-auto max-w-7xl px-4">
 	{#if isLoading}
-		<LoadingSpinner />
+		<!-- Block skeleton mirroring the loaded layout: title line + two stat
+		     tiles. Replaces the generic logo LoadingSpinner. -->
+		<div class="grid grid-cols-1 gap-x-4 lg:grid-cols-[1fr_auto]">
+			<div class="order-1 lg:col-start-1 lg:row-start-1">
+				<Skeleton class="h-4 w-32" />
+				<Skeleton class="mt-3 h-7 w-48" />
+			</div>
+			<div
+				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
+			>
+				<Skeleton class="h-20 lg:min-w-36" />
+				<Skeleton class="h-20 lg:min-w-36" />
+			</div>
+		</div>
 	{:else if error}
 		<div class="rounded-xl border border-border/80 bg-white p-6 text-center">
 			<p class="mb-4 text-danger-600">{error}</p>
