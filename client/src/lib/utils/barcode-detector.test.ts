@@ -5,7 +5,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 // no-op here.
 const detectSpy = vi.fn();
 vi.mock('barcode-detector/ponyfill', () => ({
-	BarcodeDetector: vi.fn().mockImplementation(() => ({ detect: detectSpy })),
+	BarcodeDetector: class {
+		detect = detectSpy;
+	},
 	prepareZXingModule: vi.fn()
 }));
 
