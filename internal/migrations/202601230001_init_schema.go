@@ -204,61 +204,43 @@ func initSchema() *gormigrate.Migration {
 				return err
 			}
 
-			// Add foreign key constraints
-			if err := tx.Exec(`
-				ALTER TABLE cards
-				ADD CONSTRAINT fk_cards_user FOREIGN KEY (user_id) REFERENCES users(id),
-				ADD CONSTRAINT fk_cards_merchant FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-			`).Error; err != nil {
-				return err
+			// Add foreign key constraints.
+			// ponytail: each FK is guarded by IF NOT EXISTS so a half-applied
+			// init migration (constraints created but migration not recorded)
+			// can replay without colliding on SQLSTATE 42710.
+			foreignKeys := []struct {
+				name, table, definition string
+			}{
+				{"fk_cards_user", "cards", "FOREIGN KEY (user_id) REFERENCES users(id)"},
+				{"fk_cards_merchant", "cards", "FOREIGN KEY (merchant_id) REFERENCES merchants(id)"},
+				{"fk_card_shares_card", "card_shares", "FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE"},
+				{"fk_card_shares_user", "card_shares", "FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE"},
+				{"fk_vouchers_user", "vouchers", "FOREIGN KEY (user_id) REFERENCES users(id)"},
+				{"fk_vouchers_merchant", "vouchers", "FOREIGN KEY (merchant_id) REFERENCES merchants(id)"},
+				{"fk_voucher_shares_voucher", "voucher_shares", "FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE"},
+				{"fk_voucher_shares_user", "voucher_shares", "FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE"},
+				{"fk_gift_cards_user", "gift_cards", "FOREIGN KEY (user_id) REFERENCES users(id)"},
+				{"fk_gift_cards_merchant", "gift_cards", "FOREIGN KEY (merchant_id) REFERENCES merchants(id)"},
+				{"fk_gift_card_transactions_gift_card", "gift_card_transactions", "FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE CASCADE"},
+				{"fk_gift_card_shares_gift_card", "gift_card_shares", "FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE CASCADE"},
+				{"fk_gift_card_shares_user", "gift_card_shares", "FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE"},
 			}
-
-			if err := tx.Exec(`
-				ALTER TABLE card_shares
-				ADD CONSTRAINT fk_card_shares_card FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
-				ADD CONSTRAINT fk_card_shares_user FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE
-			`).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec(`
-				ALTER TABLE vouchers
-				ADD CONSTRAINT fk_vouchers_user FOREIGN KEY (user_id) REFERENCES users(id),
-				ADD CONSTRAINT fk_vouchers_merchant FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-			`).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec(`
-				ALTER TABLE voucher_shares
-				ADD CONSTRAINT fk_voucher_shares_voucher FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE,
-				ADD CONSTRAINT fk_voucher_shares_user FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE
-			`).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec(`
-				ALTER TABLE gift_cards
-				ADD CONSTRAINT fk_gift_cards_user FOREIGN KEY (user_id) REFERENCES users(id),
-				ADD CONSTRAINT fk_gift_cards_merchant FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-			`).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec(`
-				ALTER TABLE gift_card_transactions
-				ADD CONSTRAINT fk_gift_card_transactions_gift_card
-				FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE CASCADE
-			`).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Exec(`
-				ALTER TABLE gift_card_shares
-				ADD CONSTRAINT fk_gift_card_shares_gift_card FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE CASCADE,
-				ADD CONSTRAINT fk_gift_card_shares_user FOREIGN KEY (shared_with_id) REFERENCES users(id) ON DELETE CASCADE
-			`).Error; err != nil {
-				return err
+			for _, fk := range foreignKeys {
+				if err := validateSQLIdentifiers(fk.name, fk.table); err != nil {
+					return fmt.Errorf("addForeignKey %s: %w", fk.name, err)
+				}
+				if err := tx.Exec(fmt.Sprintf(`
+					DO $$
+					BEGIN
+						IF NOT EXISTS (
+							SELECT 1 FROM pg_constraint WHERE conname = '%s'
+						) THEN
+							ALTER TABLE %s ADD CONSTRAINT %s %s;
+						END IF;
+					END $$;
+				`, fk.name, fk.table, fk.name, fk.definition)).Error; err != nil {
+					return err
+				}
 			}
 
 			return nil
