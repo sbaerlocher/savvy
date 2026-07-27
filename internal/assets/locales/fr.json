@@ -55,12 +55,12 @@
     }
   },
   {
-    "id": "email.expiry.days_left_today",
-    "translation": "aujourd'hui"
-  },
-  {
     "id": "email.expiry.days_left_label",
     "translation": "Restant"
+  },
+  {
+    "id": "email.expiry.days_left_today",
+    "translation": "aujourd'hui"
   },
   {
     "id": "email.expiry.detail_label",
@@ -127,8 +127,16 @@
     "translation": "Réinitialisation du mot de passe"
   },
   {
+    "id": "email.share.description_label",
+    "translation": "Description"
+  },
+  {
     "id": "email.share.ignore",
     "translation": "Vous recevez cet e-mail car quelqu'un a partagé quelque chose avec vous dans Savvy."
+  },
+  {
+    "id": "email.share.merchant_label",
+    "translation": "Commerçant"
   },
   {
     "id": "email.share.message",
@@ -141,6 +149,10 @@
   {
     "id": "email.share.title",
     "translation": "Nouveau partage"
+  },
+  {
+    "id": "email.share.value_label",
+    "translation": "Valeur"
   },
   {
     "id": "email.test.automated",
@@ -295,14 +307,6 @@
     "translation": "Rappel d'expiration"
   },
   {
-    "id": "push.validity_start.body",
-    "translation": "Votre bon de {{.Merchant}} sera valide à partir de demain"
-  },
-  {
-    "id": "push.validity_start.title",
-    "translation": "Bon maintenant valide"
-  },
-  {
     "id": "push.resource.card",
     "translation": "carte"
   },
@@ -315,12 +319,16 @@
     "translation": "bon"
   },
   {
-    "id": "voucher.type.free",
-    "translation": "Gratuit"
+    "id": "push.share.body",
+    "translation": "{{.User}} a partagé {{.Article}} {{.Resource}} de {{.Merchant}} avec vous"
   },
   {
-    "id": "push.share.body",
+    "id": "push.share.body_generic",
     "translation": "{{.User}} a partagé {{.Article}} {{.Resource}} avec vous"
+  },
+  {
+    "id": "push.share.body_with_description",
+    "translation": "{{.User}} a partagé {{.Article}} {{.Resource}} de {{.Merchant}} avec vous : {{.Description}}"
   },
   {
     "id": "push.share.title",
@@ -328,11 +336,27 @@
   },
   {
     "id": "push.transfer.body",
+    "translation": "{{.User}} vous a transféré {{.Article}} {{.Resource}} de {{.Merchant}}"
+  },
+  {
+    "id": "push.transfer.body_generic",
     "translation": "{{.User}} vous a transféré {{.Article}} {{.Resource}}"
+  },
+  {
+    "id": "push.transfer.body_with_description",
+    "translation": "{{.User}} vous a transféré {{.Article}} {{.Resource}} de {{.Merchant}} : {{.Description}}"
   },
   {
     "id": "push.transfer.title",
     "translation": "Transfert de propriété"
+  },
+  {
+    "id": "push.validity_start.body",
+    "translation": "Votre bon de {{.Merchant}} sera valide à partir de demain"
+  },
+  {
+    "id": "push.validity_start.title",
+    "translation": "Bon maintenant valide"
   },
   {
     "id": "success.created",
@@ -345,5 +369,9 @@
   {
     "id": "success.updated",
     "translation": "Modifié avec Succès"
+  },
+  {
+    "id": "voucher.type.free",
+    "translation": "Gratuit"
   }
 ]

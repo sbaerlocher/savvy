@@ -1417,6 +1417,7 @@ func TestAdminHandler_SendPreviewEmail_ShareNotification(t *testing.T) {
 	c.Set("current_user", admin)
 
 	mockEmailSvc.On("SendShareNotification", mock.Anything, "admin@example.com", "Admin", "Max Muster", "voucher",
+		"IKEA", "20% auf alles", 50.0, "CHF",
 		"https://example.com/vouchers/sample-uuid",
 		"https://example.com/unsubscribe?token=sample-preview-token&type=notifications", "en").Return(nil)
 
@@ -1440,6 +1441,7 @@ func TestAdminHandler_SendPreviewEmail_TransferNotification(t *testing.T) {
 	c.Set("current_user", admin)
 
 	mockEmailSvc.On("SendTransferNotification", mock.Anything, "admin@example.com", "Admin", "Max Muster", "gift_card",
+		"IKEA", "Geburtstagskarte", 100.0, "CHF",
 		"https://example.com/gift-cards/sample-uuid",
 		"https://example.com/unsubscribe?token=sample-preview-token&type=notifications", "en").Return(nil)
 

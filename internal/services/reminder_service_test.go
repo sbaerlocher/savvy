@@ -224,11 +224,11 @@ func (m *mockEmailSvcForReminder) SendTestEmail(_ context.Context, _, _, _ strin
 	return nil
 }
 
-func (m *mockEmailSvcForReminder) SendShareNotification(_ context.Context, _, _, _, _, _, _, _ string) error {
+func (m *mockEmailSvcForReminder) SendShareNotification(_ context.Context, _, _, _, _, _, _ string, _ float64, _, _, _, _ string) error {
 	return nil
 }
 
-func (m *mockEmailSvcForReminder) SendTransferNotification(_ context.Context, _, _, _, _, _, _, _ string) error {
+func (m *mockEmailSvcForReminder) SendTransferNotification(_ context.Context, _, _, _, _, _, _ string, _ float64, _, _, _, _ string) error {
 	return nil
 }
 

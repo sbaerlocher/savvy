@@ -1094,7 +1094,9 @@ export type TranslationKeys = {
 		delete: string;
 		newNotification: string;
 		sharedWith: string;
+		sharedWithPlain: string;
 		transferredTo: string;
+		transferredToPlain: string;
 		expiryReminder: string;
 		validityStart: string;
 		timeAgo: {

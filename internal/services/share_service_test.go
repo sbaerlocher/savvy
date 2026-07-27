@@ -390,11 +390,11 @@ var _ repository.AuditLogRepository = (*mockAuditLogRepo)(nil)
 
 type mockNotifService struct{ mock.Mock }
 
-func (m *mockNotifService) CreateShareNotification(ctx context.Context, recipientID, fromUserID uuid.UUID, fromUserName, resourceType string, resourceID uuid.UUID, permissions map[string]bool) error {
-	return m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions).Error(0)
+func (m *mockNotifService) CreateShareNotification(ctx context.Context, in ShareNotificationInput) error {
+	return m.Called(ctx, in).Error(0)
 }
-func (m *mockNotifService) CreateTransferNotification(ctx context.Context, recipientID, fromUserID uuid.UUID, fromUserName, resourceType string, resourceID uuid.UUID) error {
-	return m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID).Error(0)
+func (m *mockNotifService) CreateTransferNotification(ctx context.Context, in TransferNotificationInput) error {
+	return m.Called(ctx, in).Error(0)
 }
 func (m *mockNotifService) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.Notification, error) {
 	args := m.Called(ctx, userID, limit, offset)
@@ -476,7 +476,11 @@ func TestCreateCardShare_Success(t *testing.T) {
 	d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
 	d.cardShareRepo.On("Create", ctx, mock.AnythingOfType("*models.CardShare")).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
-	d.notifService.On("CreateShareNotification", ctx, sharedWithID, ownerID, "Alice Owner", "card", cardID, map[string]bool{"can_edit": true, "can_delete": false}).Return(nil)
+	d.notifService.On("CreateShareNotification", ctx, mock.MatchedBy(func(in ShareNotificationInput) bool {
+		return in.RecipientID == sharedWithID && in.FromUserID == ownerID && in.FromUserName == "Alice Owner" &&
+			in.ResourceType == "card" && in.ResourceID == cardID &&
+			in.Permissions["can_edit"] && !in.Permissions["can_delete"]
+	})).Return(nil)
 
 	err := d.service.CreateCardShare(ctx, ownerID, cardID, sharedWithID, true, false)
 	assert.NoError(t, err)
@@ -583,7 +587,10 @@ func TestCreateCardShare_NotificationFailureDoesNotBlock(t *testing.T) {
 	d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
 	d.cardShareRepo.On("Create", ctx, mock.AnythingOfType("*models.CardShare")).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
-	d.notifService.On("CreateShareNotification", ctx, sharedWithID, ownerID, "Alice Owner", "card", cardID, mock.Anything).Return(errors.New("notif failed"))
+	d.notifService.On("CreateShareNotification", ctx, mock.MatchedBy(func(in ShareNotificationInput) bool {
+		return in.RecipientID == sharedWithID && in.FromUserID == ownerID && in.FromUserName == "Alice Owner" &&
+			in.ResourceType == "card" && in.ResourceID == cardID
+	})).Return(errors.New("notif failed"))
 
 	err := d.service.CreateCardShare(ctx, ownerID, cardID, sharedWithID, true, false)
 	assert.NoError(t, err)
@@ -621,7 +628,10 @@ func TestCreateVoucherShare_Success(t *testing.T) {
 	d.voucherRepo.On("GetByID", ctx, voucherID).Return(voucher, nil)
 	d.voucherShareRepo.On("Create", ctx, mock.AnythingOfType("*models.VoucherShare")).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
-	d.notifService.On("CreateShareNotification", ctx, sharedWithID, ownerID, "Bob Doe", "voucher", voucherID, mock.Anything).Return(nil)
+	d.notifService.On("CreateShareNotification", ctx, mock.MatchedBy(func(in ShareNotificationInput) bool {
+		return in.RecipientID == sharedWithID && in.FromUserID == ownerID && in.FromUserName == "Bob Doe" &&
+			in.ResourceType == "voucher" && in.ResourceID == voucherID
+	})).Return(nil)
 
 	err := d.service.CreateVoucherShare(ctx, ownerID, voucherID, sharedWithID)
 	assert.NoError(t, err)
@@ -726,7 +736,10 @@ func TestCreateVoucherShare_NotificationFailure(t *testing.T) {
 	d.voucherRepo.On("GetByID", ctx, vID).Return(voucher, nil)
 	d.voucherShareRepo.On("Create", ctx, mock.AnythingOfType("*models.VoucherShare")).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
-	d.notifService.On("CreateShareNotification", ctx, sharedWithID, ownerID, mock.Anything, "voucher", vID, mock.Anything).Return(errors.New("fail"))
+	d.notifService.On("CreateShareNotification", ctx, mock.MatchedBy(func(in ShareNotificationInput) bool {
+		return in.RecipientID == sharedWithID && in.FromUserID == ownerID &&
+			in.ResourceType == "voucher" && in.ResourceID == vID
+	})).Return(errors.New("fail"))
 
 	err := d.service.CreateVoucherShare(ctx, ownerID, vID, sharedWithID)
 	assert.NoError(t, err)
@@ -747,7 +760,10 @@ func TestCreateGiftCardShare_Success(t *testing.T) {
 	d.giftCardRepo.On("GetByID", ctx, gcID).Return(gc, nil)
 	d.gcShareRepo.On("Create", ctx, mock.AnythingOfType("*models.GiftCardShare")).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
-	d.notifService.On("CreateShareNotification", ctx, sharedWithID, ownerID, "Carol Test", "gift_card", gcID, mock.Anything).Return(nil)
+	d.notifService.On("CreateShareNotification", ctx, mock.MatchedBy(func(in ShareNotificationInput) bool {
+		return in.RecipientID == sharedWithID && in.FromUserID == ownerID && in.FromUserName == "Carol Test" &&
+			in.ResourceType == "gift_card" && in.ResourceID == gcID
+	})).Return(nil)
 
 	err := d.service.CreateGiftCardShare(ctx, ownerID, gcID, sharedWithID, true, true, true)
 	assert.NoError(t, err)
