@@ -244,7 +244,7 @@ func (s *ShareService) CreateVoucherShare(ctx context.Context, callerUserID, vou
 		return errors.New("shared with user ID is required")
 	}
 
-	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
+	voucher, err := s.voucherRepo.GetByID(ctx, voucherID, "Merchant")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("voucher not found")
@@ -323,7 +323,7 @@ func (s *ShareService) CreateGiftCardShare(ctx context.Context, callerUserID, gi
 		return errors.New("shared with user ID is required")
 	}
 
-	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
+	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID, "Merchant")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("gift card not found")

@@ -149,7 +149,7 @@ func (s *TransferService) TransferVoucherOwnership(ctx context.Context, voucherI
 		return err
 	}
 
-	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
+	voucher, err := s.voucherRepo.GetByID(ctx, voucherID, "Merchant")
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 		return err
 	}
 
-	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
+	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID, "Merchant")
 	if err != nil {
 		return err
 	}
