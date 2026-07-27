@@ -1498,6 +1498,47 @@ Using `tls.Dial()` directly will fail with "Client Quit Before Message" error.
 - Frontend API: [client/src/lib/api/sessions.ts](client/src/lib/api/sessions.ts)
 - Security Page: [client/src/routes/security/+page.svelte](client/src/routes/security/+page.svelte)
 
+### 13. OpenAPI Specification
+
+**Approach**: Code-first — the spec is generated from annotations on the
+handlers, never hand-edited. `swag` is wired as a Go tool dependency, so
+`make openapi` needs no separately installed binary.
+
+```bash
+make openapi   # regenerates docs/openapi/ from the annotations
+```
+
+**Coverage**: The `cards` slice (12 endpoints) is fully annotated and serves as
+the reference for the remaining API routes. Annotating a new handler means
+adding a swag comment block above it and re-running `make openapi`.
+
+**Drift protection**: The `openapi-drift` job in `pull-request.yml` regenerates
+the spec and fails if the committed files differ, so annotations and spec
+cannot silently diverge.
+
+**Swagger UI**: `GET /api/v1/docs/` — development builds only. The generated
+docs package pulls swag's parser (and `golang.org/x/tools`) in, roughly 11 MB
+that production has no use for, so the route lives behind the same
+`production` build tag as the embedded frontend assets.
+
+**Two caveats worth knowing before extending the annotations**:
+
+1. Only a single `@securityDefinitions` block works. swag v2.0.0-rc5 keys every
+   scheme by the name of the *first* block in the file, so a second one
+   overwrites the first. CSRF is therefore documented as an explicit
+   `X-CSRF-Token` header parameter per mutating operation.
+2. Use `EchoWrapHandlerV3`, not `EchoWrapHandler` — the latter reads swag's v1
+   registry, which a v2-generated spec never populates.
+
+**Files**:
+
+- Make target: [Makefile](Makefile) (`openapi`)
+- Generated spec: `docs/openapi/openapi.yaml` + `docs/openapi/docs.go` (committed, do not edit)
+- General API info: [internal/setup/routes.go](internal/setup/routes.go) (annotations on `RegisterRoutes`)
+- Annotated handlers: [internal/handlers/api/cards.go](internal/handlers/api/cards.go)
+- UI registration: [internal/setup/openapi_docs_dev.go](internal/setup/openapi_docs_dev.go) / [internal/setup/openapi_docs_prod.go](internal/setup/openapi_docs_prod.go)
+- CI gate: [.github/workflows/pull-request.yml](.github/workflows/pull-request.yml) (`openapi-drift`)
+
 ---
 
 ## 📝 Changelog
@@ -1590,7 +1631,9 @@ Using `tls.Dial()` directly will fail with "Client Quit Before Message" error.
 
 - ⚠️ **Shares Handler Tests**: 0% coverage (complex adapter pattern)
 - ⚠️ **Performance**: Add pagination, caching (Redis)
-- ⚠️ **Documentation**: API Documentation (OpenAPI/Swagger)
+- ⚠️ **Documentation**: OpenAPI annotations for the remaining API routes.
+  Tooling, spec and CI drift gate are in place; the `cards` slice is
+  annotated as the reference (see "OpenAPI Specification")
 
 **COMPLETED** ✅:
 

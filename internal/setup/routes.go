@@ -26,6 +26,26 @@ type RouteConfig struct {
 }
 
 // RegisterRoutes registers all application routes.
+//
+//	@title						Savvy API
+//	@version					1.0
+//	@description				JSON API for Savvy — digital management of customer cards, vouchers and gift cards.
+//	@description				Authentication uses a server-side session cookie; mutating requests additionally require a CSRF token.
+//	@license.name				MIT
+//	@license.url				https://github.com/sbaerlocher/savvy/blob/main/LICENSE
+//	@servers.url				/api/v1
+//	@servers.description		Savvy JSON API
+//	@securityDefinitions.apikey	cookieAuth
+//	@in							cookie
+//	@name						session
+//
+// Only one security scheme is declared here on purpose. swag v2.0.0-rc5 keys
+// every scheme it parses by the name of the *first* @securityDefinitions block
+// in the file (getSecurityDefinitionKey scans from line 0), so a second block
+// silently overwrites the first instead of adding to it. CSRF is therefore
+// documented as an explicit X-CSRF-Token header parameter on each mutating
+// operation, which also models it more accurately: it guards requests, it does
+// not authenticate them.
 func RegisterRoutes(rc *RouteConfig) {
 	e := rc.Echo
 	cfg := rc.Config
@@ -170,6 +190,10 @@ func RegisterRoutes(rc *RouteConfig) {
 	// ========================================
 	if !cfg.IsProduction() {
 		debug.PrintRoutes(e)
+
+		// Swagger UI for the generated OpenAPI spec — a no-op in production
+		// builds, see openapi_docs_dev.go / openapi_docs_prod.go.
+		registerOpenAPIDocs(e)
 	}
 }
 

@@ -185,7 +185,7 @@ func handleResourceDelete(
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": capitalizeFirst(resourceType) + " deleted"})
+	return c.JSON(http.StatusOK, MessageResponse{Message: capitalizeFirst(resourceType) + " deleted"})
 }
 
 // handleResourceToggleFavorite provides generic toggle favorite handler logic
@@ -224,7 +224,7 @@ func handleResourceToggleFavorite(
 		slog.WarnContext(c.Request().Context(), "failed to check favorite status", "resource_type", resourceType, "resource_id", resourceID, "error", err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]bool{"is_favorite": isFavorite})
+	return c.JSON(http.StatusOK, FavoriteResponse{IsFavorite: isFavorite})
 }
 
 // handleResourceDeleteShare provides generic delete share handler logic
@@ -267,7 +267,7 @@ func handleResourceDeleteShare(
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "Share removed successfully"})
+	return c.JSON(http.StatusOK, MessageResponse{Message: "Share removed successfully"})
 }
 
 // handleResourceDeleteAllShares provides generic bulk-revoke handler logic:
@@ -305,7 +305,7 @@ func handleResourceDeleteAllShares(
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "All shares removed successfully"})
+	return c.JSON(http.StatusOK, MessageResponse{Message: "All shares removed successfully"})
 }
 
 // handleResourceTransfer provides generic transfer handler logic for resources
@@ -380,7 +380,7 @@ func handleResourceTransfer(
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": capitalizeFirst(resourceType) + " transferred successfully"})
+	return c.JSON(http.StatusOK, MessageResponse{Message: capitalizeFirst(resourceType) + " transferred successfully"})
 }
 
 // maxShareRecipients caps recipients per multi-share call, matching maxBatchSize.

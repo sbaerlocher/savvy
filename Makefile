@@ -32,6 +32,7 @@ help:
 	@echo "  build          Build binary and JS bundle"
 	@echo "  test           Run all tests"
 	@echo "  test-core      Run core tests (services + models)"
+	@echo "  openapi        Regenerate the OpenAPI spec from handler annotations"
 	@echo "  clean          Remove build artifacts"
 	@echo ""
 	@echo "Development:"
@@ -115,6 +116,21 @@ test-coverage-ci:
 	@echo "📊 Running tests with coverage (CI mode)..."
 	go test -mod=mod -coverprofile=coverage.out -covermode=atomic ./internal/services ./internal/models
 	@go tool cover -func=coverage.out | grep total
+
+.PHONY: openapi
+openapi:
+	@echo "📖 Generating OpenAPI spec..."
+	go tool swag init --v3.1 \
+		--generalInfo internal/setup/routes.go \
+		--dir ./ \
+		--parseInternal \
+		--output docs/openapi \
+		--outputTypes go,yaml \
+		--packageName openapi \
+		--propertyStrategy snakecase \
+		--quiet
+	@mv docs/openapi/swagger.yaml docs/openapi/openapi.yaml
+	@echo "✓ Spec written to docs/openapi/openapi.yaml"
 
 .PHONY: clean
 clean:

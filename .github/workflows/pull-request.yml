@@ -94,6 +94,29 @@ jobs:
         dde project:e2e:logs -- 200
       teardown-command: dde project:e2e:down
 
+  openapi-drift:
+    name: OpenAPI Spec Drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          # renovate: datasource=golang-version depName=golang
+          go-version: "1.26.5"
+
+      # The committed spec must match what the annotations produce. Without
+      # this gate a handler change silently leaves the documentation behind.
+      - name: Regenerate spec
+        run: make openapi
+
+      - name: Fail on drift
+        run: |
+          if ! git diff --exit-code docs/openapi/; then
+            echo "::error::docs/openapi is out of date — run 'make openapi' and commit the result."
+            exit 1
+          fi
+
   code-review:
     name: Claude Code Review
     uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-07-29
