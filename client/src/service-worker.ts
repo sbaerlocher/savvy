@@ -8,6 +8,7 @@ import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { handleNotificationClick } from '$lib/pwa/notification-click';
 
 // Type definitions for Workbox
 declare let self: ServiceWorkerGlobalScope & {
@@ -275,33 +276,15 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
 	event.notification.close();
 
-	let url = event.notification.data?.url || '/';
-
-	// Validate URL is same-origin to prevent phishing via compromised push payloads
-	try {
-		const parsed = new URL(url, self.location.origin);
-		if (parsed.origin !== self.location.origin) {
-			url = '/';
-		}
-	} catch {
-		url = '/';
-	}
-
+	// Same-origin validation and the focus/navigate/openWindow decision live in
+	// notification-click.ts so they can be unit tested (this module has
+	// top-level side effects and is not importable from a test environment).
 	event.waitUntil(
-		self.clients
-			.matchAll({ type: 'window', includeUncontrolled: true })
-			.then((clientList) => {
-				// Focus existing window if available
-				for (const client of clientList) {
-					if ('focus' in client) {
-						client.focus();
-						client.postMessage({ type: 'NAVIGATE', url });
-						return;
-					}
-				}
-				// Open new window
-				return self.clients.openWindow(url);
-			})
+		handleNotificationClick(
+			self.clients,
+			event.notification.data?.url,
+			self.location.origin
+		)
 	);
 });
 

@@ -89,7 +89,7 @@ func (s *NotificationService) CreateShareNotification(
 
 	slog.Info("Share notification created", "recipient_id", recipientID, "resource_type", resourceType, "resource_id", resourceID)
 
-	resourceURL := "/" + resourceType + "s"
+	resourceURL := resourceListPath(resourceType)
 
 	// Get recipient for preference checks
 	recipient := s.getRecipient(ctx, recipientID)
@@ -139,7 +139,7 @@ func (s *NotificationService) CreateTransferNotification(
 
 	slog.Info("Transfer notification created", "recipient_id", recipientID, "resource_type", resourceType, "resource_id", resourceID)
 
-	resourceURL := "/" + resourceType + "s"
+	resourceURL := resourceListPath(resourceType)
 
 	// Get recipient for preference checks
 	recipient := s.getRecipient(ctx, recipientID)

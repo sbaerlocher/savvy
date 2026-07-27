@@ -123,3 +123,32 @@ func TestPushArticle_FrUnknownResourceType(t *testing.T) {
 	result := pushArticle("unknown", "fr")
 	assert.Equal(t, "un", result)
 }
+
+// ============================================================================
+// resourceListPath Tests
+// ============================================================================
+
+// TestResourceListPath verifies that every resource type maps to a route that
+// actually exists in the SvelteKit client. Naive "/" + resourceType + "s"
+// concatenation produced "/gift_cards" for gift_card, but the route is
+// "/gift-cards" — the SPA fallback serves index.html with HTTP 200 for unknown
+// paths, so a wrong path renders a white screen instead of a 404.
+func TestResourceListPath(t *testing.T) {
+	tests := []struct {
+		name         string
+		resourceType string
+		want         string
+	}{
+		{"card maps to /cards", "card", "/cards"},
+		{"voucher maps to /vouchers", "voucher", "/vouchers"},
+		{"gift_card maps to hyphenated /gift-cards", "gift_card", "/gift-cards"},
+		{"unknown type falls back to root", "unknown", "/"},
+		{"empty type falls back to root", "", "/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, resourceListPath(tt.resourceType))
+		})
+	}
+}
