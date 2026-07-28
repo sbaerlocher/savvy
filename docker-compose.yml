@@ -173,7 +173,7 @@ services:
     otel-collector:
         profiles:
             - observability
-        image: 'otel/opentelemetry-collector-contrib:0.156.0@sha256:125bdbeb7590cc1952c5b3430ecf14063568980c2c93d5b38676cc0446ed8108'
+        image: 'otel/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6'
         restart: unless-stopped
         command:
             - '--config=/etc/otel-collector-config.yaml'
@@ -187,7 +187,7 @@ services:
     loki:
         profiles:
             - observability
-        image: 'grafana/loki:3.7.3@sha256:70b9f699fc9bb868b62f1cfd4f787dfa50242f1fd92e6089787d5d7daea75fe8'
+        image: 'grafana/loki:3.7.4@sha256:87f0a067673756a3cede1bcbf0c74875f7df9b09fddb53e399d0c576f756cfcc'
         restart: unless-stopped
         command: '-config.file=/etc/loki/loki-config.yaml'
         volumes:
