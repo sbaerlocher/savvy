@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { defaultClientConditions } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
 
@@ -24,6 +25,12 @@ export default defineConfig({
 		}
 	},
 	resolve: {
+		// Component tests mount into happy-dom, so Svelte must resolve to its
+		// client build — without this condition it picks index-server.js and
+		// every `render()` dies with "mount(...) is not available on the server".
+		// Appended to Vite's defaults, not replacing them: a bare ['browser']
+		// would drop `module`/`development|production` for every dependency.
+		conditions: [...defaultClientConditions, 'browser'],
 		alias: {
 			$lib: resolve('./src/lib'),
 			$app: resolve('./src/tests/mocks/$app')
