@@ -285,8 +285,8 @@ components:
       name: session
       type: apiKey
 externalDocs:
-  description: ""
-  url: ""
+  description: Savvy documentation
+  url: https://github.com/sbaerlocher/savvy#readme
 info:
   description: |-
     JSON API for Savvy — digital management of customer cards, vouchers and gift cards.
@@ -354,11 +354,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/api.CardCreateRequest'
-                description: Card to create
-                summary: card
+              $ref: '#/components/schemas/api.CardCreateRequest'
+              description: Card to create
+              summary: card
         description: Card to create
         required: true
       responses:
@@ -526,11 +524,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/api.CardUpdateRequest'
-                description: Fields to update
-                summary: card
+              $ref: '#/components/schemas/api.CardUpdateRequest'
+              description: Fields to update
+              summary: card
         description: Fields to update
         required: true
       responses:
@@ -712,11 +708,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/api.ShareCreateRequest'
-                description: Recipients and permissions
-                summary: share
+              $ref: '#/components/schemas/api.ShareCreateRequest'
+              description: Recipients and permissions
+              summary: share
         description: Recipients and permissions
         required: true
       responses:
@@ -843,11 +837,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/api.ShareUpdateRequest'
-                description: New permissions
-                summary: permissions
+              $ref: '#/components/schemas/api.ShareUpdateRequest'
+              description: New permissions
+              summary: permissions
         description: New permissions
         required: true
       responses:
@@ -961,11 +953,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/api.TransferRequest'
-                description: New owner
-                summary: transfer
+              $ref: '#/components/schemas/api.TransferRequest'
+              description: New owner
+              summary: transfer
         description: New owner
         required: true
       responses:

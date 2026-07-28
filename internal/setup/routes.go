@@ -33,6 +33,8 @@ type RouteConfig struct {
 //	@description				Authentication uses a server-side session cookie; mutating requests additionally require a CSRF token.
 //	@license.name				MIT
 //	@license.url				https://github.com/sbaerlocher/savvy/blob/main/LICENSE
+//	@externalDocs.description	Savvy documentation
+//	@externalDocs.url			https://github.com/sbaerlocher/savvy#readme
 //	@servers.url				/api/v1
 //	@servers.description		Savvy JSON API
 //	@securityDefinitions.apikey	cookieAuth

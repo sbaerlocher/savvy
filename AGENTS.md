@@ -1521,7 +1521,7 @@ docs package pulls swag's parser (and `golang.org/x/tools`) in, roughly 11 MB
 that production has no use for, so the route lives behind the same
 `production` build tag as the embedded frontend assets.
 
-**Two caveats worth knowing before extending the annotations**:
+**Three caveats worth knowing before extending the annotations**:
 
 1. Only a single `@securityDefinitions` block works. swag v2.0.0-rc5 keys every
    scheme by the name of the *first* block in the file, so a second one
@@ -1529,10 +1529,18 @@ that production has no use for, so the route lives behind the same
    `X-CSRF-Token` header parameter per mutating operation.
 2. Use `EchoWrapHandlerV3`, not `EchoWrapHandler` — the latter reads swag's v1
    registry, which a v2-generated spec never populates.
+3. swag emits every `@Param … body` as
+   `oneOf: [{type: object}, {$ref: <DTO>}]`, which is unsatisfiable — the DTOs
+   declare neither `required` nor `additionalProperties: false`, so any object
+   matches both branches while `oneOf` demands exactly one. `make openapi`
+   therefore pipes the output through `cmd/openapi-fix`, which collapses the
+   wrapper to the `$ref` branch. Drop that step once swag fixes this upstream;
+   the tool fails loudly if it finds no wrapper to collapse.
 
 **Files**:
 
 - Make target: [Makefile](Makefile) (`openapi`)
+- Post-processor: [cmd/openapi-fix/main.go](cmd/openapi-fix/main.go) (collapses swag's `oneOf` wrappers)
 - Generated spec: `docs/openapi/openapi.yaml` + `docs/openapi/docs.go` (committed, do not edit)
 - General API info: [internal/setup/routes.go](internal/setup/routes.go) (annotations on `RegisterRoutes`)
 - Annotated handlers: [internal/handlers/api/cards.go](internal/handlers/api/cards.go)
@@ -1544,8 +1552,13 @@ that production has no use for, so the route lives behind the same
 
 ### Unreleased
 
-**Server-Side Sessions, Settings Refactoring, Merchant Overview & Batch Export**:
+**OpenAPI Specification, Server-Side Sessions, Settings Refactoring, Merchant Overview & Batch Export**:
 
+- ✅ **OpenAPI Specification** - Spec generated from handler annotations
+  - `make openapi` regenerates `docs/openapi/` via swag v2 (OpenAPI 3.1)
+  - Swagger UI at `GET /api/v1/docs/`, development builds only
+  - `cards` slice annotated as the reference for the remaining routes
+  - Named response DTOs replace anonymous maps in the shared handler helpers
 - ✅ **Server-Side Sessions** - PostgreSQL-backed session store (PGStore)
   - SHA-256 hashed tokens, 512-bit random, IP/UA tracking
   - Session management API (list, revoke, revoke all others)

@@ -123,6 +123,7 @@ openapi:
 	go tool swag init --v3.1 \
 		--generalInfo internal/setup/routes.go \
 		--dir ./ \
+		--exclude docs \
 		--parseInternal \
 		--output docs/openapi \
 		--outputTypes go,yaml \
@@ -130,6 +131,7 @@ openapi:
 		--propertyStrategy snakecase \
 		--quiet
 	@mv docs/openapi/swagger.yaml docs/openapi/openapi.yaml
+	@go run ./cmd/openapi-fix
 	@echo "✓ Spec written to docs/openapi/openapi.yaml"
 
 .PHONY: clean

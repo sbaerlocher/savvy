@@ -445,8 +445,8 @@ const docTemplate = `{
         "version": "{{.Version}}"
     },
     "externalDocs": {
-        "description": "",
-        "url": ""
+        "description": "Savvy documentation",
+        "url": "https://github.com/sbaerlocher/savvy#readme"
     },
     "paths": {
         "/cards": {
@@ -530,16 +530,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/api.CardCreateRequest",
-                                        "summary": "card",
-                                        "description": "Card to create"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/api.CardCreateRequest",
+                                "summary": "card",
+                                "description": "Card to create"
                             }
                         }
                     },
@@ -808,16 +801,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/api.CardUpdateRequest",
-                                        "summary": "card",
-                                        "description": "Fields to update"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/api.CardUpdateRequest",
+                                "summary": "card",
+                                "description": "Fields to update"
                             }
                         }
                     },
@@ -1109,16 +1095,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/api.ShareCreateRequest",
-                                        "summary": "share",
-                                        "description": "Recipients and permissions"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/api.ShareCreateRequest",
+                                "summary": "share",
+                                "description": "Recipients and permissions"
                             }
                         }
                     },
@@ -1321,16 +1300,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/api.ShareUpdateRequest",
-                                        "summary": "permissions",
-                                        "description": "New permissions"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/api.ShareUpdateRequest",
+                                "summary": "permissions",
+                                "description": "New permissions"
                             }
                         }
                     },
@@ -1515,16 +1487,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/api.TransferRequest",
-                                        "summary": "transfer",
-                                        "description": "New owner"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/api.TransferRequest",
+                                "summary": "transfer",
+                                "description": "New owner"
                             }
                         }
                     },
