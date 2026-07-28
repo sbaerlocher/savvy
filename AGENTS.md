@@ -1512,9 +1512,9 @@ make openapi   # regenerates docs/openapi/ from the annotations
 the reference for the remaining API routes. Annotating a new handler means
 adding a swag comment block above it and re-running `make openapi`.
 
-**Drift protection**: The `openapi-drift` job in `pull-request.yml` regenerates
-the spec and fails if the committed files differ, so annotations and spec
-cannot silently diverge.
+**Keeping the spec current**: `docs/openapi/` is committed, so a handler change
+means re-running `make openapi` and committing the result in the same change.
+No CI gate enforces this.
 
 **Swagger UI**: `GET /api/v1/docs/` — development builds only. The generated
 docs package pulls swag's parser (and `golang.org/x/tools`) in, roughly 11 MB
@@ -1537,7 +1537,6 @@ that production has no use for, so the route lives behind the same
 - General API info: [internal/setup/routes.go](internal/setup/routes.go) (annotations on `RegisterRoutes`)
 - Annotated handlers: [internal/handlers/api/cards.go](internal/handlers/api/cards.go)
 - UI registration: [internal/setup/openapi_docs_dev.go](internal/setup/openapi_docs_dev.go) / [internal/setup/openapi_docs_prod.go](internal/setup/openapi_docs_prod.go)
-- CI gate: [.github/workflows/pull-request.yml](.github/workflows/pull-request.yml) (`openapi-drift`)
 
 ---
 
@@ -1632,7 +1631,7 @@ that production has no use for, so the route lives behind the same
 - ⚠️ **Shares Handler Tests**: 0% coverage (complex adapter pattern)
 - ⚠️ **Performance**: Add pagination, caching (Redis)
 - ⚠️ **Documentation**: OpenAPI annotations for the remaining API routes.
-  Tooling, spec and CI drift gate are in place; the `cards` slice is
+  Tooling and spec are in place; the `cards` slice is
   annotated as the reference (see "OpenAPI Specification")
 
 **COMPLETED** ✅:
