@@ -19,6 +19,16 @@ if [[ ! -d node_modules/@playwright/test ]]; then
 	npx playwright install chromium
 fi
 
+# playwright.config.ts is TypeScript, so Playwright loads client/tsconfig.json,
+# which extends the generated ./.svelte-kit/tsconfig.json. That file is
+# gitignored, so it is absent on a fresh clone and in CI (which installs
+# node_modules itself and thus skips the branch above). Every other consumer
+# prefixes `svelte-kit sync` for the same reason — see package.json build/check.
+if [[ ! -f .svelte-kit/tsconfig.json ]]; then
+	echo "e2e:test: .svelte-kit/tsconfig.json missing, running svelte-kit sync" >&2
+	npx svelte-kit sync
+fi
+
 # Default to --project=chromium unless the caller explicitly passed a
 # --project flag. This keeps the common case (running a single spec
 # locally) fast — firefox/webkit are gated behind explicit opt-in
