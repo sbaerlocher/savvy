@@ -342,7 +342,7 @@ func (s *ReminderService) sendPush(ctx context.Context, userID uuid.UUID, mercha
 		body = i18n.T(lctx, "push.expiry.body", map[string]any{"Resource": resource, "Merchant": merchantName, "Days": daysLeft})
 	}
 
-	url := "/" + resourceType + "s"
+	url := resourceListPath(resourceType)
 	if err := s.pushService.SendPushToUser(ctx, userID, title, body, url); err != nil {
 		slog.WarnContext(ctx, "Failed to send expiry push notification", "user_id", userID, "error", err)
 	}

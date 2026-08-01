@@ -1609,11 +1609,13 @@ func TestNotificationService_CreateShareNotification_GiftCardResourceURL(t *test
 
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
-	// Verify the URL ends with "/gift_cards"
-	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift_cards").Return(nil)
+	// Verify the URL is the hyphenated "/gift-cards" route that actually exists
+	// in the client — "/gift_cards" would be served as the SPA shell (HTTP 200)
+	// and render a white screen.
+	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift-cards").Return(nil)
 
 	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "User", "gift_card", resourceID, nil)
 
 	assert.NoError(t, err)
-	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift_cards")
+	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift-cards")
 }

@@ -334,7 +334,7 @@ func TestReminderService_CheckAndSendReminders_GiftCards(t *testing.T) {
 
 	reminderRepo.On("HasBeenSent", ctx, userID, "gift_card", giftCardID, 1).Return(false, nil)
 	notifRepo.On("Create", ctx, mock.AnythingOfType("*models.Notification")).Return(nil)
-	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift_cards").Return(nil)
+	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift-cards").Return(nil)
 	emailSvc.On("SendExpiryReminder", ctx, "test@example.com", "Test", mock.AnythingOfType("email.ExpiryReminderData"), "", "de").Return(nil)
 	reminderRepo.On("MarkSent", ctx, mock.AnythingOfType("*models.ExpiryReminderSent")).Return(nil)
 	voucherRepo.On("GetVouchersStartingTomorrow", ctx).Return([]models.Voucher{}, nil)
@@ -1692,7 +1692,7 @@ func TestReminderService_SendPush_MultipleDays(t *testing.T) {
 	userID := uuid.New()
 
 	// daysLeft > 1 triggers the general days message body
-	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift_cards").Return(nil)
+	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift-cards").Return(nil)
 
 	svc.sendPush(ctx, userID, "Amazon", "gift_card", 7, "de")
 	pushSvc.AssertExpectations(t)
@@ -1930,7 +1930,7 @@ func TestReminderService_GiftCardShareRecipients(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.MatchedBy(func(n *models.Notification) bool {
 		return n.UserID == ownerID
 	})).Return(nil)
-	pushSvc.On("SendPushToUser", ctx, ownerID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift_cards").Return(nil)
+	pushSvc.On("SendPushToUser", ctx, ownerID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift-cards").Return(nil)
 	emailSvc.On("SendExpiryReminder", ctx, "owner@example.com", "Owner", mock.AnythingOfType("email.ExpiryReminderData"), "", "en").Return(nil)
 	reminderRepo.On("MarkSent", ctx, mock.MatchedBy(func(r *models.ExpiryReminderSent) bool {
 		return r.UserID == ownerID
@@ -1950,7 +1950,7 @@ func TestReminderService_GiftCardShareRecipients(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.MatchedBy(func(n *models.Notification) bool {
 		return n.UserID == sharedWithID
 	})).Return(nil)
-	pushSvc.On("SendPushToUser", ctx, sharedWithID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift_cards").Return(nil)
+	pushSvc.On("SendPushToUser", ctx, sharedWithID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/gift-cards").Return(nil)
 	emailSvc.On("SendExpiryReminder", ctx, "shared@example.com", "Shared", mock.AnythingOfType("email.ExpiryReminderData"), "", "fr").Return(nil)
 	reminderRepo.On("MarkSent", ctx, mock.MatchedBy(func(r *models.ExpiryReminderSent) bool {
 		return r.UserID == sharedWithID
