@@ -72,23 +72,16 @@ export class ResourceListPage extends BasePage {
 	}
 
 	async goto() {
-		// Start listening for API response BEFORE navigating to avoid race condition
-		// The "New" button only renders after cards data is loaded (cards.length > 0)
-		const apiResponsePromise = this.page.waitForResponse(
-			(resp) => resp.url().includes(this.config.apiPath) && resp.status() < 400,
-			{ timeout: 15000 }
-		);
-
 		// Navigate to the wallet directly. Going through the legacy /<resource>
 		// route made this flaky: its redirect aborts the initial navigation, so
-		// goto() could reject before the redirect completed. The legacy redirect
-		// itself is covered by wallet.spec.ts.
+		// waiting for the wallet URL afterwards could check the URL we came from.
+		// The legacy redirect itself is covered by wallet.spec.ts.
 		const url = `/wallet?type=${this.resourceType}`;
 		for (let attempt = 0; attempt < 3; attempt++) {
 			try {
 				await this.page.goto(url, {
 					waitUntil: 'domcontentloaded',
-					timeout: 10000
+					timeout: 15000
 				});
 				break;
 			} catch (error) {
@@ -108,8 +101,17 @@ export class ResourceListPage extends BasePage {
 			new RegExp(`\\/wallet\\?type=${this.resourceType}`),
 			{ timeout: 10000 }
 		);
-		await apiResponsePromise;
 		await this.waitForPageReady();
+		// Wait for the list to settle rather than for an API response: the
+		// offline-first loader may serve cached data without issuing a fresh
+		// request, in which case waiting on the API call hangs until its timeout.
+		// An empty wallet is valid, so accept the empty state too.
+		const emptyState = this.page.locator(
+			'text=/keine|leer|no items|empty|Keine Karten|No cards/i'
+		);
+		await expect(this.items.first().or(emptyState.first())).toBeVisible({
+			timeout: 15000
+		});
 	}
 
 	async expectHeading() {
