@@ -45,6 +45,11 @@ export class ResourceListPage extends BasePage {
 		return this.items.first();
 	}
 
+	get loadingSpinner(): Locator {
+		// LoadingSpinner.svelte — the wallet route's only pulsing logo.
+		return this.page.locator('img[alt="Savvy"].animate-pulse');
+	}
+
 	get newButton(): Locator {
 		return this.page.locator(`a[href="/${this.resourceType}/new"]`).first();
 	}
@@ -77,7 +82,8 @@ export class ResourceListPage extends BasePage {
 		// waiting for the wallet URL afterwards could check the URL we came from.
 		// The legacy redirect itself is covered by wallet.spec.ts.
 		const url = `/wallet?type=${this.resourceType}`;
-		for (let attempt = 0; attempt < 3; attempt++) {
+		const MAX_GOTO_ATTEMPTS = 3;
+		for (let attempt = 0; attempt < MAX_GOTO_ATTEMPTS; attempt++) {
 			try {
 				await this.page.goto(url, {
 					waitUntil: 'domcontentloaded',
@@ -87,14 +93,20 @@ export class ResourceListPage extends BasePage {
 			} catch (error) {
 				// Callers reach goto() right after a submit, while the app is still
 				// navigating to the new resource's detail route. That in-flight
-				// navigation interrupts ours — retry once it has settled.
+				// navigation interrupts ours — wait for it to settle, then retry.
 				const message = error instanceof Error ? error.message : String(error);
 				const interrupted =
 					message.includes('interrupted by another navigation') ||
 					message.includes('net::ERR_ABORTED');
-				if (!interrupted || attempt === 2) {
+				if (!interrupted || attempt === MAX_GOTO_ATTEMPTS - 1) {
 					throw error;
 				}
+				// Interruption errors reject the moment the abort happens, not on
+				// the goto timeout — without this the retries all burn while the
+				// interrupting navigation is still in flight.
+				await this.page
+					.waitForLoadState('domcontentloaded', { timeout: 5000 })
+					.catch(() => {});
 			}
 		}
 		await expect(this.page).toHaveURL(
@@ -105,13 +117,13 @@ export class ResourceListPage extends BasePage {
 		// Wait for the list to settle rather than for an API response: the
 		// offline-first loader may serve cached data without issuing a fresh
 		// request, in which case waiting on the API call hangs until its timeout.
-		// An empty wallet is valid, so accept the empty state too.
-		const emptyState = this.page.locator(
-			'text=/keine|leer|no items|empty|Keine Karten|No cards/i'
-		);
-		await expect(this.items.first().or(emptyState.first())).toBeVisible({
-			timeout: 15000
-		});
+		// The wallet route renders its PageHeader in both the loading and the
+		// loaded branch, so the heading proves the component mounted; the spinner
+		// disappearing proves loadData() finished. Together they cover every
+		// valid outcome — tiles, the unfiltered empty state and the filtered
+		// "no results" state — without enumerating locale-specific copy.
+		await expect(this.heading).toBeVisible({ timeout: 15000 });
+		await expect(this.loadingSpinner).toBeHidden({ timeout: 15000 });
 	}
 
 	async expectHeading() {
