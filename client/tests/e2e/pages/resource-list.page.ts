@@ -84,6 +84,15 @@ export class ResourceListPage extends BasePage {
 		const url = `/wallet?type=${this.resourceType}`;
 		const MAX_GOTO_ATTEMPTS = 3;
 		for (let attempt = 0; attempt < MAX_GOTO_ATTEMPTS; attempt++) {
+			// Callers reach goto() right after a submit, while the app is still
+			// navigating to the new resource's detail route. Racing that with our
+			// own goto() is what made this flaky: the client-side navigation keeps
+			// the goto pending until its own timeout rather than rejecting with an
+			// abort. Let the in-flight navigation land first — a no-op once the
+			// page is already settled.
+			await this.page
+				.waitForLoadState('domcontentloaded', { timeout: 5000 })
+				.catch(() => {});
 			try {
 				await this.page.goto(url, {
 					waitUntil: 'domcontentloaded',
@@ -91,22 +100,16 @@ export class ResourceListPage extends BasePage {
 				});
 				break;
 			} catch (error) {
-				// Callers reach goto() right after a submit, while the app is still
-				// navigating to the new resource's detail route. That in-flight
-				// navigation interrupts ours — wait for it to settle, then retry.
+				// Retry on both failure shapes the race produces: an explicit abort
+				// and a goto that simply never settles.
 				const message = error instanceof Error ? error.message : String(error);
-				const interrupted =
+				const racy =
 					message.includes('interrupted by another navigation') ||
-					message.includes('net::ERR_ABORTED');
-				if (!interrupted || attempt === MAX_GOTO_ATTEMPTS - 1) {
+					message.includes('net::ERR_ABORTED') ||
+					message.includes('Timeout');
+				if (!racy || attempt === MAX_GOTO_ATTEMPTS - 1) {
 					throw error;
 				}
-				// Interruption errors reject the moment the abort happens, not on
-				// the goto timeout — without this the retries all burn while the
-				// interrupting navigation is still in flight.
-				await this.page
-					.waitForLoadState('domcontentloaded', { timeout: 5000 })
-					.catch(() => {});
 			}
 		}
 		await expect(this.page).toHaveURL(
