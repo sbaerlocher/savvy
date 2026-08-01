@@ -79,29 +79,34 @@ export class ResourceListPage extends BasePage {
 			{ timeout: 15000 }
 		);
 
-		try {
-			// The legacy list route redirects to /wallet?type=<resource>.
-			await this.page.goto(`/${this.resourceType}`, {
-				waitUntil: 'domcontentloaded',
-				timeout: 10000
-			});
-		} catch (error) {
-			// The legacy → /wallet redirect aborts the initial navigation. Depending
-			// on timing Playwright reports this as either "interrupted by another
-			// navigation" or a net::ERR_ABORTED; both are expected here — the
-			// waitForURL below confirms we actually landed on the wallet.
-			const errorMessage =
-				error instanceof Error ? error.message : String(error);
-			if (
-				!errorMessage.includes('interrupted by another navigation') &&
-				!errorMessage.includes('net::ERR_ABORTED')
-			) {
-				throw error;
+		// Navigate to the wallet directly. Going through the legacy /<resource>
+		// route made this flaky: its redirect aborts the initial navigation, so
+		// goto() could reject before the redirect completed. The legacy redirect
+		// itself is covered by wallet.spec.ts.
+		const url = `/wallet?type=${this.resourceType}`;
+		for (let attempt = 0; attempt < 3; attempt++) {
+			try {
+				await this.page.goto(url, {
+					waitUntil: 'domcontentloaded',
+					timeout: 10000
+				});
+				break;
+			} catch (error) {
+				// Callers reach goto() right after a submit, while the app is still
+				// navigating to the new resource's detail route. That in-flight
+				// navigation interrupts ours — retry once it has settled.
+				const message = error instanceof Error ? error.message : String(error);
+				const interrupted =
+					message.includes('interrupted by another navigation') ||
+					message.includes('net::ERR_ABORTED');
+				if (!interrupted || attempt === 2) {
+					throw error;
+				}
 			}
 		}
-		await this.page.waitForURL(
+		await expect(this.page).toHaveURL(
 			new RegExp(`\\/wallet\\?type=${this.resourceType}`),
-			{ timeout: 5000 }
+			{ timeout: 10000 }
 		);
 		await apiResponsePromise;
 		await this.waitForPageReady();
