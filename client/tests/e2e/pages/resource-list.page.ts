@@ -45,6 +45,11 @@ export class ResourceListPage extends BasePage {
 		return this.items.first();
 	}
 
+	get loadingSpinner(): Locator {
+		// LoadingSpinner.svelte — the wallet route's only pulsing logo.
+		return this.page.locator('img[alt="Savvy"].animate-pulse');
+	}
+
 	get newButton(): Locator {
 		return this.page.locator(`a[href="/${this.resourceType}/new"]`).first();
 	}
@@ -72,39 +77,57 @@ export class ResourceListPage extends BasePage {
 	}
 
 	async goto() {
-		// Start listening for API response BEFORE navigating to avoid race condition
-		// The "New" button only renders after cards data is loaded (cards.length > 0)
-		const apiResponsePromise = this.page.waitForResponse(
-			(resp) => resp.url().includes(this.config.apiPath) && resp.status() < 400,
-			{ timeout: 15000 }
-		);
-
-		try {
-			// The legacy list route redirects to /wallet?type=<resource>.
-			await this.page.goto(`/${this.resourceType}`, {
-				waitUntil: 'domcontentloaded',
-				timeout: 10000
-			});
-		} catch (error) {
-			// The legacy → /wallet redirect aborts the initial navigation. Depending
-			// on timing Playwright reports this as either "interrupted by another
-			// navigation" or a net::ERR_ABORTED; both are expected here — the
-			// waitForURL below confirms we actually landed on the wallet.
-			const errorMessage =
-				error instanceof Error ? error.message : String(error);
-			if (
-				!errorMessage.includes('interrupted by another navigation') &&
-				!errorMessage.includes('net::ERR_ABORTED')
-			) {
-				throw error;
+		// Navigate to the wallet directly. Going through the legacy /<resource>
+		// route made this flaky: its redirect aborts the initial navigation, so
+		// waiting for the wallet URL afterwards could check the URL we came from.
+		// The legacy redirect itself is covered by wallet.spec.ts.
+		const url = `/wallet?type=${this.resourceType}`;
+		// Callers reach goto() right after a submit, while the app is still
+		// navigating to the new resource's detail route. Racing that with our own
+		// goto() is what makes this flaky, and the observed CI failure is a goto
+		// left pending until its timeout rather than one rejecting with an abort —
+		// so retry on all three shapes.
+		//
+		// Budget: these timeouts plus the assertions below must stay under the 60s
+		// per-test timeout from playwright.config.ts, otherwise the final attempt
+		// is unreachable and a real failure surfaces as the far less diagnostic
+		// "Test timeout exceeded". 2 × 10s here + 3 × 10s below = 50s.
+		const MAX_GOTO_ATTEMPTS = 2;
+		for (let attempt = 0; attempt < MAX_GOTO_ATTEMPTS; attempt++) {
+			try {
+				await this.page.goto(url, {
+					waitUntil: 'domcontentloaded',
+					timeout: 10000
+				});
+				break;
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				const racy =
+					message.includes('interrupted by another navigation') ||
+					message.includes('net::ERR_ABORTED') ||
+					message.includes('Timeout');
+				if (!racy || attempt === MAX_GOTO_ATTEMPTS - 1) {
+					throw error;
+				}
 			}
 		}
-		await this.page.waitForURL(
+		await expect(this.page).toHaveURL(
 			new RegExp(`\\/wallet\\?type=${this.resourceType}`),
-			{ timeout: 5000 }
+			{ timeout: 10000 }
 		);
-		await apiResponsePromise;
 		await this.waitForPageReady();
+		// Wait for the list to settle rather than for an API response: the
+		// offline-first loader may serve cached data without issuing a fresh
+		// request, in which case waiting on the API call hangs until its timeout.
+		// The wallet route renders its PageHeader in both the loading and the
+		// loaded branch, so the heading proves the component mounted. The spinner
+		// clears via revealFirstPage() as soon as the first enabled type has its
+		// first page — later pages keep streaming in — so this asserts the list is
+		// rendered, not that every page arrived. That covers every valid outcome
+		// (tiles, the unfiltered empty state, the filtered "no results" state)
+		// without enumerating locale-specific copy.
+		await expect(this.heading).toBeVisible({ timeout: 10000 });
+		await expect(this.loadingSpinner).toBeHidden({ timeout: 10000 });
 	}
 
 	async expectHeading() {
