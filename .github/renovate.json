@@ -38,6 +38,12 @@
       "matchManagers": ["npm"],
       "matchPackageNames": ["cookie"],
       "allowedVersions": "<2.0.0"
+    },
+    {
+      "description": "typescript: cap below 6.1 — @typescript-eslint/* declares typescript as a required peer at >=4.8.4 <6.1.0, so npm ci fails with ERESOLVE above that; svelte-check and @sveltejs/kit cap at ^6. Lift once typescript-eslint widens its TypeScript peer range.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<6.1.0"
     }
   ]
 }
