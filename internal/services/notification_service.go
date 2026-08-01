@@ -15,8 +15,9 @@ import (
 )
 
 // NotificationValue holds a monetary value for a notification. It is shown in
-// the in-app notification and email, but never in the push body (lockscreen
-// privacy). A nil *NotificationValue means the resource has no value (e.g. Card).
+// the email and stored in the notification metadata, but never in the push body
+// (lockscreen privacy). A nil *NotificationValue means the resource has no value
+// (e.g. Card).
 type NotificationValue struct {
 	Amount   float64
 	Currency string
@@ -93,8 +94,8 @@ func (s *NotificationService) SetEmailService(emailService email.ServiceInterfac
 
 // CreateShareNotification creates a notification when a resource is shared with a user
 func (s *NotificationService) CreateShareNotification(ctx context.Context, in ShareNotificationInput) error {
-	// Build metadata. merchant_name/description/value are read by the in-app
-	// notification renderer; value is intentionally omitted from the push body.
+	// Build metadata. The in-app renderer reads merchant_name; description and
+	// value are stored for future use. value is never put in the push body.
 	metadata := models.NotificationMetadata{
 		"from_user_id":   in.FromUserID.String(),
 		"from_user_name": in.FromUserName,
@@ -191,8 +192,9 @@ func (s *NotificationService) CreateTransferNotification(ctx context.Context, in
 }
 
 // addResourceMetadata adds merchant_name, description and value to notification
-// metadata when present. value is stored so the in-app renderer can show it;
-// it is deliberately kept out of the push body (see *PushBody helpers).
+// metadata when present. The in-app renderer reads merchant_name; description
+// and value are stored for future use, and value is deliberately kept out of
+// the push body (see *PushBody helpers).
 func addResourceMetadata(metadata models.NotificationMetadata, merchantName, description string, value *NotificationValue) {
 	if merchantName != "" {
 		metadata["merchant_name"] = merchantName

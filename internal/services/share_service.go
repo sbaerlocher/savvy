@@ -216,8 +216,10 @@ func (s *ShareService) CreateCardShare(ctx context.Context, callerUserID, cardID
 				ResourceID:   cardID,
 				Permissions:  map[string]bool{"can_edit": canEdit, "can_delete": canDelete},
 				MerchantName: cardMerchantName(card),
-				Description:  card.Notes,
-				Value:        nil, // Card has no value
+				// Notes is free-form and the only field on Card where a PIN or
+				// door code can live, so it never leaves for the push body.
+				Description: "",
+				Value:       nil, // Card has no value
 			}); err != nil {
 				slog.Warn("Failed to create share notification for card",
 					"card_id", cardID, "shared_with_id", sharedWithID, "error", err)
@@ -387,8 +389,10 @@ func (s *ShareService) CreateGiftCardShare(ctx context.Context, callerUserID, gi
 					"can_edit_transactions": canEditTransactions,
 				},
 				MerchantName: giftCardMerchantName(giftCard),
-				Description:  giftCard.Notes,
-				Value:        giftCardNotificationValue(giftCard),
+				// Same as Card: Notes is free-form and sits next to the PIN
+				// field, so it stays out of the push body.
+				Description: "",
+				Value:       giftCardNotificationValue(giftCard),
 			}); err != nil {
 				slog.Warn("Failed to create share notification for gift card",
 					"gift_card_id", giftCardID, "shared_with_id", sharedWithID, "error", err)

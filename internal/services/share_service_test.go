@@ -1857,3 +1857,67 @@ func TestDeleteAllGiftCardShares_NotOwner(t *testing.T) {
 	err := d.service.DeleteAllGiftCardShares(ctx, uuid.New(), gcID)
 	assert.ErrorIs(t, err, ErrNotOwner)
 }
+
+// ==================== Notes Privacy Tests ====================
+
+// Card.Notes and GiftCard.Notes are free-form and the only place a PIN or door
+// code can live. They must never reach the notification Description, which
+// notification_service renders into the push body on the recipient's
+// lockscreen. Voucher.Description is a real description field and stays.
+func TestCreateShare_NotesNeverReachNotificationDescription(t *testing.T) {
+	const secret = "PIN 1234, back door code 9876"
+
+	t.Run("card", func(t *testing.T) {
+		d := setupShareService()
+		ctx := context.Background()
+		ownerID, cardID, sharedWithID := uuid.New(), uuid.New(), uuid.New()
+
+		card := &models.Card{ID: cardID, UserID: ptrUUID(ownerID), Notes: secret}
+		owner := &models.User{ID: ownerID, FirstName: "Alice", LastName: "Owner"}
+
+		d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
+		d.cardShareRepo.On("Create", ctx, mock.AnythingOfType("*models.CardShare")).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
+		match := mock.MatchedBy(func(in ShareNotificationInput) bool { return in.Description == "" })
+		d.notifService.On("CreateShareNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.CreateCardShare(ctx, ownerID, cardID, sharedWithID, true, false))
+		d.notifService.AssertCalled(t, "CreateShareNotification", ctx, match)
+	})
+
+	t.Run("gift card", func(t *testing.T) {
+		d := setupShareService()
+		ctx := context.Background()
+		ownerID, gcID, sharedWithID := uuid.New(), uuid.New(), uuid.New()
+
+		gc := &models.GiftCard{ID: gcID, UserID: ptrUUID(ownerID), Notes: secret, PIN: "4321"}
+		owner := &models.User{ID: ownerID, FirstName: "Carol", LastName: "Test"}
+
+		d.giftCardRepo.On("GetByID", ctx, gcID).Return(gc, nil)
+		d.gcShareRepo.On("Create", ctx, mock.AnythingOfType("*models.GiftCardShare")).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
+		match := mock.MatchedBy(func(in ShareNotificationInput) bool { return in.Description == "" })
+		d.notifService.On("CreateShareNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.CreateGiftCardShare(ctx, ownerID, gcID, sharedWithID, true, true, true))
+		d.notifService.AssertCalled(t, "CreateShareNotification", ctx, match)
+	})
+
+	t.Run("voucher keeps its description", func(t *testing.T) {
+		d := setupShareService()
+		ctx := context.Background()
+		ownerID, voucherID, sharedWithID := uuid.New(), uuid.New(), uuid.New()
+
+		voucher := &models.Voucher{ID: voucherID, UserID: ptrUUID(ownerID), Description: "20% off"}
+		owner := &models.User{ID: ownerID, FirstName: "Bob", LastName: "Owner"}
+
+		d.voucherRepo.On("GetByID", ctx, voucherID).Return(voucher, nil)
+		d.voucherShareRepo.On("Create", ctx, mock.AnythingOfType("*models.VoucherShare")).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(owner, nil)
+		match := mock.MatchedBy(func(in ShareNotificationInput) bool { return in.Description == "20% off" })
+		d.notifService.On("CreateShareNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.CreateVoucherShare(ctx, ownerID, voucherID, sharedWithID))
+		d.notifService.AssertCalled(t, "CreateShareNotification", ctx, match)
+	})
+}

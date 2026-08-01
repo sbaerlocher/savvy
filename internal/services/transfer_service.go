@@ -138,7 +138,9 @@ func (s *TransferService) TransferCardOwnership(ctx context.Context, cardID, new
 	s.logTransferAudit(ctx, currentOwnerID, "cards", cardID,
 		transferAuditData{Resource: card, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
-	s.sendTransferNotification(ctx, "card", cardID, newOwnerID, currentOwnerID, cardMerchantName(card), card.Notes, nil)
+	// Description stays empty: Card.Notes is free-form and the only field where
+	// a PIN or door code can live, so it must not reach the push body.
+	s.sendTransferNotification(ctx, "card", cardID, newOwnerID, currentOwnerID, cardMerchantName(card), "", nil)
 	return nil
 }
 
@@ -190,6 +192,8 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 	s.logTransferAudit(ctx, currentOwnerID, "gift_cards", giftCardID,
 		transferAuditData{Resource: giftCard, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
-	s.sendTransferNotification(ctx, "gift_card", giftCardID, newOwnerID, currentOwnerID, giftCardMerchantName(giftCard), giftCard.Notes, giftCardNotificationValue(giftCard))
+	// Same as Card: GiftCard.Notes sits next to the PIN field, so it stays out
+	// of the push body.
+	s.sendTransferNotification(ctx, "gift_card", giftCardID, newOwnerID, currentOwnerID, giftCardMerchantName(giftCard), "", giftCardNotificationValue(giftCard))
 	return nil
 }
