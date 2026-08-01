@@ -1,0 +1,999 @@
+components:
+  schemas:
+    api.BatchFailedItem:
+      properties:
+        error:
+          type: string
+        id:
+          type: string
+      type: object
+    api.CardCreateRequest:
+      properties:
+        barcode_type:
+          type: string
+        card_number:
+          type: string
+        merchant_id:
+          type: string
+        new_merchant_name:
+          type: string
+        notes:
+          type: string
+        program:
+          type: string
+        share_can_delete:
+          type: boolean
+        share_can_edit:
+          type: boolean
+        share_with_email:
+          description: Optional sharing on creation
+          type: string
+        status:
+          type: string
+      type: object
+    api.CardDTO:
+      properties:
+        barcode_type:
+          type: string
+        card_number:
+          type: string
+        created_at:
+          type: string
+        id:
+          type: string
+        is_favorite:
+          type: boolean
+        is_shared:
+          type: boolean
+        merchant:
+          $ref: '#/components/schemas/api.MerchantDTO'
+        merchant_id:
+          type: string
+        notes:
+          type: string
+        owner:
+          $ref: '#/components/schemas/api.UserDTO'
+        permissions:
+          $ref: '#/components/schemas/api.PermissionDTO'
+        program:
+          type: string
+        shared_with_count:
+          type: integer
+        status:
+          type: string
+        updated_at:
+          type: string
+      type: object
+    api.CardDetailResponse:
+      properties:
+        card:
+          $ref: '#/components/schemas/api.CardDTO'
+        duplicate_warning:
+          $ref: '#/components/schemas/api.DuplicateWarning'
+        permissions:
+          $ref: '#/components/schemas/api.PermissionDTO'
+        shares:
+          description: If owner
+          items:
+            $ref: '#/components/schemas/api.ShareDTO'
+          type: array
+          uniqueItems: false
+      type: object
+    api.CardListResponse:
+      properties:
+        cards:
+          items:
+            $ref: '#/components/schemas/api.CardDTO'
+          type: array
+          uniqueItems: false
+        pagination:
+          $ref: '#/components/schemas/api.PaginationMeta'
+      type: object
+    api.CardUpdateRequest:
+      properties:
+        barcode_type:
+          type: string
+        card_number:
+          type: string
+        merchant_id:
+          type: string
+        notes:
+          type: string
+        program:
+          type: string
+        status:
+          type: string
+      type: object
+    api.DuplicateErrorResponse:
+      properties:
+        duplicate:
+          $ref: '#/components/schemas/api.DuplicateWarning'
+        error:
+          type: string
+        message:
+          type: string
+      type: object
+    api.DuplicateWarning:
+      description: Duplicate detection
+      properties:
+        deleted:
+          description: true = existing_id refers to a soft-deleted resource that can
+            be restored
+          type: boolean
+        existing_id:
+          type: string
+        has_duplicate:
+          type: boolean
+        is_shared:
+          description: true = the duplicate is a resource shared with the user, not
+            owned
+          type: boolean
+        merchant_name:
+          type: string
+        resource_number:
+          description: Card number, voucher code, etc.
+          type: string
+        shared_by:
+          $ref: '#/components/schemas/api.UserDTO'
+      type: object
+    api.ErrorResponse:
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      type: object
+    api.FavoriteResponse:
+      properties:
+        is_favorite:
+          type: boolean
+      type: object
+    api.MerchantDTO:
+      properties:
+        color:
+          type: string
+        created_at:
+          type: string
+        id:
+          type: string
+        logo_url:
+          type: string
+        name:
+          type: string
+        updated_at:
+          type: string
+        website:
+          type: string
+      type: object
+    api.MessageResponse:
+      properties:
+        message:
+          type: string
+      type: object
+    api.PaginationMeta:
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+      type: object
+    api.PermissionDTO:
+      description: Included in detail views
+      properties:
+        can_delete:
+          type: boolean
+        can_edit:
+          type: boolean
+        can_edit_transactions:
+          description: Gift Cards only
+          type: boolean
+        can_view:
+          type: boolean
+        is_owner:
+          type: boolean
+      type: object
+    api.ShareCreateRequest:
+      properties:
+        can_delete:
+          type: boolean
+        can_edit:
+          type: boolean
+        can_edit_transactions:
+          type: boolean
+        emails:
+          items:
+            type: string
+          type: array
+          uniqueItems: false
+      type: object
+    api.ShareCreateResponse:
+      properties:
+        failed:
+          items:
+            $ref: '#/components/schemas/api.BatchFailedItem'
+          type: array
+          uniqueItems: false
+        shares:
+          items:
+            $ref: '#/components/schemas/api.ShareDTO'
+          type: array
+          uniqueItems: false
+        success_count:
+          type: integer
+      type: object
+    api.ShareDTO:
+      properties:
+        can_delete:
+          type: boolean
+        can_edit:
+          type: boolean
+        can_edit_transactions:
+          description: Gift Cards only
+          type: boolean
+        created_at:
+          type: string
+        id:
+          type: string
+        shared_with_user:
+          $ref: '#/components/schemas/api.UserDTO'
+      type: object
+    api.ShareUpdateRequest:
+      properties:
+        can_delete:
+          type: boolean
+        can_edit:
+          type: boolean
+        can_edit_transactions:
+          type: boolean
+      type: object
+    api.SharesResponse:
+      properties:
+        message:
+          type: string
+        shares:
+          items:
+            $ref: '#/components/schemas/api.ShareDTO'
+          type: array
+          uniqueItems: false
+      type: object
+    api.TransferRequest:
+      properties:
+        new_owner_email:
+          type: string
+      type: object
+    api.UserDTO:
+      description: owner who shared the duplicate (only set when IsShared)
+      properties:
+        email:
+          type: string
+        first_name:
+          type: string
+        id:
+          type: string
+        is_admin:
+          type: boolean
+        last_name:
+          type: string
+      type: object
+  securitySchemes:
+    cookieAuth:
+      in: cookie
+      name: session
+      type: apiKey
+externalDocs:
+  description: Savvy documentation
+  url: https://github.com/sbaerlocher/savvy#readme
+info:
+  description: |-
+    JSON API for Savvy — digital management of customer cards, vouchers and gift cards.
+    Authentication uses a server-side session cookie; mutating requests additionally require a CSRF token.
+  license:
+    name: MIT
+    url: https://github.com/sbaerlocher/savvy/blob/main/LICENSE
+  title: Savvy API
+  version: "1.0"
+openapi: 3.1.0
+paths:
+  /cards:
+    get:
+      description: Returns all cards the user owns or has been given access to. Omitting
+        both pagination parameters returns the full list without a pagination block.
+      parameters:
+      - description: Page number, 1-based. Enables pagination.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Items per page, capped at 100.
+        in: query
+        name: per_page
+        schema:
+          default: 25
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.CardListResponse'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to load cards
+      security:
+      - cookieAuth: []
+      summary: List cards
+      tags:
+      - cards
+    post:
+      description: Creates a card for the current user. Either merchant_id or new_merchant_name
+        must be set. A card number already owned by the user is rejected with 409;
+        a card number only shared with the user is allowed and reported back as an
+        advisory duplicate warning.
+      parameters:
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.CardCreateRequest'
+              description: Card to create
+              summary: card
+        description: Card to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.CardDetailResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid or missing fields
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid CSRF token
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.DuplicateErrorResponse'
+          description: Card number already exists, possibly soft-deleted and restorable
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to create card
+      security:
+      - cookieAuth: []
+      summary: Create a card
+      tags:
+      - cards
+  /cards/{id}:
+    delete:
+      description: Soft-deletes the card. A deleted card owned by the caller can be
+        brought back via the restore endpoint.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: No delete permission or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to delete card
+      security:
+      - cookieAuth: []
+      summary: Delete a card
+      tags:
+      - cards
+    get:
+      description: Returns a single card including the caller's permissions. Shares
+        are only included when the caller owns the card.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.CardDetailResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: No access to this card
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Card not found
+      security:
+      - cookieAuth: []
+      summary: Get a card
+      tags:
+      - cards
+    patch:
+      description: Applies a partial update; omitted fields keep their current value.
+        A card number colliding with another card owned by the caller is reported
+        as an advisory warning, not an error.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.CardUpdateRequest'
+              description: Fields to update
+              summary: card
+        description: Fields to update
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.CardDetailResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid request body or card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: No edit permission or invalid CSRF token
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Card not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to update card
+      security:
+      - cookieAuth: []
+      summary: Update a card
+      tags:
+      - cards
+  /cards/{id}/favorite:
+    post:
+      description: Flips the caller's favorite flag for this card and returns the
+        resulting state.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.FavoriteResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: No access to this card or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to toggle favorite
+      security:
+      - cookieAuth: []
+      summary: Toggle favorite
+      tags:
+      - cards
+  /cards/{id}/restore:
+    post:
+      description: Brings a soft-deleted card back. Only the original owner can restore,
+        and the restored card always comes back with owner permissions.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.CardDetailResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid CSRF token
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: No restorable card found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to restore card
+      security:
+      - cookieAuth: []
+      summary: Restore a deleted card
+      tags:
+      - cards
+  /cards/{id}/share:
+    post:
+      description: Shares the card with one or more recipients by email, all with
+        the same permissions. Partial success returns 201 with the failures listed;
+        if every recipient fails the status is 422.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.ShareCreateRequest'
+              description: Recipients and permissions
+              summary: share
+        description: Recipients and permissions
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ShareCreateResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid request body or card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Only the owner can share, or invalid CSRF token
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ShareCreateResponse'
+          description: Every recipient failed
+      security:
+      - cookieAuth: []
+      summary: Share a card
+      tags:
+      - cards
+  /cards/{id}/share/{sharedWithID}:
+    delete:
+      description: Revokes one recipient's access to the card.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: Recipient user ID
+        in: path
+        name: sharedWithID
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID or user ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Only the owner can remove shares, or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to remove share
+      security:
+      - cookieAuth: []
+      summary: Remove a share
+      tags:
+      - cards
+    patch:
+      description: Replaces the permissions of an existing share. Omitted permission
+        flags are treated as false, and the change is written to the audit log.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: Recipient user ID
+        in: path
+        name: sharedWithID
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.ShareUpdateRequest'
+              description: New permissions
+              summary: permissions
+        description: New permissions
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.SharesResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid request body, card ID or user ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Only the owner can update shares, or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to update share permissions
+      security:
+      - cookieAuth: []
+      summary: Update share permissions
+      tags:
+      - cards
+  /cards/{id}/shares:
+    delete:
+      description: Revokes access for every recipient of the card at once.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid card ID
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Only the owner can remove shares, or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to remove shares
+      security:
+      - cookieAuth: []
+      summary: Remove all shares
+      tags:
+      - cards
+  /cards/{id}/transfer:
+    post:
+      description: Hands the card over to another user by email. Only the current
+        owner can transfer, and the new owner must already have an account.
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: CSRF token
+        in: header
+        name: X-CSRF-Token
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api.TransferRequest'
+              description: New owner
+              summary: transfer
+        description: New owner
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.MessageResponse'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Invalid request body, card ID or unknown recipient
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Not authenticated
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Only the owner can transfer, or invalid CSRF token
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api.ErrorResponse'
+          description: Failed to transfer card
+      security:
+      - cookieAuth: []
+      summary: Transfer ownership
+      tags:
+      - cards
+servers:
+- description: Savvy JSON API
+  url: /api/v1

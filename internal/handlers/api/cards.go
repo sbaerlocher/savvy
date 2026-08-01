@@ -58,6 +58,18 @@ func NewCardsHandler(
 // List returns all cards (owned + shared)
 // GET /api/v1/cards
 // Optional query params: ?page=1&per_page=25 for pagination
+//
+//	@Summary		List cards
+//	@Description	Returns all cards the user owns or has been given access to. Omitting both pagination parameters returns the full list without a pagination block.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number, 1-based. Enables pagination."
+//	@Param			per_page	query		int	false	"Items per page, capped at 100."	default(25)
+//	@Success		200			{object}	CardListResponse
+//	@Failure		401			{object}	ErrorResponse	"Not authenticated"
+//	@Failure		500			{object}	ErrorResponse	"Failed to load cards"
+//	@Security		cookieAuth
+//	@Router			/cards [get]
 func (h *CardsHandler) List(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -123,6 +135,19 @@ func (h *CardsHandler) List(c *echo.Context) error {
 
 // Show returns a single card with permissions
 // GET /api/v1/cards/:id
+//
+//	@Summary		Get a card
+//	@Description	Returns a single card including the caller's permissions. Shares are only included when the caller owns the card.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id	path		string	true	"Card ID"	format(uuid)
+//	@Success		200	{object}	CardDetailResponse
+//	@Failure		400	{object}	ErrorResponse	"Invalid card ID"
+//	@Failure		401	{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403	{object}	ErrorResponse	"No access to this card"
+//	@Failure		404	{object}	ErrorResponse	"Card not found"
+//	@Security		cookieAuth
+//	@Router			/cards/{id} [get]
 func (h *CardsHandler) Show(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -182,6 +207,22 @@ func (h *CardsHandler) Show(c *echo.Context) error {
 
 // Create creates a new card
 // POST /api/v1/cards
+//
+//	@Summary		Create a card
+//	@Description	Creates a card for the current user. Either merchant_id or new_merchant_name must be set. A card number already owned by the user is rejected with 409; a card number only shared with the user is allowed and reported back as an advisory duplicate warning.
+//	@Tags			cards
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-CSRF-Token	header		string					true	"CSRF token"
+//	@Param			card			body		CardCreateRequest		true	"Card to create"
+//	@Success		201				{object}	CardDetailResponse
+//	@Failure		400				{object}	ErrorResponse			"Invalid or missing fields"
+//	@Failure		401				{object}	ErrorResponse			"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse			"Invalid CSRF token"
+//	@Failure		409				{object}	DuplicateErrorResponse	"Card number already exists, possibly soft-deleted and restorable"
+//	@Failure		500				{object}	ErrorResponse			"Failed to create card"
+//	@Security		cookieAuth
+//	@Router			/cards [post]
 func (h *CardsHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -415,7 +456,24 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 }
 
 // Update updates a card
-// PUT /api/v1/cards/:id
+// PATCH /api/v1/cards/:id
+//
+//	@Summary		Update a card
+//	@Description	Applies a partial update; omitted fields keep their current value. A card number colliding with another card owned by the caller is reported as an advisory warning, not an error.
+//	@Tags			cards
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string				true	"CSRF token"
+//	@Param			card			body		CardUpdateRequest	true	"Fields to update"
+//	@Success		200				{object}	CardDetailResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid request body or card ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"No edit permission or invalid CSRF token"
+//	@Failure		404				{object}	ErrorResponse	"Card not found"
+//	@Failure		500				{object}	ErrorResponse	"Failed to update card"
+//	@Security		cookieAuth
+//	@Router			/cards/{id} [patch]
 func (h *CardsHandler) Update(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -568,18 +626,62 @@ func (h *CardsHandler) Update(c *echo.Context) error {
 
 // Delete deletes a card
 // DELETE /api/v1/cards/:id
+//
+//	@Summary		Delete a card
+//	@Description	Soft-deletes the card. A deleted card owned by the caller can be brought back via the restore endpoint.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id				path		string	true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string	true	"CSRF token"
+//	@Success		200				{object}	MessageResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid card ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"No delete permission or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to delete card"
+//	@Security		cookieAuth
+//	@Router			/cards/{id} [delete]
 func (h *CardsHandler) Delete(c *echo.Context) error {
 	return handleResourceDelete(c, "card", h.authzService.CheckCardAccess, h.cardService.DeleteCard)
 }
 
 // ToggleFavorite toggles favorite status
 // POST /api/v1/cards/:id/favorite
+//
+//	@Summary		Toggle favorite
+//	@Description	Flips the caller's favorite flag for this card and returns the resulting state.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id				path		string	true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string	true	"CSRF token"
+//	@Success		200				{object}	FavoriteResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid card ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"No access to this card or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to toggle favorite"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/favorite [post]
 func (h *CardsHandler) ToggleFavorite(c *echo.Context) error {
 	return handleResourceToggleFavorite(c, "card", h.authzService.CheckCardAccess, h.favoriteService)
 }
 
 // CreateShare creates a new share
 // POST /api/v1/cards/:id/share
+//
+//	@Summary		Share a card
+//	@Description	Shares the card with one or more recipients by email, all with the same permissions. Partial success returns 201 with the failures listed; if every recipient fails the status is 422.
+//	@Tags			cards
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string				true	"CSRF token"
+//	@Param			share			body		ShareCreateRequest	true	"Recipients and permissions"
+//	@Success		201				{object}	ShareCreateResponse
+//	@Failure		400				{object}	ErrorResponse		"Invalid request body or card ID"
+//	@Failure		401				{object}	ErrorResponse		"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse		"Only the owner can share, or invalid CSRF token"
+//	@Failure		422				{object}	ShareCreateResponse	"Every recipient failed"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/share [post]
 func (h *CardsHandler) CreateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -621,6 +723,23 @@ func (h *CardsHandler) CreateShare(c *echo.Context) error {
 
 // UpdateShare updates share permissions
 // PATCH /api/v1/cards/:id/share/:sharedWithID
+//
+//	@Summary		Update share permissions
+//	@Description	Replaces the permissions of an existing share. Omitted permission flags are treated as false, and the change is written to the audit log.
+//	@Tags			cards
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string				true	"Card ID"			format(uuid)
+//	@Param			sharedWithID	path		string				true	"Recipient user ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string				true	"CSRF token"
+//	@Param			permissions		body		ShareUpdateRequest	true	"New permissions"
+//	@Success		200				{object}	SharesResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid request body, card ID or user ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"Only the owner can update shares, or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to update share permissions"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/share/{sharedWithID} [patch]
 func (h *CardsHandler) UpdateShare(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -690,32 +809,92 @@ func (h *CardsHandler) UpdateShare(c *echo.Context) error {
 		slog.WarnContext(c.Request().Context(), "failed to load shares", "resource_type", "card", "resource_id", cardID, "error", err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"message": "Share permissions updated successfully",
-		"shares":  ToCardShareDTOs(shares),
+	return c.JSON(http.StatusOK, SharesResponse{
+		Message: "Share permissions updated successfully",
+		Shares:  ToCardShareDTOs(shares),
 	})
 }
 
 // DeleteShare removes a share
 // DELETE /api/v1/cards/:id/share/:sharedWithID
+//
+//	@Summary		Remove a share
+//	@Description	Revokes one recipient's access to the card.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id				path		string	true	"Card ID"			format(uuid)
+//	@Param			sharedWithID	path		string	true	"Recipient user ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string	true	"CSRF token"
+//	@Success		200				{object}	MessageResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid card ID or user ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"Only the owner can remove shares, or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to remove share"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/share/{sharedWithID} [delete]
 func (h *CardsHandler) DeleteShare(c *echo.Context) error {
 	return handleResourceDeleteShare(c, "card", h.authzService.CheckCardAccess, h.shareService.DeleteCardShare)
 }
 
 // DeleteAllShares removes all shares for a card
 // DELETE /api/v1/cards/:id/shares
+//
+//	@Summary		Remove all shares
+//	@Description	Revokes access for every recipient of the card at once.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id				path		string	true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string	true	"CSRF token"
+//	@Success		200				{object}	MessageResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid card ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"Only the owner can remove shares, or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to remove shares"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/shares [delete]
 func (h *CardsHandler) DeleteAllShares(c *echo.Context) error {
 	return handleResourceDeleteAllShares(c, "card", h.authzService.CheckCardAccess, h.shareService.DeleteAllCardShares)
 }
 
 // Transfer transfers ownership
 // POST /api/v1/cards/:id/transfer
+//
+//	@Summary		Transfer ownership
+//	@Description	Hands the card over to another user by email. Only the current owner can transfer, and the new owner must already have an account.
+//	@Tags			cards
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string			true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string			true	"CSRF token"
+//	@Param			transfer		body		TransferRequest	true	"New owner"
+//	@Success		200				{object}	MessageResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid request body, card ID or unknown recipient"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"Only the owner can transfer, or invalid CSRF token"
+//	@Failure		500				{object}	ErrorResponse	"Failed to transfer card"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/transfer [post]
 func (h *CardsHandler) Transfer(c *echo.Context) error {
 	return handleResourceTransfer(c, "card", h.authzService.CheckCardAccess, h.transferService.TransferCardOwnership, h.userService)
 }
 
 // Restore restores a soft-deleted card owned by the current user
 // POST /api/v1/cards/:id/restore
+//
+//	@Summary		Restore a deleted card
+//	@Description	Brings a soft-deleted card back. Only the original owner can restore, and the restored card always comes back with owner permissions.
+//	@Tags			cards
+//	@Produce		json
+//	@Param			id				path		string	true	"Card ID"	format(uuid)
+//	@Param			X-CSRF-Token	header		string	true	"CSRF token"
+//	@Success		200				{object}	CardDetailResponse
+//	@Failure		400				{object}	ErrorResponse	"Invalid card ID"
+//	@Failure		401				{object}	ErrorResponse	"Not authenticated"
+//	@Failure		403				{object}	ErrorResponse	"Invalid CSRF token"
+//	@Failure		404				{object}	ErrorResponse	"No restorable card found"
+//	@Failure		500				{object}	ErrorResponse	"Failed to restore card"
+//	@Security		cookieAuth
+//	@Router			/cards/{id}/restore [post]
 func (h *CardsHandler) Restore(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 

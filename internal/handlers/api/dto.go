@@ -13,6 +13,25 @@ type PaginationMeta struct {
 	TotalPages int   `json:"total_pages"`
 }
 
+// ==================== Generic Responses ====================
+
+// MessageResponse is a bare confirmation payload, returned by endpoints whose
+// only result is "it worked" (deletes, transfers, share removals).
+type MessageResponse struct {
+	Message string `json:"message"`
+}
+
+// FavoriteResponse is the new favorite state after a toggle.
+type FavoriteResponse struct {
+	IsFavorite bool `json:"is_favorite"`
+}
+
+// SharesResponse confirms a share mutation and returns the resulting share list.
+type SharesResponse struct {
+	Message string     `json:"message"`
+	Shares  []ShareDTO `json:"shares"`
+}
+
 // ==================== Error Responses ====================
 
 // ErrorResponse represents a generic API error
