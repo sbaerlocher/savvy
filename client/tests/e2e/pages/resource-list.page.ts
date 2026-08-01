@@ -82,26 +82,25 @@ export class ResourceListPage extends BasePage {
 		// waiting for the wallet URL afterwards could check the URL we came from.
 		// The legacy redirect itself is covered by wallet.spec.ts.
 		const url = `/wallet?type=${this.resourceType}`;
-		const MAX_GOTO_ATTEMPTS = 3;
+		// Callers reach goto() right after a submit, while the app is still
+		// navigating to the new resource's detail route. Racing that with our own
+		// goto() is what makes this flaky, and the observed CI failure is a goto
+		// left pending until its timeout rather than one rejecting with an abort —
+		// so retry on all three shapes.
+		//
+		// Budget: these timeouts plus the assertions below must stay under the 60s
+		// per-test timeout from playwright.config.ts, otherwise the final attempt
+		// is unreachable and a real failure surfaces as the far less diagnostic
+		// "Test timeout exceeded". 2 × 10s here + 3 × 10s below = 50s.
+		const MAX_GOTO_ATTEMPTS = 2;
 		for (let attempt = 0; attempt < MAX_GOTO_ATTEMPTS; attempt++) {
-			// Callers reach goto() right after a submit, while the app is still
-			// navigating to the new resource's detail route. Racing that with our
-			// own goto() is what made this flaky: the client-side navigation keeps
-			// the goto pending until its own timeout rather than rejecting with an
-			// abort. Let the in-flight navigation land first — a no-op once the
-			// page is already settled.
-			await this.page
-				.waitForLoadState('domcontentloaded', { timeout: 5000 })
-				.catch(() => {});
 			try {
 				await this.page.goto(url, {
 					waitUntil: 'domcontentloaded',
-					timeout: 15000
+					timeout: 10000
 				});
 				break;
 			} catch (error) {
-				// Retry on both failure shapes the race produces: an explicit abort
-				// and a goto that simply never settles.
 				const message = error instanceof Error ? error.message : String(error);
 				const racy =
 					message.includes('interrupted by another navigation') ||
@@ -121,12 +120,14 @@ export class ResourceListPage extends BasePage {
 		// offline-first loader may serve cached data without issuing a fresh
 		// request, in which case waiting on the API call hangs until its timeout.
 		// The wallet route renders its PageHeader in both the loading and the
-		// loaded branch, so the heading proves the component mounted; the spinner
-		// disappearing proves loadData() finished. Together they cover every
-		// valid outcome — tiles, the unfiltered empty state and the filtered
-		// "no results" state — without enumerating locale-specific copy.
-		await expect(this.heading).toBeVisible({ timeout: 15000 });
-		await expect(this.loadingSpinner).toBeHidden({ timeout: 15000 });
+		// loaded branch, so the heading proves the component mounted. The spinner
+		// clears via revealFirstPage() as soon as the first enabled type has its
+		// first page — later pages keep streaming in — so this asserts the list is
+		// rendered, not that every page arrived. That covers every valid outcome
+		// (tiles, the unfiltered empty state, the filtered "no results" state)
+		// without enumerating locale-specific copy.
+		await expect(this.heading).toBeVisible({ timeout: 10000 });
+		await expect(this.loadingSpinner).toBeHidden({ timeout: 10000 });
 	}
 
 	async expectHeading() {
