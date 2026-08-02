@@ -69,9 +69,15 @@
 			notification.resource_type;
 
 		if (notification.type === 'share_received') {
-			return `${fromUser} ${$t('notifications.sharedWith', { resource: resourceTypeLabel })}`;
+			const merchant = (notification.metadata.merchant_name as string) || '';
+			return merchant
+				? `${fromUser} ${$t('notifications.sharedWith', { resource: resourceTypeLabel, merchant })}`
+				: `${fromUser} ${$t('notifications.sharedWithPlain', { resource: resourceTypeLabel })}`;
 		} else if (notification.type === 'transfer_received') {
-			return `${fromUser} ${$t('notifications.transferredTo', { resource: resourceTypeLabel })}`;
+			const merchant = (notification.metadata.merchant_name as string) || '';
+			return merchant
+				? `${fromUser} ${$t('notifications.transferredTo', { resource: resourceTypeLabel, merchant })}`
+				: `${fromUser} ${$t('notifications.transferredToPlain', { resource: resourceTypeLabel })}`;
 		} else if (notification.type === 'expiry_reminder') {
 			const merchantName =
 				(notification.metadata.merchant_name as string) || '';

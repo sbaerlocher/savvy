@@ -95,7 +95,7 @@ func TestNotificationService_CreateShareNotification(t *testing.T) {
 	})).Return(nil)
 
 	// Test: Create share notification
-	err := service.CreateShareNotification(ctx, recipientID, fromUserID, "John Doe", "card", resourceID, permissions)
+	err := service.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John Doe", ResourceType: "card", ResourceID: resourceID, Permissions: permissions})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -119,7 +119,7 @@ func TestNotificationService_CreateShareNotification_NoPermissions(t *testing.T)
 	})).Return(nil)
 
 	// Test: Create share notification without permissions
-	err := service.CreateShareNotification(ctx, recipientID, fromUserID, "Jane Doe", "voucher", resourceID, nil)
+	err := service.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Jane Doe", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -139,7 +139,7 @@ func TestNotificationService_CreateShareNotification_Error(t *testing.T) {
 	mockRepo.On("Create", ctx, mock.Anything).Return(repoError)
 
 	// Test: Repository error is propagated
-	err := service.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := service.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, repoError)
@@ -165,7 +165,7 @@ func TestNotificationService_CreateTransferNotification(t *testing.T) {
 	})).Return(nil)
 
 	// Test: Create transfer notification
-	err := service.CreateTransferNotification(ctx, recipientID, fromUserID, "Transfer User", "gift_card", resourceID)
+	err := service.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Transfer User", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -186,7 +186,7 @@ func TestNotificationService_CreateTransferNotification_Card(t *testing.T) {
 	})).Return(nil)
 
 	// Test: Transfer notification for card
-	err := service.CreateTransferNotification(ctx, recipientID, fromUserID, "Owner", "card", resourceID)
+	err := service.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Owner", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -206,7 +206,7 @@ func TestNotificationService_CreateTransferNotification_Error(t *testing.T) {
 	mockRepo.On("Create", ctx, mock.Anything).Return(repoError)
 
 	// Test: Error is propagated
-	err := service.CreateTransferNotification(ctx, recipientID, fromUserID, "User", "voucher", resourceID)
+	err := service.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "User", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, repoError)
@@ -524,7 +524,7 @@ func TestNotificationService_CreateShareNotification_MetadataStructure(t *testin
 	})).Return(nil)
 
 	// Test: Metadata structure is correct
-	err := service.CreateShareNotification(ctx, recipientID, fromUserID, "Alice", "gift_card", resourceID, permissions)
+	err := service.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Alice", ResourceType: "gift_card", ResourceID: resourceID, Permissions: permissions})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -556,7 +556,7 @@ func TestNotificationService_CreateTransferNotification_MetadataStructure(t *tes
 	})).Return(nil)
 
 	// Test: Transfer metadata structure
-	err := service.CreateTransferNotification(ctx, recipientID, fromUserID, "Bob", "card", resourceID)
+	err := service.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Bob", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
@@ -644,13 +644,13 @@ type MockEmailSvcForNotification struct {
 	mock.Mock
 }
 
-func (m *MockEmailSvcForNotification) SendShareNotification(ctx context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
-	args := m.Called(ctx, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language)
+func (m *MockEmailSvcForNotification) SendShareNotification(ctx context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
+	args := m.Called(ctx, toEmail, toName, fromName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL, language)
 	return args.Error(0)
 }
 
-func (m *MockEmailSvcForNotification) SendTransferNotification(ctx context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
-	args := m.Called(ctx, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language)
+func (m *MockEmailSvcForNotification) SendTransferNotification(ctx context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
+	args := m.Called(ctx, toEmail, toName, fromName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL, language)
 	return args.Error(0)
 }
 
@@ -777,7 +777,7 @@ func TestNotificationService_SharePushGating_PushSharingDisabled(t *testing.T) {
 	// Push should NOT be called because PushSharingEnabled is false
 	// Email should NOT be called because EmailNotificationsEnabled is false
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -812,7 +812,7 @@ func TestNotificationService_SharePushGating_PushChannelDisabled(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -847,7 +847,7 @@ func TestNotificationService_SharePushGating_BothEnabled(t *testing.T) {
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything)
@@ -881,7 +881,7 @@ func TestNotificationService_ShareEmailGating_EmailSharingDisabled(t *testing.T)
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	emailSvc.AssertNotCalled(t, "SendShareNotification")
@@ -915,7 +915,7 @@ func TestNotificationService_ShareEmailGating_EmailChannelDisabled(t *testing.T)
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	emailSvc.AssertNotCalled(t, "SendShareNotification")
@@ -951,12 +951,12 @@ func TestNotificationService_ShareEmailGating_BothEnabled(t *testing.T) {
 	// GetByID is called twice: once for push gating (getRecipient), once for sendShareEmail
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("test-token", nil)
-	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything)
+	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestNotificationService_TransferPushGating_PushSharingDisabled verifies that
@@ -987,7 +987,7 @@ func TestNotificationService_TransferPushGating_PushSharingDisabled(t *testing.T
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "voucher", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -1021,7 +1021,7 @@ func TestNotificationService_TransferEmailGating_EmailSharingDisabled(t *testing
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "gift_card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	emailSvc.AssertNotCalled(t, "SendTransferNotification")
@@ -1057,13 +1057,13 @@ func TestNotificationService_TransferGating_AllEnabled(t *testing.T) {
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("test-token", nil)
-	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "gift_card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything)
-	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything)
+	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 // ============================================================================
@@ -1123,7 +1123,7 @@ func TestNotificationService_CreateShareNotification_PushDisabled(t *testing.T) 
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, map[string]bool{"can_edit": true})
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID, Permissions: map[string]bool{"can_edit": true}})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -1151,7 +1151,7 @@ func TestNotificationService_CreateShareNotification_PushSharingDisabled(t *test
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, map[string]bool{"can_edit": true})
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID, Permissions: map[string]bool{"can_edit": true}})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -1190,7 +1190,7 @@ func TestNotificationService_CreateTransferNotification_WithPushEnabled(t *testi
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/vouchers").Return(nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "Alice", "voucher", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Alice", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/vouchers")
@@ -1225,7 +1225,7 @@ func TestNotificationService_CreateTransferNotification_PushAndEmailDisabled(t *
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "Alice", "card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Alice", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -1262,7 +1262,7 @@ func TestNotificationService_SendPush_Error(t *testing.T) {
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("push failed"))
 
 	// Error should not propagate - notification creation still succeeds
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything)
@@ -1282,7 +1282,7 @@ func TestNotificationService_SendPush_NilPushService(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 
 	// pushService is nil, should not panic
-	err := service.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "card", resourceID)
+	err := service.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 }
@@ -1313,7 +1313,7 @@ func TestNotificationService_SendShareEmail_UserRepoError(t *testing.T) {
 	userRepo.On("GetByID", ctx, recipientID).Return(nil, errors.New("user not found"))
 
 	// Email should not be called because userRepo.GetByID failed
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	emailSvc.AssertNotCalled(t, "SendShareNotification")
@@ -1344,7 +1344,7 @@ func TestNotificationService_SendTransferEmail_UserRepoError(t *testing.T) {
 	userRepo.On("GetByID", ctx, recipientID).Return(nil, errors.New("user not found"))
 
 	// Email should not be called because userRepo.GetByID failed
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "voucher", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	emailSvc.AssertNotCalled(t, "SendTransferNotification")
@@ -1370,7 +1370,7 @@ func TestNotificationService_SendShareEmail_NilEmailService(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(nil, errors.New("not found"))
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 }
@@ -1408,12 +1408,12 @@ func TestNotificationService_GenerateUnsubscribeURL_NilTokenService(t *testing.T
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	// Unsubscribe URL will be "" because emailTokenService is nil
-	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, "", mock.Anything).Return(nil)
+	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything).Return(nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, "", mock.Anything)
+	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything)
 }
 
 // TestNotificationService_GenerateUnsubscribeURL_TokenError verifies that
@@ -1445,12 +1445,12 @@ func TestNotificationService_GenerateUnsubscribeURL_TokenError(t *testing.T) {
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("", errors.New("token creation failed"))
 	// Unsubscribe URL will be "" because token creation failed
-	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, "", mock.Anything).Return(nil)
+	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything).Return(nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "Bob", "gift_card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Bob", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, "", mock.Anything)
+	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything)
 }
 
 // TestNotificationService_SendShareEmail_SendError verifies that email send errors
@@ -1481,10 +1481,10 @@ func TestNotificationService_SendShareEmail_SendError(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("tok", nil)
-	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "voucher", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("smtp error"))
+	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "voucher", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("smtp error"))
 
 	// Error should not propagate
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "John", "voucher", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 }
@@ -1517,10 +1517,10 @@ func TestNotificationService_SendTransferEmail_SendError(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("tok", nil)
-	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "card", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("smtp error"))
+	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("smtp error"))
 
 	// Error should not propagate
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "Bob", "card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Bob", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 }
@@ -1543,7 +1543,7 @@ func TestNotificationService_GetRecipient_NilUserRepo(t *testing.T) {
 	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
 
 	// With nil userRepo, recipient lookup returns nil → push is still sent (nil check passes)
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "John", "card", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 }
@@ -1577,7 +1577,7 @@ func TestNotificationService_CreateTransferNotification_VoucherResourceURL(t *te
 	// Verify the URL ends with "/vouchers"
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/vouchers").Return(nil)
 
-	err := svc.CreateTransferNotification(ctx, recipientID, fromUserID, "User", "voucher", resourceID)
+	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "User", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/vouchers")
@@ -1614,7 +1614,7 @@ func TestNotificationService_CreateShareNotification_GiftCardResourceURL(t *test
 	// and render a white screen.
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift-cards").Return(nil)
 
-	err := svc.CreateShareNotification(ctx, recipientID, fromUserID, "User", "gift_card", resourceID, nil)
+	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "User", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, "/gift-cards")

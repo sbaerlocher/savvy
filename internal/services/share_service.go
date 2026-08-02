@@ -19,6 +19,50 @@ import (
 // ErrNotOwner is returned when caller is not the resource owner.
 var ErrNotOwner = errors.New("caller is not the resource owner")
 
+// cardMerchantName resolves the merchant name for a card: the linked merchant's
+// name, falling back to the free-text MerchantName (mirrors reminder_service).
+func cardMerchantName(c *models.Card) string {
+	if c.Merchant != nil && c.Merchant.Name != "" {
+		return c.Merchant.Name
+	}
+	return c.MerchantName
+}
+
+// voucherMerchantName resolves the merchant name for a voucher.
+func voucherMerchantName(v *models.Voucher) string {
+	if v.Merchant != nil && v.Merchant.Name != "" {
+		return v.Merchant.Name
+	}
+	return v.MerchantName
+}
+
+// giftCardMerchantName resolves the merchant name for a gift card.
+func giftCardMerchantName(gc *models.GiftCard) string {
+	if gc.Merchant != nil && gc.Merchant.Name != "" {
+		return gc.Merchant.Name
+	}
+	return gc.MerchantName
+}
+
+// voucherNotificationValue returns the monetary value of a voucher for a
+// notification, only for fixed_amount vouchers where an amount+currency is
+// meaningful. Percentage/points/free vouchers have no monetary value → nil.
+func voucherNotificationValue(v *models.Voucher) *NotificationValue {
+	if v.Type != "fixed_amount" || v.Value == 0 {
+		return nil
+	}
+	return &NotificationValue{Amount: v.Value, Currency: v.Currency}
+}
+
+// giftCardNotificationValue returns the current balance of a gift card as a
+// notification value. Returns nil when the balance is zero.
+func giftCardNotificationValue(gc *models.GiftCard) *NotificationValue {
+	if gc.CurrentBalance == 0 {
+		return nil
+	}
+	return &NotificationValue{Amount: gc.CurrentBalance, Currency: gc.Currency}
+}
+
 // ErrAlreadyShared is returned when a resource is already shared with the target user.
 var ErrAlreadyShared = errors.New("already shared with this user")
 
@@ -101,7 +145,7 @@ func (s *ShareService) CreateCardShare(ctx context.Context, callerUserID, cardID
 		return errors.New("shared with user ID is required")
 	}
 
-	card, err := s.cardRepo.GetByID(ctx, cardID)
+	card, err := s.cardRepo.GetByID(ctx, cardID, "Merchant")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("card not found")
@@ -164,11 +208,19 @@ func (s *ShareService) CreateCardShare(ctx context.Context, callerUserID, cardID
 				"owner_id", *card.UserID,
 				"owner_name", ownerUser.DisplayName())
 
-			if err := s.notificationService.CreateShareNotification(
-				ctx, sharedWithID, *card.UserID, ownerUser.DisplayName(),
-				"card", cardID,
-				map[string]bool{"can_edit": canEdit, "can_delete": canDelete},
-			); err != nil {
+			if err := s.notificationService.CreateShareNotification(ctx, ShareNotificationInput{
+				RecipientID:  sharedWithID,
+				FromUserID:   *card.UserID,
+				FromUserName: ownerUser.DisplayName(),
+				ResourceType: "card",
+				ResourceID:   cardID,
+				Permissions:  map[string]bool{"can_edit": canEdit, "can_delete": canDelete},
+				MerchantName: cardMerchantName(card),
+				// Notes is free-form and the only field on Card where a PIN or
+				// door code can live, so it never leaves for the push body.
+				Description: "",
+				Value:       nil, // Card has no value
+			}); err != nil {
 				slog.Warn("Failed to create share notification for card",
 					"card_id", cardID, "shared_with_id", sharedWithID, "error", err)
 			} else {
@@ -194,7 +246,7 @@ func (s *ShareService) CreateVoucherShare(ctx context.Context, callerUserID, vou
 		return errors.New("shared with user ID is required")
 	}
 
-	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
+	voucher, err := s.voucherRepo.GetByID(ctx, voucherID, "Merchant")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("voucher not found")
@@ -244,10 +296,17 @@ func (s *ShareService) CreateVoucherShare(ctx context.Context, callerUserID, vou
 	if voucher.UserID != nil {
 		ownerUser, err := s.userRepo.GetByID(ctx, *voucher.UserID)
 		if err == nil {
-			if err := s.notificationService.CreateShareNotification(
-				ctx, sharedWithID, *voucher.UserID, ownerUser.DisplayName(),
-				"voucher", voucherID, nil,
-			); err != nil {
+			if err := s.notificationService.CreateShareNotification(ctx, ShareNotificationInput{
+				RecipientID:  sharedWithID,
+				FromUserID:   *voucher.UserID,
+				FromUserName: ownerUser.DisplayName(),
+				ResourceType: "voucher",
+				ResourceID:   voucherID,
+				Permissions:  nil,
+				MerchantName: voucherMerchantName(voucher),
+				Description:  voucher.Description,
+				Value:        voucherNotificationValue(voucher),
+			}); err != nil {
 				slog.Warn("Failed to create share notification for voucher",
 					"voucher_id", voucherID, "shared_with_id", sharedWithID, "error", err)
 			}
@@ -266,7 +325,7 @@ func (s *ShareService) CreateGiftCardShare(ctx context.Context, callerUserID, gi
 		return errors.New("shared with user ID is required")
 	}
 
-	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
+	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID, "Merchant")
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("gift card not found")
@@ -319,14 +378,22 @@ func (s *ShareService) CreateGiftCardShare(ctx context.Context, callerUserID, gi
 	if giftCard.UserID != nil {
 		ownerUser, err := s.userRepo.GetByID(ctx, *giftCard.UserID)
 		if err == nil {
-			if err := s.notificationService.CreateShareNotification(
-				ctx, sharedWithID, *giftCard.UserID, ownerUser.DisplayName(),
-				"gift_card", giftCardID,
-				map[string]bool{
+			if err := s.notificationService.CreateShareNotification(ctx, ShareNotificationInput{
+				RecipientID:  sharedWithID,
+				FromUserID:   *giftCard.UserID,
+				FromUserName: ownerUser.DisplayName(),
+				ResourceType: "gift_card",
+				ResourceID:   giftCardID,
+				Permissions: map[string]bool{
 					"can_edit": canEdit, "can_delete": canDelete,
 					"can_edit_transactions": canEditTransactions,
 				},
-			); err != nil {
+				MerchantName: giftCardMerchantName(giftCard),
+				// Same as Card: Notes is free-form and sits next to the PIN
+				// field, so it stays out of the push body.
+				Description: "",
+				Value:       giftCardNotificationValue(giftCard),
+			}); err != nil {
 				slog.Warn("Failed to create share notification for gift card",
 					"gift_card_id", giftCardID, "shared_with_id", sharedWithID, "error", err)
 			}

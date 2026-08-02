@@ -234,13 +234,28 @@ func TestShareNotificationStrings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.lang, func(t *testing.T) {
-			strs := shareNotificationStrings(tt.lang, "Bob", "Alice", "voucher", "https://example.com/v/1", "https://example.com/unsub")
+			strs := shareNotificationStrings(tt.lang, "Bob", "Alice", "voucher", "IKEA", "20% off", 50, "CHF", "https://example.com/v/1", "https://example.com/unsub")
 			assert.Equal(t, tt.wantSubject, strs.Subject)
 			assert.Equal(t, tt.wantTitle, strs.Data["Title"])
 			assert.Contains(t, strs.Data["Message"], "Alice")
 			assert.NotEmpty(t, strs.Data["UnsubscribeText"])
+			// merchant + description + value are carried through
+			assert.Equal(t, "IKEA", strs.Data["Merchant"])
+			assert.Equal(t, "20% off", strs.Data["Description"])
+			assert.Equal(t, "CHF 50.00", strs.Data["Value"])
+			assert.NotEmpty(t, strs.Data["MerchantLabel"])
 		})
 	}
+}
+
+// TestShareNotificationStrings_NoValue verifies an empty value yields no value
+// string so the template omits the row.
+func TestShareNotificationStrings_NoValue(t *testing.T) {
+	initTestI18n(t)
+	strs := shareNotificationStrings("en", "Bob", "Alice", "card", "", "Some notes", 0, "", "https://example.com/c/1", "")
+	assert.Equal(t, "", strs.Data["Merchant"])
+	assert.Equal(t, "Some notes", strs.Data["Description"])
+	assert.Equal(t, "", strs.Data["Value"])
 }
 
 func TestTransferNotificationStrings(t *testing.T) {
@@ -258,10 +273,11 @@ func TestTransferNotificationStrings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.lang, func(t *testing.T) {
-			strs := transferNotificationStrings(tt.lang, "Bob", "Alice", "card", "https://example.com/c/1", "https://example.com/unsub")
+			strs := transferNotificationStrings(tt.lang, "Bob", "Alice", "card", "IKEA", "", 0, "", "https://example.com/c/1", "https://example.com/unsub")
 			assert.Equal(t, tt.wantSubject, strs.Subject)
 			assert.Equal(t, tt.wantTitle, strs.Data["Title"])
 			assert.Contains(t, strs.Data["Message"], "Alice")
+			assert.Equal(t, "IKEA", strs.Data["Merchant"])
 		})
 	}
 }

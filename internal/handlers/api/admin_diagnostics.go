@@ -171,9 +171,9 @@ func (h *AdminHandler) SendPreviewEmail(c *echo.Context) error {
 			ResourceURL:  "https://example.com/vouchers/sample-uuid",
 		}, "https://example.com/unsubscribe?token=sample-preview-token&type=reminders", lang)
 	case "share_notification":
-		err = h.emailService.SendShareNotification(ctx, user.Email, user.FirstName, "Max Muster", "voucher", "https://example.com/vouchers/sample-uuid", "https://example.com/unsubscribe?token=sample-preview-token&type=notifications", lang)
+		err = h.emailService.SendShareNotification(ctx, user.Email, user.FirstName, "Max Muster", "voucher", "IKEA", "20% auf alles", 50, "CHF", "https://example.com/vouchers/sample-uuid", "https://example.com/unsubscribe?token=sample-preview-token&type=notifications", lang)
 	case "transfer_notification":
-		err = h.emailService.SendTransferNotification(ctx, user.Email, user.FirstName, "Max Muster", "gift_card", "https://example.com/gift-cards/sample-uuid", "https://example.com/unsubscribe?token=sample-preview-token&type=notifications", lang)
+		err = h.emailService.SendTransferNotification(ctx, user.Email, user.FirstName, "Max Muster", "gift_card", "IKEA", "Geburtstagskarte", 100, "CHF", "https://example.com/gift-cards/sample-uuid", "https://example.com/unsubscribe?token=sample-preview-token&type=notifications", lang)
 	case "validity_start":
 		err = h.emailService.SendValidityStart(ctx, user.Email, user.FirstName, email.ValidityStartData{
 			MerchantName: "IKEA",

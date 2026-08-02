@@ -55,12 +55,12 @@
     }
   },
   {
-    "id": "email.expiry.days_left_today",
-    "translation": "heute"
-  },
-  {
     "id": "email.expiry.days_left_label",
     "translation": "Verbleibend"
+  },
+  {
+    "id": "email.expiry.days_left_today",
+    "translation": "heute"
   },
   {
     "id": "email.expiry.detail_label",
@@ -127,8 +127,16 @@
     "translation": "Passwort zurücksetzen"
   },
   {
+    "id": "email.share.description_label",
+    "translation": "Beschreibung"
+  },
+  {
     "id": "email.share.ignore",
     "translation": "Du erhältst diese E-Mail, weil jemand etwas mit dir in Savvy geteilt hat."
+  },
+  {
+    "id": "email.share.merchant_label",
+    "translation": "Händler"
   },
   {
     "id": "email.share.message",
@@ -141,6 +149,10 @@
   {
     "id": "email.share.title",
     "translation": "Neue Freigabe"
+  },
+  {
+    "id": "email.share.value_label",
+    "translation": "Wert"
   },
   {
     "id": "email.test.automated",
@@ -295,14 +307,6 @@
     "translation": "Ablauferinnerung"
   },
   {
-    "id": "push.validity_start.body",
-    "translation": "Dein Gutschein von {{.Merchant}} wird ab morgen gültig"
-  },
-  {
-    "id": "push.validity_start.title",
-    "translation": "Gutschein wird gültig"
-  },
-  {
     "id": "push.resource.card",
     "translation": "Karte"
   },
@@ -315,12 +319,16 @@
     "translation": "Gutschein"
   },
   {
-    "id": "voucher.type.free",
-    "translation": "Gratis"
+    "id": "push.share.body",
+    "translation": "{{.User}} hat {{.Article}} {{.Resource}} von {{.Merchant}} mit dir geteilt"
   },
   {
-    "id": "push.share.body",
+    "id": "push.share.body_generic",
     "translation": "{{.User}} hat {{.Article}} {{.Resource}} mit dir geteilt"
+  },
+  {
+    "id": "push.share.body_with_description",
+    "translation": "{{.User}} hat {{.Article}} {{.Resource}} von {{.Merchant}} mit dir geteilt: {{.Description}}"
   },
   {
     "id": "push.share.title",
@@ -328,11 +336,27 @@
   },
   {
     "id": "push.transfer.body",
+    "translation": "{{.User}} hat {{.Article}} {{.Resource}} von {{.Merchant}} an dich übertragen"
+  },
+  {
+    "id": "push.transfer.body_generic",
     "translation": "{{.User}} hat {{.Article}} {{.Resource}} an dich übertragen"
+  },
+  {
+    "id": "push.transfer.body_with_description",
+    "translation": "{{.User}} hat {{.Article}} {{.Resource}} von {{.Merchant}} an dich übertragen: {{.Description}}"
   },
   {
     "id": "push.transfer.title",
     "translation": "Besitz übertragen"
+  },
+  {
+    "id": "push.validity_start.body",
+    "translation": "Dein Gutschein von {{.Merchant}} wird ab morgen gültig"
+  },
+  {
+    "id": "push.validity_start.title",
+    "translation": "Gutschein wird gültig"
   },
   {
     "id": "success.created",
@@ -345,5 +369,9 @@
   {
     "id": "success.updated",
     "translation": "Erfolgreich aktualisiert"
+  },
+  {
+    "id": "voucher.type.free",
+    "translation": "Gratis"
   }
 ]

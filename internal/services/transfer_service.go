@@ -74,13 +74,22 @@ func (s *TransferService) validateNewOwner(ctx context.Context, newOwnerID, curr
 	return newOwner, nil
 }
 
-// sendTransferNotification sends a notification to the new owner (best effort)
-func (s *TransferService) sendTransferNotification(ctx context.Context, resourceType string, resourceID, newOwnerID, currentOwnerID uuid.UUID) {
+// sendTransferNotification sends a notification to the new owner (best effort).
+// merchantName, description and value describe the transferred resource so the
+// notification can name it; value is nil for resources without a value (Card).
+func (s *TransferService) sendTransferNotification(ctx context.Context, resourceType string, resourceID, newOwnerID, currentOwnerID uuid.UUID, merchantName, description string, value *NotificationValue) {
 	currentUser, err := s.userRepo.GetByID(ctx, currentOwnerID)
 	if err == nil {
-		if err := s.notificationService.CreateTransferNotification(
-			ctx, newOwnerID, currentOwnerID, currentUser.DisplayName(), resourceType, resourceID,
-		); err != nil {
+		if err := s.notificationService.CreateTransferNotification(ctx, TransferNotificationInput{
+			RecipientID:  newOwnerID,
+			FromUserID:   currentOwnerID,
+			FromUserName: currentUser.DisplayName(),
+			ResourceType: resourceType,
+			ResourceID:   resourceID,
+			MerchantName: merchantName,
+			Description:  description,
+			Value:        value,
+		}); err != nil {
 			slog.Warn("Failed to create transfer notification",
 				"resource_type", resourceType, "resource_id", resourceID,
 				"new_owner_id", newOwnerID, "error", err)
@@ -114,7 +123,7 @@ func (s *TransferService) TransferCardOwnership(ctx context.Context, cardID, new
 		return err
 	}
 
-	card, err := s.cardRepo.GetByID(ctx, cardID)
+	card, err := s.cardRepo.GetByID(ctx, cardID, "Merchant")
 	if err != nil {
 		return err
 	}
@@ -129,7 +138,9 @@ func (s *TransferService) TransferCardOwnership(ctx context.Context, cardID, new
 	s.logTransferAudit(ctx, currentOwnerID, "cards", cardID,
 		transferAuditData{Resource: card, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
-	s.sendTransferNotification(ctx, "card", cardID, newOwnerID, currentOwnerID)
+	// Description stays empty: Card.Notes is free-form and the only field where
+	// a PIN or door code can live, so it must not reach the push body.
+	s.sendTransferNotification(ctx, "card", cardID, newOwnerID, currentOwnerID, cardMerchantName(card), "", nil)
 	return nil
 }
 
@@ -140,7 +151,7 @@ func (s *TransferService) TransferVoucherOwnership(ctx context.Context, voucherI
 		return err
 	}
 
-	voucher, err := s.voucherRepo.GetByID(ctx, voucherID)
+	voucher, err := s.voucherRepo.GetByID(ctx, voucherID, "Merchant")
 	if err != nil {
 		return err
 	}
@@ -155,7 +166,7 @@ func (s *TransferService) TransferVoucherOwnership(ctx context.Context, voucherI
 	s.logTransferAudit(ctx, currentOwnerID, "vouchers", voucherID,
 		transferAuditData{Resource: voucher, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
-	s.sendTransferNotification(ctx, "voucher", voucherID, newOwnerID, currentOwnerID)
+	s.sendTransferNotification(ctx, "voucher", voucherID, newOwnerID, currentOwnerID, voucherMerchantName(voucher), voucher.Description, voucherNotificationValue(voucher))
 	return nil
 }
 
@@ -166,7 +177,7 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 		return err
 	}
 
-	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID)
+	giftCard, err := s.giftCardRepo.GetByID(ctx, giftCardID, "Merchant")
 	if err != nil {
 		return err
 	}
@@ -181,6 +192,8 @@ func (s *TransferService) TransferGiftCardOwnership(ctx context.Context, giftCar
 	s.logTransferAudit(ctx, currentOwnerID, "gift_cards", giftCardID,
 		transferAuditData{Resource: giftCard, NewOwnerID: newOwnerID, NewOwnerEmail: newOwner.Email})
 
-	s.sendTransferNotification(ctx, "gift_card", giftCardID, newOwnerID, currentOwnerID)
+	// Same as Card: GiftCard.Notes sits next to the PIN field, so it stays out
+	// of the push body.
+	s.sendTransferNotification(ctx, "gift_card", giftCardID, newOwnerID, currentOwnerID, giftCardMerchantName(giftCard), "", giftCardNotificationValue(giftCard))
 	return nil
 }

@@ -26,17 +26,17 @@ func (_m *MockNotificationServiceInterface) EXPECT() *MockNotificationServiceInt
 	return &MockNotificationServiceInterface_Expecter{mock: &_m.Mock}
 }
 
-// CreateShareNotification provides a mock function with given fields: ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions
-func (_m *MockNotificationServiceInterface) CreateShareNotification(ctx context.Context, recipientID uuid.UUID, fromUserID uuid.UUID, fromUserName string, resourceType string, resourceID uuid.UUID, permissions map[string]bool) error {
-	ret := _m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions)
+// CreateShareNotification provides a mock function with given fields: ctx, in
+func (_m *MockNotificationServiceInterface) CreateShareNotification(ctx context.Context, in services.ShareNotificationInput) error {
+	ret := _m.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateShareNotification")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string, string, uuid.UUID, map[string]bool) error); ok {
-		r0 = rf(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions)
+	if rf, ok := ret.Get(0).(func(context.Context, services.ShareNotificationInput) error); ok {
+		r0 = rf(ctx, in)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -51,19 +51,14 @@ type MockNotificationServiceInterface_CreateShareNotification_Call struct {
 
 // CreateShareNotification is a helper method to define mock.On call
 //   - ctx context.Context
-//   - recipientID uuid.UUID
-//   - fromUserID uuid.UUID
-//   - fromUserName string
-//   - resourceType string
-//   - resourceID uuid.UUID
-//   - permissions map[string]bool
-func (_e *MockNotificationServiceInterface_Expecter) CreateShareNotification(ctx interface{}, recipientID interface{}, fromUserID interface{}, fromUserName interface{}, resourceType interface{}, resourceID interface{}, permissions interface{}) *MockNotificationServiceInterface_CreateShareNotification_Call {
-	return &MockNotificationServiceInterface_CreateShareNotification_Call{Call: _e.mock.On("CreateShareNotification", ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions)}
+//   - in services.ShareNotificationInput
+func (_e *MockNotificationServiceInterface_Expecter) CreateShareNotification(ctx interface{}, in interface{}) *MockNotificationServiceInterface_CreateShareNotification_Call {
+	return &MockNotificationServiceInterface_CreateShareNotification_Call{Call: _e.mock.On("CreateShareNotification", ctx, in)}
 }
 
-func (_c *MockNotificationServiceInterface_CreateShareNotification_Call) Run(run func(ctx context.Context, recipientID uuid.UUID, fromUserID uuid.UUID, fromUserName string, resourceType string, resourceID uuid.UUID, permissions map[string]bool)) *MockNotificationServiceInterface_CreateShareNotification_Call {
+func (_c *MockNotificationServiceInterface_CreateShareNotification_Call) Run(run func(ctx context.Context, in services.ShareNotificationInput)) *MockNotificationServiceInterface_CreateShareNotification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(string), args[4].(string), args[5].(uuid.UUID), args[6].(map[string]bool))
+		run(args[0].(context.Context), args[1].(services.ShareNotificationInput))
 	})
 	return _c
 }
@@ -73,22 +68,22 @@ func (_c *MockNotificationServiceInterface_CreateShareNotification_Call) Return(
 	return _c
 }
 
-func (_c *MockNotificationServiceInterface_CreateShareNotification_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, string, string, uuid.UUID, map[string]bool) error) *MockNotificationServiceInterface_CreateShareNotification_Call {
+func (_c *MockNotificationServiceInterface_CreateShareNotification_Call) RunAndReturn(run func(context.Context, services.ShareNotificationInput) error) *MockNotificationServiceInterface_CreateShareNotification_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// CreateTransferNotification provides a mock function with given fields: ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID
-func (_m *MockNotificationServiceInterface) CreateTransferNotification(ctx context.Context, recipientID uuid.UUID, fromUserID uuid.UUID, fromUserName string, resourceType string, resourceID uuid.UUID) error {
-	ret := _m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID)
+// CreateTransferNotification provides a mock function with given fields: ctx, in
+func (_m *MockNotificationServiceInterface) CreateTransferNotification(ctx context.Context, in services.TransferNotificationInput) error {
+	ret := _m.Called(ctx, in)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateTransferNotification")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, string, string, uuid.UUID) error); ok {
-		r0 = rf(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID)
+	if rf, ok := ret.Get(0).(func(context.Context, services.TransferNotificationInput) error); ok {
+		r0 = rf(ctx, in)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -103,18 +98,14 @@ type MockNotificationServiceInterface_CreateTransferNotification_Call struct {
 
 // CreateTransferNotification is a helper method to define mock.On call
 //   - ctx context.Context
-//   - recipientID uuid.UUID
-//   - fromUserID uuid.UUID
-//   - fromUserName string
-//   - resourceType string
-//   - resourceID uuid.UUID
-func (_e *MockNotificationServiceInterface_Expecter) CreateTransferNotification(ctx interface{}, recipientID interface{}, fromUserID interface{}, fromUserName interface{}, resourceType interface{}, resourceID interface{}) *MockNotificationServiceInterface_CreateTransferNotification_Call {
-	return &MockNotificationServiceInterface_CreateTransferNotification_Call{Call: _e.mock.On("CreateTransferNotification", ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID)}
+//   - in services.TransferNotificationInput
+func (_e *MockNotificationServiceInterface_Expecter) CreateTransferNotification(ctx interface{}, in interface{}) *MockNotificationServiceInterface_CreateTransferNotification_Call {
+	return &MockNotificationServiceInterface_CreateTransferNotification_Call{Call: _e.mock.On("CreateTransferNotification", ctx, in)}
 }
 
-func (_c *MockNotificationServiceInterface_CreateTransferNotification_Call) Run(run func(ctx context.Context, recipientID uuid.UUID, fromUserID uuid.UUID, fromUserName string, resourceType string, resourceID uuid.UUID)) *MockNotificationServiceInterface_CreateTransferNotification_Call {
+func (_c *MockNotificationServiceInterface_CreateTransferNotification_Call) Run(run func(ctx context.Context, in services.TransferNotificationInput)) *MockNotificationServiceInterface_CreateTransferNotification_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(string), args[4].(string), args[5].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(services.TransferNotificationInput))
 	})
 	return _c
 }
@@ -124,7 +115,7 @@ func (_c *MockNotificationServiceInterface_CreateTransferNotification_Call) Retu
 	return _c
 }
 
-func (_c *MockNotificationServiceInterface_CreateTransferNotification_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, string, string, uuid.UUID) error) *MockNotificationServiceInterface_CreateTransferNotification_Call {
+func (_c *MockNotificationServiceInterface_CreateTransferNotification_Call) RunAndReturn(run func(context.Context, services.TransferNotificationInput) error) *MockNotificationServiceInterface_CreateTransferNotification_Call {
 	_c.Call.Return(run)
 	return _c
 }

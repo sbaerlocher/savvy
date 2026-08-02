@@ -42,6 +42,44 @@ func resourceListPath(resourceType string) string {
 	}
 }
 
+// sharePushBody builds the share push-notification body. When a merchant is
+// known it uses the merchant-aware key (and appends the description if present);
+// otherwise it falls back to the generic wording. The value is never included —
+// the push body must not leak amounts on a lockscreen.
+func sharePushBody(lang, fromUserName, resourceType, merchantName, description string) string {
+	return pushBody(lang, "push.share", fromUserName, resourceType, merchantName, description)
+}
+
+// transferPushBody builds the transfer push-notification body. Same rules as
+// sharePushBody: merchant-aware when known, generic otherwise, never the value.
+func transferPushBody(lang, fromUserName, resourceType, merchantName, description string) string {
+	return pushBody(lang, "push.transfer", fromUserName, resourceType, merchantName, description)
+}
+
+// pushBody is the shared implementation for sharePushBody/transferPushBody.
+// keyPrefix is "push.share" or "push.transfer".
+func pushBody(lang, keyPrefix, fromUserName, resourceType, merchantName, description string) string {
+	lctx := i18nCtx(lang)
+	resource := i18n.T(lctx, "push.resource."+resourceType)
+	article := pushArticle(resourceType, lang)
+
+	if merchantName == "" {
+		// No merchant: keep the original generic wording (User + Article + Resource).
+		return i18n.T(lctx, keyPrefix+".body_generic", map[string]any{
+			"User": fromUserName, "Resource": resource, "Article": article,
+		})
+	}
+
+	data := map[string]any{
+		"User": fromUserName, "Resource": resource, "Article": article,
+		"Merchant": merchantName, "Description": description,
+	}
+	if description != "" {
+		return i18n.T(lctx, keyPrefix+".body_with_description", data)
+	}
+	return i18n.T(lctx, keyPrefix+".body", data)
+}
+
 // pushArticle returns the grammatical article for a resource type in the given language.
 // Used in share/transfer push notification templates (e.g. "einen Gutschein", "une carte").
 func pushArticle(resourceType, lang string) string {
