@@ -46,6 +46,61 @@
           {{.Message}}
         </p>
 
+        <!-- Resource details (merchant / description / value) -->
+        {{if or .Merchant .Description .Value}}
+        <table
+          role="presentation"
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin: 0 0 24px;
+          "
+        >
+          {{if .Merchant}}
+          <tr>
+            <td style="padding: 12px 16px; color: #6b7280; font-size: 14px">{{.MerchantLabel}}</td>
+            <td
+              style="
+                padding: 12px 16px;
+                color: #111827;
+                font-size: 14px;
+                font-weight: 600;
+                text-align: right;
+              "
+            >
+              {{.Merchant}}
+            </td>
+          </tr>
+          {{end}} {{if .Description}}
+          <tr>
+            <td style="padding: 12px 16px; color: #6b7280; font-size: 14px">
+              {{.DescriptionLabel}}
+            </td>
+            <td style="padding: 12px 16px; color: #111827; font-size: 14px; text-align: right">
+              {{.Description}}
+            </td>
+          </tr>
+          {{end}} {{if .Value}}
+          <tr>
+            <td style="padding: 12px 16px; color: #6b7280; font-size: 14px">{{.ValueLabel}}</td>
+            <td
+              style="
+                padding: 12px 16px;
+                color: #111827;
+                font-size: 14px;
+                font-weight: 600;
+                text-align: right;
+              "
+            >
+              {{.Value}}
+            </td>
+          </tr>
+          {{end}}
+        </table>
+        {{end}}
+
         <!-- Call-to-Action Button -->
         <div style="text-align: center; margin: 32px 0">
           <a

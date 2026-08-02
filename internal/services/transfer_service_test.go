@@ -270,11 +270,11 @@ var _ repository.AuditLogRepository = (*transferMockAuditLogRepo)(nil)
 
 type transferMockNotifService struct{ mock.Mock }
 
-func (m *transferMockNotifService) CreateShareNotification(ctx context.Context, recipientID, fromUserID uuid.UUID, fromUserName, resourceType string, resourceID uuid.UUID, permissions map[string]bool) error {
-	return m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID, permissions).Error(0)
+func (m *transferMockNotifService) CreateShareNotification(ctx context.Context, in ShareNotificationInput) error {
+	return m.Called(ctx, in).Error(0)
 }
-func (m *transferMockNotifService) CreateTransferNotification(ctx context.Context, recipientID, fromUserID uuid.UUID, fromUserName, resourceType string, resourceID uuid.UUID) error {
-	return m.Called(ctx, recipientID, fromUserID, fromUserName, resourceType, resourceID).Error(0)
+func (m *transferMockNotifService) CreateTransferNotification(ctx context.Context, in TransferNotificationInput) error {
+	return m.Called(ctx, in).Error(0)
 }
 func (m *transferMockNotifService) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) ([]models.Notification, error) {
 	args := m.Called(ctx, userID, limit, offset)
@@ -358,13 +358,17 @@ func TestTransferCardOwnership_Success(t *testing.T) {
 	d.transferRepo.On("TransferCardOwnership", ctx, card, newOwnerID).Return(nil)
 	// sendTransferNotification: lookup current owner + create notification
 	d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
-	d.notifService.On("CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "card", cardID).Return(nil)
+	transferMatch := mock.MatchedBy(func(in TransferNotificationInput) bool {
+		return in.RecipientID == newOwnerID && in.FromUserID == ownerID && in.FromUserName == "Current Owner" &&
+			in.ResourceType == "card" && in.ResourceID == cardID
+	})
+	d.notifService.On("CreateTransferNotification", ctx, transferMatch).Return(nil)
 
 	err := d.service.TransferCardOwnership(ctx, cardID, newOwnerID, ownerID)
 	assert.NoError(t, err)
 	d.transferRepo.AssertCalled(t, "TransferCardOwnership", ctx, card, newOwnerID)
 	d.auditRepo.AssertCalled(t, "Create", ctx, mock.AnythingOfType("*models.AuditLog"))
-	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "card", cardID)
+	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, transferMatch)
 }
 
 func TestTransferCardOwnership_NewOwnerNotFound(t *testing.T) {
@@ -487,7 +491,9 @@ func TestTransferCardOwnership_AuditLogError_StillTransfers(t *testing.T) {
 	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(errors.New("audit db error"))
 	d.transferRepo.On("TransferCardOwnership", ctx, card, newOwnerID).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
-	d.notifService.On("CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "card", cardID).Return(nil)
+	d.notifService.On("CreateTransferNotification", ctx, mock.MatchedBy(func(in TransferNotificationInput) bool {
+		return in.RecipientID == newOwnerID && in.FromUserID == ownerID && in.ResourceType == "card" && in.ResourceID == cardID
+	})).Return(nil)
 
 	err := d.service.TransferCardOwnership(ctx, cardID, newOwnerID, ownerID)
 	assert.NoError(t, err)
@@ -511,7 +517,9 @@ func TestTransferCardOwnership_NotificationError_StillSucceeds(t *testing.T) {
 	d.transferRepo.On("TransferCardOwnership", ctx, card, newOwnerID).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
 	// Notification fails, but transfer should still succeed (best-effort)
-	d.notifService.On("CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "card", cardID).Return(errors.New("notif error"))
+	d.notifService.On("CreateTransferNotification", ctx, mock.MatchedBy(func(in TransferNotificationInput) bool {
+		return in.RecipientID == newOwnerID && in.FromUserID == ownerID && in.ResourceType == "card" && in.ResourceID == cardID
+	})).Return(errors.New("notif error"))
 
 	err := d.service.TransferCardOwnership(ctx, cardID, newOwnerID, ownerID)
 	assert.NoError(t, err)
@@ -561,12 +569,16 @@ func TestTransferVoucherOwnership_Success(t *testing.T) {
 	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
 	d.transferRepo.On("TransferVoucherOwnership", ctx, voucher, newOwnerID).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
-	d.notifService.On("CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "voucher", voucherID).Return(nil)
+	transferMatch := mock.MatchedBy(func(in TransferNotificationInput) bool {
+		return in.RecipientID == newOwnerID && in.FromUserID == ownerID && in.FromUserName == "Current Owner" &&
+			in.ResourceType == "voucher" && in.ResourceID == voucherID
+	})
+	d.notifService.On("CreateTransferNotification", ctx, transferMatch).Return(nil)
 
 	err := d.service.TransferVoucherOwnership(ctx, voucherID, newOwnerID, ownerID)
 	assert.NoError(t, err)
 	d.transferRepo.AssertCalled(t, "TransferVoucherOwnership", ctx, voucher, newOwnerID)
-	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "voucher", voucherID)
+	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, transferMatch)
 }
 
 func TestTransferVoucherOwnership_NotOwner(t *testing.T) {
@@ -688,12 +700,16 @@ func TestTransferGiftCardOwnership_Success(t *testing.T) {
 	d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
 	d.transferRepo.On("TransferGiftCardOwnership", ctx, giftCard, newOwnerID).Return(nil)
 	d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
-	d.notifService.On("CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "gift_card", giftCardID).Return(nil)
+	transferMatch := mock.MatchedBy(func(in TransferNotificationInput) bool {
+		return in.RecipientID == newOwnerID && in.FromUserID == ownerID && in.FromUserName == "Current Owner" &&
+			in.ResourceType == "gift_card" && in.ResourceID == giftCardID
+	})
+	d.notifService.On("CreateTransferNotification", ctx, transferMatch).Return(nil)
 
 	err := d.service.TransferGiftCardOwnership(ctx, giftCardID, newOwnerID, ownerID)
 	assert.NoError(t, err)
 	d.transferRepo.AssertCalled(t, "TransferGiftCardOwnership", ctx, giftCard, newOwnerID)
-	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, newOwnerID, ownerID, "Current Owner", "gift_card", giftCardID)
+	d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, transferMatch)
 }
 
 func TestTransferGiftCardOwnership_NotOwner(t *testing.T) {
@@ -795,4 +811,76 @@ func TestTransferGiftCardOwnership_TransferToSelf(t *testing.T) {
 
 	err := d.service.TransferGiftCardOwnership(ctx, giftCardID, ownerID, ownerID)
 	assert.EqualError(t, err, "cannot transfer to yourself")
+}
+
+// ==================== Notes Privacy Tests ====================
+
+// Same invariant as the share path: Card.Notes / GiftCard.Notes must never
+// reach the notification Description, which ends up in the push body on the
+// recipient's lockscreen. Voucher.Description is a real description and stays.
+func TestTransferOwnership_NotesNeverReachNotificationDescription(t *testing.T) {
+	const secret = "PIN 1234, back door code 9876"
+
+	t.Run("card", func(t *testing.T) {
+		d := setupTransferService()
+		ctx := context.Background()
+		ownerID, newOwnerID, cardID := uuid.New(), uuid.New(), uuid.New()
+
+		card := &models.Card{ID: cardID, UserID: transferPtrUUID(ownerID), Notes: secret}
+		newOwner := &models.User{ID: newOwnerID, Email: "new@example.com", FirstName: "New", LastName: "Owner"}
+		currentOwner := &models.User{ID: ownerID, Email: "cur@example.com", FirstName: "Cur", LastName: "Owner"}
+
+		d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
+		d.cardRepo.On("GetByID", ctx, cardID).Return(card, nil)
+		d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
+		d.transferRepo.On("TransferCardOwnership", ctx, card, newOwnerID).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
+		match := mock.MatchedBy(func(in TransferNotificationInput) bool { return in.Description == "" })
+		d.notifService.On("CreateTransferNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.TransferCardOwnership(ctx, cardID, newOwnerID, ownerID))
+		d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, match)
+	})
+
+	t.Run("gift card", func(t *testing.T) {
+		d := setupTransferService()
+		ctx := context.Background()
+		ownerID, newOwnerID, gcID := uuid.New(), uuid.New(), uuid.New()
+
+		gc := &models.GiftCard{ID: gcID, UserID: transferPtrUUID(ownerID), Notes: secret, PIN: "4321"}
+		newOwner := &models.User{ID: newOwnerID, Email: "new@example.com", FirstName: "New", LastName: "Owner"}
+		currentOwner := &models.User{ID: ownerID, Email: "cur@example.com", FirstName: "Cur", LastName: "Owner"}
+
+		d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
+		d.giftCardRepo.On("GetByID", ctx, gcID).Return(gc, nil)
+		d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
+		d.transferRepo.On("TransferGiftCardOwnership", ctx, gc, newOwnerID).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
+		match := mock.MatchedBy(func(in TransferNotificationInput) bool { return in.Description == "" })
+		d.notifService.On("CreateTransferNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.TransferGiftCardOwnership(ctx, gcID, newOwnerID, ownerID))
+		d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, match)
+	})
+
+	t.Run("voucher keeps its description", func(t *testing.T) {
+		d := setupTransferService()
+		ctx := context.Background()
+		ownerID, newOwnerID, voucherID := uuid.New(), uuid.New(), uuid.New()
+
+		voucher := &models.Voucher{ID: voucherID, UserID: transferPtrUUID(ownerID), Description: "20% off"}
+		newOwner := &models.User{ID: newOwnerID, Email: "new@example.com", FirstName: "New", LastName: "Owner"}
+		currentOwner := &models.User{ID: ownerID, Email: "cur@example.com", FirstName: "Cur", LastName: "Owner"}
+
+		d.userRepo.On("GetByID", ctx, newOwnerID).Return(newOwner, nil)
+		d.voucherRepo.On("GetByID", ctx, voucherID).Return(voucher, nil)
+		d.auditRepo.On("Create", ctx, mock.AnythingOfType("*models.AuditLog")).Return(nil)
+		d.transferRepo.On("TransferVoucherOwnership", ctx, voucher, newOwnerID).Return(nil)
+		d.userRepo.On("GetByID", ctx, ownerID).Return(currentOwner, nil)
+		match := mock.MatchedBy(func(in TransferNotificationInput) bool { return in.Description == "20% off" })
+		d.notifService.On("CreateTransferNotification", ctx, match).Return(nil)
+
+		assert.NoError(t, d.service.TransferVoucherOwnership(ctx, voucherID, newOwnerID, ownerID))
+		d.notifService.AssertCalled(t, "CreateTransferNotification", ctx, match)
+	})
 }

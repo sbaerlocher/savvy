@@ -1159,8 +1159,10 @@ export const en: TranslationKeys = {
 		markAsRead: 'Mark as read',
 		delete: 'Delete',
 		newNotification: 'New notification',
-		sharedWith: 'shared {resource} with you',
-		transferredTo: 'transferred {resource} to you',
+		sharedWith: 'shared {resource} from {merchant} with you',
+		sharedWithPlain: 'shared {resource} with you',
+		transferredTo: 'transferred {resource} from {merchant} to you',
+		transferredToPlain: 'transferred {resource} to you',
 		expiryReminder: '{merchant} {resource} expires in {days} days',
 		validityStart: 'Your voucher from {merchant} is valid starting tomorrow',
 		timeAgo: {

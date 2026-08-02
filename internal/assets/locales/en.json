@@ -55,12 +55,12 @@
     }
   },
   {
-    "id": "email.expiry.days_left_today",
-    "translation": "today"
-  },
-  {
     "id": "email.expiry.days_left_label",
     "translation": "Remaining"
+  },
+  {
+    "id": "email.expiry.days_left_today",
+    "translation": "today"
   },
   {
     "id": "email.expiry.detail_label",
@@ -127,8 +127,16 @@
     "translation": "Password Reset"
   },
   {
+    "id": "email.share.description_label",
+    "translation": "Description"
+  },
+  {
     "id": "email.share.ignore",
     "translation": "You're receiving this email because someone shared something with you in Savvy."
+  },
+  {
+    "id": "email.share.merchant_label",
+    "translation": "Merchant"
   },
   {
     "id": "email.share.message",
@@ -141,6 +149,10 @@
   {
     "id": "email.share.title",
     "translation": "New Share"
+  },
+  {
+    "id": "email.share.value_label",
+    "translation": "Value"
   },
   {
     "id": "email.test.automated",
@@ -295,14 +307,6 @@
     "translation": "Expiry Reminder"
   },
   {
-    "id": "push.validity_start.body",
-    "translation": "Your voucher from {{.Merchant}} is valid starting tomorrow"
-  },
-  {
-    "id": "push.validity_start.title",
-    "translation": "Voucher Now Valid"
-  },
-  {
     "id": "push.resource.card",
     "translation": "card"
   },
@@ -315,12 +319,16 @@
     "translation": "voucher"
   },
   {
-    "id": "voucher.type.free",
-    "translation": "Free"
+    "id": "push.share.body",
+    "translation": "{{.User}} shared a {{.Resource}} from {{.Merchant}} with you"
   },
   {
-    "id": "push.share.body",
+    "id": "push.share.body_generic",
     "translation": "{{.User}} shared a {{.Resource}} with you"
+  },
+  {
+    "id": "push.share.body_with_description",
+    "translation": "{{.User}} shared a {{.Resource}} from {{.Merchant}} with you: {{.Description}}"
   },
   {
     "id": "push.share.title",
@@ -328,11 +336,27 @@
   },
   {
     "id": "push.transfer.body",
+    "translation": "{{.User}} transferred a {{.Resource}} from {{.Merchant}} to you"
+  },
+  {
+    "id": "push.transfer.body_generic",
     "translation": "{{.User}} transferred a {{.Resource}} to you"
+  },
+  {
+    "id": "push.transfer.body_with_description",
+    "translation": "{{.User}} transferred a {{.Resource}} from {{.Merchant}} to you: {{.Description}}"
   },
   {
     "id": "push.transfer.title",
     "translation": "Ownership Transferred"
+  },
+  {
+    "id": "push.validity_start.body",
+    "translation": "Your voucher from {{.Merchant}} is valid starting tomorrow"
+  },
+  {
+    "id": "push.validity_start.title",
+    "translation": "Voucher Now Valid"
   },
   {
     "id": "success.created",
@@ -345,5 +369,9 @@
   {
     "id": "success.updated",
     "translation": "Successfully Updated"
+  },
+  {
+    "id": "voucher.type.free",
+    "translation": "Free"
   }
 ]

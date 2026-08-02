@@ -47,8 +47,8 @@ type ServiceInterface interface {
 	SendAccountDeletionConfirmation(ctx context.Context, toEmail, toName, language string) error
 	SendExpiryReminder(ctx context.Context, toEmail, toName string, data ExpiryReminderData, unsubscribeURL, language string) error
 	SendValidityStart(ctx context.Context, toEmail, toName string, data ValidityStartData, unsubscribeURL, language string) error
-	SendShareNotification(ctx context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error
-	SendTransferNotification(ctx context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error
+	SendShareNotification(ctx context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error
+	SendTransferNotification(ctx context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error
 	SendTestEmail(ctx context.Context, toEmail, toName, language string) error
 	// CheckConnection verifies SMTP server connectivity without sending an email.
 	CheckConnection(ctx context.Context) error
@@ -279,8 +279,22 @@ func validityStartStrings(lang, userName, unsubscribeURL string, data ValiditySt
 	}
 }
 
+// formatEmailValue formats an amount+currency for an email detail block.
+// Returns "" when amount is 0 so the template omits the value row entirely.
+func formatEmailValue(amount float64, currency string) string {
+	if amount == 0 {
+		return ""
+	}
+	if currency == "" {
+		currency = "CHF"
+	}
+	return fmt.Sprintf("%s %.2f", currency, amount)
+}
+
 // shareNotificationStrings returns localized strings for share notification emails.
-func shareNotificationStrings(lang, userName, fromName, resourceType, resourceURL, unsubscribeURL string) emailStrings {
+// merchantName, description and value are optional; empty ones leave their template
+// blocks unrendered ({{if .Merchant}} etc.).
+func shareNotificationStrings(lang, userName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL string) emailStrings {
 	ctx := emailCtx(lang)
 	ud := map[string]any{"UserName": userName}
 	resourceName := et(ctx, "push.resource."+resourceType)
@@ -288,22 +302,28 @@ func shareNotificationStrings(lang, userName, fromName, resourceType, resourceUR
 	return emailStrings{
 		Subject: et(ctx, "email.share.subject", map[string]any{"FromName": fromName}),
 		Data: map[string]string{
-			"Lang":            lang,
-			"Title":           et(ctx, "email.share.title"),
-			"Greeting":        et(ctx, "email.common.greeting", ud),
-			"Message":         et(ctx, "email.share.message", map[string]any{"FromName": fromName, "Resource": resourceName}),
-			"ButtonText":      et(ctx, "email.common.button_view"),
-			"ResourceURL":     resourceURL,
-			"IgnoreText":      et(ctx, "email.share.ignore"),
-			"UnsubscribeURL":  unsubscribeURL,
-			"UnsubscribeText": et(ctx, "email.common.unsubscribe_notifications"),
-			"Footer":          et(ctx, "email.common.footer"),
+			"Lang":             lang,
+			"Title":            et(ctx, "email.share.title"),
+			"Greeting":         et(ctx, "email.common.greeting", ud),
+			"Message":          et(ctx, "email.share.message", map[string]any{"FromName": fromName, "Resource": resourceName}),
+			"Merchant":         merchantName,
+			"Description":      description,
+			"Value":            formatEmailValue(amount, currency),
+			"MerchantLabel":    et(ctx, "email.share.merchant_label"),
+			"DescriptionLabel": et(ctx, "email.share.description_label"),
+			"ValueLabel":       et(ctx, "email.share.value_label"),
+			"ButtonText":       et(ctx, "email.common.button_view"),
+			"ResourceURL":      resourceURL,
+			"IgnoreText":       et(ctx, "email.share.ignore"),
+			"UnsubscribeURL":   unsubscribeURL,
+			"UnsubscribeText":  et(ctx, "email.common.unsubscribe_notifications"),
+			"Footer":           et(ctx, "email.common.footer"),
 		},
 	}
 }
 
 // transferNotificationStrings returns localized strings for transfer notification emails.
-func transferNotificationStrings(lang, userName, fromName, resourceType, resourceURL, unsubscribeURL string) emailStrings {
+func transferNotificationStrings(lang, userName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL string) emailStrings {
 	ctx := emailCtx(lang)
 	ud := map[string]any{"UserName": userName}
 	resourceName := et(ctx, "push.resource."+resourceType)
@@ -311,16 +331,22 @@ func transferNotificationStrings(lang, userName, fromName, resourceType, resourc
 	return emailStrings{
 		Subject: et(ctx, "email.transfer.subject", map[string]any{"FromName": fromName}),
 		Data: map[string]string{
-			"Lang":            lang,
-			"Title":           et(ctx, "email.transfer.title"),
-			"Greeting":        et(ctx, "email.common.greeting", ud),
-			"Message":         et(ctx, "email.transfer.message", map[string]any{"FromName": fromName, "Resource": resourceName}),
-			"ButtonText":      et(ctx, "email.common.button_view"),
-			"ResourceURL":     resourceURL,
-			"IgnoreText":      et(ctx, "email.transfer.ignore"),
-			"UnsubscribeURL":  unsubscribeURL,
-			"UnsubscribeText": et(ctx, "email.common.unsubscribe_notifications"),
-			"Footer":          et(ctx, "email.common.footer"),
+			"Lang":             lang,
+			"Title":            et(ctx, "email.transfer.title"),
+			"Greeting":         et(ctx, "email.common.greeting", ud),
+			"Message":          et(ctx, "email.transfer.message", map[string]any{"FromName": fromName, "Resource": resourceName}),
+			"Merchant":         merchantName,
+			"Description":      description,
+			"Value":            formatEmailValue(amount, currency),
+			"MerchantLabel":    et(ctx, "email.share.merchant_label"),
+			"DescriptionLabel": et(ctx, "email.share.description_label"),
+			"ValueLabel":       et(ctx, "email.share.value_label"),
+			"ButtonText":       et(ctx, "email.common.button_view"),
+			"ResourceURL":      resourceURL,
+			"IgnoreText":       et(ctx, "email.transfer.ignore"),
+			"UnsubscribeURL":   unsubscribeURL,
+			"UnsubscribeText":  et(ctx, "email.common.unsubscribe_notifications"),
+			"Footer":           et(ctx, "email.common.footer"),
 		},
 	}
 }
@@ -401,9 +427,9 @@ func (s *SMTPEmailService) SendValidityStart(_ context.Context, toEmail, toName 
 }
 
 // SendShareNotification sends a share notification email.
-func (s *SMTPEmailService) SendShareNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
+func (s *SMTPEmailService) SendShareNotification(_ context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
 	lang := normalizeLanguage(language)
-	strs := shareNotificationStrings(lang, toName, fromName, resourceType, resourceURL, unsubscribeURL)
+	strs := shareNotificationStrings(lang, toName, fromName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL)
 
 	body, err := s.renderTemplate("share_notification.html", strs.Data)
 	if err != nil {
@@ -414,9 +440,9 @@ func (s *SMTPEmailService) SendShareNotification(_ context.Context, toEmail, toN
 }
 
 // SendTransferNotification sends a transfer notification email.
-func (s *SMTPEmailService) SendTransferNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
+func (s *SMTPEmailService) SendTransferNotification(_ context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
 	lang := normalizeLanguage(language)
-	strs := transferNotificationStrings(lang, toName, fromName, resourceType, resourceURL, unsubscribeURL)
+	strs := transferNotificationStrings(lang, toName, fromName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL)
 
 	body, err := s.renderTemplate("share_notification.html", strs.Data)
 	if err != nil {
@@ -663,12 +689,16 @@ func (s *LogEmailService) SendValidityStart(_ context.Context, toEmail, toName s
 }
 
 // SendShareNotification logs the share notification email.
-func (s *LogEmailService) SendShareNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
+func (s *LogEmailService) SendShareNotification(_ context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
 	slog.Info("Email: Share Notification",
 		"to", logsafe.String(toEmail),
 		"name", logsafe.String(toName),
 		"from", logsafe.String(fromName),
 		"resource_type", logsafe.String(resourceType),
+		"merchant", logsafe.String(merchantName),
+		"description", logsafe.String(description),
+		"amount", amount,
+		"currency", logsafe.String(currency),
 		"resource_url", logsafe.String(resourceURL),
 		"unsubscribe_url", logsafe.String(unsubscribeURL),
 		"language", logsafe.String(language),
@@ -677,12 +707,16 @@ func (s *LogEmailService) SendShareNotification(_ context.Context, toEmail, toNa
 }
 
 // SendTransferNotification logs the transfer notification email.
-func (s *LogEmailService) SendTransferNotification(_ context.Context, toEmail, toName, fromName, resourceType, resourceURL, unsubscribeURL, language string) error {
+func (s *LogEmailService) SendTransferNotification(_ context.Context, toEmail, toName, fromName, resourceType, merchantName, description string, amount float64, currency, resourceURL, unsubscribeURL, language string) error {
 	slog.Info("Email: Transfer Notification",
 		"to", logsafe.String(toEmail),
 		"name", logsafe.String(toName),
 		"from", logsafe.String(fromName),
 		"resource_type", logsafe.String(resourceType),
+		"merchant", logsafe.String(merchantName),
+		"description", logsafe.String(description),
+		"amount", amount,
+		"currency", logsafe.String(currency),
 		"resource_url", logsafe.String(resourceURL),
 		"unsubscribe_url", logsafe.String(unsubscribeURL),
 		"language", logsafe.String(language),
