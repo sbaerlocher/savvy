@@ -18,7 +18,7 @@
 // own writer), which would bury five real changes under a thousand cosmetic
 // ones.
 //
-// Run via `make openapi`, never by hand — it rewrites generated files.
+// Run via `just openapi`, never by hand — it rewrites generated files.
 package main
 
 import (

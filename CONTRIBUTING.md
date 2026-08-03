@@ -44,7 +44,7 @@ cp .env.example .env
 # Edit .env with your local settings
 
 # Start all services with Docker Compose
-make dev
+just dev
 
 # Seed test data (optional, in another terminal)
 dde project:db:seed
@@ -61,7 +61,7 @@ dde project:db:seed
 docker compose ps
 
 # View logs
-make logs
+just logs
 
 # Run all tests
 go test ./...
@@ -154,13 +154,13 @@ docker compose up
 go test ./...  # Runs ALL tests (services, handlers, models)
 
 # Run tests with coverage
-make test-coverage
+just test-coverage
 
 # Lint code
-make lint
+just lint
 
 # Format code
-make fmt
+just fmt
 ```
 
 **Key Directories**:
@@ -618,7 +618,7 @@ If applicable, add screenshots to help explain your problem.
 **Logs**
 ```
 
-Paste relevant logs here (from `make logs` or `docker compose logs`)
+Paste relevant logs here (from `just logs` or `docker compose logs`)
 
 ```
 

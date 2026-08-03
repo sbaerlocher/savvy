@@ -36,9 +36,9 @@ helm lint deploy/helm --values deploy/helm/values-test.yaml
 # Render templates
 helm template savvy deploy/helm --values deploy/helm/values-test.yaml
 
-# Or use Make commands
-make helm-lint      # Lint with test values
-make helm-template  # Render with test values
+# Or use just recipes
+just helm-lint      # Lint with test values
+just helm-template  # Render with test values
 ```
 
 > **Note**: The test values file (`values-test.yaml`) provides placeholder values for required secrets like `database.existingSecret`, allowing chart validation without actual secrets.

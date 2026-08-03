@@ -916,7 +916,7 @@ cd client && npm run dev       # Or: manual Vite dev server
 
 # Production Build (embedded frontend)
 cd client && npm run build:embed  # Build + copy to internal/assets/client/
-make build                        # Go binary with embedded SvelteKit
+just build                        # Go binary with embedded SvelteKit
 ```
 
 **Kubernetes/Helm** (optional):
@@ -1502,18 +1502,18 @@ Using `tls.Dial()` directly will fail with "Client Quit Before Message" error.
 
 **Approach**: Code-first — the spec is generated from annotations on the
 handlers, never hand-edited. `swag` is wired as a Go tool dependency, so
-`make openapi` needs no separately installed binary.
+`just openapi` needs no separately installed binary.
 
 ```bash
-make openapi   # regenerates docs/openapi/ from the annotations
+just openapi   # regenerates docs/openapi/ from the annotations
 ```
 
 **Coverage**: The `cards` slice (12 endpoints) is fully annotated and serves as
 the reference for the remaining API routes. Annotating a new handler means
-adding a swag comment block above it and re-running `make openapi`.
+adding a swag comment block above it and re-running `just openapi`.
 
 **Keeping the spec current**: `docs/openapi/` is committed, so a handler change
-means re-running `make openapi` and committing the result in the same change.
+means re-running `just openapi` and committing the result in the same change.
 No CI gate enforces this.
 
 **Swagger UI**: `GET /api/v1/docs/` — development builds only. The generated
@@ -1532,14 +1532,14 @@ that production has no use for, so the route lives behind the same
 3. swag emits every `@Param … body` as
    `oneOf: [{type: object}, {$ref: <DTO>}]`, which is unsatisfiable — the DTOs
    declare neither `required` nor `additionalProperties: false`, so any object
-   matches both branches while `oneOf` demands exactly one. `make openapi`
+   matches both branches while `oneOf` demands exactly one. `just openapi`
    therefore pipes the output through `cmd/openapi-fix`, which collapses the
    wrapper to the `$ref` branch. Drop that step once swag fixes this upstream;
    the tool fails loudly if it finds no wrapper to collapse.
 
 **Files**:
 
-- Make target: [Makefile](Makefile) (`openapi`)
+- just recipe: [justfile](justfile) (`openapi`)
 - Post-processor: [cmd/openapi-fix/main.go](cmd/openapi-fix/main.go) (collapses swag's `oneOf` wrappers)
 - Generated spec: `docs/openapi/openapi.yaml` + `docs/openapi/docs.go` (committed, do not edit)
 - General API info: [internal/setup/routes.go](internal/setup/routes.go) (annotations on `RegisterRoutes`)
@@ -1555,7 +1555,7 @@ that production has no use for, so the route lives behind the same
 **OpenAPI Specification, Server-Side Sessions, Settings Refactoring, Merchant Overview & Batch Export**:
 
 - ✅ **OpenAPI Specification** - Spec generated from handler annotations
-  - `make openapi` regenerates `docs/openapi/` via swag v2 (OpenAPI 3.1)
+  - `just openapi` regenerates `docs/openapi/` via swag v2 (OpenAPI 3.1)
   - Swagger UI at `GET /api/v1/docs/`, development builds only
   - `cards` slice annotated as the reference for the remaining routes
   - Named response DTOs replace anonymous maps in the shared handler helpers

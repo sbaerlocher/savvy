@@ -62,7 +62,7 @@ export default defineConfig({
 
 	/*
 	 * E2E tests require the production build running on port 8080 via Docker.
-	 * Use `make test-e2e-clean` to run tests with proper setup:
+	 * Use the dde e2e plugins (`.dde/plugins/e2e.*.sh`) for proper setup:
 	 * - Starts PostgreSQL + app-e2e (production build with embedded SvelteKit)
 	 * - Auto-seeds test data
 	 * - Runs tests against http://localhost:8080

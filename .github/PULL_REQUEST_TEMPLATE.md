@@ -56,7 +56,7 @@ Related to #(issue number)
 ```bash
 go test ./...
 # or
-make test
+just test
 ```
 
 **Frontend Tests (Vitest):**

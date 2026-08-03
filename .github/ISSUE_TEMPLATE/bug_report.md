@@ -56,7 +56,7 @@ If applicable, add screenshots to help explain your problem.
 ## Logs
 
 ```
-Paste relevant logs here (from `make logs` or `docker compose logs`)
+Paste relevant logs here (from `just logs` or `docker compose logs`)
 
 To get logs:
 docker compose logs api      # Backend logs
