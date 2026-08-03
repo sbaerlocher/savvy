@@ -120,7 +120,7 @@
 /deploy/kustomize/ @sbaerlocher
 
 # Build tools
-/Makefile @sbaerlocher
+/justfile @sbaerlocher
 /.air.toml @sbaerlocher
 /go.mod @sbaerlocher
 /go.sum @sbaerlocher

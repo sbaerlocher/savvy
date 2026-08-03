@@ -309,7 +309,7 @@ opt-in per instance. See [Feature Toggles in AGENTS.md](AGENTS.md) and
 ### Prerequisites
 
 - Docker & Docker Compose
-- Make (optional, for Makefile shortcuts)
+- [just](https://just.systems) (task runner, e.g. `brew install just` or `cargo install just`)
 
 ### Installation & Start
 
@@ -323,7 +323,7 @@ cp .env.example .env
 # Edit .env with your settings
 
 # 3. Start Docker containers (automatically builds everything)
-make dev
+just dev
 
 # 4. Load test data (optional, in another terminal)
 dde project:db:seed
@@ -351,12 +351,12 @@ After seeding, the following test accounts are available (password: `test123`):
 **IMPORTANT**: Always use Docker for development! Local npm/air commands won't work due to Vite proxy requirements.
 
 ```bash
-make dev    # Start PostgreSQL + Go API (Air) + Vite Dev Server with Hot Reload
-make test   # Run all tests
-make build  # Build production binary with embedded client
+just dev    # Start PostgreSQL + Go API (Air) + Vite Dev Server with Hot Reload
+just test   # Run all tests
+just build  # Build production binary with embedded client
 ```
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for full setup, all Makefile commands, and hot reload details.
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full setup, all just recipes, and hot reload details.
 
 ## Project Structure
 
@@ -380,7 +380,7 @@ savvy/
 ├── deploy/               # Helm charts, Kustomize overlays, Grafana dashboards
 ├── docker-compose.yml    # Docker services (dev)
 ├── Dockerfile            # Multi-stage production build
-└── Makefile              # Development commands
+└── justfile              # Development commands
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed package structure and architecture diagrams.
@@ -475,8 +475,8 @@ and Kubernetes manifests, see:**
 ## Testing
 
 ```bash
-make test                  # Run all Go tests
-make test-core             # Run core tests (services + models)
+just test                  # Run all Go tests
+just test-core             # Run core tests (services + models)
 cd client && npm test      # Run frontend unit tests (Vitest)
 cd client && npm run test:e2e  # Run E2E tests (Playwright)
 ```

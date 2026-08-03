@@ -28,7 +28,7 @@ tmp_dir = "tmp"
     "bin",
     ".git",
     # docs/ is watched on purpose: docs/openapi/docs.go is a compiled package
-    # that the dev build embeds, so a `make openapi` run must trigger a reload.
+    # that the dev build embeds, so a `just openapi` run must trigger a reload.
     "frontend"  # Exclude entire frontend directory (separate container)
   ]
 

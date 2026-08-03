@@ -28,8 +28,8 @@
 docker --version
 docker compose version
 
-# Make (optional, for convenience commands)
-make --version
+# just (task runner, see https://just.systems for install options)
+just --version
 ```
 
 **Note**: Go and Node.js are NOT required on your host machine. All development
@@ -169,7 +169,7 @@ Docker compatibility:
 go test ./...
 
 # Run with coverage
-make test-coverage
+just test-coverage
 
 # Run with race detection
 go test -race ./...
@@ -281,7 +281,7 @@ docker compose up
 
 ```bash
 # Build frontend + backend binary
-make build
+just build
 
 # Or manually:
 cd client && npm run build:embed  # Build SvelteKit + copy to Go assets
@@ -419,7 +419,7 @@ docker compose up --build
 - Run tests before committing (`go test ./...`, `npm run test:e2e`)
 - Write tests for new features (handlers, services, repositories)
 - Follow Clean Architecture (handlers → services → repositories)
-- Use `make` commands for common tasks (`make up`, `make test-coverage`)
+- Use `just` recipes for common tasks (`just up`, `just test-coverage`)
 
 ### ❌ DON'T
 
@@ -435,27 +435,28 @@ docker compose up --build
 
 ```bash
 # Development (Docker)
-make dev                     # Start development (recommended, alias for make up)
-make up                      # Start Docker containers with hot reload
-make down                    # Stop Docker containers
-make restart                 # Restart containers
-make rebuild                 # Rebuild containers from scratch
-make ps                      # Show running containers
+just                         # List all available recipes
+just dev                     # Start development (recommended, alias for just up)
+just up                      # Start Docker containers with hot reload
+just down                    # Stop Docker containers
+just restart                 # Restart containers
+just rebuild                 # Rebuild containers from scratch
+just ps                      # Show running containers
 
 # Logs
-make logs                    # API logs (api container)
-make logs-client             # Frontend logs (client container)
-make logs-db                 # Database logs (postgres container)
-make logs-all                # All logs (all containers)
+just logs                    # API logs (api container)
+just logs-client             # Frontend logs (client container)
+just logs-db                 # Database logs (postgres container)
+just logs-all                # All logs (all containers)
 
 # Shell Access
-make shell                   # Open shell in API container
+just shell                   # Open shell in API container
 dde project:db:open          # Open PostgreSQL shell
 
 # Testing
-make test                    # Run all Go tests
-make test-core               # Run core tests (services + models)
-make test-coverage           # Run tests with coverage report
+just test                    # Run all Go tests
+just test-core               # Run core tests (services + models)
+just test-coverage           # Run tests with coverage report
 go test ./...                # Direct: all Go tests
 go test -race ./...          # Direct: all tests with race detection
 npm run test:e2e             # Frontend E2E tests (Playwright)
@@ -468,13 +469,13 @@ dde project:db:migrate-down    # Rollback last migration
 dde project:db:migrate-status  # Show migration status
 
 # Build
-make build                   # Production build (frontend + backend binary)
+just build                   # Production build (frontend + backend binary)
 npm run build:embed          # Frontend build + copy to Go assets
-make clean                   # Remove build artifacts
+just clean                   # Remove build artifacts
 
 # Quality
-make lint                    # Run golangci-lint
-make fmt                     # Format Go code
+just lint                    # Run golangci-lint
+just fmt                     # Format Go code
 ```
 
 ---
