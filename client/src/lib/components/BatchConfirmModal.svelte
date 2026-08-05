@@ -77,7 +77,7 @@
 	<div
 		class="pointer-events-auto w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl {platform ===
 		'ios'
-			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 rounded-t-3xl sm:rounded-2xl border border-white/30'
+			? 'liquid-glass-surface rounded-t-3xl sm:rounded-2xl'
 			: 'bg-white rounded-t-3xl sm:rounded-lg'}"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => e.stopPropagation()}

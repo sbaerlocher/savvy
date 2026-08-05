@@ -246,7 +246,7 @@
 									tabindex="-1"
 									class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
 									'ios'
-										? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
+										? 'liquid-glass-menu'
 										: 'bg-white border border-border'}"
 									onclick={(e) => e.stopPropagation()}
 									onkeydown={(e) => {
@@ -417,7 +417,7 @@
 								tabindex="-1"
 								class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
 								'ios'
-									? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
+									? 'liquid-glass-menu'
 									: 'bg-white border border-border'}"
 								onclick={(e) => e.stopPropagation()}
 								onkeydown={(e) => {

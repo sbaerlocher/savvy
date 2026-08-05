@@ -349,7 +349,7 @@
 		{/if}
 
 		<div
-			class="flex items-center justify-around border-t border-white/40 px-2 py-1.5"
+			class="flex items-center justify-around border-t border-[var(--color-glass-edge)] px-2 py-1.5"
 		>
 			<button
 				type="button"

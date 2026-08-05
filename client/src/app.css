@@ -178,44 +178,43 @@
 	   Safari/WebView). Two tints: --glass-sheet (deeper, the panel) and
 	   --glass-card (lighter milky insets that sit on the sheet). */
 	.liquid-glass-surface {
-		background: rgba(255, 255, 255, 0.18);
-		backdrop-filter: blur(24px) saturate(180%);
-		-webkit-backdrop-filter: blur(24px) saturate(180%);
-		border: 1px solid rgba(255, 255, 255, 0.45);
-		box-shadow:
-			0 8px 32px rgba(31, 38, 135, 0.14),
-			inset 0 1px 0 rgba(255, 255, 255, 0.6);
+		background: var(--color-glass-surface);
+		backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+		-webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+		border: 1px solid var(--color-glass-edge);
+		box-shadow: var(--shadow-glass);
 	}
 
+	/* iOS grouped-inset card groups: flat (no drop shadow), only the inset
+	   light edge. Lighter, more opaque fill than the floating surface. */
 	.liquid-glass-card {
-		background: rgba(255, 255, 255, 0.4);
-		backdrop-filter: blur(12px) saturate(160%);
-		-webkit-backdrop-filter: blur(12px) saturate(160%);
-		border: 1px solid rgba(255, 255, 255, 0.5);
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+		background: var(--color-glass-surface-3);
+		backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
+		-webkit-backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
+		border: 1px solid var(--color-glass-edge);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
 	}
 
-	/* Pull-down menu: an iOS context menu is near-opaque so its text stays
-	   readable — heavier tint + blur than the flat glass surfaces. */
+	/* Pull-down menu: an iOS context menu is deliberately near-opaque so its
+	   text stays readable — denser than the flat glass surfaces. Background
+	   kept near-opaque on purpose; only blur/border/shadow tokenized. */
 	.liquid-glass-menu {
 		background: rgba(252, 252, 251, 0.99);
-		backdrop-filter: blur(30px) saturate(180%);
-		-webkit-backdrop-filter: blur(30px) saturate(180%);
-		border: 1px solid rgba(0, 0, 0, 0.08);
-		box-shadow:
-			0 12px 32px rgba(31, 38, 135, 0.22),
-			inset 0 1px 0 rgba(255, 255, 255, 0.7);
+		backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
+		-webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
+		border: 1px solid var(--color-glass-edge);
+		box-shadow: var(--shadow-glass);
 	}
 
 	@supports not (backdrop-filter: blur(1px)) {
 		.liquid-glass-surface {
-			background: rgba(255, 255, 255, 0.92);
+			background: var(--color-surface);
 		}
 		.liquid-glass-card {
-			background: rgba(255, 255, 255, 0.85);
+			background: var(--color-surface);
 		}
 		.liquid-glass-menu {
-			background: rgba(250, 250, 249, 0.98);
+			background: var(--color-surface);
 		}
 	}
 
@@ -228,16 +227,13 @@
 		border-radius: 9999px;
 		background: linear-gradient(
 			to bottom,
-			rgba(255, 255, 255, 0.6),
-			rgba(255, 255, 255, 0.25)
+			var(--color-glass-edge),
+			var(--color-glass-surface)
 		);
-		backdrop-filter: blur(20px) saturate(1.8) brightness(1.1);
-		-webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.1);
-		border: 0.5px solid rgba(255, 255, 255, 0.5);
-		box-shadow:
-			0 0 0 0.5px rgba(0, 0, 0, 0.04),
-			0 2px 8px rgba(0, 0, 0, 0.06),
-			inset 0 1px 0 rgba(255, 255, 255, 0.5);
+		backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
+		-webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
+		border: 0.5px solid var(--color-glass-edge);
+		box-shadow: var(--shadow-glass);
 		z-index: -1;
 	}
 
@@ -259,7 +255,7 @@
 		}
 
 		.liquid-glass-pill {
-			background: rgba(133, 211, 220, 0.15);
+			background: var(--color-accent-100);
 		}
 	}
 

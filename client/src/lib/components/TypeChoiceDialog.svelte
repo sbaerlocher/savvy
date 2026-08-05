@@ -88,11 +88,14 @@
 		tabindex="-1"
 		class="pointer-events-auto w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl shadow-xl {platform ===
 		'ios'
-			? 'bg-white/80 backdrop-blur-xl backdrop-saturate-150 border border-white/40'
+			? 'liquid-glass-surface'
 			: 'bg-white border border-border'}"
 	>
 		{#if platform === 'ios'}
-			<div class="mx-auto mb-4 h-1 w-10 rounded-full bg-border-field"></div>
+			<div
+				class="mx-auto mb-4 h-1 w-10 rounded-full"
+				style="background: var(--color-glass-grabber);"
+			></div>
 		{/if}
 		<h2 class="text-lg font-semibold text-text mb-1">
 			{tr('typeChoice.title')}
