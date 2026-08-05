@@ -239,6 +239,7 @@
 	--radius-lg: 11px; /* buttons, icon squares */
 	--radius-xl: 13px; /* inputs, list rows */
 	--radius-2xl: 15px; /* tiles, cards */
+	--radius-inset: 16px; /* iOS grouped-inset card (same 16px as --radius-m3-lg, but iOS not Android — do not merge) */
 	--radius-3xl: 18px; /* raised cards / bars */
 	--radius-4xl: 22px; /* hero card / sheet body */
 	--radius-sheet: 24px; /* bottom-sheet top */
@@ -264,6 +265,7 @@
 	--shadow-sheet: 0 -10px 34px rgba(0, 0, 0, 0.16); /* iOS bottom sheet */
 	--shadow-modal: 0 30px 70px rgba(0, 0, 0, 0.4); /* barcode modal */
 	--shadow-batch: 0 10px 30px rgba(0, 0, 0, 0.25); /* batch action bar */
+	--shadow-ring-accent: 0 0 0 2px var(--color-accent-600); /* focus/selection ring (WalletDesktop filter/select active) */
 
 	/* ==========================================================================
      SPACING — recurring layout rhythm
@@ -278,14 +280,15 @@
 	/* ==========================================================================
      MATERIAL 3 — shape scale (Android)
      Intentionally separate from --radius-*: Android uses the M3 form scale,
-     iOS/Desktop use --radius-*. Do not merge.
+     iOS/Desktop use --radius-*. Do not merge. Namespaced under --radius-* so
+     Tailwind emits rounded-m3-* utilities (rounded-m3-md ≠ rounded-md).
      ========================================================================== */
-	--m3-xs: 4px;
-	--m3-sm: 8px;
-	--m3-md: 12px;
-	--m3-lg: 16px;
-	--m3-xl: 28px;
-	--m3-full: 999px;
+	--radius-m3-xs: 4px;
+	--radius-m3-sm: 8px;
+	--radius-m3-md: 12px;
+	--radius-m3-lg: 16px;
+	--radius-m3-xl: 28px;
+	--radius-m3-full: 999px;
 
 	/* ==========================================================================
      MATERIAL 3 — tonal surfaces + inverse (Android)
@@ -300,46 +303,71 @@
 
 	/* ==========================================================================
      MATERIAL 3 — elevation (no iOS glass light edge)
+     Namespaced under --shadow-* so Tailwind emits shadow-m3-* utilities and the
+     tokens survive the build.
      ========================================================================== */
-	--m3-shadow-sheet: 0 -1px 3px rgba(40, 36, 32, 0.1), 0 -8px 18px rgba(40, 36, 32, 0.07);
-	--m3-shadow-dialog: 0 4px 10px rgba(40, 36, 32, 0.12), 0 12px 26px rgba(40, 36, 32, 0.1);
+	--shadow-m3-sheet:
+		0 -1px 3px rgba(40, 36, 32, 0.1), 0 -8px 18px rgba(40, 36, 32, 0.07);
+	--shadow-m3-dialog:
+		0 4px 10px rgba(40, 36, 32, 0.12), 0 12px 26px rgba(40, 36, 32, 0.1);
 
 	/* ==========================================================================
      LIQUID GLASS (iOS) — rgba fills + edges
+     NOTE: app.css:180-220 still ships hardcoded .liquid-glass-* with divergent
+     values + @supports-not(backdrop-filter) fallbacks. These tokens are the
+     source of truth going forward; app.css is scheduled to migrate onto them.
      ========================================================================== */
-	--color-glass-surface: rgba(252, 251, 248, 0.68);
-	--color-glass-edge: rgba(255, 255, 255, 0.6);
-	--color-glass-scrim: rgba(20, 18, 16, 0.32);
-	--color-glass-grabber: rgba(35, 33, 32, 0.2);
-	--color-glass-surface-2: rgba(255, 255, 255, 0.72);
-	--color-glass-surface-3: rgba(255, 255, 255, 0.55);
-	--color-glass-hollow: rgba(255, 255, 255, 0.12);
+	--color-glass-surface: rgba(252, 251, 248, 0.68); /* primary translucent panel */
+	--color-glass-edge: rgba(255, 255, 255, 0.6); /* top light edge */
+	--color-glass-scrim: rgba(20, 18, 16, 0.32); /* dim behind iOS sheets */
+	--color-glass-grabber: rgba(35, 33, 32, 0.2); /* sheet grabber handle */
+	--color-glass-surface-2: rgba(255, 255, 255, 0.72); /* raised card fill (more opaque) */
+	--color-glass-surface-3: rgba(255, 255, 255, 0.55); /* recessed/inset fill (less opaque) */
+	--color-glass-hollow: rgba(255, 255, 255, 0.12); /* faint inner cutout tint */
 
 	/* ==========================================================================
      TRANSFER — own serious category (warm orange, NOT danger)
+     50–200 tint · 600 fill · 700 hover · 900 deep
      ========================================================================== */
-	--color-transfer-50: #fbf1ea;
-	--color-transfer-200: #f0cdb4;
-	--color-transfer-600: #c2571f;
-	--color-transfer-700: #a4491a;
-	--color-transfer-900: #6d2f10;
+	--color-transfer-50: #fbf1ea; /* badge/banner tint */
+	--color-transfer-200: #f0cdb4; /* chip bg / soft border */
+	--color-transfer-600: #bd541d; /* button fill (AA white 4.72:1) — see note */
+	--color-transfer-700: #a4491a; /* button hover (AA white 5.92:1) */
+	--color-transfer-900: #6d2f10; /* deepest ink */
+
+	/* --------------------------------------------------------------------------
+     transfer-600 — deliberate deviation from the mockup value (approved
+     2026-08-05). Mockup had #c2571f, which is only 4.49:1 white-on-fill and
+     fails WCAG AA body (4.5:1); every other -600 in this file sits on/above AA
+     (danger 5.90, success 5.12, warning 4.69). The mockup value carried only an
+     adjust-me marker, no AA proof — it was never final. Darkened minimally to
+     #bd541d (4.72:1, both white-on-fill and as text on white). Stays warm orange,
+     clearly distinct from cool danger-600 (#b23b30), scale stays ordered.
+     Not an invented design change — a WCAG fix for a defect the adjust-me value
+     carried. transfer-50/200/700/900 remain exact mockup values.
+     -------------------------------------------------------------------------- */
 
 	/* ==========================================================================
      GIFTCARD — gold accent
      ========================================================================== */
-	--color-giftcard-ink: #a07f2f;
-	--color-giftcard-line: #c0a054;
-	--color-giftcard-edge: rgba(192, 160, 84, 0.7);
+	--color-giftcard-ink: #a07f2f; /* LARGE text/accent only — see AA note */
+	--color-giftcard-line: #c0a054; /* fill/border accent (no text contrast) */
+	--color-giftcard-edge: rgba(192, 160, 84, 0.7); /* fill/border accent */
+
+	/* --------------------------------------------------------------------------
+     giftcard-ink AA boundary (approved 2026-08-05): #a07f2f is 3.77:1 on white,
+     3.31:1 on the gold tint — that is AA-LARGE (≥3:1), not AA body (4.5:1). Its
+     only real use is the large 30px mono amount ("CHF …") on the gold tint, so
+     AA-Large is the correct threshold and the value is right for its purpose
+     (not a defect, unlike transfer-600). Do NOT reach for giftcard-ink as small
+     body text on a light ground — it fails AA there. If small giftcard text is
+     needed later, add a darker --color-giftcard-ink-strong (~#7a5f20, AA body)
+     instead of repurposing this one. giftcard-line/-edge are fill/border only.
+     -------------------------------------------------------------------------- */
 
 	/* ==========================================================================
      SCRIM — Android sheet/dialog (opaque; iOS uses --color-glass-scrim)
      ========================================================================== */
 	--color-scrim: rgba(20, 18, 16, 0.42);
 	--color-scrim-light: rgba(20, 18, 16, 0.12); /* light dim behind desktop dropdowns */
-
-	/* iOS grouped-inset card radius */
-	--radius-inset: 16px;
-
-	/* Focus/selection ring (WalletDesktop filter/select active) */
-	--shadow-ring-accent: 0 0 0 2px var(--color-accent-600);
 }
