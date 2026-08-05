@@ -182,10 +182,10 @@
 >
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="pointer-events-auto max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl {platform ===
+		class="pointer-events-auto max-w-lg w-full max-h-[90vh] overflow-y-auto {platform ===
 		'ios'
 			? 'liquid-glass-surface rounded-2xl'
-			: 'bg-white rounded-xl'}"
+			: 'bg-white rounded-xl shadow-2xl'}"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => e.stopPropagation()}
 		role="document"

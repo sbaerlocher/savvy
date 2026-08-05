@@ -37,10 +37,9 @@
 
 <Modal open={show} onclose={handleCancel} labelledby="modal-title">
 	<div
-		class="pointer-events-auto w-full sm:max-w-md p-6 shadow-xl {platform ===
-		'ios'
+		class="pointer-events-auto w-full sm:max-w-md p-6 {platform === 'ios'
 			? 'liquid-glass-surface rounded-t-3xl sm:rounded-2xl'
-			: 'bg-white dark:bg-text-strong rounded-t-3xl sm:rounded-lg'}"
+			: 'bg-white dark:bg-text-strong rounded-t-3xl sm:rounded-lg shadow-xl'}"
 	>
 		<!-- Header -->
 		<div class="flex items-start mb-4">

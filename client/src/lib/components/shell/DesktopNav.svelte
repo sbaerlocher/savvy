@@ -244,10 +244,10 @@
 								<div
 									role="menu"
 									tabindex="-1"
-									class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
+									class="absolute right-0 mt-2 w-56 rounded-lg py-2 z-50 {platform ===
 									'ios'
 										? 'liquid-glass-menu'
-										: 'bg-white border border-border'}"
+										: 'bg-white border border-border shadow-xl'}"
 									onclick={(e) => e.stopPropagation()}
 									onkeydown={(e) => {
 										if (e.key === 'Escape') showAdminMenu = false;
@@ -415,10 +415,10 @@
 							<div
 								role="menu"
 								tabindex="-1"
-								class="absolute right-0 mt-2 w-56 rounded-lg shadow-xl py-2 z-50 {platform ===
+								class="absolute right-0 mt-2 w-56 rounded-lg py-2 z-50 {platform ===
 								'ios'
 									? 'liquid-glass-menu'
-									: 'bg-white border border-border'}"
+									: 'bg-white border border-border shadow-xl'}"
 								onclick={(e) => e.stopPropagation()}
 								onkeydown={(e) => {
 									if (e.key === 'Escape') showUserMenu = false;

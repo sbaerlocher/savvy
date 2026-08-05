@@ -175,8 +175,8 @@
 	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
 	   translucent tint so content behind shows through, a bright hairline border
 	   and an inset specular highlight. No SVG displacement (unsupported in
-	   Safari/WebView). Two tints: --glass-sheet (deeper, the panel) and
-	   --glass-card (lighter milky insets that sit on the sheet). */
+	   Safari/WebView). Two tints: --color-glass-surface (deeper, the panel) and
+	   --color-glass-surface-3 (lighter milky insets that sit on the sheet). */
 	.liquid-glass-surface {
 		background: var(--color-glass-surface);
 		backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
@@ -196,13 +196,13 @@
 	}
 
 	/* Pull-down menu: an iOS context menu is deliberately near-opaque so its
-	   text stays readable — denser than the flat glass surfaces. Background
-	   kept near-opaque on purpose; only blur/border/shadow tokenized. */
+	   text stays readable — denser than the flat glass surfaces. A dark hairline
+	   (not the white glass edge) delineates it against the light page. */
 	.liquid-glass-menu {
-		background: rgba(252, 252, 251, 0.99);
+		background: var(--color-glass-menu);
 		backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
 		-webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
-		border: 1px solid var(--color-glass-edge);
+		border: 1px solid var(--color-glass-menu-edge);
 		box-shadow: var(--shadow-glass);
 	}
 
@@ -227,13 +227,13 @@
 		border-radius: 9999px;
 		background: linear-gradient(
 			to bottom,
-			var(--color-glass-edge),
-			var(--color-glass-surface)
+			var(--color-glass-pill-highlight),
+			var(--color-glass-pill-fill)
 		);
 		backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
 		-webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
 		border: 0.5px solid var(--color-glass-edge);
-		box-shadow: var(--shadow-glass);
+		box-shadow: var(--shadow-glass-pill);
 		z-index: -1;
 	}
 
@@ -255,7 +255,7 @@
 		}
 
 		.liquid-glass-pill {
-			background: var(--color-accent-100);
+			background: var(--color-glass-pill-fallback);
 		}
 	}
 
