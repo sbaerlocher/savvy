@@ -206,7 +206,7 @@
 	--color-warning-800: #6b4d0f; /* Text/Ink (AA auf -100 6.18:1) */
 	--color-warning-900: #4f390c; /* tiefster Ink */
 
-	/* purple — gedämpftes Pflaumen-Lila (Transfer-UI) */
+	/* purple — gedämpftes Pflaumen-Lila (admin accent) */
 	--color-purple-50: #f2eef7; /* Badge/Banner-Tint */
 	--color-purple-200: #d9cde8; /* Chip-bg / weicher Rand */
 	--color-purple-400: #9d84c0; /* Border / Icon */
@@ -274,4 +274,72 @@
 	--spacing-page-y: 44px; /* canvas page padding (top) */
 	--spacing-page-x: 48px; /* canvas page padding (sides) */
 	--spacing-section: 46px; /* gap between major sections */
+
+	/* ==========================================================================
+     MATERIAL 3 — shape scale (Android)
+     Intentionally separate from --radius-*: Android uses the M3 form scale,
+     iOS/Desktop use --radius-*. Do not merge.
+     ========================================================================== */
+	--m3-xs: 4px;
+	--m3-sm: 8px;
+	--m3-md: 12px;
+	--m3-lg: 16px;
+	--m3-xl: 28px;
+	--m3-full: 999px;
+
+	/* ==========================================================================
+     MATERIAL 3 — tonal surfaces + inverse (Android)
+     ========================================================================== */
+	--color-m3-surface-container: #eeebe3;
+	--color-m3-surface-container-high: #e7e3da;
+	--color-m3-secondary-container: #d9e3e0;
+	--color-m3-on-secondary-container: #1e3b3f;
+	--color-m3-inverse-surface: #313030; /* snackbar surface */
+	--color-m3-inverse-on-surface: #f3f0ea; /* text on snackbar */
+	--color-m3-inverse-primary: #7fd0da; /* snackbar action */
+
+	/* ==========================================================================
+     MATERIAL 3 — elevation (no iOS glass light edge)
+     ========================================================================== */
+	--m3-shadow-sheet: 0 -1px 3px rgba(40, 36, 32, 0.1), 0 -8px 18px rgba(40, 36, 32, 0.07);
+	--m3-shadow-dialog: 0 4px 10px rgba(40, 36, 32, 0.12), 0 12px 26px rgba(40, 36, 32, 0.1);
+
+	/* ==========================================================================
+     LIQUID GLASS (iOS) — rgba fills + edges
+     ========================================================================== */
+	--color-glass-surface: rgba(252, 251, 248, 0.68);
+	--color-glass-edge: rgba(255, 255, 255, 0.6);
+	--color-glass-scrim: rgba(20, 18, 16, 0.32);
+	--color-glass-grabber: rgba(35, 33, 32, 0.2);
+	--color-glass-surface-2: rgba(255, 255, 255, 0.72);
+	--color-glass-surface-3: rgba(255, 255, 255, 0.55);
+	--color-glass-hollow: rgba(255, 255, 255, 0.12);
+
+	/* ==========================================================================
+     TRANSFER — own serious category (warm orange, NOT danger)
+     ========================================================================== */
+	--color-transfer-50: #fbf1ea;
+	--color-transfer-200: #f0cdb4;
+	--color-transfer-600: #c2571f;
+	--color-transfer-700: #a4491a;
+	--color-transfer-900: #6d2f10;
+
+	/* ==========================================================================
+     GIFTCARD — gold accent
+     ========================================================================== */
+	--color-giftcard-ink: #a07f2f;
+	--color-giftcard-line: #c0a054;
+	--color-giftcard-edge: rgba(192, 160, 84, 0.7);
+
+	/* ==========================================================================
+     SCRIM — Android sheet/dialog (opaque; iOS uses --color-glass-scrim)
+     ========================================================================== */
+	--color-scrim: rgba(20, 18, 16, 0.42);
+	--color-scrim-light: rgba(20, 18, 16, 0.12); /* light dim behind desktop dropdowns */
+
+	/* iOS grouped-inset card radius */
+	--radius-inset: 16px;
+
+	/* Focus/selection ring (WalletDesktop filter/select active) */
+	--shadow-ring-accent: 0 0 0 2px var(--color-accent-600);
 }
