@@ -146,5 +146,6 @@ func GetMigrations() []*gormigrate.Migration {
 		fixNotificationPreferenceDefaults(),
 		partialUniqueIndexesExcludeSoftDeleted(),
 		addNotificationsArchivedAt(),
+		addNotificationEmailDelivery(),
 	}
 }

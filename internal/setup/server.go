@@ -218,6 +218,13 @@ func updateMetrics(parentCtx context.Context, db *gorm.DB) {
 	db.WithContext(ctx).Table("users").Where("email_sharing_enabled = ?", true).Count(&nm.EmailSharingEnabled)
 	metrics.UpdateNotificationMetrics(nm)
 
+	// Email delivery backlog. A number that only grows means the dispatcher is
+	// stuck or SMTP is refusing everything — indistinguishable from an idle
+	// system by the sent/failed counters alone.
+	var pendingEmails int64
+	db.WithContext(ctx).Table("notifications").Where("email_status = ?", "pending").Count(&pendingEmails)
+	metrics.UpdateNotificationEmailsPending(pendingEmails)
+
 	// Cleanup inactive sessions (sessions are re-counted via middleware)
 	middleware.CleanupInactiveSessions()
 

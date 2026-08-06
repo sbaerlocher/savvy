@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Failed notification emails were lost permanently** - Email delivery ran inline
+  while the notification row was created and a send error was only logged, after
+  which the reminder was marked as sent unconditionally. Because
+  `expiry_reminder_sents` then reported the reminder as delivered, it was never
+  retried: one SMTP hiccup dropped the mail for good. Delivery is now decoupled
+  from row creation — the notification row carries `email_status`,
+  `email_attempts` and `email_last_error`, and a dispatcher retries a failed send
+  up to five times before parking it as `failed`. Share and transfer emails,
+  which previously had no retry at all and lost queued mail on restart, go
+  through the same path.
+
+### Added
+
+- **Notification email dispatcher** - Background job (1-minute tick) that claims
+  pending notification emails with `FOR UPDATE SKIP LOCKED`, so the multi-replica
+  deployment needs no leader election. Rows stranded by a dying pod return to the
+  queue after 10 minutes; delivery is at-least-once, meaning a crash between SMTP
+  success and the status write can resend one mail.
+- **Delivery metrics** - `notification_emails_sent_total`,
+  `notification_emails_failed_total` and the `notification_emails_pending` gauge.
+  The gauge is the load-bearing one: without it a stalled dispatcher looks exactly
+  like an idle one.
+
+### Changed
+
+- **Share/transfer email gating** - The recipient lookup now happens before the
+  notification row is created (the same query the push gate already made, so no
+  extra round trip). A recipient that cannot be loaded yields a `skipped` email
+  state instead of an attempted send.
+
 ## [1.6.1] - 2026-07-23
 
 ### Fixed

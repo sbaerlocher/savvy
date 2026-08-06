@@ -186,7 +186,35 @@ email_sharing_enabled_total
 push_subscriptions_total
 push_subscribed_users_total
 email_verified_users_total
+
+# Notification email delivery (outbox)
+notification_emails_sent_total
+notification_emails_failed_total
+notification_emails_pending
 ```
+
+### Notification email delivery
+
+Notification emails are not sent while the notification row is created. The row
+carries the delivery state and a dispatcher sends it on a one-minute tick, so a
+failed send is retried instead of lost.
+
+| Metric                            | Type    | Meaning                                  |
+| --------------------------------- | ------- | ---------------------------------------- |
+| `notification_emails_sent_total`  | Counter | Emails delivered successfully            |
+| `notification_emails_failed_total`| Counter | Delivery attempts that failed            |
+| `notification_emails_pending`     | Gauge   | Emails still waiting to be delivered     |
+
+**Read the gauge, not just the counters.** A stalled dispatcher and an idle one
+both report zero sends per minute; only a `notification_emails_pending` that
+keeps climbing tells them apart.
+
+- **Gauge rising, `failed` flat** — nothing is picking the queue up. Check that
+  the dispatcher goroutine is alive and that SMTP is configured at all.
+- **Gauge rising, `failed` rising** — SMTP is rejecting mail. Each row retries 5
+  times before it is parked as `failed`; inspect `email_last_error` on the
+  `notifications` table for the provider's reason.
+- **Gauge near zero** — healthy, regardless of how flat the sent counter looks.
 
 ---
 

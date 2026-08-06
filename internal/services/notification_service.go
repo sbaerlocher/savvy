@@ -105,6 +105,13 @@ func (s *NotificationService) CreateShareNotification(ctx context.Context, in Sh
 	}
 	addResourceMetadata(metadata, in.MerchantName, in.Description, in.Value)
 
+	resourceURL := resourceListPath(in.ResourceType)
+
+	// Look the recipient up before creating the row: the same lookup the push
+	// gate already needed now also decides the row's email state, so this costs
+	// no extra query.
+	recipient := s.getRecipient(ctx, in.RecipientID)
+
 	notification := &models.Notification{
 		UserID:       in.RecipientID,
 		Type:         models.NotificationTypeShareReceived,
@@ -112,6 +119,7 @@ func (s *NotificationService) CreateShareNotification(ctx context.Context, in Sh
 		ResourceID:   in.ResourceID,
 		Metadata:     metadata,
 		IsRead:       false,
+		EmailStatus:  s.emailStatusForSharing(recipient),
 	}
 
 	if err := s.repo.Create(ctx, notification); err != nil {
@@ -120,10 +128,6 @@ func (s *NotificationService) CreateShareNotification(ctx context.Context, in Sh
 
 	slog.Info("Share notification created", "recipient_id", in.RecipientID, "resource_type", in.ResourceType, "resource_id", in.ResourceID)
 
-	resourceURL := resourceListPath(in.ResourceType)
-
-	// Get recipient for preference checks
-	recipient := s.getRecipient(ctx, in.RecipientID)
 	lang := ""
 	if recipient != nil {
 		lang = recipient.Language
@@ -131,15 +135,12 @@ func (s *NotificationService) CreateShareNotification(ctx context.Context, in Sh
 
 	// Send push notification (gated by channel + category preferences).
 	// Push body carries merchant + description but never the value (lockscreen privacy).
+	// Push stays inline and best-effort; only email moved to the outbox.
 	if recipient == nil || (recipient.PushNotificationsEnabled && recipient.PushSharingEnabled) {
 		title := i18n.T(i18nCtx(lang), "push.share.title")
 		body := sharePushBody(lang, in.FromUserName, in.ResourceType, in.MerchantName, in.Description)
 		s.sendPush(ctx, in.RecipientID, title, body, resourceURL)
 	}
-
-	// Send email notification (gated by channel + category preferences).
-	// Email may show merchant + description + value (behind account auth).
-	s.sendShareEmail(ctx, in.RecipientID, in.FromUserName, in.ResourceType, resourceURL, in.MerchantName, in.Description, in.Value)
 
 	return nil
 }
@@ -152,6 +153,12 @@ func (s *NotificationService) CreateTransferNotification(ctx context.Context, in
 	}
 	addResourceMetadata(metadata, in.MerchantName, in.Description, in.Value)
 
+	resourceURL := resourceListPath(in.ResourceType)
+
+	// Recipient lookup moved ahead of the row for the same reason as in
+	// CreateShareNotification: it decides the row's email state.
+	recipient := s.getRecipient(ctx, in.RecipientID)
+
 	notification := &models.Notification{
 		UserID:       in.RecipientID,
 		Type:         models.NotificationTypeTransferReceived,
@@ -159,6 +166,7 @@ func (s *NotificationService) CreateTransferNotification(ctx context.Context, in
 		ResourceID:   in.ResourceID,
 		Metadata:     metadata,
 		IsRead:       false,
+		EmailStatus:  s.emailStatusForSharing(recipient),
 	}
 
 	if err := s.repo.Create(ctx, notification); err != nil {
@@ -167,10 +175,6 @@ func (s *NotificationService) CreateTransferNotification(ctx context.Context, in
 
 	slog.Info("Transfer notification created", "recipient_id", in.RecipientID, "resource_type", in.ResourceType, "resource_id", in.ResourceID)
 
-	resourceURL := resourceListPath(in.ResourceType)
-
-	// Get recipient for preference checks
-	recipient := s.getRecipient(ctx, in.RecipientID)
 	lang := ""
 	if recipient != nil {
 		lang = recipient.Language
@@ -178,17 +182,26 @@ func (s *NotificationService) CreateTransferNotification(ctx context.Context, in
 
 	// Send push notification (gated by channel + category preferences).
 	// Push body carries merchant + description but never the value (lockscreen privacy).
+	// Push stays inline and best-effort; only email moved to the outbox.
 	if recipient == nil || (recipient.PushNotificationsEnabled && recipient.PushSharingEnabled) {
 		title := i18n.T(i18nCtx(lang), "push.transfer.title")
 		body := transferPushBody(lang, in.FromUserName, in.ResourceType, in.MerchantName, in.Description)
 		s.sendPush(ctx, in.RecipientID, title, body, resourceURL)
 	}
 
-	// Send email notification (gated by channel + category preferences).
-	// Email may show merchant + description + value (behind account auth).
-	s.sendTransferEmail(ctx, in.RecipientID, in.FromUserName, in.ResourceType, resourceURL, in.MerchantName, in.Description, in.Value)
-
 	return nil
+}
+
+// emailStatusForSharing decides whether a share/transfer row queues an email.
+//
+// A recipient that cannot be loaded yields 'skipped'. That matches the previous
+// behaviour, where the same failed lookup ended the send: queueing instead would
+// park a mail with no address to deliver it to.
+func (s *NotificationService) emailStatusForSharing(recipient *models.User) models.EmailStatus {
+	if s.emailService == nil || recipient == nil {
+		return models.EmailStatusSkipped
+	}
+	return emailStatusFor(recipient.EmailSharingEnabled && recipient.EmailNotificationsEnabled)
 }
 
 // addResourceMetadata adds merchant_name, description and value to notification
@@ -271,80 +284,6 @@ func (s *NotificationService) sendPush(ctx context.Context, userID uuid.UUID, ti
 	if err := s.pushService.SendPushToUser(ctx, userID, title, body, url); err != nil {
 		slog.WarnContext(ctx, "failed to send push notification", "user_id", userID, "error", err)
 	}
-}
-
-// emailValue splits a *NotificationValue into (amount, currency) for the email
-// service. A nil value yields (0, "") so the template renders no value block.
-func emailValue(value *NotificationValue) (float64, string) {
-	if value == nil {
-		return 0, ""
-	}
-	return value.Amount, value.Currency
-}
-
-// sendShareEmail sends a share notification email (best-effort).
-// Gated by both EmailSharingEnabled (category) and EmailNotificationsEnabled (channel).
-func (s *NotificationService) sendShareEmail(ctx context.Context, recipientID uuid.UUID, fromUserName, resourceType, resourcePath, merchantName, description string, value *NotificationValue) {
-	if s.emailService == nil || s.userRepo == nil {
-		return
-	}
-
-	recipient, err := s.userRepo.GetByID(ctx, recipientID)
-	if err != nil {
-		slog.WarnContext(ctx, "failed to get recipient for share email", "user_id", recipientID, "error", err)
-		return
-	}
-
-	if !recipient.EmailSharingEnabled || !recipient.EmailNotificationsEnabled {
-		return
-	}
-
-	resourceURL := s.frontendURL + resourcePath
-	unsubscribeURL := s.generateUnsubscribeURL(ctx, recipientID)
-	amount, currency := emailValue(value)
-	if err := s.emailService.SendShareNotification(ctx, recipient.Email, recipient.DisplayName(), fromUserName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL, recipient.Language); err != nil {
-		slog.WarnContext(ctx, "failed to send share notification email", "user_id", recipientID, "error", err)
-	}
-}
-
-// sendTransferEmail sends a transfer notification email (best-effort).
-// Gated by both EmailSharingEnabled (category) and EmailNotificationsEnabled (channel).
-func (s *NotificationService) sendTransferEmail(ctx context.Context, recipientID uuid.UUID, fromUserName, resourceType, resourcePath, merchantName, description string, value *NotificationValue) {
-	if s.emailService == nil || s.userRepo == nil {
-		return
-	}
-
-	recipient, err := s.userRepo.GetByID(ctx, recipientID)
-	if err != nil {
-		slog.WarnContext(ctx, "failed to get recipient for transfer email", "user_id", recipientID, "error", err)
-		return
-	}
-
-	if !recipient.EmailSharingEnabled || !recipient.EmailNotificationsEnabled {
-		return
-	}
-
-	resourceURL := s.frontendURL + resourcePath
-	unsubscribeURL := s.generateUnsubscribeURL(ctx, recipientID)
-	amount, currency := emailValue(value)
-	if err := s.emailService.SendTransferNotification(ctx, recipient.Email, recipient.DisplayName(), fromUserName, resourceType, merchantName, description, amount, currency, resourceURL, unsubscribeURL, recipient.Language); err != nil {
-		slog.WarnContext(ctx, "failed to send transfer notification email", "user_id", recipientID, "error", err)
-	}
-}
-
-// generateUnsubscribeURL creates a one-click unsubscribe URL with a token.
-func (s *NotificationService) generateUnsubscribeURL(ctx context.Context, userID uuid.UUID) string {
-	if s.emailTokenService == nil {
-		return ""
-	}
-
-	token, err := s.emailTokenService.CreateUnsubscribeToken(ctx, userID)
-	if err != nil {
-		slog.WarnContext(ctx, "failed to create unsubscribe token", "user_id", userID, "error", err)
-		return ""
-	}
-
-	return s.frontendURL + "/unsubscribe?token=" + token + "&type=notifications"
 }
 
 // getRecipient looks up the recipient user for preference checks and language.

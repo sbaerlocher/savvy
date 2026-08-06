@@ -174,6 +174,18 @@ func (m *mockNotifRepoForReminder) Delete(_ context.Context, _, _ uuid.UUID) err
 func (m *mockNotifRepoForReminder) ArchiveOldRead(_ context.Context, _ time.Time) (int64, error) {
 	return 0, nil
 }
+func (m *mockNotifRepoForReminder) ClaimPendingEmails(_ context.Context, _ int) ([]models.Notification, error) {
+	return nil, nil
+}
+func (m *mockNotifRepoForReminder) MarkEmailResult(_ context.Context, _ uuid.UUID, _ error, _ int) error {
+	return nil
+}
+func (m *mockNotifRepoForReminder) ResetStaleSendingEmails(_ context.Context, _ time.Time) (int64, error) {
+	return 0, nil
+}
+func (m *mockNotifRepoForReminder) CountPendingEmails(_ context.Context) (int64, error) {
+	return 0, nil
+}
 
 // ==================== Mock Push Service (for Reminder) ====================
 
@@ -250,7 +262,7 @@ func setupReminderTest() (
 	pushSvc := new(mockPushSvcForReminder)
 	emailSvc := new(mockEmailSvcForReminder)
 
-	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, emailSvc, nil, []int{7, 3, 1}, time.UTC, "https://savvy.example.com")
+	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, []int{7, 3, 1}, time.UTC, "https://savvy.example.com")
 
 	return svc.(*ReminderService), reminderRepo, voucherRepo, giftCardRepo, notifRepo, pushSvc, emailSvc
 }
@@ -267,6 +279,7 @@ func TestReminderService_CheckAndSendReminders_Vouchers(t *testing.T) {
 	expiringVoucher := models.Voucher{
 		ID:         voucherID,
 		UserID:     &userID,
+		Code:       "TESTCODE",
 		ValidUntil: time.Now().Add(3 * 24 * time.Hour),
 		Merchant:   merchant,
 		User:       user,
@@ -289,9 +302,11 @@ func TestReminderService_CheckAndSendReminders_Vouchers(t *testing.T) {
 	giftCardRepo.On("GetExpiringGiftCards", ctx, 1).Return([]models.GiftCard{}, nil)
 
 	reminderRepo.On("HasBeenSent", ctx, userID, "voucher", voucherID, 3).Return(false, nil)
-	notifRepo.On("Create", ctx, mock.AnythingOfType("*models.Notification")).Return(nil)
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.AnythingOfType("*models.Notification")).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/vouchers").Return(nil)
-	emailSvc.On("SendExpiryReminder", ctx, "test@example.com", "Test", mock.AnythingOfType("email.ExpiryReminderData"), "", "en").Return(nil)
 	reminderRepo.On("MarkSent", ctx, mock.AnythingOfType("*models.ExpiryReminderSent")).Return(nil)
 	voucherRepo.On("GetVouchersStartingTomorrow", ctx).Return([]models.Voucher{}, nil)
 
@@ -301,7 +316,16 @@ func TestReminderService_CheckAndSendReminders_Vouchers(t *testing.T) {
 	notifRepo.AssertExpectations(t)
 	reminderRepo.AssertExpectations(t)
 	pushSvc.AssertExpectations(t)
-	emailSvc.AssertExpectations(t)
+
+	// The email is queued on the notification row for EmailDispatchService, not
+	// sent from here — that is what makes a failed send retryable.
+	assert.Equal(t, models.EmailStatusPending, created.EmailStatus)
+	emailSvc.AssertNotCalled(t, "SendExpiryReminder")
+
+	// Fields the mail template needs must survive on the row; without them the
+	// dispatcher would send a reminder with no code and a link to the list page.
+	assert.Equal(t, "TESTCODE", created.Metadata["code"])
+	assert.NotEmpty(t, created.Metadata["resource_url"])
 }
 
 func TestReminderService_CheckAndSendReminders_GiftCards(t *testing.T) {
@@ -432,7 +456,7 @@ func TestReminderService_NilPushService(t *testing.T) {
 	emailSvc := new(mockEmailSvcForReminder)
 
 	// Create service with nil push service
-	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, emailSvc, nil, []int{3}, time.UTC, "https://savvy.example.com")
+	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "https://savvy.example.com")
 	ctx := context.Background()
 
 	userID := uuid.New()
@@ -471,7 +495,7 @@ func TestReminderService_NilEmailService(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
 
 	// Create service with nil email service
-	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, nil, nil, []int{3}, time.UTC, "https://savvy.example.com")
+	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, []int{3}, time.UTC, "https://savvy.example.com")
 	ctx := context.Background()
 
 	userID := uuid.New()
@@ -514,9 +538,8 @@ func TestReminderService_CalculateDaysLeft(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 	pushSvc := new(mockPushSvcForReminder)
-	emailSvc := new(mockEmailSvcForReminder)
 
-	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, emailSvc, nil, []int{3}, loc, "https://savvy.example.com").(*ReminderService)
+	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, []int{3}, loc, "https://savvy.example.com").(*ReminderService)
 
 	// Create expiry dates in UTC to match production behavior.
 	// The frontend stores dates as end-of-day UTC (T23:59:59Z),
@@ -585,7 +608,7 @@ func TestReminderService_NoDuplicateReminders(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
 	emailSvc := new(mockEmailSvcForReminder)
 
-	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, emailSvc, nil, []int{7, 3, 1}, time.UTC, "https://savvy.example.com")
+	svc := NewReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, pushSvc, []int{7, 3, 1}, time.UTC, "https://savvy.example.com")
 	ctx := context.Background()
 
 	userID := uuid.New()
@@ -669,10 +692,11 @@ func TestReminderService_ValidityStart_HappyPath(t *testing.T) {
 			n.Type == models.NotificationTypeValidityStart &&
 			n.ResourceType == "voucher" &&
 			n.ResourceID == voucherID &&
-			n.Metadata["merchant_name"] == "IKEA"
+			n.Metadata["merchant_name"] == "IKEA" &&
+			n.Metadata["code"] == "TESTCODE" &&
+			n.EmailStatus == models.EmailStatusPending
 	})).Return(nil)
 	pushSvc.On("SendPushToUser", ctx, userID, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "/vouchers").Return(nil)
-	emailSvc.On("SendValidityStart", ctx, "test@example.com", "Test", mock.AnythingOfType("email.ValidityStartData"), "", "en").Return(nil)
 	reminderRepo.On("MarkSent", ctx, mock.MatchedBy(func(r *models.ExpiryReminderSent) bool {
 		return r.UserID == userID && r.ResourceType == "voucher_start" && r.ResourceID == voucherID && r.DaysBefore == 1
 	})).Return(nil)
@@ -683,7 +707,8 @@ func TestReminderService_ValidityStart_HappyPath(t *testing.T) {
 	notifRepo.AssertExpectations(t)
 	reminderRepo.AssertExpectations(t)
 	pushSvc.AssertExpectations(t)
-	emailSvc.AssertExpectations(t)
+	// Email is queued on the row, not sent inline.
+	emailSvc.AssertNotCalled(t, "SendValidityStart")
 }
 
 func TestReminderService_ValidityStart_AlreadySent(t *testing.T) {
@@ -786,16 +811,20 @@ func TestReminderService_PushDisabled(t *testing.T) {
 	voucherRepo.On("GetVouchersStartingTomorrow", ctx).Return([]models.Voucher{}, nil)
 
 	reminderRepo.On("HasBeenSent", ctx, userID, "voucher", voucherID, 3).Return(false, nil)
-	notifRepo.On("Create", ctx, mock.AnythingOfType("*models.Notification")).Return(nil)
-	emailSvc.On("SendExpiryReminder", ctx, "test@example.com", "Test", mock.AnythingOfType("email.ExpiryReminderData"), "", "en").Return(nil)
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.AnythingOfType("*models.Notification")).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	reminderRepo.On("MarkSent", ctx, mock.AnythingOfType("*models.ExpiryReminderSent")).Return(nil)
 
 	err := svc.CheckAndSendReminders(ctx)
 
 	assert.NoError(t, err)
-	// In-app and email should be sent
+	// In-app row is created and its email queued; the send itself is the
+	// dispatcher's job, so the mailer must not be touched here.
 	notifRepo.AssertExpectations(t)
-	emailSvc.AssertExpectations(t)
+	assert.Equal(t, models.EmailStatusPending, created.EmailStatus)
+	emailSvc.AssertNotCalled(t, "SendExpiryReminder")
 	reminderRepo.AssertExpectations(t)
 	// Push should NOT be called
 	pushSvc.AssertNotCalled(t, "SendPushToUser")
@@ -1009,8 +1038,6 @@ func newTestReminderService(
 	giftCardShareRepo repository.GiftCardShareRepository,
 	notifRepo repository.NotificationRepository,
 	pushSvc PushServiceInterface,
-	emailSvc email.ServiceInterface,
-	emailTokenSvc EmailTokenServiceInterface,
 	daysBefore []int,
 	location *time.Location,
 	frontendURL string,
@@ -1018,7 +1045,7 @@ func newTestReminderService(
 	return NewReminderService(
 		reminderRepo, voucherRepo, giftCardRepo,
 		voucherShareRepo, giftCardShareRepo,
-		notifRepo, pushSvc, emailSvc, emailTokenSvc,
+		notifRepo, pushSvc,
 		daysBefore, location, frontendURL,
 	).(*ReminderService)
 }
@@ -1078,7 +1105,7 @@ func TestReminderService_GermanMonth(t *testing.T) {
 // ==================== formatCurrency Tests ====================
 
 func TestReminderService_FormatCurrency(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 
 	t.Run("empty currency defaults to CHF", func(t *testing.T) {
 		result := svc.formatCurrency(50.00, "")
@@ -1109,7 +1136,7 @@ func TestReminderService_FormatCurrency(t *testing.T) {
 // ==================== formatVoucherValue Tests ====================
 
 func TestReminderService_FormatVoucherValue(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 
 	t.Run("percentage type", func(t *testing.T) {
 		v := &models.Voucher{Type: "percentage", Value: 20}
@@ -1174,28 +1201,28 @@ func TestReminderService_FormatVoucherValue(t *testing.T) {
 
 func TestReminderService_BuildResourceURL(t *testing.T) {
 	t.Run("with valid frontend URL", func(t *testing.T) {
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com")
+		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com")
 		resourceID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 		result := svc.buildResourceURL("vouchers", resourceID)
 		assert.Equal(t, "https://savvy.example.com/vouchers/550e8400-e29b-41d4-a716-446655440000", result)
 	})
 
 	t.Run("with empty frontend URL returns empty", func(t *testing.T) {
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 		resourceID := uuid.New()
 		result := svc.buildResourceURL("vouchers", resourceID)
 		assert.Equal(t, "", result)
 	})
 
 	t.Run("gift-cards path", func(t *testing.T) {
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com")
+		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com")
 		resourceID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 		result := svc.buildResourceURL("gift-cards", resourceID)
 		assert.Equal(t, "https://savvy.example.com/gift-cards/550e8400-e29b-41d4-a716-446655440000", result)
 	})
 
 	t.Run("trailing slash in frontend URL is stripped", func(t *testing.T) {
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com/")
+		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com/")
 		resourceID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 		result := svc.buildResourceURL("vouchers", resourceID)
 		assert.Equal(t, "https://savvy.example.com/vouchers/550e8400-e29b-41d4-a716-446655440000", result)
@@ -1205,7 +1232,7 @@ func TestReminderService_BuildResourceURL(t *testing.T) {
 // ==================== formatDate Tests ====================
 
 func TestReminderService_FormatDate(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 
 	// Use a fixed date: March 15, 2026 at 23:59:59 UTC (typical end-of-day UTC storage)
 	testDate := time.Date(2026, time.March, 15, 23, 59, 59, 0, time.UTC)
@@ -1260,44 +1287,6 @@ func TestReminderService_FormatDate(t *testing.T) {
 	})
 }
 
-// ==================== generateUnsubscribeURL Tests ====================
-
-func TestReminderService_GenerateUnsubscribeURL(t *testing.T) {
-	t.Run("nil emailTokenService returns empty string", func(t *testing.T) {
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "https://savvy.example.com")
-		ctx := context.Background()
-		userID := uuid.New()
-		result := svc.generateUnsubscribeURL(ctx, userID)
-		assert.Equal(t, "", result)
-	})
-
-	t.Run("successful token generation", func(t *testing.T) {
-		tokenSvc := new(mockEmailTokenSvcForReminder)
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, tokenSvc, nil, time.UTC, "https://savvy.example.com")
-		ctx := context.Background()
-		userID := uuid.New()
-
-		tokenSvc.On("CreateUnsubscribeReminderToken", ctx, userID).Return("test-token-123", nil)
-
-		result := svc.generateUnsubscribeURL(ctx, userID)
-		assert.Equal(t, "https://savvy.example.com/unsubscribe?token=test-token-123&type=reminders", result)
-		tokenSvc.AssertExpectations(t)
-	})
-
-	t.Run("token creation error returns empty string", func(t *testing.T) {
-		tokenSvc := new(mockEmailTokenSvcForReminder)
-		svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, tokenSvc, nil, time.UTC, "https://savvy.example.com")
-		ctx := context.Background()
-		userID := uuid.New()
-
-		tokenSvc.On("CreateUnsubscribeReminderToken", ctx, userID).Return("", fmt.Errorf("database error"))
-
-		result := svc.generateUnsubscribeURL(ctx, userID)
-		assert.Equal(t, "", result)
-		tokenSvc.AssertExpectations(t)
-	})
-}
-
 // ==================== checkVouchers Tests ====================
 
 func TestReminderService_CheckVouchers_RepoError(t *testing.T) {
@@ -1306,7 +1295,7 @@ func TestReminderService_CheckVouchers_RepoError(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	// Simulate repo error for vouchers
@@ -1326,7 +1315,7 @@ func TestReminderService_CheckVouchers_NilUserID(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	voucherWithNilUser := models.Voucher{
@@ -1355,7 +1344,7 @@ func TestReminderService_CheckVouchers_NilMerchant(t *testing.T) {
 	voucherID := uuid.New()
 	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: "en", PushNotificationsEnabled: false, EmailNotificationsEnabled: false}
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	voucherNoMerchant := models.Voucher{
@@ -1389,7 +1378,7 @@ func TestReminderService_CheckGiftCards_RepoError(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	voucherRepo.On("GetExpiringVouchers", ctx, 3).Return([]models.Voucher{}, nil)
@@ -1407,7 +1396,7 @@ func TestReminderService_CheckGiftCards_NilUserID(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	expiresAt := time.Now().Add(3 * 24 * time.Hour)
@@ -1435,7 +1424,7 @@ func TestReminderService_CheckGiftCards_NilExpiresAt(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 
 	userID := uuid.New()
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	gcNilExpiry := models.GiftCard{
@@ -1465,7 +1454,7 @@ func TestReminderService_CheckGiftCards_NilMerchant(t *testing.T) {
 	expiresAt := time.Now().Add(3 * 24 * time.Hour)
 	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: "en", PushNotificationsEnabled: false, EmailNotificationsEnabled: false}
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	gcNoMerchant := models.GiftCard{
@@ -1494,7 +1483,7 @@ func TestReminderService_CheckGiftCards_NilMerchant(t *testing.T) {
 // ==================== sendValidityStartPush Tests ====================
 
 func TestReminderService_SendValidityStartPush_NilPushService(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1504,7 +1493,7 @@ func TestReminderService_SendValidityStartPush_NilPushService(t *testing.T) {
 
 func TestReminderService_SendValidityStartPush_Success(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1516,7 +1505,7 @@ func TestReminderService_SendValidityStartPush_Success(t *testing.T) {
 
 func TestReminderService_SendValidityStartPush_Error(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1527,144 +1516,10 @@ func TestReminderService_SendValidityStartPush_Error(t *testing.T) {
 	pushSvc.AssertExpectations(t)
 }
 
-// ==================== sendValidityStartEmail Tests ====================
-
-func TestReminderService_SendValidityStartEmail_NilEmailService(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	user := &models.User{Email: "test@example.com", FirstName: "Test"}
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	// Should not panic with nil emailService
-	svc.sendValidityStartEmail(ctx, user, data)
-}
-
-func TestReminderService_SendValidityStartEmail_NilUser(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	// Should not panic with nil user
-	svc.sendValidityStartEmail(ctx, nil, data)
-	// SendValidityStart should NOT be called
-	emailSvc.AssertNotCalled(t, "SendValidityStart")
-}
-
-func TestReminderService_SendValidityStartEmail_Success(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "https://savvy.example.com")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: "de"}
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	emailSvc.On("SendValidityStart", ctx, "test@example.com", "Test", data, "", "de").Return(nil)
-
-	svc.sendValidityStartEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
-func TestReminderService_SendValidityStartEmail_EmptyFirstName(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "", Language: "en"}
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	// When FirstName is empty, should use Email as name
-	emailSvc.On("SendValidityStart", ctx, "test@example.com", "test@example.com", data, "", "en").Return(nil)
-
-	svc.sendValidityStartEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
-func TestReminderService_SendValidityStartEmail_EmptyLanguage(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: ""}
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	// When Language is empty, should default to "en"
-	emailSvc.On("SendValidityStart", ctx, "test@example.com", "Test", data, "", "en").Return(nil)
-
-	svc.sendValidityStartEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
-func TestReminderService_SendValidityStartEmail_Error(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: "en"}
-	data := email.ValidityStartData{MerchantName: "IKEA"}
-
-	emailSvc.On("SendValidityStart", ctx, "test@example.com", "Test", data, "", "en").Return(fmt.Errorf("smtp error"))
-
-	// Should not panic, just logs warning
-	svc.sendValidityStartEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
-// ==================== sendEmail Tests (expiry reminder) ====================
-
-func TestReminderService_SendEmail_NilEmailService(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	user := &models.User{Email: "test@example.com"}
-	data := email.ExpiryReminderData{}
-
-	// Should not panic
-	svc.sendEmail(ctx, user, data)
-}
-
-func TestReminderService_SendEmail_NilUser(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	data := email.ExpiryReminderData{}
-
-	// Should not panic
-	svc.sendEmail(ctx, nil, data)
-	emailSvc.AssertNotCalled(t, "SendExpiryReminder")
-}
-
-func TestReminderService_SendEmail_EmptyFirstNameUsesEmail(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "", Language: "en"}
-	data := email.ExpiryReminderData{MerchantName: "Test"}
-
-	emailSvc.On("SendExpiryReminder", ctx, "test@example.com", "test@example.com", data, "", "en").Return(nil)
-
-	svc.sendEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
-func TestReminderService_SendEmail_EmptyLanguageDefaultsToEn(t *testing.T) {
-	emailSvc := new(mockEmailSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, emailSvc, nil, nil, time.UTC, "")
-	ctx := context.Background()
-	userID := uuid.New()
-	user := &models.User{ID: userID, Email: "test@example.com", FirstName: "Test", Language: ""}
-	data := email.ExpiryReminderData{MerchantName: "Test"}
-
-	emailSvc.On("SendExpiryReminder", ctx, "test@example.com", "Test", data, "", "en").Return(nil)
-
-	svc.sendEmail(ctx, user, data)
-	emailSvc.AssertExpectations(t)
-}
-
 // ==================== sendPush Tests (expiry reminder) ====================
 
 func TestReminderService_SendPush_NilPushService(t *testing.T) {
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, nil, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1674,7 +1529,7 @@ func TestReminderService_SendPush_NilPushService(t *testing.T) {
 
 func TestReminderService_SendPush_OneDayLeft(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1687,7 +1542,7 @@ func TestReminderService_SendPush_OneDayLeft(t *testing.T) {
 
 func TestReminderService_SendPush_MultipleDays(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1700,7 +1555,7 @@ func TestReminderService_SendPush_MultipleDays(t *testing.T) {
 
 func TestReminderService_SendPush_Error(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
-	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(nil, nil, nil, nil, nil, nil, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 
@@ -1717,7 +1572,7 @@ func TestReminderService_SendReminderToUser_HasBeenSentError(t *testing.T) {
 	reminderRepo := new(MockReminderRepo)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, nil, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 	resourceID := uuid.New()
@@ -1734,7 +1589,7 @@ func TestReminderService_SendReminderToUser_NotifCreateError(t *testing.T) {
 	reminderRepo := new(MockReminderRepo)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, nil, nil, nil, nil, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, nil, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 	resourceID := uuid.New()
@@ -1754,7 +1609,7 @@ func TestReminderService_SendReminderToUser_NilUser(t *testing.T) {
 	pushSvc := new(mockPushSvcForReminder)
 	emailSvc := new(mockEmailSvcForReminder)
 
-	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, pushSvc, emailSvc, nil, nil, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, nil, nil, nil, nil, notifRepo, pushSvc, nil, time.UTC, "")
 	ctx := context.Background()
 	userID := uuid.New()
 	resourceID := uuid.New()
@@ -1783,7 +1638,7 @@ func TestReminderService_CheckVoucherValidityStart_RepoError(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	voucherRepo.On("GetExpiringVouchers", ctx, 3).Return([]models.Voucher{}, nil)
@@ -1801,7 +1656,7 @@ func TestReminderService_CheckVoucherValidityStart_NilUserID(t *testing.T) {
 	giftCardRepo := new(mockGiftCardRepoForReminder)
 	notifRepo := new(mockNotifRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	tomorrow := time.Now().AddDate(0, 0, 1)
@@ -1833,7 +1688,7 @@ func TestReminderService_VoucherShareRecipients(t *testing.T) {
 	emailSvc := new(mockEmailSvcForReminder)
 	voucherShareRepo := new(mockVoucherShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, pushSvc, emailSvc, nil, []int{3}, time.UTC, "https://savvy.example.com")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, pushSvc, []int{3}, time.UTC, "https://savvy.example.com")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -1902,7 +1757,7 @@ func TestReminderService_GiftCardShareRecipients(t *testing.T) {
 	emailSvc := new(mockEmailSvcForReminder)
 	giftCardShareRepo := new(mockGiftCardShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, pushSvc, emailSvc, nil, []int{1}, time.UTC, "https://savvy.example.com")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, pushSvc, []int{1}, time.UTC, "https://savvy.example.com")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -1967,7 +1822,7 @@ func TestReminderService_GiftCardShareRecipients(t *testing.T) {
 
 func TestReminderService_NewReminderService_NilLocation(t *testing.T) {
 	// When location is nil, it should default to UTC
-	svc := NewReminderService(nil, nil, nil, nil, nil, nil, nil, nil, nil, []int{3}, nil, "https://savvy.example.com/")
+	svc := NewReminderService(nil, nil, nil, nil, nil, nil, nil, []int{3}, nil, "https://savvy.example.com/")
 	rs := svc.(*ReminderService)
 	assert.Equal(t, time.UTC, rs.location)
 	// Trailing slash should be stripped
@@ -1983,7 +1838,7 @@ func TestReminderService_ValidityStart_ShareRecipients(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	voucherShareRepo := new(mockVoucherShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -2047,7 +1902,7 @@ func TestReminderService_ValidityStart_ShareRepoError(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	voucherShareRepo := new(mockVoucherShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -2089,7 +1944,7 @@ func TestReminderService_VoucherShareRepoError(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	voucherShareRepo := new(mockVoucherShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -2128,7 +1983,7 @@ func TestReminderService_GiftCardShareRepoError(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	giftCardShareRepo := new(mockGiftCardShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, nil, nil, nil, []int{1}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, nil, []int{1}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -2170,7 +2025,7 @@ func TestReminderService_VoucherShare_NilSharedWithUser(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	voucherShareRepo := new(mockVoucherShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, nil, nil, []int{3}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, voucherShareRepo, nil, notifRepo, nil, []int{3}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
@@ -2217,7 +2072,7 @@ func TestReminderService_GiftCardShare_NilSharedWithUser(t *testing.T) {
 	notifRepo := new(mockNotifRepoForReminder)
 	giftCardShareRepo := new(mockGiftCardShareRepoForReminder)
 
-	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, nil, nil, nil, []int{1}, time.UTC, "")
+	svc := newTestReminderService(reminderRepo, voucherRepo, giftCardRepo, nil, giftCardShareRepo, notifRepo, nil, []int{1}, time.UTC, "")
 	ctx := context.Background()
 
 	ownerID := uuid.New()
