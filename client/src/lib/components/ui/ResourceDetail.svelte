@@ -405,7 +405,7 @@
 				onclick={startEdit}
 				disabled={isOffline}
 				aria-label={tr('common.edit')}
-				class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab disabled:opacity-50 disabled:pointer-events-none"
+				class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center rounded-[var(--radius-m3-lg)] bg-accent text-white shadow-[var(--shadow-fab)] mobile-nav-fab disabled:opacity-50 disabled:pointer-events-none"
 			>
 				<svg
 					class="w-6 h-6"

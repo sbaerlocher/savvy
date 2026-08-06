@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { t } from '$lib/stores/i18n';
 	import { get } from 'svelte/store';
+	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string) => get(t)(key);
 
@@ -41,9 +42,14 @@
 	// accent (brand cyan) keeps the row calm — the type is read from the label,
 	// not from a color per type.
 	// Mockup: solid teal active pill, white bordered inactive pill, no count.
+	// Android M3: inactive chips are outlined/transparent everywhere this row
+	// renders (the tonal filter sheet and the wallet header), so the chip takes
+	// the surface behind it instead of stamping a white block over it.
 	const active = 'bg-accent text-white border border-accent';
 	const inactive =
-		'bg-white text-text-muted border border-border hover:bg-surface-1';
+		platform === 'android'
+			? 'bg-transparent text-text-muted border border-border hover:bg-surface-1'
+			: 'bg-white text-text-muted border border-border hover:bg-surface-1';
 	const base = $derived(
 		`inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
 			variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'

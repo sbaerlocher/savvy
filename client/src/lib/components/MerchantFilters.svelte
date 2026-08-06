@@ -63,7 +63,7 @@
 	// surface-container-high step. Desktop keeps the hairline-divided flat
 	// layout.
 	const groupClass = isIos
-		? 'liquid-glass-card rounded-2xl px-4'
+		? 'liquid-glass-card rounded-[var(--radius-inset)] px-4'
 		: isAndroid
 			? 'bg-m3-surface-container-high rounded-m3-lg px-4'
 			: '';
