@@ -185,7 +185,9 @@
 		class="pointer-events-auto max-w-lg w-full max-h-[90vh] overflow-y-auto {platform ===
 		'ios'
 			? 'liquid-glass-surface rounded-2xl'
-			: 'bg-white rounded-xl shadow-2xl'}"
+			: platform === 'android'
+				? 'bg-m3-surface-container rounded-m3-xl shadow-m3-dialog'
+				: 'bg-white rounded-xl shadow-2xl'}"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => e.stopPropagation()}
 		role="document"

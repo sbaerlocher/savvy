@@ -40,6 +40,18 @@
 		options.find((o) => o.value === value)?.label ?? ''
 	);
 
+	// Android and Desktop render the same chip markup; only the chip class
+	// differs (M3 tonal/outlined vs. neutral). Keep one branch, vary the class.
+	const chipShape = platform === 'android' ? 'rounded-m3-sm' : 'rounded-lg';
+	const chipSelected =
+		platform === 'android'
+			? 'bg-m3-secondary-container text-m3-on-secondary-container'
+			: 'bg-accent-100 text-accent-850';
+	const chipUnselected =
+		platform === 'android'
+			? 'border border-border bg-transparent text-text-muted hover:bg-surface-1'
+			: 'border border-border bg-white text-text-muted hover:bg-surface-1';
+
 	let menuOpen = $state(false);
 	let triggerEl = $state<HTMLButtonElement | null>(null);
 	// Fixed menu position, computed from the trigger on open. Fixed positioning
@@ -161,6 +173,8 @@
 		{/if}
 	</div>
 {:else}
+	<!-- Android (M3 tonal/outlined chips) and Desktop (neutral chips) share
+	     this markup; only chipShape/chipSelected/chipUnselected differ. -->
 	<div class="py-4">
 		<span
 			id={groupId}
@@ -169,7 +183,6 @@
 			{label}
 		</span>
 
-		<!-- Android M3 filter chips / neutral chips on desktop. -->
 		<div
 			role="radiogroup"
 			aria-labelledby={groupId}
@@ -182,9 +195,9 @@
 					role="radio"
 					aria-checked={selected}
 					onclick={() => (value = opt.value)}
-					class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {selected
-						? 'bg-accent-100 text-accent-850'
-						: 'border border-border bg-white text-text-muted hover:bg-surface-1'}"
+					class="inline-flex items-center gap-1.5 {chipShape} px-3 py-1.5 text-sm font-medium transition-colors {selected
+						? chipSelected
+						: chipUnselected}"
 				>
 					{#if selected}
 						<svg

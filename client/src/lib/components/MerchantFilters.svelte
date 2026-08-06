@@ -57,15 +57,23 @@
 	}: Props = $props();
 
 	const isIos = platform === 'ios';
+	const isAndroid = platform === 'android';
 	// iOS grouped-inset: each filter group sits in its own translucent card on
-	// the glass sheet; other platforms keep the hairline-divided flat layout.
-	const groupClass = isIos ? 'liquid-glass-card rounded-2xl px-4' : '';
-	const dividerClass = isIos ? 'hidden' : 'border-t border-border-soft';
+	// the glass sheet. Android: each group is an M3 tonal card at the
+	// surface-container-high step. Desktop keeps the hairline-divided flat
+	// layout.
+	const groupClass = isIos
+		? 'liquid-glass-card rounded-2xl px-4'
+		: isAndroid
+			? 'bg-m3-surface-container-high rounded-m3-lg px-4'
+			: '';
+	const dividerClass =
+		isIos || isAndroid ? 'hidden' : 'border-t border-border-soft';
 </script>
 
-<div class={isIos ? 'space-y-3' : ''}>
+<div class={isIos || isAndroid ? 'space-y-3' : ''}>
 	<!-- Type Filter -->
-	<div class="pb-4 {groupClass} {isIos ? 'pt-4' : ''}">
+	<div class="pb-4 {groupClass} {isIos || isAndroid ? 'pt-4' : ''}">
 		<TypeFilterButtons
 			bind:typeFilter
 			{cardsCount}
