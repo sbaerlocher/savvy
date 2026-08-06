@@ -13,39 +13,33 @@
 
 	const isIOS = platform === 'ios';
 
+	// Per-type colors only; the iOS glass surface vs. solid-tint background is
+	// applied uniformly in the template, so it no longer lives in this map.
 	const styles: Record<
 		Toast['type'],
-		{ bg: string; border: string; text: string; icon: string }
+		{ tint: string; border: string; text: string; icon: string }
 	> = {
 		success: {
-			bg: isIOS
-				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-success-50',
-			border: isIOS ? 'border-white/30' : 'border-success-200',
+			tint: 'bg-success-50',
+			border: 'border-success-200',
 			text: 'text-success-800',
 			icon: 'text-success-500'
 		},
 		error: {
-			bg: isIOS
-				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-danger-50',
-			border: isIOS ? 'border-white/30' : 'border-danger-200',
+			tint: 'bg-danger-50',
+			border: 'border-danger-200',
 			text: 'text-danger-800',
 			icon: 'text-danger-500'
 		},
 		warning: {
-			bg: isIOS
-				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-warning-50',
-			border: isIOS ? 'border-white/30' : 'border-warning-200',
+			tint: 'bg-warning-50',
+			border: 'border-warning-200',
 			text: 'text-warning-800',
 			icon: 'text-warning-500'
 		},
 		info: {
-			bg: isIOS
-				? 'bg-white/60 backdrop-blur-xl backdrop-saturate-150'
-				: 'bg-accent-50',
-			border: isIOS ? 'border-white/30' : 'border-accent-200',
+			tint: 'bg-accent-50',
+			border: 'border-accent-200',
 			text: 'text-accent-800',
 			icon: 'text-accent'
 		}
@@ -61,10 +55,10 @@
 			in:fly={{ y: 20, duration: 250, easing: quintOut }}
 			out:fade={{ duration: 150 }}
 			class="{isIOS
-				? 'rounded-2xl'
-				: 'rounded-lg'} border shadow-xl px-4 py-3 flex items-start gap-3 {styles[
-				toast.type
-			].bg} {styles[toast.type].border}"
+				? 'rounded-2xl liquid-glass-surface'
+				: `rounded-lg border shadow-xl ${styles[toast.type].tint} ${
+						styles[toast.type].border
+					}`} px-4 py-3 flex items-start gap-3"
 			role="status"
 		>
 			<!-- Icon -->
