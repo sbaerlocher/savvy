@@ -54,6 +54,30 @@
 	// to scan). On desktop the inline barcode is enough — no modal.
 	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
 
+	// Card chrome per platform: iOS liquid-glass, Android M3 tonal, Desktop
+	// solid — mirrors the BottomSheet.svelte platform-switch pattern.
+	const cardClass = $derived.by(() => {
+		switch (platform) {
+			case 'ios':
+				return 'liquid-glass-card rounded-[var(--radius-inset)]';
+			case 'android':
+				return 'bg-[var(--color-m3-surface-container)] rounded-[var(--radius-m3-lg)]';
+			default:
+				return 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl';
+		}
+	});
+
+	const chipClass = $derived.by(() => {
+		switch (platform) {
+			case 'ios':
+				return 'liquid-glass-card';
+			case 'android':
+				return 'bg-[var(--color-m3-surface-container-high)]';
+			default:
+				return 'bg-surface';
+		}
+	});
+
 	function handleBarcodeClick(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
@@ -62,7 +86,7 @@
 </script>
 
 <div
-	class="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-white transition hover:border-border-field {selectMode &&
+	class="group relative flex flex-col overflow-hidden transition hover:border-border-field {cardClass} {selectMode &&
 	selected
 		? 'ring-2 ring-accent'
 		: ''}"
@@ -235,7 +259,7 @@
 	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
 		{@const barcodeValue = model.barcodeValue}
-		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft bg-surface-1 p-3 ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft p-3 ${chipClass} ${model.isActive ? '' : 'opacity-50 grayscale'}`}
 		{#snippet barcodeContent()}
 			<!-- Barcode image only; the raw value already shows masked in the
 			     footer (·· 1234), so no duplicate full-value text here. -->
