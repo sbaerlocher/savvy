@@ -80,7 +80,7 @@
 			{:else if variant === 'transfer'}
 				<div class="flex-shrink-0 mr-3">
 					<svg
-						class="h-6 w-6 text-purple-600"
+						class="h-6 w-6 text-[var(--color-transfer-600)]"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -118,7 +118,7 @@
 						: variant === 'warning'
 							? 'text-warning-600 dark:text-warning-400'
 							: variant === 'transfer'
-								? 'text-purple-600 dark:text-purple-400'
+								? 'text-[var(--color-transfer-600)] dark:text-purple-400'
 								: 'text-accent dark:text-accent-400'}"
 				>
 					{title}
@@ -149,7 +149,7 @@
 					: variant === 'warning'
 						? 'bg-warning-600 hover:bg-warning-700'
 						: variant === 'transfer'
-							? 'bg-purple-600 hover:bg-purple-700'
+							? 'bg-[var(--color-transfer-600)] hover:bg-[var(--color-transfer-700)]'
 							: 'bg-accent hover:bg-accent-hover'}"
 				onclick={handleConfirm}
 				data-testid="modal-confirm"

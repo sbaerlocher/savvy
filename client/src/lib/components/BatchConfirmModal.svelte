@@ -257,7 +257,7 @@
 			<!-- Transfer -->
 			<h3
 				id="batch-modal-title"
-				class="text-lg font-semibold text-purple-900 mb-2"
+				class="text-lg font-semibold text-[var(--color-transfer-900)] mb-2"
 			>
 				{tr('batch.confirmTransferTitle')}
 			</h3>
@@ -266,7 +266,7 @@
 			</p>
 
 			<div
-				class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
+				class="border border-[var(--color-transfer-200)] bg-[var(--color-transfer-50)] rounded-lg p-4 space-y-4"
 			>
 				<!-- Warning Banner -->
 				<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
