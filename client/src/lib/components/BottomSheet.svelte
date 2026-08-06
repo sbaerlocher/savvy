@@ -30,7 +30,7 @@
 	});
 
 	const sheetClass = $derived.by(() => {
-		const base = `absolute bottom-0 left-0 right-0 max-h-[${maxHeight}] overflow-y-auto`;
+		const base = 'absolute bottom-0 left-0 right-0 overflow-y-auto';
 
 		switch (platform) {
 			case 'ios':
@@ -71,7 +71,7 @@
 		<div
 			bind:this={dialogRef}
 			class={sheetClass}
-			style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));"
+			style="max-height: {maxHeight}; padding-bottom: max(1.5rem, env(safe-area-inset-bottom));"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => {
 				e.stopPropagation();
