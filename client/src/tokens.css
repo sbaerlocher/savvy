@@ -375,6 +375,7 @@
      ========================================================================== */
 	--color-transfer-50: #fbf1ea; /* badge/banner tint */
 	--color-transfer-200: #f0cdb4; /* chip bg / soft border */
+	--color-transfer-400: #e8834d; /* dark-mode text/icon — AA 6.81:1 on dark surface #17140f (danger-400 analog) */
 	--color-transfer-600: #bd541d; /* button fill (AA white 4.72:1) — see note */
 	--color-transfer-700: #a4491a; /* button hover (AA white 5.92:1) */
 	--color-transfer-900: #6d2f10; /* deepest ink */

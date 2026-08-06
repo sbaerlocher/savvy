@@ -16,6 +16,7 @@
 		success: 'btn-success',
 		warning: 'btn-warning',
 		purple: 'btn-purple',
+		transfer: 'btn-transfer',
 		gray: 'btn-gray',
 		ghost: 'btn-ghost',
 		text: 'btn-text',

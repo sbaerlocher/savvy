@@ -118,7 +118,7 @@
 						: variant === 'warning'
 							? 'text-warning-600 dark:text-warning-400'
 							: variant === 'transfer'
-								? 'text-[var(--color-transfer-600)] dark:text-purple-400'
+								? 'text-[var(--color-transfer-600)] dark:text-[var(--color-transfer-400)]'
 								: 'text-accent dark:text-accent-400'}"
 				>
 					{title}

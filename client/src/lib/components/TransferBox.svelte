@@ -50,7 +50,7 @@
 			<button
 				onclick={() => (showForm = true)}
 				disabled={isOffline}
-				class="btn btn-xs btn-purple whitespace-nowrap flex items-center gap-1.5 {isOffline
+				class="btn btn-xs btn-transfer whitespace-nowrap flex items-center gap-1.5 {isOffline
 					? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 					: ''}"
 			>
@@ -108,7 +108,7 @@
 				<button
 					onclick={ontransfer}
 					disabled={isOffline || !email.trim()}
-					class="btn btn-purple flex-1 {isOffline || !email.trim()
+					class="btn btn-transfer flex-1 {isOffline || !email.trim()
 						? 'opacity-50 cursor-not-allowed'
 						: ''}"
 				>

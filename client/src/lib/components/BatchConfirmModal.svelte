@@ -306,7 +306,7 @@
 						type="button"
 						onclick={handleConfirm}
 						disabled={isLoading || !email.trim()}
-						class="btn btn-purple flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+						class="btn btn-transfer flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if isLoading}
 							<span class="inline-flex items-center gap-2">
