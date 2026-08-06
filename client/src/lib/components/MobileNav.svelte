@@ -103,7 +103,7 @@
 	>
 		{#if !searchActive}
 			<nav
-				class="flex-1 grid grid-cols-3 h-16 rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg"
+				class="flex-1 grid grid-cols-3 h-16 rounded-full liquid-glass-surface"
 			>
 				{#each places as place (place.path)}
 					<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
@@ -140,7 +140,7 @@
 				type="button"
 				onclick={openSearch}
 				aria-label={$t('common.search')}
-				class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg text-text-muted"
+				class="h-16 w-16 shrink-0 flex items-center justify-center rounded-full liquid-glass-surface text-text-muted"
 			>
 				<svg
 					class="w-6 h-6"
@@ -159,7 +159,7 @@
 		{:else}
 			<!-- Expanded inline search field (Liquid Glass) -->
 			<div
-				class="flex-1 flex items-center gap-2 h-16 px-5 rounded-full bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/40 shadow-lg"
+				class="flex-1 flex items-center gap-2 h-16 px-5 rounded-full liquid-glass-surface"
 			>
 				<svg
 					class="w-6 h-6 shrink-0 text-text-muted"

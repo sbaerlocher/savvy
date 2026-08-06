@@ -313,17 +313,61 @@
 
 	/* ==========================================================================
      LIQUID GLASS (iOS) — rgba fills + edges
-     NOTE: app.css:180-220 still ships hardcoded .liquid-glass-* with divergent
-     values + @supports-not(backdrop-filter) fallbacks. These tokens are the
-     source of truth going forward; app.css is scheduled to migrate onto them.
+     Source of truth for all .liquid-glass-* surfaces in app.css.
      ========================================================================== */
-	--color-glass-surface: rgba(252, 251, 248, 0.68); /* primary translucent panel */
+	--color-glass-surface: rgba(
+		252,
+		251,
+		248,
+		0.68
+	); /* primary translucent panel */
 	--color-glass-edge: rgba(255, 255, 255, 0.6); /* top light edge */
 	--color-glass-scrim: rgba(20, 18, 16, 0.32); /* dim behind iOS sheets */
 	--color-glass-grabber: rgba(35, 33, 32, 0.2); /* sheet grabber handle */
-	--color-glass-surface-2: rgba(255, 255, 255, 0.72); /* raised card fill (more opaque) */
-	--color-glass-surface-3: rgba(255, 255, 255, 0.55); /* recessed/inset fill (less opaque) */
+	--color-glass-surface-2: rgba(
+		255,
+		255,
+		255,
+		0.72
+	); /* raised card fill (more opaque) */
+	--color-glass-surface-3: rgba(
+		255,
+		255,
+		255,
+		0.55
+	); /* recessed/inset fill (less opaque) */
 	--color-glass-hollow: rgba(255, 255, 255, 0.12); /* faint inner cutout tint */
+	--color-glass-menu: rgba(
+		252,
+		252,
+		251,
+		0.99
+	); /* near-opaque pull-down menu — kept dense for text legibility */
+	--color-glass-menu-edge: rgba(
+		0,
+		0,
+		0,
+		0.08
+	); /* dark hairline for the near-opaque menu; a white edge is invisible on it */
+	--color-glass-pill-highlight: rgba(
+		255,
+		255,
+		255,
+		0.6
+	); /* active tab pill: bright top specular stop (must stay brighter than -fill) */
+	--color-glass-pill-fill: rgba(
+		255,
+		255,
+		255,
+		0.25
+	); /* active tab pill: faded bottom stop */
+	/* active tab pill, no-backdrop-filter fallback. Do NOT make this opaque:
+	   the 15% wash keeps --color-accent (#2b808d) on the fallback nav's white
+	   at 4.59:1 (AA). An opaque tint drops the small tab label below 4.5:1. */
+	--color-glass-pill-fallback: rgba(133, 211, 220, 0.15);
+	--shadow-glass-pill:
+		0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06),
+		inset 0 1px 0 rgba(255, 255, 255, 0.5); /* tiny pill-scoped shadow, NOT the nav-sized --shadow-glass */
 
 	/* ==========================================================================
      TRANSFER — own serious category (warm orange, NOT danger)
@@ -369,5 +413,10 @@
      SCRIM — Android sheet/dialog (opaque; iOS uses --color-glass-scrim)
      ========================================================================== */
 	--color-scrim: rgba(20, 18, 16, 0.42);
-	--color-scrim-light: rgba(20, 18, 16, 0.12); /* light dim behind desktop dropdowns */
+	--color-scrim-light: rgba(
+		20,
+		18,
+		16,
+		0.12
+	); /* light dim behind desktop dropdowns */
 }

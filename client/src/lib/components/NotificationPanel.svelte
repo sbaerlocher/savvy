@@ -174,16 +174,16 @@
 <!-- Notification Panel -->
 {#if isOpen}
 	<div
-		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-lg shadow-xl z-50 max-w-[90vw] {platform ===
+		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-lg z-50 max-w-[90vw] {platform ===
 		'ios'
-			? 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/30'
-			: 'bg-white border border-border'}"
+			? 'liquid-glass-menu'
+			: 'bg-white border border-border shadow-xl'}"
 	>
 		<!-- Header -->
 		<div
 			class="flex items-center justify-between px-4 py-3 border-b {platform ===
 			'ios'
-				? 'border-white/30'
+				? 'border-[var(--color-glass-menu-edge)]'
 				: 'border-border'}"
 		>
 			<h3 class="text-lg font-semibold text-text">
