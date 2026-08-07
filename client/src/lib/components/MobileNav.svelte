@@ -213,7 +213,10 @@
 		type="button"
 		onclick={onNew}
 		aria-label={$t('common.new')}
-		class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center rounded-2xl bg-accent text-white shadow-lg mobile-nav-fab"
+		class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center bg-accent text-white mobile-nav-fab {platform ===
+		'android'
+			? 'rounded-[var(--radius-m3-lg)] shadow-[var(--shadow-fab)]'
+			: 'rounded-2xl shadow-lg'}"
 	>
 		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
@@ -243,7 +246,7 @@
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{#if platform === 'android' && isActive(place.path)}
 						<span
-							class="absolute -inset-x-1.5 top-1 bottom-1 bg-accent-100 rounded-full -z-10"
+							class="absolute -inset-x-1.5 top-1 bottom-1 bg-[var(--color-m3-secondary-container)] rounded-full -z-10"
 						></span>
 					{:else if isActive(place.path)}
 						<span class="liquid-glass-pill"></span>

@@ -638,6 +638,7 @@
 	onClose={() => (showFilterMenu = false)}
 	maxHeight="80vh"
 	ariaLabel={tr('common.filter')}
+	tonalAndroid
 >
 	<div class="p-6">
 		<div class="flex items-center justify-between mb-4">

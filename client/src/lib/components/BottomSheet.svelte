@@ -7,6 +7,12 @@
 		onClose: () => void;
 		maxHeight?: string;
 		ariaLabel?: string;
+		/** Android only: use the M3 tonal surface (--color-m3-surface-container)
+		 *  instead of the default white surface. Opt-in per call-site so sheets
+		 *  whose content is already M3-tonal (Wallet/Merchant filters) match,
+		 *  while sheets with white .input content (admin) stay on the light
+		 *  surface. */
+		tonalAndroid?: boolean;
 		children: Snippet;
 		dialogRef?: HTMLDivElement;
 	}
@@ -16,6 +22,7 @@
 		onClose,
 		maxHeight = '85vh',
 		ariaLabel,
+		tonalAndroid = false,
 		children,
 		dialogRef = $bindable()
 	}: Props = $props();
@@ -36,7 +43,7 @@
 			case 'ios':
 				return `${base} liquid-glass-surface rounded-t-3xl`;
 			case 'android':
-				return `${base} bg-surface rounded-t-2xl shadow-[var(--shadow-sheet)]`;
+				return `${base} ${tonalAndroid ? 'bg-m3-surface-container' : 'bg-surface'} rounded-t-[var(--radius-m3-xl)] shadow-[var(--shadow-m3-sheet)]`;
 			default:
 				return `${base} bg-white rounded-t-2xl shadow-2xl`;
 		}
