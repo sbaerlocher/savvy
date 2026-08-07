@@ -43,9 +43,12 @@ func addNotificationEmailDelivery() *gormigrate.Migration {
 			// Partial index: the dispatcher only ever scans for pending rows, and
 			// those are a tiny slice of the table. A full index would carry every
 			// delivered notification for no benefit.
+			// Indexed on updated_at because that is the claim order: it doubles as
+			// "last attempted at", so a just-failed row sorts to the back instead
+			// of straight back to the head of the queue.
 			if err := tx.Exec(`
 				CREATE INDEX IF NOT EXISTS idx_notifications_email_pending
-				ON notifications (created_at)
+				ON notifications (updated_at)
 				WHERE email_status = 'pending';
 			`).Error; err != nil {
 				return err

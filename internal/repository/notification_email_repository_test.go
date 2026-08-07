@@ -282,3 +282,50 @@ func TestTruncateError_ShortMessageUnchanged(t *testing.T) {
 	msg := "smtp: 421 zu viele Verbindungen"
 	assert.Equal(t, msg, truncateError(msg))
 }
+
+// TestTruncateError_ShortInvalidUTF8IsSanitised covers the case truncation alone
+// misses: an SMTP reply is read as raw bytes with no encoding validation, so a
+// message can be invalid UTF-8 while staying far below the length limit. It
+// would then never be sliced, never sanitised, and still fail the write.
+func TestTruncateError_ShortInvalidUTF8IsSanitised(t *testing.T) {
+	msg := "smtp: 550 " + string([]byte{0xff, 0xfe}) + " rejected"
+	require.False(t, utf8.ValidString(msg), "fixture must actually be invalid")
+
+	got := truncateError(msg)
+
+	assert.True(t, utf8.ValidString(got), "stored error must be valid UTF-8")
+	assert.Contains(t, got, "550")
+}
+
+// TestClaimPendingEmails_FailedRowDoesNotStarveTheQueue is the regression guard
+// for the retry budget. With a multi-hour budget and no backoff, ordering the
+// claim by created_at would return a just-failed row to the head of the queue on
+// every tick — a handful of hard-bouncing addresses would then fill each batch
+// for hours and newer mail would never be attempted at all.
+func TestClaimPendingEmails_FailedRowDoesNotStarveTheQueue(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewNotificationRepository(db)
+	ctx := context.Background()
+	userID := createTestUser(t, db)
+
+	// The bouncer is the OLDEST row by created_at, so a created_at ordering
+	// would always hand it back first.
+	bouncer := seedNotification(t, db, userID, models.EmailStatusSending)
+	require.NoError(t, db.Model(&models.Notification{}).Where("id = ?", bouncer.ID).
+		Update("created_at", time.Now().Add(-2*time.Hour)).Error)
+
+	// It just failed a delivery attempt and went back to pending.
+	require.NoError(t, repo.MarkEmailResult(ctx, bouncer.ID, errors.New("550 mailbox unavailable"), 180))
+
+	// A newer message queued behind it.
+	fresh := seedNotification(t, db, userID, models.EmailStatusPending)
+	require.NoError(t, db.Model(&models.Notification{}).Where("id = ?", fresh.ID).
+		Update("updated_at", time.Now().Add(-time.Minute)).Error)
+
+	claimed, err := repo.ClaimPendingEmails(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, claimed, 1)
+
+	assert.Equal(t, fresh.ID, claimed[0].ID,
+		"the freshly queued mail must be attempted before the row that just failed")
+}

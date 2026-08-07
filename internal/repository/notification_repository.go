@@ -148,6 +148,14 @@ func (r *notificationRepository) ArchiveOldRead(ctx context.Context, cutoff time
 // touches SMTP, so a slow or hung send never holds a database lock.
 //
 // updated_at is written explicitly because stale-claim recovery ages rows by it.
+//
+// Ordering by updated_at, not created_at, is what keeps the queue fair. Both the
+// claim and the result write updated_at, so it is effectively "last attempted
+// at" and a just-failed row sorts to the back. Ordering by created_at would send
+// a failing row straight back to the head of the queue on the next tick — with
+// no backoff and a multi-hour retry budget, a handful of hard-bouncing addresses
+// would fill every batch and starve everything queued behind them, while the
+// dispatcher still looked healthy.
 func (r *notificationRepository) ClaimPendingEmails(ctx context.Context, limit int) ([]models.Notification, error) {
 	var claimed []models.Notification
 
@@ -155,7 +163,7 @@ func (r *notificationRepository) ClaimPendingEmails(ctx context.Context, limit i
 		var candidates []models.Notification
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
 			Where("email_status = ?", models.EmailStatusPending).
-			Order("created_at ASC").
+			Order("updated_at ASC").
 			Limit(limit).
 			Find(&candidates).Error; err != nil {
 			return err
@@ -235,11 +243,14 @@ const maxEmailErrorLength = 500
 // same way, and the attempt counter never advances — an endless resend loop.
 // Non-ASCII reaches err.Error() routinely via provider responses and merchant
 // names, so this is the common path, not an edge case.
+// The sanitising happens outside the length branch on purpose: an SMTP reply is
+// read as raw bytes with no encoding validation, so a short message can already
+// be invalid UTF-8 without ever being sliced.
 func truncateError(msg string) string {
 	if len(msg) > maxEmailErrorLength {
-		return strings.ToValidUTF8(msg[:maxEmailErrorLength], "")
+		msg = msg[:maxEmailErrorLength]
 	}
-	return msg
+	return strings.ToValidUTF8(msg, "")
 }
 
 // ResetStaleSendingEmails recovers rows abandoned mid-send.
