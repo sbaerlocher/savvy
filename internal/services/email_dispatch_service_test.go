@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"savvy/internal/email"
 	"savvy/internal/models"
@@ -186,13 +187,76 @@ func TestDispatchPending_UnknownTypeFails(t *testing.T) {
 	userRepo.On("GetByID", ctx, userID).Return(dispatchTestRecipient(userID), nil)
 	notifRepo.On("MarkEmailResult", ctx, notifID, mock.MatchedBy(func(err error) bool {
 		return err != nil
-	}), mock.Anything).Return(nil)
+	}), 1).Return(nil)
 
 	sent, err := svc.DispatchPending(ctx)
 
 	require.NoError(t, err)
 	assert.Equal(t, 0, sent)
-	notifRepo.AssertCalled(t, "MarkEmailResult", ctx, notifID, mock.Anything, mock.Anything)
+
+	// Limit 1 makes the SQL CASE resolve straight to 'failed'. With the regular
+	// budget the row would be re-claimed every minute for hours, and no retry
+	// can ever route a type the dispatcher does not know.
+	notifRepo.AssertCalled(t, "MarkEmailResult", ctx, notifID, mock.Anything, 1)
+}
+
+// TestDispatchPending_TransientErrorKeepsFullRetryBudget is the counterpart: a
+// plain SMTP failure must NOT be parked early, or the outbox loses exactly the
+// mail it exists to retry.
+func TestDispatchPending_TransientErrorKeepsFullRetryBudget(t *testing.T) {
+	notifRepo := new(MockNotificationRepository)
+	userRepo := new(MockUserRepoForNotification)
+	emailSvc := new(MockEmailSvcForNotification)
+	tokenSvc := new(MockEmailTokenSvcForNotification)
+	svc := newTestDispatcher(notifRepo, userRepo, emailSvc, tokenSvc)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	notifID := uuid.New()
+	sendErr := errors.New("smtp: connection reset")
+	claimed := []models.Notification{{
+		ID:           notifID,
+		UserID:       userID,
+		Type:         models.NotificationTypeShareReceived,
+		ResourceType: "card",
+		Metadata:     models.NotificationMetadata{"from_user_name": "John"},
+		EmailStatus:  models.EmailStatusSending,
+	}}
+
+	notifRepo.On("ResetStaleSendingEmails", ctx, mock.Anything).Return(int64(0), nil)
+	notifRepo.On("ClaimPendingEmails", ctx, mock.Anything).Return(claimed, nil)
+	userRepo.On("GetByID", ctx, userID).Return(dispatchTestRecipient(userID), nil)
+	tokenSvc.On("CreateUnsubscribeToken", ctx, userID).Return("tok", nil).Maybe()
+	emailSvc.On("SendShareNotification",
+		ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything,
+	).Return(sendErr)
+	notifRepo.On("MarkEmailResult", ctx, notifID, sendErr, defaultMaxEmailAttempts).Return(nil)
+
+	_, err := svc.DispatchPending(ctx)
+
+	require.NoError(t, err)
+	notifRepo.AssertCalled(t, "MarkEmailResult", ctx, notifID, sendErr, defaultMaxEmailAttempts)
+}
+
+// TestRetryBudgetOutlastsProviderOutage pins the constant against its purpose:
+// 'failed' is terminal, so the budget has to cover a real hosted-SMTP incident
+// (15-60 minutes), not just a blip.
+func TestRetryBudgetOutlastsProviderOutage(t *testing.T) {
+	budget := time.Duration(defaultMaxEmailAttempts) * time.Minute
+	assert.Greater(t, budget, time.Hour,
+		"a sub-hour budget parks the whole queue during a routine provider outage")
+}
+
+// TestBatchFitsInsideStaleWindow guards the pair of constants: a serial batch
+// that outlives the stale window gets re-delivered by another replica while the
+// first is still sending.
+func TestBatchFitsInsideStaleWindow(t *testing.T) {
+	const pessimisticSendDuration = 12 * time.Second
+
+	worstCase := time.Duration(defaultEmailBatchSize) * pessimisticSendDuration
+	assert.Less(t, worstCase, defaultStaleSendingAfter,
+		"batch can outlive the stale window, causing duplicate delivery across replicas")
 }
 
 // TestDispatchPending_PreservesCodeValueAndResourceURL guards the fields the old

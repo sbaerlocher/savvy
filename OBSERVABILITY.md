@@ -191,6 +191,7 @@ email_verified_users_total
 notification_emails_sent_total
 notification_emails_failed_total
 notification_emails_pending
+notification_emails_parked
 ```
 
 ### Notification email delivery
@@ -204,17 +205,25 @@ failed send is retried instead of lost.
 | `notification_emails_sent_total`  | Counter | Emails delivered successfully            |
 | `notification_emails_failed_total`| Counter | Delivery attempts that failed            |
 | `notification_emails_pending`     | Gauge   | Emails still waiting to be delivered     |
+| `notification_emails_parked`      | Gauge   | Emails given up on permanently (`failed`)|
 
-**Read the gauge, not just the counters.** A stalled dispatcher and an idle one
+**Read the gauges, not just the counters.** A stalled dispatcher and an idle one
 both report zero sends per minute; only a `notification_emails_pending` that
 keeps climbing tells them apart.
 
-- **Gauge rising, `failed` flat** — nothing is picking the queue up. Check that
+- **Pending rising, `failed` flat** — nothing is picking the queue up. Check that
   the dispatcher goroutine is alive and that SMTP is configured at all.
-- **Gauge rising, `failed` rising** — SMTP is rejecting mail. Each row retries 5
-  times before it is parked as `failed`; inspect `email_last_error` on the
-  `notifications` table for the provider's reason.
-- **Gauge near zero** — healthy, regardless of how flat the sent counter looks.
+- **Pending rising, `failed` rising** — SMTP is rejecting mail. A row retries for
+  roughly three hours before it is parked; inspect `email_last_error` on the
+  `notifications` table for the provider's reason. That budget is deliberately
+  longer than a typical hosted-SMTP incident, so a rising pending count during an
+  outage is expected and drains by itself once the provider recovers.
+- **`notification_emails_parked` above zero** — mail was given up on. Nothing
+  requeues a parked row, so this is lost mail until someone acts: read
+  `email_last_error`, fix the cause, and reset the affected rows to `pending` to
+  have them picked up again.
+- **Pending near zero, parked zero** — healthy, regardless of how flat the sent
+  counter looks.
 
 ---
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -16,12 +17,28 @@ import (
 
 const (
 	// defaultEmailBatchSize caps how many notifications one dispatcher run claims.
-	defaultEmailBatchSize = 50
+	//
+	// The batch is delivered serially, so its worst-case duration must stay well
+	// inside defaultStaleSendingAfter: once a run outlives that window, another
+	// replica treats the rows still being sent as abandoned and delivers them a
+	// second time. At a pessimistic 12s per SMTP round trip, 20 rows take about
+	// four minutes against a ten-minute window.
+	defaultEmailBatchSize = 20
 	// defaultMaxEmailAttempts is how often a single email is retried before the
-	// row is parked as failed. At the one-minute dispatch interval this spans
-	// roughly five minutes, enough to ride out a brief SMTP outage without
-	// hammering a provider that is genuinely rejecting the message.
-	defaultMaxEmailAttempts = 5
+	// row is parked as failed.
+	//
+	// 'failed' is terminal — nothing requeues it — so the budget has to outlast
+	// a realistic provider incident rather than a brief blip. At the one-minute
+	// dispatch interval 180 attempts span roughly three hours, which covers the
+	// 15-60 minute outages hosted SMTP providers routinely have. A five-minute
+	// budget would park the entire queue permanently and reproduce the very
+	// data loss this outbox exists to prevent, just recorded in a column
+	// instead of a log line.
+	//
+	// The cost of a high limit is bounded: each attempt is one SMTP dial, and a
+	// genuinely rejected message (bad address) burns them against a provider
+	// that answers immediately.
+	defaultMaxEmailAttempts = 180
 	// defaultStaleSendingAfter is how long a row may sit in 'sending' before it
 	// is assumed abandoned by a dead pod and returned to the queue.
 	defaultStaleSendingAfter = 10 * time.Minute
@@ -107,7 +124,17 @@ func (s *EmailDispatchService) DispatchPending(ctx context.Context) (int, error)
 	for i := range claimed {
 		n := &claimed[i]
 		sendErr := s.deliver(ctx, n)
-		if err := s.notifRepo.MarkEmailResult(ctx, n.ID, sendErr, s.maxAttempts); err != nil {
+
+		// A permanent error will fail identically on every retry, so it parks
+		// on the first attempt instead of occupying the retry budget. Passing
+		// an effective limit of 1 makes the SQL CASE resolve straight to
+		// 'failed' — retrying an unroutable type only delays the same outcome.
+		attemptLimit := s.maxAttempts
+		if isPermanentSendError(sendErr) {
+			attemptLimit = 1
+		}
+
+		if err := s.notifRepo.MarkEmailResult(ctx, n.ID, sendErr, attemptLimit); err != nil {
 			slog.ErrorContext(ctx, "failed to record email delivery result", "notification_id", n.ID, "error", err)
 			continue
 		}
@@ -122,6 +149,17 @@ func (s *EmailDispatchService) DispatchPending(ctx context.Context) (int, error)
 	metrics.RecordNotificationEmailResult(sent, failed)
 
 	return sent, nil
+}
+
+// errPermanentSend marks a delivery error that no retry can resolve.
+//
+// MarkEmailResult cannot tell a transient SMTP failure from a permanent one by
+// looking at the error, so the distinction has to be made here.
+var errPermanentSend = errors.New("permanent delivery failure")
+
+// isPermanentSendError reports whether retrying would produce the same result.
+func isPermanentSendError(err error) bool {
+	return err != nil && errors.Is(err, errPermanentSend)
 }
 
 // deliver sends the email for a single claimed notification.
@@ -146,7 +184,9 @@ func (s *EmailDispatchService) deliver(ctx context.Context, n *models.Notificati
 	default:
 		// An unroutable type must fail rather than stay pending: a row nobody
 		// knows how to send would otherwise be re-claimed on every single run.
-		return fmt.Errorf("unknown notification type %q", n.Type)
+		// Wrapped as permanent so it parks now instead of retrying an outcome
+		// that cannot change.
+		return fmt.Errorf("%w: unknown notification type %q", errPermanentSend, n.Type)
 	}
 }
 

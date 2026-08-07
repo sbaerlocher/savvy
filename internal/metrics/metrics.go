@@ -183,6 +183,15 @@ var (
 		},
 	)
 
+	// 'failed' is terminal and nothing requeues it, so a parked row is silent
+	// data loss unless it is counted. Any non-zero value needs an operator.
+	notificationEmailsParked = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "notification_emails_parked",
+			Help: "Number of notification emails parked as permanently failed",
+		},
+	)
+
 	// Authentication Metrics
 	loginAttemptsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -307,6 +316,11 @@ func RecordNotificationEmailResult(sent, failed int) {
 // UpdateNotificationEmailsPending sets the delivery backlog gauge.
 func UpdateNotificationEmailsPending(pending int64) {
 	notificationEmailsPending.Set(float64(pending))
+}
+
+// UpdateNotificationEmailsParked sets the permanently-failed gauge.
+func UpdateNotificationEmailsParked(parked int64) {
+	notificationEmailsParked.Set(float64(parked))
 }
 
 // RecordLoginAttempt increments the login attempts counter

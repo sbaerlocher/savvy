@@ -4,6 +4,7 @@ package repository
 import (
 	"context"
 	"savvy/internal/models"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -212,9 +213,12 @@ func (r *notificationRepository) MarkEmailResult(ctx context.Context, id uuid.UU
 		updates["email_last_error"] = truncateError(sendErr.Error())
 	}
 
+	// Scoped to 'sending' so a late write from a pod whose row was already
+	// stale-recovered and re-claimed elsewhere cannot overwrite the newer
+	// attempt's state.
 	return r.db.WithContext(ctx).
 		Model(&models.Notification{}).
-		Where("id = ?", id).
+		Where("id = ? AND email_status = ?", id, models.EmailStatusSending).
 		Updates(updates).Error
 }
 
@@ -224,9 +228,16 @@ func (r *notificationRepository) MarkEmailResult(ctx context.Context, id uuid.UU
 const maxEmailErrorLength = 500
 
 // truncateError shortens a send error to a storable length.
+//
+// Slicing on a byte offset can split a multi-byte rune, and PostgreSQL rejects
+// the resulting invalid UTF-8. That would fail the status write and strand the
+// row in 'sending': the stale reset returns it to 'pending', the send fails the
+// same way, and the attempt counter never advances — an endless resend loop.
+// Non-ASCII reaches err.Error() routinely via provider responses and merchant
+// names, so this is the common path, not an edge case.
 func truncateError(msg string) string {
 	if len(msg) > maxEmailErrorLength {
-		return msg[:maxEmailErrorLength]
+		return strings.ToValidUTF8(msg[:maxEmailErrorLength], "")
 	}
 	return msg
 }

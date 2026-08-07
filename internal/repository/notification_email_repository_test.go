@@ -7,6 +7,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -256,4 +257,28 @@ func TestClaimPendingEmails_ConcurrentWorkersClaimDisjointSets(t *testing.T) {
 	require.NoError(t, db.Model(&models.Notification{}).
 		Where("email_status = ?", models.EmailStatusPending).Count(&leftover).Error)
 	assert.Zero(t, leftover, "no pending row may be left behind")
+}
+
+// TestTruncateError_CutsOnRuneBoundary guards the storage path for the error
+// string. Slicing on a byte offset can split a multi-byte rune, and PostgreSQL
+// rejects invalid UTF-8 in a text column — the status write then fails, the row
+// is stranded in 'sending', and the stale reset re-sends it every ten minutes
+// without ever advancing the attempt counter. Non-ASCII reaches err.Error()
+// routinely via provider responses and merchant names.
+func TestTruncateError_CutsOnRuneBoundary(t *testing.T) {
+	// "ü" is two bytes, so a 500-byte cut lands mid-rune.
+	msg := ""
+	for len(msg) <= maxEmailErrorLength+10 {
+		msg += "über "
+	}
+
+	got := truncateError(msg)
+
+	assert.True(t, utf8.ValidString(got), "truncated error must be valid UTF-8")
+	assert.LessOrEqual(t, len(got), maxEmailErrorLength)
+}
+
+func TestTruncateError_ShortMessageUnchanged(t *testing.T) {
+	msg := "smtp: 421 zu viele Verbindungen"
+	assert.Equal(t, msg, truncateError(msg))
 }

@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   retried: one SMTP hiccup dropped the mail for good. Delivery is now decoupled
   from row creation — the notification row carries `email_status`,
   `email_attempts` and `email_last_error`, and a dispatcher retries a failed send
-  up to five times before parking it as `failed`. Share and transfer emails,
+  for about three hours — long enough to ride out a typical hosted-SMTP incident
+  — before parking it as `failed`. Share and transfer emails,
   which previously had no retry at all and lost queued mail on restart, go
   through the same path.
 

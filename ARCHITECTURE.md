@@ -648,7 +648,7 @@ Reminder / Share / Transfer
         ▼
   claim (FOR UPDATE SKIP LOCKED) → sending → SMTP → sent
                                       │
-                                      └── error → pending (retry) → failed (after 5)
+                                      └── error → pending (retry) → failed (~3h)
 ```
 
 **Why it exists.** Email used to be sent inline while the row was created, and a
@@ -670,6 +670,18 @@ never retried, so a brief SMTP outage silently dropped it for good.
   handoff and the status write means the row is recovered after 10 minutes and
   the mail goes out twice. A duplicate reminder is acceptable; a lost one is not.
   Exactly-once would require a transaction spanning SMTP.
+- **`failed` is terminal.** Nothing requeues a parked row, so the retry budget has
+  to outlast a real provider incident rather than a blip — hence ~3 hours, not
+  minutes. Parked rows are counted by `notification_emails_parked`; a permanent
+  error (an unroutable notification type) skips the budget and parks at once,
+  since no retry can change that outcome.
+- **The batch stays inside the stale window.** A run claims 20 rows and delivers
+  them serially; that worst case must finish well before the 10-minute stale
+  reset, or a second replica would re-send rows the first is still working on.
+- **Delivery-only metadata is not public.** `code`, `value` and `resource_url`
+  exist on the row purely as dispatcher input and are stripped from the
+  notifications API response — otherwise a voucher code would be readable by
+  anyone holding the row, including a share recipient whose access was revoked.
 - **Push is unaffected** — it stays inline and best-effort.
 
 ---

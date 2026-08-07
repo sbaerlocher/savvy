@@ -221,9 +221,25 @@ func updateMetrics(parentCtx context.Context, db *gorm.DB) {
 	// Email delivery backlog. A number that only grows means the dispatcher is
 	// stuck or SMTP is refusing everything — indistinguishable from an idle
 	// system by the sent/failed counters alone.
+	//
+	// deleted_at IS NULL matches CountPendingEmails/ClaimPendingEmails, which
+	// go through Model(&models.Notification{}) and get the soft-delete scope
+	// implicitly. Without it a notification deleted before dispatch stays
+	// counted here while being unclaimable, so the gauge would never return to
+	// zero — exactly the "dispatcher is stuck" signature operators alert on.
 	var pendingEmails int64
-	db.WithContext(ctx).Table("notifications").Where("email_status = ?", "pending").Count(&pendingEmails)
+	db.WithContext(ctx).Table("notifications").
+		Where("email_status = ? AND deleted_at IS NULL", "pending").
+		Count(&pendingEmails)
 	metrics.UpdateNotificationEmailsPending(pendingEmails)
+
+	// Parked rows are terminal: nothing retries them, so they are silent losses
+	// until someone looks. Non-zero always warrants an operator.
+	var parkedEmails int64
+	db.WithContext(ctx).Table("notifications").
+		Where("email_status = ? AND deleted_at IS NULL", "failed").
+		Count(&parkedEmails)
+	metrics.UpdateNotificationEmailsParked(parkedEmails)
 
 	// Cleanup inactive sessions (sessions are re-counted via middleware)
 	middleware.CleanupInactiveSessions()
