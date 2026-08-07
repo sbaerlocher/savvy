@@ -174,10 +174,12 @@
 <!-- Notification Panel -->
 {#if isOpen}
 	<div
-		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-lg z-50 max-w-[90vw] {platform ===
+		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 z-50 max-w-[90vw] overflow-hidden {platform ===
 		'ios'
-			? 'liquid-glass-menu'
-			: 'bg-white border border-border shadow-xl'}"
+			? 'liquid-glass-menu rounded-lg'
+			: platform === 'android'
+				? 'bg-m3-surface-container rounded-m3-lg shadow-m3-dialog'
+				: 'bg-white border border-border shadow-xl rounded-lg'}"
 	>
 		<!-- Header -->
 		<div

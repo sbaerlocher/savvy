@@ -86,15 +86,20 @@
 	<div
 		bind:this={dialogEl}
 		tabindex="-1"
-		class="pointer-events-auto w-full sm:max-w-md m-0 sm:m-4 p-6 rounded-t-3xl sm:rounded-2xl {platform ===
+		class="pointer-events-auto w-full sm:max-w-md m-0 sm:m-4 p-6 {platform ===
 		'ios'
-			? 'liquid-glass-surface'
-			: 'bg-white border border-border shadow-xl'}"
+			? 'liquid-glass-surface rounded-t-3xl sm:rounded-2xl'
+			: platform === 'android'
+				? 'bg-m3-surface-container rounded-t-[var(--radius-m3-xl)] sm:rounded-[var(--radius-m3-xl)] shadow-m3-dialog'
+				: 'bg-white border border-border shadow-xl rounded-t-3xl sm:rounded-2xl'}"
 	>
 		{#if platform === 'ios'}
 			<div
 				class="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--color-glass-grabber)]"
 			></div>
+		{:else if platform === 'android'}
+			<!-- M3 bottom-sheet drag handle -->
+			<div class="mx-auto mb-4 h-1 w-8 rounded-full bg-border"></div>
 		{/if}
 		<h2 class="text-lg font-semibold text-text mb-1">
 			{tr('typeChoice.title')}
