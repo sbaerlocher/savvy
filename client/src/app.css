@@ -93,18 +93,9 @@
 		@apply bg-orange-600 text-white hover:bg-orange-700 focus:ring-2 focus:ring-offset-2 focus:ring-orange-500;
 	}
 
-	/* Button Colors - Purple Actions (e.g., Transfer form) */
-	.btn-purple {
-		@apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
-	}
-
 	/* Button Colors - Transfer Actions */
 	.btn-transfer {
-		@apply text-white focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-transfer-600)];
-		background: var(--color-transfer-600);
-	}
-	.btn-transfer:hover {
-		background: var(--color-transfer-700);
+		@apply bg-transfer-600 text-white hover:bg-transfer-700 focus:ring-2 focus:ring-offset-2 focus:ring-transfer-600;
 	}
 
 	/* Button Colors - Gray Actions */

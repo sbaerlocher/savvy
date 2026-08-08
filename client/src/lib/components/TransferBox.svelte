@@ -41,11 +41,9 @@
 	let showForm = $state(false);
 </script>
 
-<div
-	class="bg-white rounded-lg shadow-lg p-6 border-2 border-[var(--color-transfer-200)]"
->
+<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-transfer-200">
 	<div class="flex justify-between items-center mb-4">
-		<h3 class="text-lg font-semibold text-[var(--color-transfer-900)]">
+		<h3 class="text-lg font-semibold text-transfer-900">
 			{title ?? $t('common.transferOwnership')}
 		</h3>
 		{#if !showForm}
@@ -80,7 +78,7 @@
 
 	{#if showForm}
 		<div
-			class="border border-[var(--color-transfer-200)] bg-[var(--color-transfer-50)] rounded-lg p-4 space-y-4"
+			class="border border-transfer-200 bg-transfer-50 rounded-lg p-4 space-y-4"
 		>
 			<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
 				<p class="text-sm font-medium text-warning-800">
