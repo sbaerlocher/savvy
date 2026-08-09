@@ -78,7 +78,7 @@
 			type="button"
 			onclick={toggle}
 			aria-expanded={open}
-			aria-controls={groupId}
+			aria-controls={open ? groupId : undefined}
 			class="flex w-full items-center justify-between py-3 text-left"
 		>
 			<span

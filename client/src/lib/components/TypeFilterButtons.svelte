@@ -151,6 +151,7 @@
 				type="button"
 				data-testid="type-chip-{entry.key}"
 				onclick={() => handleClick(entry.key)}
+				aria-pressed={typeFilter === entry.key}
 				class="{base} {typeFilter === entry.key ? active : inactive}"
 			>
 				{tr(entry.label)}

@@ -1069,10 +1069,13 @@
 		{#if IOS}
 			{@render iosToolbar()}
 		{/if}
+		<!-- iOS carries its own phone toolbar above, so this one starts at `sm`
+		     there. `max-sm:hidden` rather than a hidden/flex pair: it does not rely
+		     on the emission order inside the display-utility group. -->
 		<div
-			class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN}"
-			class:sm:flex={IOS}
-			class:hidden={IOS}
+			class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN} {IOS
+				? 'max-sm:hidden'
+				: ''}"
 		>
 			<!-- Action Buttons (Desktop) -->
 			<div class="hidden sm:flex gap-3">

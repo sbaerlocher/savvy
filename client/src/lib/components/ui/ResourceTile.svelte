@@ -88,9 +88,9 @@
 			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-m3-on-secondary-container'
 			: 'h-9 w-9 rounded-lg bg-border-soft text-text-subtle';
 
-	// iOS wallet list (mockup screen-WalletIOS): a tile with a visible barcode
-	// carries a small glass "enlarge" hint, and select mode marks the tile with a
-	// round checkbox in the corner instead of only a ring.
+	// iOS select mode marks the tile with a round checkbox in the corner and
+	// scales it down slightly, rather than only drawing a ring (mockup
+	// screen-WalletIOS, Phone 3).
 	const IOS = platform === 'ios';
 
 	// Badge shape: Android M3 extra-small corners, others stay pills (mockup).
