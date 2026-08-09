@@ -10,16 +10,27 @@
 	// parent PageHeader owns that state and passes the opener down.
 	let { onSearchOpen }: { onSearchOpen?: () => void } = $props();
 
+	// Header-action chrome per platform. `platform` is a module-level constant,
+	// so these never change: plain consts, not $derived.
 	// Android M3 (mockup header): 44px round borderless icon buttons, 4px gap.
-	// iOS/other keep the boxed 40px buttons — white box + border for
-	// bell/search, filled teal for "+". Module-constant platform → consts.
+	// iOS (mockup header): bare accent glyphs, no box and no border. The box
+	// stays transparent but keeps its 44px size — the mockup's bare look is
+	// about the painted chrome, not the hit area (iOS HIG 44pt minimum, and
+	// the unread badge needs a real box to sit in the corner of). The gap
+	// compensates so the glyph spacing still matches the mockup.
+	// Desktop keeps the boxed 40px buttons.
+	const IOS = platform === 'ios';
 	const ICON_BUTTON_CLASS =
 		platform === 'android'
 			? 'inline-flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-1'
-			: 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1';
-	const GAP_CLASS = platform === 'android' ? 'gap-1' : 'gap-2.5';
+			: IOS
+				? 'inline-flex h-11 w-11 items-center justify-center text-accent'
+				: 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1';
+	const GAP_CLASS =
+		platform === 'android' ? 'gap-1' : IOS ? 'gap-0' : 'gap-2.5';
 	const SEARCH_ICON = platform === 'android' ? 'h-5.5 w-5.5' : 'h-5 w-5';
-	const BELL_ICON = platform === 'android' ? 'h-5.25 w-5.25' : 'h-5 w-5';
+	const BELL_ICON =
+		platform === 'android' ? 'h-5.25 w-5.25' : IOS ? 'h-5.5 w-5.5' : 'h-5 w-5';
 </script>
 
 <!-- Mobile-only header actions, rendered on the page title row (see PageHeader)
@@ -46,13 +57,13 @@
 			onclick={() => ($showNewDialog = true)}
 			data-testid="nav-new-mobile"
 			aria-label={$t('common.new')}
-			class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white shadow-[var(--shadow-accent)] transition-transform active:scale-95"
+			class="{ICON_BUTTON_CLASS} transition-transform active:scale-95"
 		>
 			<svg
-				class="h-5 w-5"
+				class="h-6 w-6"
 				fill="none"
 				stroke="currentColor"
-				stroke-width="2.3"
+				stroke-width="2.1"
 				viewBox="0 0 24 24"
 			>
 				<path stroke-linecap="round" d="M12 5v14M5 12h14" />

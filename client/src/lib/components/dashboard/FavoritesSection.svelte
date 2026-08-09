@@ -62,10 +62,10 @@
 		platform === 'android'
 			? 'rounded-[var(--radius-m3-lg)] bg-m3-card px-6 py-8.5'
 			: platform === 'ios'
-				? 'rounded-xl border border-border bg-white px-6 py-9'
+				? 'rounded-xl border border-border bg-white px-card py-8.5'
 				: 'rounded-2xl border border-border bg-white px-6 py-11';
 	// Empty-state type per platform (Android mockup: 15px title, 12.5px hint,
-	// accent-700 CTA).
+	// accent-700 CTA; iOS mockup: 14px title, 12.5px hint, accent CTA).
 	const emptyTitleClass =
 		platform === 'android'
 			? 'text-subheading text-text'
@@ -73,7 +73,9 @@
 	const emptyHintClass =
 		platform === 'android'
 			? 'mt-1 mb-4 text-body-sm text-text-faint'
-			: 'mt-1 mb-4 text-xs text-text-faint';
+			: platform === 'ios'
+				? 'mt-1.5 mb-4 text-body-sm text-text-faint'
+				: 'mt-1 mb-4 text-xs text-text-faint';
 	const emptyCtaClass =
 		platform === 'android'
 			? 'text-accent-700 hover:text-accent-800'

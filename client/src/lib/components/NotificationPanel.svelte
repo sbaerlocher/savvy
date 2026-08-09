@@ -142,8 +142,10 @@
 	</svg>
 
 	{#if unreadCount > 0}
+		<!-- pointer-events-none: the badge overhangs the trigger box, so without
+		     it a tap on the neighbouring control lands on the bell instead. -->
 		<span
-			class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[length:var(--text-tag)] font-bold leading-none text-white bg-danger-600 rounded-full ring-2 ring-white"
+			class="pointer-events-none absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[length:var(--text-tag)] font-bold leading-none text-white bg-danger-600 rounded-full ring-2 ring-white"
 		>
 			{unreadCount > 99 ? '99+' : unreadCount}
 		</span>
