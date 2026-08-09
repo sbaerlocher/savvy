@@ -49,7 +49,7 @@
 		VoucherDTO
 	} from '$lib/types/api';
 	import { get } from 'svelte/store';
-	import { onMount, untrack } from 'svelte';
+	import { onDestroy, onMount, untrack } from 'svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
 	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -395,6 +395,14 @@
 			selectedCount === currentFilteredItems.length
 	);
 
+	// Android replaces the chip row and toolbar with the contextual top app bar
+	// while selecting — but only below `sm`, where that bar renders. Wider
+	// viewports (a phone in landscape already is) keep the desktop chrome,
+	// which holds the only other exit from select mode.
+	const ANDROID_SELECT_HIDDEN = $derived(
+		IS_ANDROID && selectMode ? 'max-sm:hidden' : ''
+	);
+
 	// Share modal permission hints, derived from the actual selection (not the
 	// type filter), since a selection can span categories.
 	const selectionHasGiftCards = $derived(
@@ -440,12 +448,13 @@
 	});
 
 	// Mirror select mode into the layout so Android can swap its whole
-	// navigation chrome. Cleared on unmount, otherwise leaving the screen mid
-	// selection would leave the nav bar hidden.
+	// navigation chrome.
 	$effect(() => {
 		selectModeActive.set(selectMode);
-		return () => selectModeActive.set(false);
 	});
+
+	// Leaving the screen mid selection would otherwise leave the nav bar hidden.
+	onDestroy(() => selectModeActive.set(false));
 
 	function toggleBarcodes() {
 		showBarcodes = !showBarcodes;
@@ -694,13 +703,15 @@
 	isActive: boolean,
 	onclick: () => void,
 	disabled = false,
-	showDot = false
+	showDot = false,
+	expanded: boolean | undefined = undefined
 )}
 	<button
 		type="button"
 		{onclick}
 		{disabled}
 		aria-pressed={isActive}
+		aria-expanded={expanded}
 		class="relative inline-flex h-8 items-center gap-1.5 rounded-m3-sm px-3.5 text-label whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 {isActive
 			? 'bg-m3-secondary-container text-m3-on-secondary-container'
 			: 'border border-border-chip text-text-muted'}"
@@ -761,8 +772,9 @@
 	{/each}
 {/snippet}
 
-<!-- MerchantFilters panel; desktop and mobile differ only by the idPrefix suffix. -->
-{#snippet merchantFilterPanel(panelIdPrefix: string)}
+<!-- MerchantFilters panel; desktop and mobile differ only by the idPrefix suffix
+     and, on the Android sheet, by who owns the reset action. -->
+{#snippet merchantFilterPanel(panelIdPrefix: string, hideReset = false)}
 	<MerchantFilters
 		bind:typeFilter={filters.typeFilter}
 		bind:statusFilter={filters.statusFilter}
@@ -783,6 +795,7 @@
 		onReset={resetFilters}
 		showAll={filterShowAll}
 		idPrefix={panelIdPrefix}
+		{hideReset}
 	/>
 {/snippet}
 
@@ -816,9 +829,13 @@
 		<!-- M3 contextual top app bar: replaces the page header while a selection
 		     is active (wallet mockup). Fixed so it stays put while the list
 		     scrolls under it, like the platform bar it mirrors. -->
+		<!-- A region, not a toolbar: the bar mixes the selection count (a text
+		     node) with its two controls, and both buttons are labelled already.
+		     Stacked above OfflineIndicator (z-100) — going offline mid-selection
+		     must not bury the only exit from select mode. -->
 		<div
-			class="fixed top-0 right-0 left-0 z-55 flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
-			role="toolbar"
+			class="fixed top-0 right-0 left-0 z-[110] flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
+			role="region"
 			aria-label={tr('batch.selectMode')}
 		>
 			<div class="flex items-center gap-2.5">
@@ -885,10 +902,12 @@
 			</p>
 		</div>
 	{:else}
-		<!-- Type filter (top placement). Android hides the whole chip/toolbar
-		     block in select mode: the contextual top app bar replaces it. -->
-		{#if typeFilterPlacement === 'top' && !(IS_ANDROID && selectMode)}
-			<div class="mb-4">
+		<!-- Type filter (top placement). Android hides the chip/toolbar block in
+		     select mode below `sm`, where the contextual top app bar replaces it.
+		     From `sm` up the desktop chrome stays — it carries the only exit
+		     affordance at those widths (a phone in landscape is past `sm`). -->
+		{#if typeFilterPlacement === 'top'}
+			<div class="mb-4 {ANDROID_SELECT_HIDDEN}">
 				<TypeFilterButtons
 					bind:typeFilter={filters.typeFilter}
 					cardsCount={cards.length}
@@ -903,52 +922,147 @@
 		{@render searchField?.()}
 
 		<!-- WalletToolbar: Select · Filter · Barcode-Toggle · Import -->
-		{#if !(IS_ANDROID && selectMode)}
-			<div class="flex flex-col sm:flex-row gap-3 mb-6">
-				<!-- Action Buttons (Desktop) -->
-				<div class="hidden sm:flex gap-3">
-					<!-- Select Mode Button -->
+		<div class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN}">
+			<!-- Action Buttons (Desktop) -->
+			<div class="hidden sm:flex gap-3">
+				<!-- Select Mode Button -->
+				<button
+					type="button"
+					onclick={toggleSelectMode}
+					disabled={isOffline}
+					class="flex items-center justify-center gap-2 control px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+						? 'ring-2 ring-accent border-accent'
+						: 'border-border-field'}"
+					title={tr('batch.selectMode')}
+					aria-label={tr('batch.selectMode')}
+					aria-pressed={selectMode}
+				>
+					{@render toolbarIcon(ICON_CLIPBOARD_CHECK)}
+				</button>
+				<!-- Filter Button -->
+				<button
+					type="button"
+					onclick={(e: MouseEvent) => {
+						e.stopPropagation();
+						showFilterMenu = !showFilterMenu;
+					}}
+					class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
+					title={tr('common.filter')}
+					aria-label={tr('common.filter')}
+					aria-expanded={showFilterMenu}
+				>
+					{@render toolbarIcon(ICON_FUNNEL)}
+					{@render activeFilterDot()}
+				</button>
+				<!-- Barcode Toggle Button -->
+				<button
+					type="button"
+					onclick={toggleBarcodes}
+					class="flex items-center justify-center gap-2 control {barcodeButtonVariant ===
+					'label'
+						? 'px-6'
+						: 'px-4'} bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
+						? 'ring-2 ring-accent border-accent'
+						: 'border-border-field'}"
+					title={showBarcodes
+						? tr('barcodeToggle.hide')
+						: tr('barcodeToggle.show')}
+					aria-label={showBarcodes
+						? tr('barcodeToggle.hide')
+						: tr('barcodeToggle.show')}
+					aria-pressed={showBarcodes}
+				>
+					{@render barcodeButtonContent()}
+				</button>
+				<!-- Import Button -->
+				<button
+					type="button"
+					onclick={() => (showImportDialog = true)}
+					disabled={isOffline}
+					class="hidden sm:inline-flex btn btn-ghost whitespace-nowrap items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label={tr('settings.import.title')}
+				>
+					<svg
+						class="w-4 h-4"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+						/>
+					</svg>
+				</button>
+			</div>
+
+			<!-- Action Buttons (Mobile) -->
+			{#if IS_ANDROID}
+				<!-- M3 chip row: content-sized, left-aligned (mockup). -->
+				<div class="flex gap-2 sm:hidden">
+					{@render androidChip(
+						tr('batch.selectMode'),
+						ICON_CLIPBOARD_CHECK,
+						selectMode,
+						toggleSelectMode,
+						isOffline
+					)}
+					<!-- Mockup draws the active filter chip with both the check glyph
+						     and the dot badge; keep both, but keep the disclosure
+						     semantics of the button this chip replaces. -->
+					{@render androidChip(
+						tr('common.filter'),
+						hasActiveFilters ? ICON_CHECK : ICON_FUNNEL,
+						hasActiveFilters,
+						() => (showFilterMenu = !showFilterMenu),
+						false,
+						hasActiveFilters,
+						showFilterMenu
+					)}
+					{@render androidChip(
+						tr('barcodeToggle.label'),
+						'M4 6v12M7 6v12M10.5 6v12M14 6v12M17 6v12M20 6v12',
+						showBarcodes,
+						toggleBarcodes
+					)}
+				</div>
+			{:else}
+				<div class="flex sm:hidden gap-3">
+					<!-- Select Mode Button (Mobile) -->
 					<button
 						type="button"
 						onclick={toggleSelectMode}
 						disabled={isOffline}
-						class="flex items-center justify-center gap-2 control px-4 bg-white border rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
+						class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
 							? 'ring-2 ring-accent border-accent'
-							: 'border-border-field'}"
-						title={tr('batch.selectMode')}
+							: ''}"
 						aria-label={tr('batch.selectMode')}
-						aria-pressed={selectMode}
 					>
 						{@render toolbarIcon(ICON_CLIPBOARD_CHECK)}
 					</button>
-					<!-- Filter Button -->
+					<!-- Filter Button (Mobile) -->
 					<button
 						type="button"
 						onclick={(e: MouseEvent) => {
 							e.stopPropagation();
 							showFilterMenu = !showFilterMenu;
 						}}
-						class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
-						title={tr('common.filter')}
+						class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 						aria-label={tr('common.filter')}
 						aria-expanded={showFilterMenu}
 					>
 						{@render toolbarIcon(ICON_FUNNEL)}
 						{@render activeFilterDot()}
 					</button>
-					<!-- Barcode Toggle Button -->
+					<!-- Barcode Toggle Button (Mobile) -->
 					<button
 						type="button"
 						onclick={toggleBarcodes}
-						class="flex items-center justify-center gap-2 control {barcodeButtonVariant ===
-						'label'
-							? 'px-6'
-							: 'px-4'} bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
+						class="flex-[2] flex items-center justify-center gap-2 control bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
 							? 'ring-2 ring-accent border-accent'
 							: 'border-border-field'}"
-						title={showBarcodes
-							? tr('barcodeToggle.hide')
-							: tr('barcodeToggle.show')}
 						aria-label={showBarcodes
 							? tr('barcodeToggle.hide')
 							: tr('barcodeToggle.show')}
@@ -956,102 +1070,9 @@
 					>
 						{@render barcodeButtonContent()}
 					</button>
-					<!-- Import Button -->
-					<button
-						type="button"
-						onclick={() => (showImportDialog = true)}
-						disabled={isOffline}
-						class="hidden sm:inline-flex btn btn-ghost whitespace-nowrap items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-						aria-label={tr('settings.import.title')}
-					>
-						<svg
-							class="w-4 h-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-							/>
-						</svg>
-					</button>
 				</div>
-
-				<!-- Action Buttons (Mobile) -->
-				{#if IS_ANDROID}
-					<!-- M3 chip row: content-sized, left-aligned (mockup). -->
-					<div class="flex gap-2 sm:hidden">
-						{@render androidChip(
-							tr('batch.selectMode'),
-							ICON_CLIPBOARD_CHECK,
-							selectMode,
-							toggleSelectMode,
-							isOffline
-						)}
-						{@render androidChip(
-							tr('common.filter'),
-							hasActiveFilters ? ICON_CHECK : ICON_FUNNEL,
-							hasActiveFilters,
-							() => (showFilterMenu = !showFilterMenu),
-							false,
-							hasActiveFilters
-						)}
-						{@render androidChip(
-							tr('barcodeToggle.label'),
-							'M4 6v12M7 6v12M10.5 6v12M14 6v12M17 6v12M20 6v12',
-							showBarcodes,
-							toggleBarcodes
-						)}
-					</div>
-				{:else}
-					<div class="flex sm:hidden gap-3">
-						<!-- Select Mode Button (Mobile) -->
-						<button
-							type="button"
-							onclick={toggleSelectMode}
-							disabled={isOffline}
-							class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {selectMode
-								? 'ring-2 ring-accent border-accent'
-								: ''}"
-							aria-label={tr('batch.selectMode')}
-						>
-							{@render toolbarIcon(ICON_CLIPBOARD_CHECK)}
-						</button>
-						<!-- Filter Button (Mobile) -->
-						<button
-							type="button"
-							onclick={(e: MouseEvent) => {
-								e.stopPropagation();
-								showFilterMenu = !showFilterMenu;
-							}}
-							class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
-							aria-label={tr('common.filter')}
-							aria-expanded={showFilterMenu}
-						>
-							{@render toolbarIcon(ICON_FUNNEL)}
-							{@render activeFilterDot()}
-						</button>
-						<!-- Barcode Toggle Button (Mobile) -->
-						<button
-							type="button"
-							onclick={toggleBarcodes}
-							class="flex-[2] flex items-center justify-center gap-2 control bg-white border rounded-md hover:bg-surface-1 transition-colors {showBarcodes
-								? 'ring-2 ring-accent border-accent'
-								: 'border-border-field'}"
-							aria-label={showBarcodes
-								? tr('barcodeToggle.hide')
-								: tr('barcodeToggle.show')}
-							aria-pressed={showBarcodes}
-						>
-							{@render barcodeButtonContent()}
-						</button>
-					</div>
-				{/if}
-			</div>
-		{/if}
+			{/if}
+		</div>
 
 		{#if totalFiltered === 0 && (filters.searchInput || hasActiveFilters)}
 			<!-- No results with filters -->
@@ -1197,14 +1218,18 @@
 			</h3>
 			{#if IS_ANDROID}
 				<!-- M3 sheet header: text reset action instead of a close glyph
-				     (mockup); the scrim tap still dismisses. -->
-				<button
-					type="button"
-					onclick={resetFilters}
-					class="text-label text-accent-hover transition-colors"
-				>
-					{tr('common.resetFilters')}
-				</button>
+				     (mockup); scrim tap and Esc still dismiss. Gated on active
+				     filters like the in-panel button it replaces, so it never
+				     offers a no-op reset. -->
+				{#if hasActiveFilters}
+					<button
+						type="button"
+						onclick={resetFilters}
+						class="text-label text-accent-hover transition-colors"
+					>
+						{tr('common.resetFilters')}
+					</button>
+				{/if}
 			{:else}
 				<button
 					type="button"
@@ -1230,7 +1255,7 @@
 		</div>
 
 		<div class="pt-1">
-			{@render merchantFilterPanel(`${idPrefix}-mobile`)}
+			{@render merchantFilterPanel(`${idPrefix}-mobile`, IS_ANDROID)}
 		</div>
 
 		<div class={IS_ANDROID ? 'pt-4' : 'px-6 pb-6 pt-2'}>

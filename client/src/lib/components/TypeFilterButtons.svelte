@@ -60,9 +60,11 @@
 				}`
 	);
 	// Count sits inside the chip on Android only; it is what makes the row
-	// readable without an "All" chip. On an active (filled) chip it inherits the
+	// readable without an "All" chip. With the "All" chip present the row would
+	// read "All | Cards 4 | …" — the one chip that has no count of its own — so
+	// the counts drop there. On an active (filled) chip the count inherits the
 	// chip ink, on an outlined one it steps down to the faint tone.
-	const SHOW_COUNT = platform === 'android';
+	const SHOW_COUNT = $derived(platform === 'android' && !showAll);
 	const countClass = (isActive: boolean) => (isActive ? '' : 'text-text-faint');
 </script>
 

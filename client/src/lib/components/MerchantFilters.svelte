@@ -32,6 +32,9 @@
 		expiringOptions?: SelectOption[];
 		showExpiringFilter?: boolean;
 		showAll?: boolean;
+		/** Drop the in-panel reset button. Set by call sites whose own chrome
+		 *  already carries a reset action (the Android wallet filter sheet). */
+		hideReset?: boolean;
 	}
 
 	let {
@@ -53,7 +56,8 @@
 		expiringFilter = $bindable(undefined),
 		expiringOptions,
 		showExpiringFilter = true,
-		showAll = true
+		showAll = true,
+		hideReset = false
 	}: Props = $props();
 
 	const isIos = platform === 'ios';
@@ -126,9 +130,9 @@
 						: 'h-5 w-9'} {favoritesOnly ? 'bg-accent' : 'bg-border'}"
 				>
 					<div
-						class="absolute rounded-full bg-white transition-transform {isAndroid
-							? 'top-0.5 left-0.5 h-5.5 w-5.5 shadow-[var(--shadow-toggle)]'
-							: 'top-0.5 left-0.5 h-4 w-4 shadow-sm'} {favoritesOnly
+						class="absolute top-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform {isAndroid
+							? 'h-5.5 w-5.5'
+							: 'h-4 w-4'} {favoritesOnly
 							? isAndroid
 								? 'translate-x-4.5'
 								: 'translate-x-4'
@@ -192,9 +196,9 @@
 		</div>
 	{/if}
 
-	<!-- Reset Filters. Android carries the reset action in the sheet header
-	     instead (mockup), so the in-panel button would be a duplicate. -->
-	{#if hasActiveFilters && !isAndroid}
+	<!-- Reset Filters. Hidden where the call site's own header already carries a
+	     reset action (Android wallet sheet), otherwise it would be a duplicate. -->
+	{#if hasActiveFilters && !hideReset}
 		<div class={dividerClass}></div>
 
 		<div class="py-4 {groupClass}">

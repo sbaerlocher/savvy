@@ -472,6 +472,13 @@
 		<!-- M3 batch bar: five evenly spaced icon actions, edge-to-edge. The
 		     selection count and the exit action live in the contextual top app
 		     bar instead (wallet mockup), so no header row here. -->
+		{#if headerExtra}
+			<!-- Carries the type filter on the merchant detail screen, where it has
+			     no other home while a selection is active. -->
+			<div class="border-b border-border-soft px-4 py-2.5">
+				{@render headerExtra()}
+			</div>
+		{/if}
 		{#if sharedSelectedCount > 0}
 			<p class="px-4 pt-2 text-center text-body-sm text-warning-700">
 				{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
@@ -479,7 +486,7 @@
 		{/if}
 		<div class="flex items-center justify-around px-1.5 pt-3 pb-1.5">
 			{@render androidAction(
-				allSelected ? tr('batch.deselectAll') : tr('common.all'),
+				allSelected ? tr('batch.deselectAll') : tr('batch.selectAll'),
 				ICON_LINES,
 				allSelected ? onDeselectAll : onSelectAll,
 				false,
