@@ -831,10 +831,10 @@
 		     scrolls under it, like the platform bar it mirrors. -->
 		<!-- A region, not a toolbar: the bar mixes the selection count (a text
 		     node) with its two controls, and both buttons are labelled already.
-		     Stacked above OfflineIndicator (z-100) — going offline mid-selection
-		     must not bury the only exit from select mode. -->
+		     Below both Modal layers (backdrop z-55/z-70, panel z-60/z-80) so the
+		     batch confirm dialog still covers it, and above the batch bar. -->
 		<div
-			class="fixed top-0 right-0 left-0 z-[110] flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
+			class="fixed top-0 right-0 left-0 z-50 flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
 			role="region"
 			aria-label={tr('batch.selectMode')}
 		>
