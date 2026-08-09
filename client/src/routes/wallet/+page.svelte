@@ -136,9 +136,10 @@
 	// while already on the page still applies (onMount alone would miss it).
 	const searchParam = $derived($page.url.searchParams.get('search'));
 	$effect(() => {
-		if (searchParam && searchParam !== '1') {
-			walletFilters.searchInput = searchParam;
-		}
+		// '1' is the "empty box" signal every chrome sends, so it clears the query
+		// rather than being ignored — otherwise the last search sticks forever.
+		if (searchParam === '1') walletFilters.searchInput = '';
+		else if (searchParam) walletFilters.searchInput = searchParam;
 	});
 
 	// Remember the scroll position when leaving, so returning from a detail page

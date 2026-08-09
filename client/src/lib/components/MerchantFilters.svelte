@@ -32,6 +32,10 @@
 		expiringOptions?: SelectOption[];
 		showExpiringFilter?: boolean;
 		showAll?: boolean;
+		/** Let tapping the active type clear back to "all". Off while a batch
+		 *  selection is active — batch endpoints are per type, so a mixed
+		 *  selection would route to the wrong one. */
+		allowTypeToggle?: boolean;
 		/** Drop the in-panel reset button. Set by call sites whose own chrome
 		 *  already carries a reset action (the Android wallet filter sheet). */
 		hideReset?: boolean;
@@ -57,6 +61,7 @@
 		expiringOptions,
 		showExpiringFilter = true,
 		showAll = true,
+		allowTypeToggle = true,
 		hideReset = false
 	}: Props = $props();
 
@@ -86,6 +91,7 @@
 			{vouchersCount}
 			{giftCardsCount}
 			{showAll}
+			allowToggle={allowTypeToggle}
 			variant="chip"
 		/>
 	</div>

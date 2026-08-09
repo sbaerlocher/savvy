@@ -296,13 +296,19 @@ test.describe('Batch Operations', () => {
 
 		await cardsListPage.enterSelectMode();
 
-		// Tapping the active type chip must NOT toggle back to 'all' in select
-		// mode — batch operations assume a single concrete type, so a mixed
-		// selection would route to the wrong endpoint.
-		const cardsChip = page.getByTestId('type-chip-cards');
-		await cardsChip.click();
-
+		// Batch operations assume a single concrete type — a mixed selection would
+		// route to the wrong endpoint — so select mode must not offer a way back
+		// to 'all'. The desktop wallet has no chip row of its own (the type is
+		// picked in the filter panel, which select mode replaces with the batch
+		// panel), so no type control may be reachable at all here.
 		await expect(page.getByTestId('type-chip-all')).toHaveCount(0);
+		await expect(page.getByTestId('type-chip-cards')).toHaveCount(0);
+
+		// Leaving select mode brings the type control back, still on 'cards'.
+		await cardsListPage.selectModeButton.click();
+		await cardsListPage.filterButton.click();
+		const cardsChip = page.getByTestId('type-chip-cards').first();
+		await expect(cardsChip).toBeVisible({ timeout: 10000 });
 		const activeClass = await cardsChip.getAttribute('class');
 		expect(activeClass).toContain('bg-accent');
 	});
