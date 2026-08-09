@@ -171,6 +171,8 @@ export const en: TranslationKeys = {
 		atCheckout: 'At checkout',
 		totalBalanceShort: 'Total balance',
 		entries: 'Entries',
+		entriesFiltered: '{shown} of {total} · filtered',
+		selectionActive: 'Selection active',
 		overview: 'Here is an overview of your cards and vouchers.',
 		favorites: '⭐ Favorites',
 		recentlyAdded: 'Recently Added',

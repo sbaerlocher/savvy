@@ -94,7 +94,7 @@
 
 <!-- Desktop Side-Panel -->
 <div class="hidden lg:block lg:col-span-1">
-	<div class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden">
+	<div class="bg-white rounded-xl shadow-card sticky top-4 overflow-hidden">
 		<!-- Header -->
 		<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
 			<div class="flex items-center justify-between">

@@ -176,6 +176,8 @@ export const fr: TranslationKeys = {
 		atCheckout: 'En caisse',
 		totalBalanceShort: 'Solde total',
 		entries: 'Entrées',
+		entriesFiltered: '{shown} sur {total} · filtré',
+		selectionActive: 'Sélection active',
 		overview: 'Voici un aperçu de vos cartes et bons.',
 		favorites: '⭐ Favoris',
 		recentlyAdded: 'Récemment ajouté',

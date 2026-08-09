@@ -158,6 +158,8 @@ export type TranslationKeys = {
 		atCheckout: string;
 		totalBalanceShort: string;
 		entries: string;
+		entriesFiltered: string;
+		selectionActive: string;
 		overview: string;
 		favorites: string;
 		recentlyAdded: string;

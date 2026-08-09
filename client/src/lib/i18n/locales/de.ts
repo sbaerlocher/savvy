@@ -176,6 +176,8 @@ export const de: TranslationKeys = {
 		atCheckout: 'An der Kasse',
 		totalBalanceShort: 'Guthaben gesamt',
 		entries: 'Einträge',
+		entriesFiltered: '{shown} von {total} · gefiltert',
+		selectionActive: 'Auswahl aktiv',
 		overview: 'Hier ist eine Übersicht deiner Kundenkarten und Gutscheine.',
 		favorites: '⭐ Favoriten',
 		recentlyAdded: 'Kürzlich hinzugefügt',
