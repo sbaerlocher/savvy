@@ -55,28 +55,27 @@
 	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
 
 	// Card chrome per platform: iOS liquid-glass, Android M3 tonal, Desktop
-	// solid — mirrors the BottomSheet.svelte platform-switch pattern.
-	const cardClass = $derived.by(() => {
-		switch (platform) {
-			case 'ios':
-				return 'liquid-glass-card rounded-[var(--radius-inset)]';
-			case 'android':
-				return 'bg-[var(--color-m3-surface-container)] rounded-[var(--radius-m3-lg)]';
-			default:
-				return 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl';
-		}
-	});
+	// solid — mirrors the BottomSheet.svelte platform-switch pattern. `platform`
+	// is a module-level constant, so these never change: plain consts, not
+	// $derived. Each carries its own hover affordance so it stays with the
+	// chrome that defines it (glass edge on iOS, none on Android, field border
+	// on desktop).
+	const CARD_CLASS =
+		platform === 'ios'
+			? 'liquid-glass-card rounded-[var(--radius-inset)]'
+			: platform === 'android'
+				? 'bg-m3-surface-container rounded-[var(--radius-m3-lg)]'
+				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
 
-	const chipClass = $derived.by(() => {
-		switch (platform) {
-			case 'ios':
-				return 'liquid-glass-card';
-			case 'android':
-				return 'bg-[var(--color-m3-surface-container-high)]';
-			default:
-				return 'bg-surface';
-		}
-	});
+	// Barcode chip sits one elevation step above the card on every platform:
+	// glass-surface-2 over the card's glass-surface-3 (iOS), container-high over
+	// container (Android), surface-1 over surface (desktop).
+	const CHIP_CLASS =
+		platform === 'ios'
+			? 'bg-[var(--color-glass-surface-2)]'
+			: platform === 'android'
+				? 'bg-m3-surface-container-high'
+				: 'bg-surface-1';
 
 	function handleBarcodeClick(e: MouseEvent) {
 		e.preventDefault();
@@ -86,7 +85,7 @@
 </script>
 
 <div
-	class="group relative flex flex-col overflow-hidden transition hover:border-border-field {cardClass} {selectMode &&
+	class="group relative flex flex-col overflow-hidden transition {CARD_CLASS} {selectMode &&
 	selected
 		? 'ring-2 ring-accent'
 		: ''}"
@@ -259,7 +258,7 @@
 	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
 		{@const barcodeValue = model.barcodeValue}
-		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft p-3 ${chipClass} ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft p-3 ${CHIP_CLASS} ${model.isActive ? '' : 'opacity-50 grayscale'}`}
 		{#snippet barcodeContent()}
 			<!-- Barcode image only; the raw value already shows masked in the
 			     footer (·· 1234), so no duplicate full-value text here. -->
