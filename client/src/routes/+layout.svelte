@@ -12,6 +12,7 @@
 	import { pwaStore } from '$lib/stores/pwa';
 	import { registerServiceWorker } from '$lib/pwa/register-sw';
 	import { showNewDialog } from '$lib/stores/newDialog';
+	import { selectModeActive } from '$lib/stores/selectMode';
 	import { browser } from '$app/environment';
 	import { onMount, type Snippet } from 'svelte';
 	import { logger } from '$lib/utils/logger';
@@ -26,7 +27,10 @@
 	const showMobileNav = $derived(
 		$authStore.isAuthenticated &&
 			!$page.url.pathname.startsWith('/login') &&
-			!$page.url.pathname.startsWith('/register')
+			!$page.url.pathname.startsWith('/register') &&
+			// Android select mode swaps the nav bar and FAB for the M3 contextual
+			// top app bar plus the batch bottom bar (wallet mockup).
+			!(platform === 'android' && $selectModeActive)
 	);
 
 	// Track preload state to prevent duplicate runs

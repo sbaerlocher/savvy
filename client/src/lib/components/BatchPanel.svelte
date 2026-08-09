@@ -2,6 +2,8 @@
 	import {
 		ICON_CLIPBOARD_CHECK,
 		ICON_CLOSE,
+		ICON_EXPORT,
+		ICON_LINES,
 		ICON_SHARE,
 		ICON_TRANSFER,
 		ICON_TRASH,
@@ -57,6 +59,38 @@
 		isOffline || selectedCount === 0 || hasNonDeletableShared
 	);
 </script>
+
+<!-- One M3 batch-bar action: stacked icon over an 11px label (wallet mockup). -->
+{#snippet androidAction(
+	label: string,
+	d: string,
+	onclick: () => void,
+	disabled: boolean,
+	danger: boolean
+)}
+	<button
+		type="button"
+		{onclick}
+		{disabled}
+		class="flex flex-col items-center gap-1 rounded-m3-sm px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 {danger
+			? 'text-danger-600'
+			: 'text-text-muted'}"
+	>
+		<svg
+			class="h-5.5 w-5.5"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" {d} />
+		</svg>
+		<span class="text-eyebrow font-medium normal-case tracking-normal"
+			>{label}</span
+		>
+	</button>
+{/snippet}
 
 <!-- Desktop Side-Panel -->
 <div class="hidden lg:block lg:col-span-1">
@@ -308,7 +342,7 @@
 	class="lg:hidden fixed left-0 right-0 z-[55] {platform === 'ios'
 		? 'liquid-glass-surface mx-4 rounded-2xl batch-panel-floating'
 		: platform === 'android'
-			? 'batch-panel-android bg-surface border-t border-border shadow-[var(--shadow-batch)]'
+			? 'batch-panel-android bg-m3-surface-container border-t border-border'
 			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[var(--shadow-batch)]'}"
 	style={platform === 'ios'
 		? ''
@@ -433,6 +467,52 @@
 				</svg>
 				<span class="text-[length:var(--text-tag)]">{tr('common.delete')}</span>
 			</button>
+		</div>
+	{:else if platform === 'android'}
+		<!-- M3 batch bar: five evenly spaced icon actions, edge-to-edge. The
+		     selection count and the exit action live in the contextual top app
+		     bar instead (wallet mockup), so no header row here. -->
+		{#if sharedSelectedCount > 0}
+			<p class="px-4 pt-2 text-center text-body-sm text-warning-700">
+				{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
+			</p>
+		{/if}
+		<div class="flex items-center justify-around px-1.5 pt-3 pb-1.5">
+			{@render androidAction(
+				allSelected ? tr('batch.deselectAll') : tr('common.all'),
+				ICON_LINES,
+				allSelected ? onDeselectAll : onSelectAll,
+				false,
+				false
+			)}
+			{@render androidAction(
+				tr('common.share'),
+				ICON_SHARE,
+				onShare,
+				disableShareTransfer,
+				false
+			)}
+			{@render androidAction(
+				tr('common.transferOwnership'),
+				ICON_TRANSFER,
+				onTransfer,
+				disableShareTransfer,
+				false
+			)}
+			{@render androidAction(
+				tr('common.export'),
+				ICON_EXPORT,
+				onExport,
+				disableExport,
+				false
+			)}
+			{@render androidAction(
+				tr('common.delete'),
+				ICON_TRASH,
+				onDelete,
+				disableDelete,
+				true
+			)}
 		</div>
 	{:else}
 		<!-- Top row: header matching filter style -->

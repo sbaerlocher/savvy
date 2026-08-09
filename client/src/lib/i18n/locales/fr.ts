@@ -102,6 +102,7 @@ export const fr: TranslationKeys = {
 		sort: 'Tri',
 		resetFilters: 'Réinitialiser les filtres',
 		results: '{count} Résultats',
+		showResults: 'Afficher {count} résultats',
 		shareResultAll: 'Partagé avec succès ({count})',
 		shareResultPartial:
 			'Partagé avec {success} sur {total}, {failed} échoué(s)',

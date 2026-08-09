@@ -25,6 +25,9 @@
 		onShowBarcode?: (item: BarcodeModalItem) => void;
 	} = $props();
 
+	// `platform` is a module-level constant, so this never changes.
+	const IS_ANDROID = platform === 'android';
+
 	// Per-type icon (neutral line icons, Direction B — no emoji).
 	const iconPaths: Record<TileModel['type'], string> = {
 		card: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
@@ -100,11 +103,38 @@
 
 <div
 	class="group relative flex flex-col overflow-hidden transition {CARD_CLASS} {selectMode &&
-	selected
+	selected &&
+	!IS_ANDROID
 		? 'ring-2 ring-accent'
 		: ''}"
 	style="border-left: 3px solid color-mix(in srgb, {model.merchantColor} 70%, transparent)"
 >
+	<!-- Android select mode marks the tile with an M3 checkbox in the top-left
+	     corner instead of a selection ring (wallet mockup). -->
+	{#if IS_ANDROID && selectMode}
+		<span
+			class="pointer-events-none absolute top-2.5 left-2.5 z-5 flex h-5 w-5 items-center justify-center rounded-m3-xs border-2 transition-colors {selected
+				? 'border-accent bg-accent'
+				: 'border-border-field bg-m3-surface-container'}"
+			aria-hidden="true"
+		>
+			{#if selected}
+				<svg
+					class="h-3.5 w-3.5 text-white"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="3"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M20 6L9 17l-5-5"
+					/>
+				</svg>
+			{/if}
+		</span>
+	{/if}
 	<!-- Status overlay (centered) when not active — sits OUTSIDE the dimmed
 	     content so the badge stays at full opacity, like the prototype. -->
 	{#if !model.isActive && model.statusBadge}

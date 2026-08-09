@@ -35,6 +35,16 @@ export const ICON_SPINNER =
 export const ICON_LOCK =
 	'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z';
 
+/** Bare check mark (no circle) — M3 selected-chip leading icon. */
+export const ICON_CHECK = 'M5 12.5l4.5 4.5L19 7';
+
+/** Three stacked lines — M3 "select all" / overflow glyph. */
+export const ICON_LINES = 'M4 6h16M4 12h16M4 18h16';
+
+/** Download arrow into a tray (export). */
+export const ICON_EXPORT =
+	'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 16V4m0 12l-4-4m4 4l4-4';
+
 /** Check mark inside a circle. */
 export const ICON_CHECK_CIRCLE =
 	'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
