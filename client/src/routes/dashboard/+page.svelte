@@ -39,27 +39,27 @@
 		platform === 'ios'
 			? 'font-mono text-stat tabular-nums text-text-strong'
 			: 'font-mono text-2xl font-semibold tabular-nums text-text-strong';
-	// Stat label: Android mockup uses 12.5px (--text-body-sm), iOS 13px regular
-	// (--text-label carries a 600 companion weight, hence the override), others
-	// 14px.
+	// Stat label: Android mockup uses 12.5px (--text-body-sm), iOS and desktop
+	// 13px regular (--text-label carries a 600 companion weight, hence the
+	// override).
 	const statLabelClass =
 		platform === 'android'
 			? 'mt-1 text-body-sm text-text-subtle'
 			: platform === 'ios'
 				? 'mt-1 text-label font-normal text-text-subtle'
-				: 'mt-1 text-sm text-text-subtle';
+				: 'mt-1.5 text-label font-normal text-text-subtle';
 	// Refresh hint next to the eyebrow: iOS mockup uses the 11px eyebrow step,
 	// Android 12px.
 	const refreshHintClass =
 		platform === 'ios' ? 'text-eyebrow font-medium' : 'text-xs font-medium';
-	// Section label "An der Kasse": Android mockup 11px eyebrow with an 8px gap,
-	// iOS the same step with a 6px gap.
+	// Section label "An der Kasse": 11px eyebrow everywhere, the gap differs —
+	// Android 8px, iOS 6px, desktop 14px.
 	const sectionLabelClass =
 		platform === 'android'
 			? 'mb-2 text-eyebrow uppercase text-text-subtle'
 			: platform === 'ios'
 				? 'mb-1.5 text-eyebrow uppercase text-text-subtle'
-				: 'mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle';
+				: 'mb-3.5 text-eyebrow uppercase text-text-subtle';
 	// Total entries across all resource types (drives the "Einträge" stat).
 	const entriesCount = $derived(
 		data
