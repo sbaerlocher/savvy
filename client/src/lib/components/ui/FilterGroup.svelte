@@ -16,19 +16,19 @@
 		value = $bindable(),
 		options,
 		idPrefix = 'filter',
-		groupKey = '',
-		openGroup = $bindable(undefined)
+		groupKey = idPrefix,
+		openGroup = $bindable('')
 	}: {
 		label: string;
 		value: string;
 		options: Option[];
 		idPrefix?: string;
-		/** iOS only: this group's identity within an accordion set. */
+		/** iOS only: this group's identity within an accordion set. Defaults to
+		 *  `idPrefix`, so a standalone group still toggles on its own. */
 		groupKey?: string;
 		/** iOS only: the key of the single open group, shared across siblings so
-		 *  expanding one collapses the others. Left undefined by call sites that
-		 *  do not want accordion behaviour — then every group stays collapsed
-		 *  until tapped and opening one does not affect the rest. */
+		 *  expanding one collapses the others. A call site that does not bind it
+		 *  gets a self-contained row that opens and closes on its own. */
 		openGroup?: string;
 	} = $props();
 

@@ -335,11 +335,12 @@
 
 	{#if IOS && selectMode}
 		<!-- iOS multi-select marker (mockup): filled accent circle when picked,
-		     hollow glass ring when not. Decorative — the tile button owns the
-		     toggle and its pressed state. -->
+		     hollow glass ring when not. Top-right rather than bottom-right so it
+		     stays clear of the barcode box when barcodes are on. Decorative —
+		     the tile button owns the toggle and its pressed state. -->
 		<span
 			aria-hidden="true"
-			class="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex h-6.5 w-6.5 items-center justify-center rounded-full {selected
+			class="pointer-events-none absolute top-2.5 right-2.5 z-10 flex h-6.5 w-6.5 items-center justify-center rounded-full {selected
 				? 'border-2 border-surface bg-accent shadow-sm'
 				: 'border border-[var(--color-glass-edge)] bg-[var(--color-glass-hollow)] backdrop-blur-sm'}"
 		>
