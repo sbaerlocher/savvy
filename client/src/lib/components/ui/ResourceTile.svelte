@@ -260,8 +260,15 @@
 				{/if}
 			</div>
 
-			<!-- Kennzahl + expiry badge (fixed top-right slot) -->
-			<div class="flex shrink-0 flex-col items-end gap-1 text-right">
+			<!-- Kennzahl + expiry badge (fixed top-right slot). In iOS select mode
+			     the round marker occupies that corner, so the slot yields the
+			     space instead of letting the two stack. -->
+			<div
+				class="flex shrink-0 flex-col items-end gap-1 text-right {IOS &&
+				selectMode
+					? 'mr-8'
+					: ''}"
+			>
 				{#if model.amount}
 					<p class="text-lg font-bold tabular-nums text-text">
 						{model.amount}
