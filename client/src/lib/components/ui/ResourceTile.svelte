@@ -148,9 +148,7 @@
 	{#snippet tileBody()}
 		<!-- Header: icon + type label + merchant name | amount + expiry -->
 		<div class="flex items-start gap-3">
-			<div
-				class="flex shrink-0 items-center justify-center {ICON_TILE_CLASS}"
-			>
+			<div class="flex shrink-0 items-center justify-center {ICON_TILE_CLASS}">
 				<svg
 					class="h-5 w-5"
 					fill="none"
