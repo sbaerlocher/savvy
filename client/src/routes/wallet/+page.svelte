@@ -225,6 +225,16 @@
 			/>
 		{/snippet}
 
+		{#snippet selectHeader(selectedCount: number)}
+			<!-- iOS select mode: the eyebrow counts the selection instead of the
+			     total, and the bell / "new" actions step aside (mockup Phone 3). -->
+			<PageHeader
+				eyebrow={tr('batch.selected', { count: selectedCount })}
+				title={tr('nav.wallet')}
+				mobileActions={false}
+			/>
+		{/snippet}
+
 		{#snippet searchField()}
 			<!-- Search field: only shown when arriving via ?search focus path.
 			     iOS puts search in the bottom-nav pill and Android in the header,

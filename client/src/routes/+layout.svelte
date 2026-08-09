@@ -24,13 +24,17 @@
 
 	let { data, children }: { data: LayoutData; children?: Snippet } = $props();
 
+	// iOS select mode: the floating batch bar sits in the nav's own slot
+	// (mockup screen-WalletIOS, Phone 3), so the nav steps aside while it is up.
+	// Android/desktop keep their nav — their batch bar stacks above it.
 	const showMobileNav = $derived(
 		$authStore.isAuthenticated &&
 			!$page.url.pathname.startsWith('/login') &&
 			!$page.url.pathname.startsWith('/register') &&
-			// Android select mode swaps the nav bar and FAB for the M3 contextual
-			// top app bar plus the batch bottom bar (wallet mockup).
-			!(platform === 'android' && $selectModeActive)
+			// Native select mode rearranges the bottom chrome: Android swaps the nav
+			// bar and FAB for the M3 contextual top app bar plus batch bottom bar,
+			// iOS lets the floating batch bar take the nav's slot (wallet mockups).
+			!(platform !== 'other' && $selectModeActive)
 	);
 
 	// Track preload state to prevent duplicate runs

@@ -160,9 +160,12 @@
 		margin-bottom: var(--mobile-nav-offset);
 	}
 
-	/* iOS floating batch panel: gap above nav */
+	/* iOS floating batch bar: takes the nav's own slot instead of stacking above
+	   it — in select mode the nav is hidden and this bar replaces it. Same
+	   bottom offset as .mobile-nav-floating so the bottom edge does not shift
+	   when the two swap. */
 	.batch-panel-floating {
-		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
+		bottom: var(--mobile-nav-offset);
 	}
 
 	/* Floating action button (new / edit): sit above the bottom nav and clear
