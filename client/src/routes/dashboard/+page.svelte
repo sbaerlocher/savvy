@@ -30,10 +30,20 @@
 	// card with shadow.
 	const statTileClass =
 		platform === 'android'
-			? 'rounded-2xl bg-white px-4.5 py-4'
+			? 'rounded-[var(--radius-m3-lg)] bg-m3-surface-container px-4.5 py-4'
 			: platform === 'ios'
 				? 'rounded-xl border border-border bg-white px-4 py-3'
 				: 'rounded-xl border border-border bg-white px-5 py-4 shadow-card lg:min-w-36';
+	// Stat label: Android mockup uses 12.5px (--text-body-sm), others 14px.
+	const statLabelClass =
+		platform === 'android'
+			? 'mt-1 text-body-sm text-text-subtle'
+			: 'mt-1 text-sm text-text-subtle';
+	// Section label "An der Kasse": Android mockup 11px eyebrow, 8px gap.
+	const sectionLabelClass =
+		platform === 'android'
+			? 'mb-2 text-eyebrow uppercase text-text-subtle'
+			: 'mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle';
 	// Total entries across all resource types (drives the "Einträge" stat).
 	const entriesCount = $derived(
 		data
@@ -125,8 +135,17 @@
 					eyebrow={$t('dashboard.greeting', { name: firstName })}
 					title={$t('dashboard.yourFavorites')}
 				>
+					<!-- Android mockup: refresh indicator sits inline next to the
+					     greeting eyebrow; iOS/desktop keep it in the actions slot. -->
+					{#snippet eyebrowAside()}
+						{#if platform === 'android' && isRefreshing}
+							<span class="animate-pulse text-xs font-medium text-text-faint"
+								>{$t('common.refreshing')}</span
+							>
+						{/if}
+					{/snippet}
 					{#snippet actions()}
-						{#if isRefreshing}
+						{#if platform !== 'android' && isRefreshing}
 							<span class="animate-pulse text-xs text-text-faint"
 								>{$t('common.refreshing')}</span
 							>
@@ -145,7 +164,7 @@
 					>
 						CHF {Math.round(data.stats.total_balance)}
 					</p>
-					<p class="mt-1 text-sm text-text-subtle">
+					<p class={statLabelClass}>
 						{$t('dashboard.totalBalanceShort')}
 					</p>
 				</div>
@@ -155,15 +174,13 @@
 					>
 						{entriesCount}
 					</p>
-					<p class="mt-1 text-sm text-text-subtle">{$t('dashboard.entries')}</p>
+					<p class={statLabelClass}>{$t('dashboard.entries')}</p>
 				</div>
 			</div>
 
 			<!-- At-checkout favorites: barcode always visible (register quick access) -->
 			<section class="order-2 lg:col-span-2 lg:row-start-2">
-				<h2
-					class="mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle"
-				>
+				<h2 class={sectionLabelClass}>
 					{$t('dashboard.atCheckout')}
 				</h2>
 				<FavoritesSection

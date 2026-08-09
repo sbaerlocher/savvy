@@ -93,7 +93,10 @@
 
 <main
 	class="max-w-7xl mx-auto pt-4 pb-6 px-4 sm:px-6 lg:px-8"
-	class:main-with-mobile-nav={showMobileNav && platform !== 'ios'}
+	class:main-with-mobile-nav={showMobileNav &&
+		platform !== 'ios' &&
+		platform !== 'android'}
+	class:main-with-mobile-nav-android={showMobileNav && platform === 'android'}
 	class:main-with-mobile-nav-floating={showMobileNav && platform === 'ios'}
 >
 	{@render children?.()}

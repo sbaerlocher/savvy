@@ -60,20 +60,34 @@
 	// card, roomier.
 	const emptyStateClass =
 		platform === 'android'
-			? 'rounded-3xl bg-white px-6 py-9'
+			? 'rounded-[var(--radius-m3-lg)] bg-m3-surface-container px-6 py-8.5'
 			: platform === 'ios'
 				? 'rounded-xl border border-border bg-white px-6 py-9'
 				: 'rounded-2xl border border-border bg-white px-6 py-11';
+	// Empty-state type per platform (Android mockup: 15px title, 12.5px hint,
+	// accent-700 CTA).
+	const emptyTitleClass =
+		platform === 'android'
+			? 'text-subheading text-text'
+			: 'text-sm font-semibold text-text';
+	const emptyHintClass =
+		platform === 'android'
+			? 'mt-1 mb-4 text-body-sm text-text-faint'
+			: 'mt-1 mb-4 text-xs text-text-faint';
+	const emptyCtaClass =
+		platform === 'android'
+			? 'text-accent-hover hover:text-accent-800'
+			: 'text-accent hover:text-accent-800';
 </script>
 
 <div data-testid="favorites-section">
 	<div data-testid="favorites-list">
 		{#if isEmpty}
 			<div class="{emptyStateClass} text-center">
-				<p class="text-sm font-semibold text-text">
+				<p class={emptyTitleClass}>
 					{$t('dashboard.noActivity')}
 				</p>
-				<p class="mt-1 mb-4 text-xs text-text-faint">
+				<p class={emptyHintClass}>
 					{$t('dashboard.noActivityHint')}
 				</p>
 				<a
@@ -81,7 +95,7 @@
 					onclick={(e) => {
 						if (!$isOnline) e.preventDefault();
 					}}
-					class="inline-flex items-center gap-1 text-sm font-semibold text-accent transition hover:text-accent-800 {!$isOnline
+					class="inline-flex items-center gap-1 text-sm font-semibold transition {emptyCtaClass} {!$isOnline
 						? 'pointer-events-none opacity-50'
 						: ''}"
 				>

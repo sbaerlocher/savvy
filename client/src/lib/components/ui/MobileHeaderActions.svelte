@@ -9,6 +9,16 @@
 	// Android search opens an inline M3 search field in the header row; the
 	// parent PageHeader owns that state and passes the opener down.
 	let { onSearchOpen }: { onSearchOpen?: () => void } = $props();
+
+	// Android M3 (mockup header): 44px round borderless icon buttons, 4px gap.
+	// iOS/other keep the boxed 40px buttons. Module-constant platform → consts.
+	const BOX_CLASS =
+		platform === 'android'
+			? 'inline-flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-1'
+			: 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1';
+	const GAP_CLASS = platform === 'android' ? 'gap-1' : 'gap-2.5';
+	const SEARCH_ICON = platform === 'android' ? 'h-5.5 w-5.5' : 'h-5 w-5';
+	const BELL_ICON = platform === 'android' ? 'h-5.25 w-5.25' : 'h-5 w-5';
 </script>
 
 <!-- Mobile-only header actions, rendered on the page title row (see PageHeader)
@@ -23,13 +33,13 @@
 	{#if !$authStore.user?.is_impersonating}
 		<NotificationPanel
 			mode="link"
-			triggerClass="notification-bell relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
-			iconClass="h-5 w-5"
+			triggerClass="notification-bell relative {BOX_CLASS}"
+			iconClass={BELL_ICON}
 		/>
 	{/if}
 {/snippet}
 
-<div class="flex items-center gap-2.5 sm:hidden">
+<div class="flex items-center {GAP_CLASS} sm:hidden">
 	{#if platform === 'ios'}
 		{@render bell()}
 		<button
@@ -55,10 +65,10 @@
 			onclick={onSearchOpen}
 			data-testid="nav-search-mobile"
 			aria-label={$t('common.search')}
-			class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
+			class={BOX_CLASS}
 		>
 			<svg
-				class="h-5 w-5"
+				class={SEARCH_ICON}
 				fill="none"
 				stroke="currentColor"
 				stroke-width="2"
