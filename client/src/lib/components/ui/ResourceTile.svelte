@@ -88,6 +88,11 @@
 			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-m3-on-secondary-container'
 			: 'h-9 w-9 rounded-lg bg-border-soft text-text-subtle';
 
+	// iOS wallet list (mockup screen-WalletIOS): a tile with a visible barcode
+	// carries a small glass "enlarge" hint, and select mode marks the tile with a
+	// round checkbox in the corner instead of only a ring.
+	const IOS = platform === 'ios';
+
 	// Badge shape: Android M3 extra-small corners, others stay pills (mockup).
 	const BADGE_RADIUS =
 		platform === 'android' ? 'rounded-[var(--radius-m3-xs)]' : 'rounded-full';
@@ -106,7 +111,7 @@
 	selected &&
 	!IS_ANDROID
 		? 'ring-2 ring-accent'
-		: ''}"
+		: ''} {IOS && selectMode && selected ? 'scale-96' : ''}"
 	style="border-left: 3px solid color-mix(in srgb, {model.merchantColor} 70%, transparent)"
 >
 	<!-- Android select mode marks the tile with an M3 checkbox in the top-left
@@ -326,5 +331,33 @@
 				{@render barcodeContent()}
 			</div>
 		{/if}
+	{/if}
+
+	{#if IOS && selectMode}
+		<!-- iOS multi-select marker (mockup): filled accent circle when picked,
+		     hollow glass ring when not. Decorative — the tile button owns the
+		     toggle and its pressed state. -->
+		<span
+			aria-hidden="true"
+			class="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex h-6.5 w-6.5 items-center justify-center rounded-full {selected
+				? 'border-2 border-surface bg-accent shadow-[var(--shadow-toggle)]'
+				: 'border border-[var(--color-glass-edge)] bg-[var(--color-glass-hollow)] backdrop-blur-sm'}"
+		>
+			{#if selected}
+				<svg
+					class="h-3.5 w-3.5 text-white"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="3"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M20 6L9 17l-5-5"
+					/>
+				</svg>
+			{/if}
+		</span>
 	{/if}
 </div>

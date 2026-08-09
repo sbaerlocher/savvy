@@ -71,6 +71,10 @@
 		: '';
 	const dividerClass =
 		isIos || isAndroid ? 'hidden' : 'border-t border-border-soft';
+
+	// iOS accordion: which filter row is expanded. Held here so opening one
+	// collapses the others. Sort starts open (mockup screen-WalletIOS).
+	let openGroup = $state('sort');
 </script>
 
 <div class={isAndroid ? 'space-y-4.5' : isIos ? 'space-y-3' : ''}>
@@ -144,13 +148,15 @@
 	{/if}
 	<div class={dividerClass}></div>
 
-	<!-- Sort -->
+	<!-- Sort — iOS shows the options expanded with checkmarks (mockup). -->
 	<div class={groupClass}>
 		<FilterGroup
 			label={tr('merchantOverview.sortBy')}
 			bind:value={sortBy}
 			options={sortOptions}
 			idPrefix="{idPrefix}-sort"
+			groupKey="sort"
+			bind:openGroup
 		/>
 	</div>
 
@@ -164,6 +170,8 @@
 				bind:value={statusFilter}
 				options={statusOptions}
 				idPrefix="{idPrefix}-status"
+				groupKey="status"
+				bind:openGroup
 			/>
 		</div>
 	{/if}
@@ -178,6 +186,8 @@
 				bind:value={ownerFilter}
 				options={ownerOptions}
 				idPrefix="{idPrefix}-owner"
+				groupKey="owner"
+				bind:openGroup
 			/>
 		</div>
 	{/if}
@@ -192,6 +202,8 @@
 				bind:value={expiringFilter}
 				options={expiringOptions}
 				idPrefix="{idPrefix}-expiring"
+				groupKey="expiring"
+				bind:openGroup
 			/>
 		</div>
 	{/if}

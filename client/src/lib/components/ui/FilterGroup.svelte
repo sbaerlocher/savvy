@@ -6,33 +6,30 @@
 		label: string;
 	}
 
-	// Move a node to <body> so position:fixed is relative to the viewport. An
-	// ancestor with backdrop-filter (the glass cards) otherwise re-anchors fixed
-	// positioning to itself, trapping/clipping the menu.
-	function portal(node: HTMLElement) {
-		document.body.appendChild(node);
-		return {
-			destroy() {
-				node.remove();
-			}
-		};
-	}
-
 	// Single-select filter group.
-	//   iOS      → collapsed row (label + current value + chevron); tapping opens
-	//              a pull-down menu of options — nothing is expanded until tapped.
+	//   iOS      → inline accordion row: label + current value + chevron; tapping
+	//              expands the options in place, picking one collapses it again.
 	//   Android  → M3 filter chips.
 	//   desktop  → neutral chips.
 	let {
 		label,
 		value = $bindable(),
 		options,
-		idPrefix = 'filter'
+		idPrefix = 'filter',
+		groupKey = '',
+		openGroup = $bindable(undefined)
 	}: {
 		label: string;
 		value: string;
 		options: Option[];
 		idPrefix?: string;
+		/** iOS only: this group's identity within an accordion set. */
+		groupKey?: string;
+		/** iOS only: the key of the single open group, shared across siblings so
+		 *  expanding one collapses the others. Left undefined by call sites that
+		 *  do not want accordion behaviour — then every group stays collapsed
+		 *  until tapped and opening one does not affect the rest. */
+		openGroup?: string;
 	} = $props();
 
 	const groupId = $derived(`${idPrefix}-group`);
@@ -57,46 +54,31 @@
 			? 'px-3.5 py-2 text-label'
 			: 'px-3 py-1.5 text-sm font-medium';
 
-	let menuOpen = $state(false);
-	let triggerEl = $state<HTMLButtonElement | null>(null);
-	// Fixed menu position, computed from the trigger on open. Fixed positioning
-	// escapes the per-card backdrop-filter stacking contexts, which would
-	// otherwise trap the menu under the following filter card.
-	let menuStyle = $state('');
+	// Accordion state lives in the parent (openGroup), so opening one group
+	// collapses its siblings. Only one row is ever expanded.
+	const open = $derived(!!groupKey && openGroup === groupKey);
 
-	function toggleMenu() {
-		if (menuOpen) {
-			menuOpen = false;
-			return;
-		}
-		if (triggerEl) {
-			const r = triggerEl.getBoundingClientRect();
-			// Anchor top-right of the menu to the trigger's right edge, below it.
-			const right = Math.round(window.innerWidth - r.right);
-			const top = Math.round(r.bottom + 4);
-			menuStyle = `position:fixed; top:${top}px; right:${right}px;`;
-		}
-		menuOpen = true;
+	function toggle() {
+		openGroup = open ? '' : groupKey;
 	}
 
 	function pick(v: string) {
 		value = v;
-		menuOpen = false;
+		openGroup = '';
 	}
 </script>
 
 {#if platform === 'ios'}
-	<!-- iOS: one collapsed row per filter; a pull-down menu reveals the options.
-	     Raise the whole group above sibling cards when open — each glass card is
-	     its own stacking context, so the menu would otherwise sit under the next
-	     card. -->
-	<div class="relative">
+	<!-- iOS: an inline accordion row. Collapsed it shows label + current value +
+	     chevron; tapping expands the options in place (checkmark on the picked
+	     one) and picking collapses it again (mockup screen-WalletIOS). Only one
+	     row in the set is open at a time — see openGroup. -->
+	<div>
 		<button
-			bind:this={triggerEl}
 			type="button"
-			onclick={toggleMenu}
-			aria-haspopup="menu"
-			aria-expanded={menuOpen}
+			onclick={toggle}
+			aria-expanded={open}
+			aria-controls={groupId}
 			class="flex w-full items-center justify-between py-3 text-left"
 		>
 			<span
@@ -107,9 +89,9 @@
 			<span
 				class="flex items-center gap-1 text-[length:var(--text-code)] text-text"
 			>
-				{currentLabel}
+				{#if !open}{currentLabel}{/if}
 				<svg
-					class="h-4 w-4 text-text-faint transition-transform {menuOpen
+					class="h-4 w-4 text-text-faint transition-transform {open
 						? 'rotate-180'
 						: ''}"
 					fill="none"
@@ -126,42 +108,26 @@
 			</span>
 		</button>
 
-		{#if menuOpen}
-			<!-- Portaled to <body> so fixed positioning clears the glass cards'
-			     backdrop-filter stacking contexts. -->
-			<div use:portal>
-				<!-- Backdrop to close on outside tap. -->
-				<button
-					type="button"
-					class="fixed inset-0 z-[70] cursor-default"
-					aria-label="Close menu"
-					onclick={() => (menuOpen = false)}
-				></button>
-				<!-- Pull-down menu (iOS context-menu style). -->
-				<div
-					role="menu"
-					aria-label={label}
-					style={menuStyle}
-					class="liquid-glass-menu z-[71] min-w-[12rem] overflow-hidden rounded-2xl py-1"
-				>
-					{#each options as opt (opt.value)}
-						{@const selected = value === opt.value}
-						<button
-							type="button"
-							role="menuitemradio"
-							aria-checked={selected}
-							onclick={() => pick(opt.value)}
-							class="flex w-full items-center justify-between gap-4 px-4 py-2.5 text-left text-[length:var(--text-code)] hover:bg-black/5 {selected
-								? 'text-text'
-								: 'text-text-muted'}"
-						>
-							<span>{opt.label}</span>
+		{#if open}
+			<div id={groupId} role="radiogroup" aria-label={label} class="pb-2 pl-2">
+				{#each options as opt (opt.value)}
+					{@const selected = value === opt.value}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={selected}
+						onclick={() => pick(opt.value)}
+						class="flex w-full items-center gap-3 py-2.25 text-left text-[length:var(--text-code)] {selected
+							? 'text-text'
+							: 'text-text-muted'}"
+					>
+						<span class="flex h-4 w-4 shrink-0 items-center justify-center">
 							{#if selected}
 								<svg
-									class="h-4 w-4 shrink-0 text-accent"
+									class="h-4 w-4 text-accent"
 									fill="none"
 									stroke="currentColor"
-									stroke-width="2.5"
+									stroke-width="2.4"
 									viewBox="0 0 24 24"
 								>
 									<path
@@ -171,9 +137,10 @@
 									/>
 								</svg>
 							{/if}
-						</button>
-					{/each}
-				</div>
+						</span>
+						{opt.label}
+					</button>
+				{/each}
 			</div>
 		{/if}
 	</div>

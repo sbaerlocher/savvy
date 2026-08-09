@@ -63,10 +63,12 @@
 	import { platform } from '$lib/utils/platform';
 	import { selectModeActive } from '$lib/stores/selectMode';
 
-	// Android renders its own M3 chrome for this screen: outlined chip toolbar,
-	// contextual top app bar in select mode and an edge-to-edge batch bar.
-	// `platform` is a module constant, so a plain const, not $derived.
+	// Each native platform renders its own chrome for this screen: Android an
+	// outlined chip toolbar with a contextual top app bar in select mode, iOS a
+	// segmented type filter with icon-only controls and a floating batch bar.
+	// `platform` is a module constant, so plain consts, not $derived.
 	const IS_ANDROID = platform === 'android';
+	const IOS = platform === 'ios';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -89,6 +91,10 @@
 		filterShowAll?: boolean;
 		maxWidth?: boolean;
 		header?: Snippet;
+		/** Header variant for iOS select mode: the eyebrow counts the selection
+		 *  instead of the total (mockup screen-WalletIOS, Phone 3). Falls back to
+		 *  `header` when a call site does not provide one. */
+		selectHeader?: Snippet<[number]>;
 		emptyIcon?: Snippet;
 		searchField?: Snippet;
 	}
@@ -111,9 +117,22 @@
 		filterShowAll = false,
 		maxWidth = true,
 		header,
+		selectHeader,
 		emptyIcon,
 		searchField
 	}: Props = $props();
+
+	// iOS wallet chrome (mockup screen-WalletIOS): three toolbar controls on the
+	// 40px chip height — select and filter are square icon-only buttons, the
+	// barcode toggle keeps its label and takes the rest of the row.
+	// No background here: the active barcode state paints bg-accent, and a
+	// base bg-surface would tie on specificity and win by source order.
+	const IOS_TOOLBAR_BUTTON =
+		'flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-lg border text-body-sm font-semibold transition-colors';
+	// Glyphs from the mockup's ui-WalletToolbar (checkbox, funnel, bar field).
+	const ICON_SELECT_BOX = 'M9 12.5l2 2 4-4.5';
+	const ICON_FUNNEL_SOLID = 'M4 5h16l-6 7v6l-4 2v-8z';
+	const ICON_BARCODE_BARS = 'M4 6v12M7 6v12M10.5 6v12M14 6v12M17 6v12M20 6v12';
 
 	let showFilterMenu = $state(false);
 
@@ -447,8 +466,9 @@
 		showBarcodes = localStorage.getItem(barcodeStorageKey) === 'true';
 	});
 
-	// Mirror select mode into the layout so Android can swap its whole
-	// navigation chrome.
+	// Mirror select mode into the layout so the native platforms can swap their
+	// navigation chrome: Android the whole bar, iOS the floating batch bar that
+	// takes the nav's slot.
 	$effect(() => {
 		selectModeActive.set(selectMode);
 	});
@@ -758,6 +778,98 @@
 	{/if}
 {/snippet}
 
+<!-- iOS wallet toolbar (mockup ui-WalletToolbar): select · filter · barcode on
+     one 40px row. Select and filter are icon-only (label lives in aria-label /
+     title); the barcode toggle keeps its label and fills with the accent when
+     on. -->
+{#snippet iosToolbar()}
+	<div class="mb-3 flex gap-2">
+		<button
+			type="button"
+			onclick={toggleSelectMode}
+			disabled={isOffline}
+			aria-pressed={selectMode}
+			aria-label={tr('batch.selectMode')}
+			title={tr('batch.selectMode')}
+			class="{IOS_TOOLBAR_BUTTON} w-13 shrink-0 disabled:opacity-50 {selectMode
+				? 'border-accent text-accent-700'
+				: 'border-border-chip bg-surface text-text-muted'}"
+		>
+			<svg
+				class="h-5 w-5 shrink-0"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				viewBox="0 0 24 24"
+			>
+				<rect x="4" y="4" width="16" height="16" rx="3" />
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d={ICON_SELECT_BOX}
+				/>
+			</svg>
+		</button>
+
+		<button
+			type="button"
+			onclick={(e: MouseEvent) => {
+				e.stopPropagation();
+				showFilterMenu = !showFilterMenu;
+			}}
+			aria-expanded={showFilterMenu}
+			aria-label={tr('common.filter')}
+			title={tr('common.filter')}
+			class="{IOS_TOOLBAR_BUTTON} relative w-13 shrink-0 {hasActiveFilters
+				? 'border-accent text-accent-700'
+				: 'border-border-chip bg-surface text-text-muted'}"
+		>
+			<svg
+				class="h-5 w-5 shrink-0"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d={ICON_FUNNEL_SOLID}
+				/>
+			</svg>
+			{#if hasActiveFilters}
+				<span
+					class="absolute -top-0.75 -right-0.75 h-2 w-2 rounded-full border border-surface bg-accent"
+				></span>
+			{/if}
+		</button>
+
+		<button
+			type="button"
+			onclick={toggleBarcodes}
+			aria-pressed={showBarcodes}
+			class="{IOS_TOOLBAR_BUTTON} flex-1 {showBarcodes
+				? 'border-accent bg-accent text-white'
+				: 'border-border-chip bg-surface text-text-muted'}"
+		>
+			<svg
+				class="h-3.75 w-3.75 shrink-0"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d={ICON_BARCODE_BARS}
+				/>
+			</svg>
+			{tr('barcodeToggle.label')}
+		</button>
+	</div>
+{/snippet}
+
 <!-- One tile grid; the three resource lists render identical ResourceTiles. -->
 {#snippet tileGrid(tiles: TileModel[])}
 	{#each tiles as model (model.id)}
@@ -822,71 +934,40 @@
 />
 
 <div
-	class="px-4 {maxWidth ? 'max-w-7xl mx-auto' : ''} pb-20 md:pb-4"
+	class="{IOS ? 'px-screen sm:px-4' : 'px-4'} {maxWidth
+		? 'max-w-7xl mx-auto'
+		: ''} pb-20 md:pb-4"
 	class:pb-40={selectMode}
 >
-	{#if IS_ANDROID && selectMode}
-		<!-- M3 contextual top app bar: replaces the page header while a selection
-		     is active (wallet mockup). Fixed so it stays put while the list
-		     scrolls under it, like the platform bar it mirrors. -->
-		<!-- A region, not a toolbar: the bar mixes the selection count (a text
-		     node) with its two controls, and both buttons are labelled already.
-		     Below both Modal layers (backdrop z-55/z-70, panel z-60/z-80) so the
-		     batch confirm dialog still covers it. -->
-		<div
-			class="fixed top-0 right-0 left-0 z-50 flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
-			role="region"
-			aria-label={tr('batch.selectMode')}
-		>
-			<div class="flex items-center gap-2.5">
-				<button
-					type="button"
-					onclick={toggleSelectMode}
-					aria-label={tr('batch.exitSelectMode')}
-					class="inline-flex h-10 w-10 items-center justify-center rounded-full"
-				>
-					<svg
-						class="h-5.5 w-5.5"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d={ICON_CLOSE}
-						/>
-					</svg>
-				</button>
-				<!-- Mockup sets 17px/600 here; no type step matches, --text-subheading
-				     (15.5px, 600) is the nearest without mono letter-spacing. -->
-				<span class="text-subheading tabular-nums">
-					{tr('batch.selected', { count: selectedCount })}
-				</span>
-			</div>
+	{#if IOS && selectMode}
+		<!-- iOS select-mode header row (mockup screen-WalletIOS, Phone 3):
+		     select-all · count · Done, above the page title. The floating bar
+		     below carries only the actions. -->
+		<div class="mb-2.5 flex items-center justify-between">
 			<button
 				type="button"
 				onclick={allFilteredSelected ? deselectAll : selectAll}
-				aria-label={allFilteredSelected
-					? tr('batch.deselectAll')
-					: tr('batch.selectAll')}
-				class="inline-flex h-10 w-10 items-center justify-center rounded-full"
+				class="text-[length:var(--text-code)] text-accent-700 transition-opacity active:opacity-60"
 			>
-				<svg
-					class="h-5.25 w-5.25"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					viewBox="0 0 24 24"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_LINES} />
-				</svg>
+				{allFilteredSelected ? tr('batch.deselectAll') : tr('batch.selectAll')}
+			</button>
+			<span
+				class="text-[length:var(--text-label)] font-semibold tabular-nums text-text-subtle"
+			>
+				{selectedCount} / {currentFilteredItems.length}
+			</span>
+			<button
+				type="button"
+				onclick={toggleSelectMode}
+				class="text-[length:var(--text-code)] font-bold text-accent-700 transition-opacity active:opacity-60"
+			>
+				{tr('common.done')}
 			</button>
 		</div>
-		<!-- Spacer so the list starts below the fixed bar. -->
-		<div class="h-14 sm:hidden"></div>
-		<div class="hidden sm:block">{@render header?.()}</div>
+	{/if}
+
+	{#if IOS && selectMode && selectHeader}
+		{@render selectHeader(selectedCount)}
 	{:else}
 		{@render header?.()}
 	{/if}
@@ -922,7 +1003,14 @@
 		{@render searchField?.()}
 
 		<!-- WalletToolbar: Select · Filter · Barcode-Toggle · Import -->
-		<div class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN}">
+		{#if IOS}
+			{@render iosToolbar()}
+		{/if}
+		<div
+			class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN}"
+			class:sm:flex={IOS}
+			class:hidden={IOS}
+		>
 			<!-- Action Buttons (Desktop) -->
 			<div class="hidden sm:flex gap-3">
 				<!-- Select Mode Button -->
@@ -1096,7 +1184,9 @@
 					<div
 						class="grid grid-cols-1 md:grid-cols-2 {showFilterMenu || selectMode
 							? ''
-							: 'lg:grid-cols-3'} {IS_ANDROID ? 'gap-3 md:gap-6' : 'gap-6'}"
+							: 'lg:grid-cols-3'} {IS_ANDROID || IOS
+							? 'gap-3 md:gap-6'
+							: 'gap-6'}"
 					>
 						<!-- Cards -->
 						{@render tileGrid(cardTiles)}

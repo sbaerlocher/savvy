@@ -340,7 +340,7 @@
 <!-- Mobile Fixed Bottom Bar -->
 <div
 	class="lg:hidden fixed left-0 right-0 z-[55] {platform === 'ios'
-		? 'liquid-glass-surface mx-4 rounded-2xl batch-panel-floating'
+		? 'liquid-glass-surface mx-4 rounded-full batch-panel-floating'
 		: platform === 'android'
 			? 'batch-panel-android bg-m3-surface-container border-t border-border'
 			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[var(--shadow-batch)]'}"
@@ -351,49 +351,27 @@
 	aria-label={tr('batch.selectMode')}
 >
 	{#if platform === 'ios'}
-		<!-- iOS multi-select toolbar: top row = select-all + count + Done, bottom
-		     row = evenly spaced icon actions (Photos-app style). Icons keep it on
-		     one line regardless of label length. -->
-		<div class="flex items-center justify-between px-4 py-2">
-			<button
-				type="button"
-				onclick={allSelected ? onDeselectAll : onSelectAll}
-				class="rounded-lg py-1 text-[length:var(--text-code)] text-accent transition-colors active:opacity-60"
-			>
-				{allSelected ? tr('batch.deselectAll') : tr('batch.selectAll')}
-			</button>
-			<span
-				class="text-[length:var(--text-label)] font-medium text-text-subtle tabular-nums"
-			>
-				{selectedCount} / {totalCount}
-			</span>
-			<button
-				type="button"
-				onclick={onCancel}
-				class="rounded-lg py-1 text-[length:var(--text-code)] font-semibold text-accent transition-colors active:opacity-60"
-			>
-				{tr('common.done')}
-			</button>
-		</div>
-
+		<!-- iOS multi-select bar (mockup screen-WalletIOS, Phone 3): a single row
+		     of evenly spaced icon actions in a floating glass pill. Select-all,
+		     the count and Done sit at the top of the list, not in this bar. -->
 		{#if sharedSelectedCount > 0}
-			<p class="px-4 pb-1 text-center text-xs text-warning-700">
+			<p class="px-4 pt-2 text-center text-xs text-warning-700">
 				{tr('batch.sharedItemsWarning', { count: sharedSelectedCount })}
 			</p>
 		{/if}
 
-		<div
-			class="flex items-center justify-around border-t border-[var(--color-glass-edge)] px-2 py-1.5"
-		>
+		<!-- Matches the 64px bottom-nav pill this bar replaces. The glass surface
+		     adds a 1px border top and bottom, so the row itself is 62px. -->
+		<div class="flex h-15.5 items-center justify-around px-2.5">
 			<button
 				type="button"
 				onclick={onShare}
 				disabled={disableShareTransfer}
 				aria-label={tr('common.share')}
-				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-accent transition-colors active:opacity-60 disabled:opacity-40"
+				class="flex min-w-16 flex-col items-center justify-center gap-1 rounded-lg text-accent transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
-					class="h-6 w-6"
+					class="h-5.5 w-5.5"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -408,10 +386,10 @@
 				onclick={onTransfer}
 				disabled={disableShareTransfer}
 				aria-label={tr('common.transferOwnership')}
-				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-accent transition-colors active:opacity-60 disabled:opacity-40"
+				class="flex min-w-16 flex-col items-center justify-center gap-1 rounded-lg text-accent transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
-					class="h-6 w-6"
+					class="h-5.5 w-5.5"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -432,10 +410,10 @@
 				onclick={onExport}
 				disabled={disableExport}
 				aria-label={tr('batch.exportSelected')}
-				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-accent transition-colors active:opacity-60 disabled:opacity-40"
+				class="flex min-w-16 flex-col items-center justify-center gap-1 rounded-lg text-accent transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
-					class="h-6 w-6"
+					class="h-5.5 w-5.5"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -457,7 +435,7 @@
 				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-danger-600 transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
-					class="h-6 w-6"
+					class="h-5.5 w-5.5"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"

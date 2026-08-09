@@ -38,6 +38,49 @@
 		}
 	}
 
+	// The three resource types plus the optional explicit "All" entry. One list
+	// drives both the chip row and the iOS segmented control, so the two layouts
+	// can never drift in which types they offer.
+	type TypeKey = 'all' | 'cards' | 'vouchers' | 'gift-cards';
+	const entries = $derived(
+		(
+			[
+				{ key: 'all', label: 'common.all', show: showAll },
+				{
+					key: 'cards',
+					label: 'merchantOverview.filterCards',
+					show: cardsCount > 0,
+					count: cardsCount
+				},
+				{
+					key: 'vouchers',
+					label: 'merchantOverview.filterVouchers',
+					show: vouchersCount > 0,
+					count: vouchersCount
+				},
+				{
+					key: 'gift-cards',
+					label: 'merchantOverview.filterGiftCards',
+					show: giftCardsCount > 0,
+					count: giftCardsCount
+				}
+			] satisfies {
+				key: TypeKey;
+				label: string;
+				show: boolean;
+				count?: number;
+			}[]
+		).filter((e) => e.show)
+	);
+
+	// iOS renders the wallet's type filter as a UIKit segmented control: equal
+	// segments inside one tinted track, the active segment raised in white
+	// (mockup screen-WalletIOS). Only the 'pill' variant switches — the 'chip'
+	// variant inside the filter sheet stays a chip row on every platform.
+	const segmented = $derived(platform === 'ios' && variant === 'pill');
+	const segmentBase =
+		'flex-1 min-w-0 truncate rounded-sm py-1.75 text-center text-label font-medium transition-colors';
+
 	// Active pill = solid cyan; inactive = subtle warm chip. One consistent
 	// accent (brand cyan) keeps the row calm — the type is read from the label,
 	// not from a color per type.
@@ -68,64 +111,44 @@
 	const countClass = (isActive: boolean) => (isActive ? '' : 'text-text-faint');
 </script>
 
-<div
-	class="flex gap-2 {variant === 'chip'
-		? 'flex-wrap'
-		: platform === 'android'
-			? 'scrollbar-none overflow-x-auto'
-			: 'overflow-x-auto pb-1'}"
->
-	{#if showAll}
-		<button
-			type="button"
-			data-testid="type-chip-all"
-			onclick={() => handleClick('all')}
-			class="{base} {typeFilter === 'all' ? active : inactive}"
-		>
-			{tr('common.all')}
-		</button>
-	{/if}
-	{#if cardsCount > 0}
-		<button
-			type="button"
-			data-testid="type-chip-cards"
-			onclick={() => handleClick('cards')}
-			class="{base} {typeFilter === 'cards' ? active : inactive}"
-		>
-			{tr('merchantOverview.filterCards')}
-			{#if SHOW_COUNT}
-				<span class={countClass(typeFilter === 'cards')}>{cardsCount}</span>
-			{/if}
-		</button>
-	{/if}
-	{#if vouchersCount > 0}
-		<button
-			type="button"
-			data-testid="type-chip-vouchers"
-			onclick={() => handleClick('vouchers')}
-			class="{base} {typeFilter === 'vouchers' ? active : inactive}"
-		>
-			{tr('merchantOverview.filterVouchers')}
-			{#if SHOW_COUNT}
-				<span class={countClass(typeFilter === 'vouchers')}
-					>{vouchersCount}</span
-				>
-			{/if}
-		</button>
-	{/if}
-	{#if giftCardsCount > 0}
-		<button
-			type="button"
-			data-testid="type-chip-gift-cards"
-			onclick={() => handleClick('gift-cards')}
-			class="{base} {typeFilter === 'gift-cards' ? active : inactive}"
-		>
-			{tr('merchantOverview.filterGiftCards')}
-			{#if SHOW_COUNT}
-				<span class={countClass(typeFilter === 'gift-cards')}
-					>{giftCardsCount}</span
-				>
-			{/if}
-		</button>
-	{/if}
-</div>
+{#if segmented}
+	<!-- iOS segmented control: one tinted track, equal-width segments. -->
+	<div class="flex gap-0.5 rounded-md bg-tile-tint p-0.5">
+		{#each entries as entry (entry.key)}
+			<button
+				type="button"
+				data-testid="type-chip-{entry.key}"
+				onclick={() => handleClick(entry.key)}
+				aria-pressed={typeFilter === entry.key}
+				class="{segmentBase} {typeFilter === entry.key
+					? 'bg-surface text-text shadow-[var(--shadow-toggle)]'
+					: 'text-text-muted'}"
+			>
+				{tr(entry.label)}
+			</button>
+		{/each}
+	</div>
+{:else}
+	<div
+		class="flex gap-2 {variant === 'chip'
+			? 'flex-wrap'
+			: platform === 'android'
+				? 'scrollbar-none overflow-x-auto'
+				: 'overflow-x-auto pb-1'}"
+	>
+		{#each entries as entry (entry.key)}
+			<button
+				type="button"
+				data-testid="type-chip-{entry.key}"
+				onclick={() => handleClick(entry.key)}
+				class="{base} {typeFilter === entry.key ? active : inactive}"
+			>
+				{tr(entry.label)}
+				{#if SHOW_COUNT && entry.count !== undefined}
+					<span class={countClass(typeFilter === entry.key)}>{entry.count}</span
+					>
+				{/if}
+			</button>
+		{/each}
+	</div>
+{/if}
