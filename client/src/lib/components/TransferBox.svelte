@@ -41,16 +41,16 @@
 	let showForm = $state(false);
 </script>
 
-<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-purple-200">
+<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-transfer-200">
 	<div class="flex justify-between items-center mb-4">
-		<h3 class="text-lg font-semibold text-purple-900">
+		<h3 class="text-lg font-semibold text-transfer-900">
 			{title ?? $t('common.transferOwnership')}
 		</h3>
 		{#if !showForm}
 			<button
 				onclick={() => (showForm = true)}
 				disabled={isOffline}
-				class="btn btn-xs btn-purple whitespace-nowrap flex items-center gap-1.5 {isOffline
+				class="btn btn-xs btn-transfer whitespace-nowrap flex items-center gap-1.5 {isOffline
 					? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 					: ''}"
 			>
@@ -77,7 +77,9 @@
 	</div>
 
 	{#if showForm}
-		<div class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4">
+		<div
+			class="border border-transfer-200 bg-transfer-50 rounded-lg p-4 space-y-4"
+		>
 			<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
 				<p class="text-sm font-medium text-warning-800">
 					<strong>{warningTitle}</strong>
@@ -108,7 +110,7 @@
 				<button
 					onclick={ontransfer}
 					disabled={isOffline || !email.trim()}
-					class="btn btn-purple flex-1 {isOffline || !email.trim()
+					class="btn btn-transfer flex-1 {isOffline || !email.trim()
 						? 'opacity-50 cursor-not-allowed'
 						: ''}"
 				>

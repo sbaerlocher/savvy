@@ -257,7 +257,7 @@
 			<!-- Transfer -->
 			<h3
 				id="batch-modal-title"
-				class="text-lg font-semibold text-purple-900 mb-2"
+				class="text-lg font-semibold text-transfer-900 mb-2"
 			>
 				{tr('batch.confirmTransferTitle')}
 			</h3>
@@ -266,7 +266,7 @@
 			</p>
 
 			<div
-				class="border border-purple-200 bg-purple-50 rounded-lg p-4 space-y-4"
+				class="border border-transfer-200 bg-transfer-50 rounded-lg p-4 space-y-4"
 			>
 				<!-- Warning Banner -->
 				<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
@@ -306,7 +306,7 @@
 						type="button"
 						onclick={handleConfirm}
 						disabled={isLoading || !email.trim()}
-						class="btn btn-purple flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+						class="btn btn-transfer flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if isLoading}
 							<span class="inline-flex items-center gap-2">
