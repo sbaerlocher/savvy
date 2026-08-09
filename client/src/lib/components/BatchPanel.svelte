@@ -432,7 +432,7 @@
 				onclick={onDelete}
 				disabled={disableDelete}
 				aria-label={tr('common.delete')}
-				class="flex flex-col items-center gap-0.5 rounded-lg px-3 py-1 text-danger-600 transition-colors active:opacity-60 disabled:opacity-40"
+				class="flex min-w-16 flex-col items-center justify-center gap-1 rounded-lg text-danger-600 transition-colors active:opacity-60 disabled:opacity-40"
 			>
 				<svg
 					class="h-5.5 w-5.5"

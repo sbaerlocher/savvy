@@ -783,7 +783,7 @@
      title); the barcode toggle keeps its label and fills with the accent when
      on. -->
 {#snippet iosToolbar()}
-	<div class="mb-3 flex gap-2">
+	<div class="mb-3 flex gap-2 sm:hidden">
 		<button
 			type="button"
 			onclick={toggleSelectMode}
@@ -939,11 +939,73 @@
 		: ''} pb-20 md:pb-4"
 	class:pb-40={selectMode}
 >
-	{#if IOS && selectMode}
+	{#if IS_ANDROID && selectMode}
+		<!-- M3 contextual top app bar: replaces the page header while a selection
+		     is active (wallet mockup). Fixed so it stays put while the list
+		     scrolls under it, like the platform bar it mirrors. -->
+		<!-- A region, not a toolbar: the bar mixes the selection count (a text
+		     node) with its two controls, and both buttons are labelled already.
+		     Below both Modal layers (backdrop z-55/z-70, panel z-60/z-80) so the
+		     batch confirm dialog still covers it. -->
+		<div
+			class="fixed top-0 right-0 left-0 z-50 flex h-14 items-center justify-between bg-m3-secondary-container pr-3 pl-2 text-m3-on-secondary-container sm:hidden"
+			role="region"
+			aria-label={tr('batch.selectMode')}
+		>
+			<div class="flex items-center gap-2.5">
+				<button
+					type="button"
+					onclick={toggleSelectMode}
+					aria-label={tr('batch.exitSelectMode')}
+					class="inline-flex h-10 w-10 items-center justify-center rounded-full"
+				>
+					<svg
+						class="h-5.5 w-5.5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d={ICON_CLOSE}
+						/>
+					</svg>
+				</button>
+				<!-- Mockup sets 17px/600 here; no type step matches, --text-subheading
+				     (15.5px, 600) is the nearest without mono letter-spacing. -->
+				<span class="text-subheading tabular-nums">
+					{tr('batch.selected', { count: selectedCount })}
+				</span>
+			</div>
+			<button
+				type="button"
+				onclick={allFilteredSelected ? deselectAll : selectAll}
+				aria-label={allFilteredSelected
+					? tr('batch.deselectAll')
+					: tr('batch.selectAll')}
+				class="inline-flex h-10 w-10 items-center justify-center rounded-full"
+			>
+				<svg
+					class="h-5.25 w-5.25"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_LINES} />
+				</svg>
+			</button>
+		</div>
+		<!-- Spacer so the list starts below the fixed bar. -->
+		<div class="h-14 sm:hidden"></div>
+		<div class="hidden sm:block">{@render header?.()}</div>
+	{:else if IOS && selectMode}
 		<!-- iOS select-mode header row (mockup screen-WalletIOS, Phone 3):
 		     select-all · count · Done, above the page title. The floating bar
 		     below carries only the actions. -->
-		<div class="mb-2.5 flex items-center justify-between">
+		<div class="mb-2.5 flex items-center justify-between sm:hidden">
 			<button
 				type="button"
 				onclick={allFilteredSelected ? deselectAll : selectAll}
@@ -964,10 +1026,11 @@
 				{tr('common.done')}
 			</button>
 		</div>
-	{/if}
-
-	{#if IOS && selectMode && selectHeader}
-		{@render selectHeader(selectedCount)}
+		{#if selectHeader}
+			{@render selectHeader(selectedCount)}
+		{:else}
+			{@render header?.()}
+		{/if}
 	{:else}
 		{@render header?.()}
 	{/if}

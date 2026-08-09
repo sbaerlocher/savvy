@@ -29,13 +29,25 @@
 		variant = 'pill'
 	}: Props = $props();
 
+	// iOS renders the wallet's type filter as a UIKit segmented control: equal
+	// segments inside one tinted track, the active segment raised in white
+	// (mockup screen-WalletIOS). Only the 'pill' variant switches — the 'chip'
+	// variant inside the filter sheet stays a chip row on every platform.
+	const segmented = $derived(platform === 'ios' && variant === 'pill');
+
 	function handleClick(type: 'all' | 'cards' | 'vouchers' | 'gift-cards') {
 		if (type === 'all') {
 			typeFilter = 'all';
-		} else {
-			// Tapping the active type clears back to all; otherwise select it.
-			typeFilter = allowToggle && typeFilter === type ? 'all' : type;
+			return;
 		}
+		// A segmented control always keeps exactly one selection, so tapping the
+		// active segment is a no-op there. The chip row instead toggles back to
+		// 'all', where "nothing highlighted" legibly means "every type".
+		if (segmented) {
+			typeFilter = type;
+			return;
+		}
+		typeFilter = allowToggle && typeFilter === type ? 'all' : type;
 	}
 
 	// The three resource types plus the optional explicit "All" entry. One list
@@ -45,7 +57,10 @@
 	const entries = $derived(
 		(
 			[
-				{ key: 'all', label: 'common.all', show: showAll },
+				// The segmented control has no "nothing selected" reading, so it
+				// always carries the 'all' segment — that is the wallet's default
+				// filter and it needs somewhere to show.
+				{ key: 'all', label: 'common.all', show: showAll || segmented },
 				{
 					key: 'cards',
 					label: 'merchantOverview.filterCards',
@@ -73,11 +88,6 @@
 		).filter((e) => e.show)
 	);
 
-	// iOS renders the wallet's type filter as a UIKit segmented control: equal
-	// segments inside one tinted track, the active segment raised in white
-	// (mockup screen-WalletIOS). Only the 'pill' variant switches — the 'chip'
-	// variant inside the filter sheet stays a chip row on every platform.
-	const segmented = $derived(platform === 'ios' && variant === 'pill');
 	const segmentBase =
 		'flex-1 min-w-0 truncate rounded-sm py-1.75 text-center text-label font-medium transition-colors';
 
@@ -121,7 +131,7 @@
 				onclick={() => handleClick(entry.key)}
 				aria-pressed={typeFilter === entry.key}
 				class="{segmentBase} {typeFilter === entry.key
-					? 'bg-surface text-text shadow-[var(--shadow-toggle)]'
+					? 'bg-surface text-text shadow-sm'
 					: 'text-text-muted'}"
 			>
 				{tr(entry.label)}

@@ -340,7 +340,7 @@
 		<span
 			aria-hidden="true"
 			class="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex h-6.5 w-6.5 items-center justify-center rounded-full {selected
-				? 'border-2 border-surface bg-accent shadow-[var(--shadow-toggle)]'
+				? 'border-2 border-surface bg-accent shadow-sm'
 				: 'border border-[var(--color-glass-edge)] bg-[var(--color-glass-hollow)] backdrop-blur-sm'}"
 		>
 			{#if selected}
