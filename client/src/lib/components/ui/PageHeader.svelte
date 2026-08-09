@@ -22,7 +22,8 @@
 		title: string;
 		/** Small line above the title, e.g. a greeting "Hallo Anna". */
 		eyebrow?: string;
-		/** Inline element next to the eyebrow (Android mockup: refresh indicator). */
+		/** Inline element next to the eyebrow (Android and iOS mockups put the
+		 *  refresh indicator there). */
 		eyebrowAside?: Snippet;
 		/** Optional trailing controls (buttons, links) rendered on the right. */
 		actions?: Snippet;
@@ -38,20 +39,25 @@
 
 	const tr = (key: string) => get(t)(key);
 
-	// Android M3 header (dashboard/wallet mockups): uppercase 11px eyebrow,
-	// ~26px title (--text-title), tighter 20px bottom gap, 44px round borderless
-	// icon buttons. iOS/desktop keep the previous chrome. `platform` is a
-	// module constant, so plain consts, not $derived.
-	const HEADER_MB = platform === 'android' ? 'mb-5' : 'mb-8';
-	const EYEBROW_CLASS =
-		platform === 'android'
-			? 'text-eyebrow uppercase text-text-subtle'
-			: 'text-sm text-text-subtle';
+	// Header chrome per platform (dashboard/wallet mockups). Both native
+	// platforms use the uppercase 11px eyebrow and the tighter 20px bottom gap;
+	// they differ in title step (Android ~26px --text-title, iOS 28px
+	// --text-screen-title) and action spacing (Android 4px between round
+	// buttons, iOS 20px between bare glyphs). Desktop keeps the previous
+	// chrome. `platform` is a module constant, so plain consts, not $derived.
+	const NATIVE = platform === 'android' || platform === 'ios';
+	const HEADER_MB = NATIVE ? 'mb-5' : 'mb-8';
+	const EYEBROW_CLASS = NATIVE
+		? 'text-eyebrow uppercase text-text-subtle'
+		: 'text-sm text-text-subtle';
 	const TITLE_CLASS =
 		platform === 'android'
 			? 'mt-0.5 text-title text-text'
-			: 'text-3xl font-bold tracking-tight text-text';
-	const ACTIONS_GAP = platform === 'android' ? 'gap-1' : 'gap-2.5';
+			: platform === 'ios'
+				? 'text-screen-title text-text'
+				: 'text-3xl font-bold tracking-tight text-text';
+	const ACTIONS_GAP =
+		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-5' : 'gap-2.5';
 
 	// Android M3: the header search icon expands an inline docked search field
 	// that replaces the title row. Typing drives /wallet?search=<query> so the
@@ -168,6 +174,8 @@
 			{/if}
 			<div class="min-w-0">
 				{#if eyebrow}
+					<!-- The native mockups put the greeting and the refresh hint on
+					     one uppercase eyebrow row above the title. -->
 					<div class="flex items-center gap-2">
 						<p class={EYEBROW_CLASS}>{eyebrow}</p>
 						{#if eyebrowAside}

@@ -33,6 +33,20 @@
 	--text-title--font-weight: 700;
 	--text-title--letter-spacing: -0.025em;
 
+	/* Screen title (iOS) — "Deine Favoriten" on the phone screen (28px, 700).
+	   Sits between --text-title (25px) and --text-display (34px): the iOS
+	   dashboard mockup uses 28px, neither neighbour matches. */
+	--text-screen-title: 1.75rem; /* 28px */
+	--text-screen-title--line-height: 1.1;
+	--text-screen-title--font-weight: 700;
+	--text-screen-title--letter-spacing: -0.025em;
+
+	/* Stat value — mono number on a dashboard stat tile (23px, 600) */
+	--text-stat: 1.4375rem; /* 23px */
+	--text-stat--line-height: 1.1;
+	--text-stat--font-weight: 600;
+	--text-stat--letter-spacing: -0.01em;
+
 	/* Section heading — gallery / section titles (20px, 700) */
 	--text-heading: 1.25rem; /* 20px */
 	--text-heading--line-height: 1.2;

@@ -54,27 +54,26 @@
 	// to scan). On desktop the inline barcode is enough — no modal.
 	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
 
-	// Card chrome per platform: iOS liquid-glass, Android M3 tonal, Desktop
-	// solid — mirrors the BottomSheet.svelte platform-switch pattern. `platform`
-	// is a module-level constant, so these never change: plain consts, not
-	// $derived. Each carries its own hover affordance so it stays with the
-	// chrome that defines it (glass edge on iOS, none on Android, field border
-	// on desktop).
+	// Card chrome per platform: iOS outlined white (tile mockup), Android M3
+	// tonal, Desktop solid — mirrors the BottomSheet.svelte platform-switch
+	// pattern. `platform` is a module-level constant, so these never change:
+	// plain consts, not $derived. Each carries its own hover affordance so it
+	// stays with the chrome that defines it (none on Android, field border on
+	// desktop).
 	const CARD_CLASS =
 		platform === 'ios'
-			? 'liquid-glass-card rounded-[var(--radius-inset)]'
+			? 'border border-border bg-surface rounded-2xl'
 			: platform === 'android'
 				? 'bg-m3-card rounded-[var(--radius-m3-lg)]'
 				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
 
-	// Barcode chip sits one elevation step above the card on every platform:
-	// glass-surface-2 over the card's glass-surface-3 (iOS), card-chip over the
-	// white container (Android), surface-1 over surface (desktop). Android is
-	// borderless with the M3 small radius (mockup); iOS/desktop keep the
-	// hairline border.
+	// Barcode chip sits one elevation step above the card: an inset --surface-2
+	// box on iOS (tile mockup), card-chip over the white container on Android,
+	// surface-1 over surface on desktop. Android is borderless with the M3
+	// small radius (mockup); iOS/desktop keep the hairline border.
 	const CHIP_CLASS =
 		platform === 'ios'
-			? 'bg-[var(--color-glass-surface-2)] rounded-lg border border-border-soft'
+			? 'bg-surface-2 rounded-lg border border-border-soft'
 			: platform === 'android'
 				? 'bg-m3-card-chip rounded-[var(--radius-m3-sm)]'
 				: 'bg-surface-1 rounded-lg border border-border-soft';

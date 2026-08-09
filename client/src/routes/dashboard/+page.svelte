@@ -34,16 +34,32 @@
 			: platform === 'ios'
 				? 'rounded-xl border border-border bg-white px-4 py-3'
 				: 'rounded-xl border border-border bg-white px-5 py-4 shadow-card lg:min-w-36';
-	// Stat label: Android mockup uses 12.5px (--text-body-sm), others 14px.
+	// Stat value: iOS mockup uses the 23px mono step, others 24px semibold.
+	const statValueClass =
+		platform === 'ios'
+			? 'font-mono text-stat tabular-nums text-text-strong'
+			: 'font-mono text-2xl font-semibold tabular-nums text-text-strong';
+	// Stat label: Android mockup uses 12.5px (--text-body-sm), iOS 13px regular
+	// (--text-label carries a 600 companion weight, hence the override), others
+	// 14px.
 	const statLabelClass =
 		platform === 'android'
 			? 'mt-1 text-body-sm text-text-subtle'
-			: 'mt-1 text-sm text-text-subtle';
-	// Section label "An der Kasse": Android mockup 11px eyebrow, 8px gap.
+			: platform === 'ios'
+				? 'mt-1 text-label font-normal text-text-subtle'
+				: 'mt-1 text-sm text-text-subtle';
+	// Refresh hint next to the eyebrow: iOS mockup uses the 11px eyebrow step,
+	// Android 12px.
+	const refreshHintClass =
+		platform === 'ios' ? 'text-eyebrow font-medium' : 'text-xs font-medium';
+	// Section label "An der Kasse": Android mockup 11px eyebrow with an 8px gap,
+	// iOS the same step with a 6px gap.
 	const sectionLabelClass =
 		platform === 'android'
 			? 'mb-2 text-eyebrow uppercase text-text-subtle'
-			: 'mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle';
+			: platform === 'ios'
+				? 'mb-1.5 text-eyebrow uppercase text-text-subtle'
+				: 'mb-3 text-xs font-semibold uppercase tracking-wider text-text-subtle';
 	// Total entries across all resource types (drives the "Einträge" stat).
 	const entriesCount = $derived(
 		data
@@ -135,17 +151,17 @@
 					eyebrow={$t('dashboard.greeting', { name: firstName })}
 					title={$t('dashboard.yourFavorites')}
 				>
-					<!-- Android mockup: refresh indicator sits inline next to the
-					     greeting eyebrow; iOS/desktop keep it in the actions slot. -->
+					<!-- Both native mockups put the refresh indicator inline next to
+					     the greeting eyebrow; desktop keeps it in the actions slot. -->
 					{#snippet eyebrowAside()}
-						{#if platform === 'android' && isRefreshing}
-							<span class="animate-pulse text-xs font-medium text-text-faint"
+						{#if isRefreshing && platform !== 'other'}
+							<span class="animate-pulse {refreshHintClass} text-text-faint"
 								>{$t('common.refreshing')}</span
 							>
 						{/if}
 					{/snippet}
 					{#snippet actions()}
-						{#if platform !== 'android' && isRefreshing}
+						{#if isRefreshing && platform === 'other'}
 							<span class="animate-pulse text-xs text-text-faint"
 								>{$t('common.refreshing')}</span
 							>
@@ -159,9 +175,7 @@
 				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
 			>
 				<div data-testid="dashboard-stat-balance" class={statTileClass}>
-					<p
-						class="font-mono text-2xl font-semibold tabular-nums text-text-strong"
-					>
+					<p class={statValueClass}>
 						CHF {Math.round(data.stats.total_balance)}
 					</p>
 					<p class={statLabelClass}>
@@ -169,9 +183,7 @@
 					</p>
 				</div>
 				<div data-testid="dashboard-stat-entries" class={statTileClass}>
-					<p
-						class="font-mono text-2xl font-semibold tabular-nums text-text-strong"
-					>
+					<p class={statValueClass}>
 						{entriesCount}
 					</p>
 					<p class={statLabelClass}>{$t('dashboard.entries')}</p>
