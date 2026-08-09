@@ -43,14 +43,19 @@
 	// Android and Desktop render the same chip markup; only the chip class
 	// differs (M3 tonal/outlined vs. neutral). Keep one branch, vary the class.
 	const chipShape = platform === 'android' ? 'rounded-m3-sm' : 'rounded-lg';
-	const chipSelected =
-		platform === 'android'
-			? 'bg-m3-secondary-container text-m3-on-secondary-container'
-			: 'bg-accent-100 text-accent-850';
+	// Android selected chip is the accent tint, not the secondary container —
+	// the sheet itself is already tonal, so a tonal chip would not read as
+	// selected against it (wallet mockup).
+	const chipSelected = 'bg-accent-100 text-accent-850';
 	const chipUnselected =
 		platform === 'android'
-			? 'border border-border bg-transparent text-text-muted hover:bg-surface-1'
+			? 'border border-border-chip bg-transparent text-text-muted hover:bg-surface-1'
 			: 'border border-border bg-white text-text-muted hover:bg-surface-1';
+	// Android: 8px/14px inset with a 13px semibold label (M3 small chip).
+	const chipSize =
+		platform === 'android'
+			? 'px-3.5 py-2 text-label'
+			: 'px-3 py-1.5 text-sm font-medium';
 
 	let menuOpen = $state(false);
 	let triggerEl = $state<HTMLButtonElement | null>(null);
@@ -175,10 +180,12 @@
 {:else}
 	<!-- Android (M3 tonal/outlined chips) and Desktop (neutral chips) share
 	     this markup; only chipShape/chipSelected/chipUnselected differ. -->
-	<div class="py-4">
+	<div class={platform === 'android' ? '' : 'py-4'}>
 		<span
 			id={groupId}
-			class="mb-2 block text-xs font-medium uppercase tracking-wider text-text-subtle"
+			class="block uppercase text-text-subtle {platform === 'android'
+				? 'mb-2.5 text-eyebrow'
+				: 'mb-2 text-xs font-medium tracking-wider'}"
 		>
 			{label}
 		</span>
@@ -195,7 +202,7 @@
 					role="radio"
 					aria-checked={selected}
 					onclick={() => (value = opt.value)}
-					class="inline-flex items-center gap-1.5 {chipShape} px-3 py-1.5 text-sm font-medium transition-colors {selected
+					class="inline-flex items-center gap-1.5 {chipShape} {chipSize} transition-colors {selected
 						? chipSelected
 						: chipUnselected}"
 				>

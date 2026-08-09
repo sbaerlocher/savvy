@@ -48,17 +48,32 @@
 	const active = 'bg-accent text-white border border-accent';
 	const inactive =
 		platform === 'android'
-			? 'bg-transparent text-text-muted border border-border hover:bg-surface-1'
+			? 'bg-transparent text-text-muted border border-border-chip hover:bg-surface-1'
 			: 'bg-white text-text-muted border border-border hover:bg-surface-1';
+	// Android M3 small chip: 8px corners, 14px inset, semibold label with the
+	// count trailing it (wallet mockup). Other platforms keep the pill row.
 	const base = $derived(
-		`inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
-			variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'
-		}`
+		platform === 'android'
+			? `inline-flex items-center gap-1.5 rounded-m3-sm px-3.5 py-2 text-label transition-colors whitespace-nowrap`
+			: `inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+					variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'
+				}`
 	);
+	// Count sits inside the chip on Android only; it is what makes the row
+	// readable without an "All" chip. With the "All" chip present the row would
+	// read "All | Cards 4 | …" — the one chip that has no count of its own — so
+	// the counts drop there. On an active (filled) chip the count inherits the
+	// chip ink, on an outlined one it steps down to the faint tone.
+	const SHOW_COUNT = $derived(platform === 'android' && !showAll);
+	const countClass = (isActive: boolean) => (isActive ? '' : 'text-text-faint');
 </script>
 
 <div
-	class="flex gap-2 {variant === 'chip' ? 'flex-wrap' : 'overflow-x-auto pb-1'}"
+	class="flex gap-2 {variant === 'chip'
+		? 'flex-wrap'
+		: platform === 'android'
+			? 'scrollbar-none overflow-x-auto'
+			: 'overflow-x-auto pb-1'}"
 >
 	{#if showAll}
 		<button
@@ -78,6 +93,9 @@
 			class="{base} {typeFilter === 'cards' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterCards')}
+			{#if SHOW_COUNT}
+				<span class={countClass(typeFilter === 'cards')}>{cardsCount}</span>
+			{/if}
 		</button>
 	{/if}
 	{#if vouchersCount > 0}
@@ -88,6 +106,11 @@
 			class="{base} {typeFilter === 'vouchers' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterVouchers')}
+			{#if SHOW_COUNT}
+				<span class={countClass(typeFilter === 'vouchers')}
+					>{vouchersCount}</span
+				>
+			{/if}
 		</button>
 	{/if}
 	{#if giftCardsCount > 0}
@@ -98,6 +121,11 @@
 			class="{base} {typeFilter === 'gift-cards' ? active : inactive}"
 		>
 			{tr('merchantOverview.filterGiftCards')}
+			{#if SHOW_COUNT}
+				<span class={countClass(typeFilter === 'gift-cards')}
+					>{giftCardsCount}</span
+				>
+			{/if}
 		</button>
 	{/if}
 </div>

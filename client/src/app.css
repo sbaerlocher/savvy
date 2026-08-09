@@ -179,17 +179,11 @@
 		bottom: calc(6.125rem + env(safe-area-inset-bottom));
 	}
 
-	/* Android batch panel: flush on top of the 80px M3 nav bar, which carries the
-	   safe-area inset as padding (.mobile-nav). Above sm the nav is gone, so the
-	   panel drops to the viewport edge. */
+	/* Android batch panel: edge-to-edge at the viewport bottom. Select mode
+	   hides the M3 nav bar (wallet mockup), so the panel takes its place. The
+	   safe-area inset comes from the inline padding-bottom at the call site. */
 	.batch-panel-android {
-		bottom: calc(5rem + env(safe-area-inset-bottom));
-	}
-
-	@media (width >= 40rem) {
-		.batch-panel-android {
-			bottom: 0;
-		}
+		bottom: 0;
 	}
 
 	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
@@ -277,6 +271,16 @@
 		.liquid-glass-pill {
 			background: var(--color-glass-pill-fallback);
 		}
+	}
+
+	/* Horizontally scrollable chip rows keep the scroll but drop the bar — the
+	   native mockups show a clean chip row, not a scrollbar under it. */
+	.scrollbar-none {
+		scrollbar-width: none;
+	}
+
+	.scrollbar-none::-webkit-scrollbar {
+		display: none;
 	}
 
 	/* Main content spacing when mobile nav is visible */

@@ -32,6 +32,9 @@
 		expiringOptions?: SelectOption[];
 		showExpiringFilter?: boolean;
 		showAll?: boolean;
+		/** Drop the in-panel reset button. Set by call sites whose own chrome
+		 *  already carries a reset action (the Android wallet filter sheet). */
+		hideReset?: boolean;
 	}
 
 	let {
@@ -53,27 +56,26 @@
 		expiringFilter = $bindable(undefined),
 		expiringOptions,
 		showExpiringFilter = true,
-		showAll = true
+		showAll = true,
+		hideReset = false
 	}: Props = $props();
 
 	const isIos = platform === 'ios';
 	const isAndroid = platform === 'android';
 	// iOS grouped-inset: each filter group sits in its own translucent card on
-	// the glass sheet. Android: each group is an M3 tonal card at the
-	// surface-container-high step. Desktop keeps the hairline-divided flat
-	// layout.
+	// the glass sheet. Android: groups sit flat on the tonal sheet itself, only
+	// separated by their uppercase label (wallet mockup). Desktop keeps the
+	// hairline-divided flat layout.
 	const groupClass = isIos
 		? 'liquid-glass-card rounded-[var(--radius-inset)] px-4'
-		: isAndroid
-			? 'bg-m3-surface-container-high rounded-m3-lg px-4'
-			: '';
+		: '';
 	const dividerClass =
 		isIos || isAndroid ? 'hidden' : 'border-t border-border-soft';
 </script>
 
-<div class={isIos || isAndroid ? 'space-y-3' : ''}>
+<div class={isAndroid ? 'space-y-4.5' : isIos ? 'space-y-3' : ''}>
 	<!-- Type Filter -->
-	<div class="pb-4 {groupClass} {isIos || isAndroid ? 'pt-4' : ''}">
+	<div class="{isAndroid ? '' : 'pb-4'} {groupClass} {isIos ? 'pt-4' : ''}">
 		<TypeFilterButtons
 			bind:typeFilter
 			{cardsCount}
@@ -88,7 +90,7 @@
 	{#if favoritesOnly !== undefined}
 		<div class={dividerClass}></div>
 
-		<div class="py-4 {groupClass}">
+		<div class="{isAndroid ? '' : 'py-4'} {groupClass}">
 			<button
 				type="button"
 				role="switch"
@@ -96,9 +98,11 @@
 				onclick={() => (favoritesOnly = !favoritesOnly)}
 				class="flex items-center justify-between w-full cursor-pointer group"
 			>
-				<div class="flex items-center gap-2">
+				<div class="flex items-center {isAndroid ? 'gap-2.25' : 'gap-2'}">
 					<svg
-						class="w-4 h-4 transition-colors {favoritesOnly
+						class="{isAndroid
+							? 'h-4.25 w-4.25'
+							: 'h-4 w-4'} transition-colors {favoritesOnly
 							? 'text-accent-600'
 							: 'text-text-faint group-hover:text-accent-400'}"
 						fill={favoritesOnly ? 'currentColor' : 'none'}
@@ -112,18 +116,26 @@
 							d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
 						></path>
 					</svg>
-					<span class="text-sm font-medium text-text-ink2"
+					<span
+						class="{isAndroid
+							? 'text-body font-medium'
+							: 'text-sm font-medium'} text-text-ink2"
 						>{tr('common.favoritesOnly')}</span
 					>
 				</div>
+				<!-- Android M3 switch: 44x26 track with a 22px thumb (mockup). -->
 				<div
-					class="relative w-9 h-5 rounded-full transition-colors {favoritesOnly
-						? 'bg-accent'
-						: 'bg-border'}"
+					class="relative rounded-full transition-colors {isAndroid
+						? 'h-6.5 w-11'
+						: 'h-5 w-9'} {favoritesOnly ? 'bg-accent' : 'bg-border'}"
 				>
 					<div
-						class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform {favoritesOnly
-							? 'translate-x-4'
+						class="absolute top-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform {isAndroid
+							? 'h-5.5 w-5.5'
+							: 'h-4 w-4'} {favoritesOnly
+							? isAndroid
+								? 'translate-x-4.5'
+								: 'translate-x-4'
 							: 'translate-x-0'}"
 					></div>
 				</div>
@@ -184,8 +196,9 @@
 		</div>
 	{/if}
 
-	<!-- Reset Filters -->
-	{#if hasActiveFilters}
+	<!-- Reset Filters. Hidden where the call site's own header already carries a
+	     reset action (Android wallet sheet), otherwise it would be a duplicate. -->
+	{#if hasActiveFilters && !hideReset}
 		<div class={dividerClass}></div>
 
 		<div class="py-4 {groupClass}">
