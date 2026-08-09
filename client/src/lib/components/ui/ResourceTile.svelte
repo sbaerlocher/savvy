@@ -62,7 +62,7 @@
 	// desktop).
 	const CARD_CLASS =
 		platform === 'ios'
-			? 'border border-border bg-surface rounded-2xl'
+			? 'border border-border bg-surface rounded-[var(--radius-inset)]'
 			: platform === 'android'
 				? 'bg-m3-card rounded-[var(--radius-m3-lg)]'
 				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
