@@ -13,6 +13,7 @@
 		title,
 		eyebrow,
 		eyebrowAside,
+		eyebrowVerbatim = false,
 		actions,
 		mobileActions = true,
 		showSearch = false,
@@ -25,6 +26,10 @@
 		/** Inline element next to the eyebrow (Android and iOS mockups put the
 		 *  refresh indicator there). */
 		eyebrowAside?: Snippet;
+		/** Set when the eyebrow carries user-entered text (a card program name,
+		 *  say). The native uppercase treatment is meant for fixed kickers and
+		 *  would case-mangle whatever the user typed. */
+		eyebrowVerbatim?: boolean;
 		/** Optional trailing controls (buttons, links) rendered on the right. */
 		actions?: Snippet;
 		/** Render the mobile header actions (bell + New) on the title row. Top-level
@@ -47,9 +52,13 @@
 	// chrome. `platform` is a module constant, so plain consts, not $derived.
 	const NATIVE = platform === 'android' || platform === 'ios';
 	const HEADER_MB = NATIVE ? 'mb-5' : 'mb-8';
-	const EYEBROW_CLASS = NATIVE
-		? 'text-eyebrow uppercase text-text-subtle'
+	const EYEBROW_BASE = NATIVE
+		? 'text-eyebrow text-text-subtle'
 		: 'text-sm text-text-subtle';
+	// Uppercase is the native kicker treatment; user-entered eyebrows opt out.
+	const eyebrowClass = $derived(
+		NATIVE && !eyebrowVerbatim ? `${EYEBROW_BASE} uppercase` : EYEBROW_BASE
+	);
 	const TITLE_CLASS =
 		platform === 'android'
 			? 'mt-0.5 text-title text-text'
@@ -57,7 +66,7 @@
 				? 'text-screen-title text-text'
 				: 'text-3xl font-bold tracking-tight text-text';
 	const ACTIONS_GAP =
-		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-5' : 'gap-2.5';
+		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-0' : 'gap-2.5';
 
 	// Android M3: the header search icon expands an inline docked search field
 	// that replaces the title row. Typing drives /wallet?search=<query> so the
@@ -177,7 +186,7 @@
 					<!-- The native mockups put the greeting and the refresh hint on
 					     one uppercase eyebrow row above the title. -->
 					<div class="flex items-center gap-2">
-						<p class={EYEBROW_CLASS}>{eyebrow}</p>
+						<p class={eyebrowClass}>{eyebrow}</p>
 						{#if eyebrowAside}
 							{@render eyebrowAside()}
 						{/if}

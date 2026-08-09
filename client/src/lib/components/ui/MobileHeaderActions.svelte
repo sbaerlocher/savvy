@@ -13,17 +13,21 @@
 	// Header-action chrome per platform. `platform` is a module-level constant,
 	// so these never change: plain consts, not $derived.
 	// Android M3 (mockup header): 44px round borderless icon buttons, 4px gap.
-	// iOS (mockup header): bare accent glyphs, no box and no border, 20px gap.
+	// iOS (mockup header): bare accent glyphs, no box and no border. The box
+	// stays transparent but keeps its 44px size — the mockup's bare look is
+	// about the painted chrome, not the hit area (iOS HIG 44pt minimum, and
+	// the unread badge needs a real box to sit in the corner of). The gap
+	// compensates so the glyph spacing still matches the mockup.
 	// Desktop keeps the boxed 40px buttons.
 	const IOS = platform === 'ios';
 	const ICON_BUTTON_CLASS =
 		platform === 'android'
 			? 'inline-flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-1'
 			: IOS
-				? 'inline-flex items-center justify-center text-accent'
+				? 'inline-flex h-11 w-11 items-center justify-center text-accent'
 				: 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1';
 	const GAP_CLASS =
-		platform === 'android' ? 'gap-1' : IOS ? 'gap-5' : 'gap-2.5';
+		platform === 'android' ? 'gap-1' : IOS ? 'gap-0' : 'gap-2.5';
 	const SEARCH_ICON = platform === 'android' ? 'h-5.5 w-5.5' : 'h-5 w-5';
 	const BELL_ICON =
 		platform === 'android' ? 'h-5.25 w-5.25' : IOS ? 'h-5.5 w-5.5' : 'h-5 w-5';

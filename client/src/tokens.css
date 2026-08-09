@@ -347,6 +347,9 @@
 	--color-glass-edge: rgba(255, 255, 255, 0.6); /* top light edge */
 	--color-glass-scrim: rgba(20, 18, 16, 0.32); /* dim behind iOS sheets */
 	--color-glass-grabber: rgba(35, 33, 32, 0.2); /* sheet grabber handle */
+	/* The raised step currently has no consumer — the resource tile moved to the
+	   outlined mockup chrome. Kept so the glass elevation ladder stays complete
+	   for the remaining .liquid-glass-* surfaces, which still use -3. */
 	--color-glass-surface-2: rgba(
 		255,
 		255,
@@ -358,7 +361,7 @@
 		255,
 		255,
 		0.55
-	); /* recessed/inset fill (less opaque) */
+	); /* recessed/inset fill (less opaque) — .liquid-glass-card in app.css */
 	--color-glass-hollow: rgba(255, 255, 255, 0.12); /* faint inner cutout tint */
 	--color-glass-menu: rgba(
 		252,

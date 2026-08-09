@@ -109,6 +109,9 @@
 				: tr('vouchers.multipleUse');
 		return undefined;
 	});
+	// The card program is whatever the user typed, so it must not get the
+	// native uppercase kicker treatment; the voucher label is translated copy.
+	const eyebrowVerbatim = $derived(!!asCard);
 
 	const pageTitle = $derived(merchantName || tr(c.titleFallback));
 	const notes = $derived(
@@ -370,6 +373,7 @@
 		<PageHeader
 			title={pageTitle}
 			{eyebrow}
+			{eyebrowVerbatim}
 			mobileActions={false}
 			showSearch
 			onBack={goBack}
