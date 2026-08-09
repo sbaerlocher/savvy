@@ -65,13 +65,8 @@
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
 					<a href={resolve('/dashboard')} class="flex items-center gap-2.5">
-						<!-- Desktop mockup: 30px accent tile with the wordmark initial;
-						     the raster logo stays for the mobile header row. -->
-						<img
-							src="/logo.png"
-							alt="Savvy Logo"
-							class="h-8 w-auto sm:hidden"
-						/>
+						<!-- Desktop mockup: 30px accent tile carrying the wordmark
+						     initial, next to the wordmark itself. -->
 						<span
 							aria-hidden="true"
 							class="hidden h-7.5 w-7.5 shrink-0 items-center justify-center rounded-md bg-accent text-base font-bold tracking-tight text-white sm:flex"
@@ -87,12 +82,13 @@
 				<!-- App shell: three places — Start · Wallet · Profile. Desktop
 				     mockup: 14px labels, active is weight-600 ink with a 2px accent
 				     underline sitting on the bar's bottom edge. -->
-				<div class="hidden sm:ml-6 sm:flex sm:gap-1">
+				<div class="hidden sm:ml-6 sm:flex sm:gap-1 sm:self-stretch">
 					<a
 						href={resolve('/dashboard')}
 						data-testid="nav-start-desktop"
-						class="relative inline-flex items-center px-3.5 text-sm font-medium transition-colors hover:text-text-ink2"
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
 						class:font-semibold={$page.url.pathname.startsWith('/dashboard')}
+						class:font-medium={!$page.url.pathname.startsWith('/dashboard')}
 						class:text-text={$page.url.pathname.startsWith('/dashboard')}
 						class:text-text-subtle={!$page.url.pathname.startsWith(
 							'/dashboard'
@@ -108,8 +104,9 @@
 					<a
 						href={resolve('/wallet')}
 						data-testid="nav-wallet-desktop"
-						class="relative inline-flex items-center px-3.5 text-sm font-medium transition-colors hover:text-text-ink2"
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
 						class:font-semibold={$page.url.pathname.startsWith('/wallet')}
+						class:font-medium={!$page.url.pathname.startsWith('/wallet')}
 						class:text-text={$page.url.pathname.startsWith('/wallet')}
 						class:text-text-subtle={!$page.url.pathname.startsWith('/wallet')}
 					>
@@ -123,8 +120,9 @@
 					<a
 						href={resolve('/profile')}
 						data-testid="nav-profile-desktop"
-						class="relative inline-flex items-center px-3.5 text-sm font-medium transition-colors hover:text-text-ink2"
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
 						class:font-semibold={$page.url.pathname.startsWith('/profile')}
+						class:font-medium={!$page.url.pathname.startsWith('/profile')}
 						class:text-text={$page.url.pathname.startsWith('/profile')}
 						class:text-text-subtle={!$page.url.pathname.startsWith('/profile')}
 					>
@@ -144,7 +142,7 @@
 				     bordered input. -->
 				<form
 					onsubmit={submitDesktopSearch}
-					class="hidden sm:flex w-64 items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-2 focus-within:border-accent"
+					class="hidden sm:flex h-10 w-64 items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20"
 					role="search"
 				>
 					<svg
@@ -173,7 +171,7 @@
 					type="button"
 					onclick={() => ($showNewDialog = true)}
 					data-testid="nav-new-desktop"
-					class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2.5 text-label text-white shadow-sm transition-colors hover:bg-accent-hover"
+					class="hidden sm:inline-flex h-10 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-label text-white shadow-sm transition-colors hover:bg-accent-hover"
 				>
 					<svg
 						class="w-4 h-4"
