@@ -11,8 +11,9 @@
 	let { onSearchOpen }: { onSearchOpen?: () => void } = $props();
 
 	// Android M3 (mockup header): 44px round borderless icon buttons, 4px gap.
-	// iOS/other keep the boxed 40px buttons. Module-constant platform → consts.
-	const BOX_CLASS =
+	// iOS/other keep the boxed 40px buttons — white box + border for
+	// bell/search, filled teal for "+". Module-constant platform → consts.
+	const ICON_BUTTON_CLASS =
 		platform === 'android'
 			? 'inline-flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-1'
 			: 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1';
@@ -27,13 +28,11 @@
 <!-- Action order follows the mockup's native chrome:
      iOS  → [bell] [+]      (add lives in the header)
      else → [search] [bell] (add is the Material FAB in the nav bar) -->
-<!-- Boxed 40px header buttons matching the mockup:
-     bell/search = white circle-ish box + border, "+" = filled teal box. -->
 {#snippet bell()}
 	{#if !$authStore.user?.is_impersonating}
 		<NotificationPanel
 			mode="link"
-			triggerClass="notification-bell relative {BOX_CLASS}"
+			triggerClass="notification-bell relative {ICON_BUTTON_CLASS}"
 			iconClass={BELL_ICON}
 		/>
 	{/if}
@@ -65,7 +64,7 @@
 			onclick={onSearchOpen}
 			data-testid="nav-search-mobile"
 			aria-label={$t('common.search')}
-			class={BOX_CLASS}
+			class={ICON_BUTTON_CLASS}
 		>
 			<svg
 				class={SEARCH_ICON}

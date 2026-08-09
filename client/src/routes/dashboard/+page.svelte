@@ -30,7 +30,7 @@
 	// card with shadow.
 	const statTileClass =
 		platform === 'android'
-			? 'rounded-[var(--radius-m3-lg)] bg-m3-surface-container px-4.5 py-4'
+			? 'rounded-[var(--radius-m3-lg)] bg-m3-card px-4.5 py-4'
 			: platform === 'ios'
 				? 'rounded-xl border border-border bg-white px-4 py-3'
 				: 'rounded-xl border border-border bg-white px-5 py-4 shadow-card lg:min-w-36';

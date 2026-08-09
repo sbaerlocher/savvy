@@ -267,7 +267,9 @@
 							</svg>
 						</span>
 						<span
-							class="text-xs leading-tight {isActive(place.path)
+							class="text-[length:var(--text-body-sm)] leading-tight {isActive(
+								place.path
+							)
 								? 'font-semibold text-text'
 								: 'font-medium text-text-subtle'}">{$t(place.label)}</span
 						>

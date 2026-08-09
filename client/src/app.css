@@ -179,6 +179,18 @@
 		bottom: calc(6.125rem + env(safe-area-inset-bottom));
 	}
 
+	/* Android batch panel: flush on top of the 80px M3 nav bar. Above sm the nav
+	   is gone, so the panel drops to the viewport edge. */
+	.batch-panel-android {
+		bottom: 5rem;
+	}
+
+	@media (width >= 40rem) {
+		.batch-panel-android {
+			bottom: 0;
+		}
+	}
+
 	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
 	   translucent tint so content behind shows through, a bright hairline border
 	   and an inset specular highlight. No SVG displacement (unsupported in

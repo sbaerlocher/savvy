@@ -102,7 +102,7 @@
 {#if searchActive}
 	<!-- Inline M3 docked search field replacing the header row (Android). -->
 	<div
-		class="mb-8 flex h-12 items-center gap-3 rounded-full border border-border bg-white px-4"
+		class="{HEADER_MB} flex h-12 items-center gap-3 rounded-full border border-border bg-white px-4"
 	>
 		<svg
 			class="h-5 w-5 shrink-0 text-text-muted"

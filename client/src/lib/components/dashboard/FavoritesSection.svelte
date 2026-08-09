@@ -60,7 +60,7 @@
 	// card, roomier.
 	const emptyStateClass =
 		platform === 'android'
-			? 'rounded-[var(--radius-m3-lg)] bg-m3-surface-container px-6 py-8.5'
+			? 'rounded-[var(--radius-m3-lg)] bg-m3-card px-6 py-8.5'
 			: platform === 'ios'
 				? 'rounded-xl border border-border bg-white px-6 py-9'
 				: 'rounded-2xl border border-border bg-white px-6 py-11';
@@ -76,7 +76,7 @@
 			: 'mt-1 mb-4 text-xs text-text-faint';
 	const emptyCtaClass =
 		platform === 'android'
-			? 'text-accent-hover hover:text-accent-800'
+			? 'text-accent-700 hover:text-accent-800'
 			: 'text-accent hover:text-accent-800';
 </script>
 

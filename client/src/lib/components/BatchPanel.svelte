@@ -308,7 +308,7 @@
 	class="lg:hidden fixed left-0 right-0 z-[55] {platform === 'ios'
 		? 'liquid-glass-surface mx-4 rounded-2xl batch-panel-floating'
 		: platform === 'android'
-			? 'bottom-16 sm:bottom-0 bg-surface border-t border-border shadow-[var(--shadow-batch)]'
+			? 'batch-panel-android bg-surface border-t border-border shadow-[var(--shadow-batch)]'
 			: 'bottom-16 sm:bottom-0 bg-white border-t border-border shadow-[var(--shadow-batch)]'}"
 	style={platform === 'ios'
 		? ''

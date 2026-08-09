@@ -64,7 +64,7 @@
 		platform === 'ios'
 			? 'liquid-glass-card rounded-[var(--radius-inset)]'
 			: platform === 'android'
-				? 'bg-m3-surface-container rounded-[var(--radius-m3-lg)]'
+				? 'bg-m3-card rounded-[var(--radius-m3-lg)]'
 				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
 
 	// Barcode chip sits one elevation step above the card on every platform:
@@ -83,7 +83,7 @@
 	// shape (mockup); iOS/desktop keep the neutral soft tile.
 	const ICON_TILE_CLASS =
 		platform === 'android'
-			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-text-muted'
+			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-m3-on-secondary-container'
 			: 'h-9 w-9 rounded-lg bg-border-soft text-text-subtle';
 
 	// Badge shape: Android M3 extra-small corners, others stay pills (mockup).
