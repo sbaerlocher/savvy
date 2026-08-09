@@ -179,10 +179,11 @@
 		bottom: calc(6.125rem + env(safe-area-inset-bottom));
 	}
 
-	/* Android batch panel: flush on top of the 80px M3 nav bar. Above sm the nav
-	   is gone, so the panel drops to the viewport edge. */
+	/* Android batch panel: flush on top of the 80px M3 nav bar, which carries the
+	   safe-area inset as padding (.mobile-nav). Above sm the nav is gone, so the
+	   panel drops to the viewport edge. */
 	.batch-panel-android {
-		bottom: 5rem;
+		bottom: calc(5rem + env(safe-area-inset-bottom));
 	}
 
 	@media (width >= 40rem) {

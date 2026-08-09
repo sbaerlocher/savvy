@@ -17,6 +17,14 @@
 	const isActive = (path: string) => $page.url.pathname.startsWith(path);
 	const preloadStrategy = $derived($isOnline ? 'hover' : 'off');
 
+	// M3 allows one FAB per screen. Resource detail pages carry their own edit
+	// FAB in the same slot (ResourceDetail.svelte), and it is the only edit
+	// affordance on Android — ResourceActions hides the header pencil there. So
+	// the nav drops its "New" FAB on those routes instead of covering it.
+	const onResourceDetail = $derived(
+		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
+	);
+
 	// Three places: Start (dashboard), Wallet, Profile.
 	// href is resolved up-front (resolve() needs literal routes, not a variable).
 	const places = [
@@ -207,24 +215,31 @@
 	</div>
 {:else}
 	<!-- Android Material 3 edge-to-edge bar + FAB for New. Search lives in top bar. -->
-	<button
-		type="button"
-		onclick={onNew}
-		aria-label={$t('common.new')}
-		class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center bg-accent text-white {platform ===
-		'android'
-			? 'mobile-nav-fab-android rounded-[var(--radius-m3-lg)] shadow-[var(--shadow-fab)]'
-			: 'mobile-nav-fab rounded-2xl shadow-lg'}"
-	>
-		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M12 4v16m8-8H4"
-			/>
-		</svg>
-	</button>
+	{#if !(platform === 'android' && onResourceDetail)}
+		<button
+			type="button"
+			onclick={onNew}
+			aria-label={$t('common.new')}
+			class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center bg-accent text-white {platform ===
+			'android'
+				? 'mobile-nav-fab-android rounded-[var(--radius-m3-lg)] shadow-[var(--shadow-fab)]'
+				: 'mobile-nav-fab rounded-2xl shadow-lg'}"
+		>
+			<svg
+				class="w-7 h-7"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M12 4v16m8-8H4"
+				/>
+			</svg>
+		</button>
+	{/if}
 	<nav
 		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
