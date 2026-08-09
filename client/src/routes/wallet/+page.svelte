@@ -14,7 +14,6 @@
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
 	import { walletFilters } from '$lib/stores/walletFilters.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -130,37 +129,15 @@
 		}
 	}
 
-	// Search field element, focused when arriving via ?search (global search entry).
-	let searchEl = $state<HTMLInputElement | null>(null);
-	let wantSearchFocus = $state(false);
-	// Whether the search field is shown. There is no permanent search bar; it
-	// only appears when entered via the ?search focus path, and stays until
-	// cancelled.
-	let searchOpen = $state(false);
-
-	// The input only renders once loadData() finishes (isLoading → false), so we
-	// focus reactively when the element binds rather than on a fixed timer.
-	$effect(() => {
-		if (wantSearchFocus && searchEl) {
-			searchEl.focus();
-			wantSearchFocus = false;
-		}
-	});
-
-	function cancelSearch() {
-		walletFilters.searchInput = '';
-		searchOpen = false;
-	}
-
-	// Global search entry: ?search (1 = focus only, other = prefill query).
-	// Reactive on the param so navigating to /wallet?search=… while already on
-	// the page still applies — onMount alone would miss same-page navigations.
+	// Global search entry: ?search (1 = open only, other = the query itself). The
+	// input lives in the platform chrome — the desktop nav bar, the Android
+	// header, the iOS bottom-nav pill — so the page only mirrors the param into
+	// the filter state. Reactive on the param so navigating to /wallet?search=…
+	// while already on the page still applies (onMount alone would miss it).
 	const searchParam = $derived($page.url.searchParams.get('search'));
 	$effect(() => {
-		if (searchParam) {
-			if (searchParam !== '1') walletFilters.searchInput = searchParam;
-			searchOpen = true;
-			wantSearchFocus = true;
+		if (searchParam && searchParam !== '1') {
+			walletFilters.searchInput = searchParam;
 		}
 	});
 
@@ -216,6 +193,8 @@
 		barcodeButtonVariant="label"
 		filterShowAll={false}
 		maxWidth={true}
+		desktopChrome={true}
+		chromeTitle={tr('nav.wallet')}
 	>
 		{#snippet header()}
 			<!-- Header: count above title (mockup "7 Einträge"). -->
@@ -233,31 +212,6 @@
 				title={tr('nav.wallet')}
 				mobileActions={false}
 			/>
-		{/snippet}
-
-		{#snippet searchField()}
-			<!-- Search field: only shown when arriving via ?search focus path.
-			     iOS puts search in the bottom-nav pill and Android in the header,
-			     so only the desktop fallback shows this top field (the query still
-			     filters via the ?search param on every platform). -->
-			{#if searchOpen && platform === 'other'}
-				<div class="mb-6 flex gap-2">
-					<input
-						type="search"
-						bind:this={searchEl}
-						bind:value={walletFilters.searchInput}
-						placeholder={tr('common.search')}
-						class="w-full flex-1 rounded-md border border-border-field bg-white px-4 py-2 focus:border-accent focus:ring-accent"
-					/>
-					<button
-						type="button"
-						onclick={cancelSearch}
-						class="btn btn-ghost whitespace-nowrap"
-					>
-						{tr('common.cancel')}
-					</button>
-				</div>
-			{/if}
 		{/snippet}
 	</WalletView>
 {/if}
