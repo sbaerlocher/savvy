@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
+	import { ICON_SEARCH } from '$lib/icons';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
@@ -55,7 +56,7 @@
 
 <nav
 	data-testid="desktop-nav"
-	class="hidden transition-all duration-300 ease-out sm:block"
+	class="hidden transition-all duration-300 ease-out sm:block sm:border-b sm:border-border-soft sm:bg-surface"
 	class:mt-16={$showOfflineBanner}
 	class:sm:mt-12={$showOfflineBanner}
 >
@@ -63,66 +64,114 @@
 		<div class="flex justify-between h-16">
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
-					<a href={resolve('/dashboard')} class="flex items-center space-x-3">
-						<img src="/logo.png" alt="Savvy Logo" class="h-8 w-auto" />
-						<span class="hidden sm:inline text-2xl font-bold text-accent"
+					<a href={resolve('/dashboard')} class="flex items-center gap-2.5">
+						<!-- Desktop mockup: 30px accent tile carrying the wordmark
+						     initial, next to the wordmark itself. -->
+						<span
+							aria-hidden="true"
+							class="hidden h-7.5 w-7.5 shrink-0 items-center justify-center rounded-md bg-accent text-base font-bold tracking-tight text-white sm:flex"
+							>{$t('common.appName').charAt(0)}</span
+						>
+						<span
+							class="hidden sm:inline text-heading font-bold tracking-tight text-text"
 							>{$t('common.appName')}</span
 						>
 					</a>
 				</div>
 
-				<!-- App shell: three places — Start · Wallet · Profile -->
-				<div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+				<!-- App shell: three places — Start · Wallet · Profile. Desktop
+				     mockup: 14px labels, active is weight-600 ink with a 2px accent
+				     underline sitting on the bar's bottom edge. -->
+				<div class="hidden sm:ml-6 sm:flex sm:gap-1 sm:self-stretch">
 					<a
 						href={resolve('/dashboard')}
 						data-testid="nav-start-desktop"
-						class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-						class:border-accent={$page.url.pathname.startsWith('/dashboard')}
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
+						class:font-semibold={$page.url.pathname.startsWith('/dashboard')}
+						class:font-medium={!$page.url.pathname.startsWith('/dashboard')}
 						class:text-text={$page.url.pathname.startsWith('/dashboard')}
+						class:text-text-subtle={!$page.url.pathname.startsWith(
+							'/dashboard'
+						)}
 					>
 						{$t('nav.start')}
+						{#if $page.url.pathname.startsWith('/dashboard')}
+							<span
+								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
+							></span>
+						{/if}
 					</a>
 					<a
 						href={resolve('/wallet')}
 						data-testid="nav-wallet-desktop"
-						class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-						class:border-accent={$page.url.pathname.startsWith('/wallet')}
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
+						class:font-semibold={$page.url.pathname.startsWith('/wallet')}
+						class:font-medium={!$page.url.pathname.startsWith('/wallet')}
 						class:text-text={$page.url.pathname.startsWith('/wallet')}
+						class:text-text-subtle={!$page.url.pathname.startsWith('/wallet')}
 					>
 						{$t('nav.wallet')}
+						{#if $page.url.pathname.startsWith('/wallet')}
+							<span
+								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
+							></span>
+						{/if}
 					</a>
 					<a
 						href={resolve('/profile')}
 						data-testid="nav-profile-desktop"
-						class="border-transparent text-text-subtle hover:border-border-field hover:text-text-ink2 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors"
-						class:border-accent={$page.url.pathname.startsWith('/profile')}
+						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
+						class:font-semibold={$page.url.pathname.startsWith('/profile')}
+						class:font-medium={!$page.url.pathname.startsWith('/profile')}
 						class:text-text={$page.url.pathname.startsWith('/profile')}
+						class:text-text-subtle={!$page.url.pathname.startsWith('/profile')}
 					>
 						{$t('nav.profile')}
+						{#if $page.url.pathname.startsWith('/profile')}
+							<span
+								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
+							></span>
+						{/if}
 					</a>
 				</div>
 			</div>
 
 			<div class="flex items-center space-x-4">
-				<!-- Desktop: inline search + New (single global entries) -->
+				<!-- Desktop: inline search + New (single global entries). Mockup:
+				     filled field on surface-2 with a leading magnifier, not a plain
+				     bordered input. -->
 				<form
 					onsubmit={submitDesktopSearch}
-					class="hidden sm:flex items-center"
+					class="hidden sm:flex h-10 w-64 items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20"
 					role="search"
 				>
+					<svg
+						class="h-4 w-4 shrink-0 text-text-faint"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d={ICON_SEARCH}
+						/>
+					</svg>
 					<input
 						type="search"
 						bind:value={desktopSearch}
 						placeholder={$t('common.search')}
 						aria-label={$t('common.search')}
-						class="w-48 px-3 py-1.5 text-sm bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+						class="min-w-0 flex-1 bg-transparent text-sm text-text placeholder:text-text-placeholder focus:outline-none"
 					/>
 				</form>
 				<button
 					type="button"
 					onclick={() => ($showNewDialog = true)}
 					data-testid="nav-new-desktop"
-					class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-hover transition-colors"
+					class="hidden sm:inline-flex h-10 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-label text-white shadow-sm transition-colors hover:bg-accent-hover"
 				>
 					<svg
 						class="w-4 h-4"
@@ -378,7 +427,12 @@
 					<!-- Mobile: bell sits before the "+" to match the mockup order (bell · +); desktop keeps its natural position. -->
 					{#if !$authStore.user?.is_impersonating}
 						<div class="relative order-first sm:order-none">
-							<NotificationPanel />
+							<!-- Desktop mockup: the bell is a 40px boxed control on
+							     surface-2, not a bare icon. -->
+							<NotificationPanel
+								triggerClass="notification-bell relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface-2 text-text-muted transition-colors hover:text-text-strong"
+								iconClass="w-4.5 h-4.5"
+							/>
 						</div>
 					{/if}
 				{/if}

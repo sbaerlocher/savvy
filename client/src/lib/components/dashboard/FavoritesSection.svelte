@@ -65,9 +65,11 @@
 				? 'rounded-xl border border-border bg-white px-card py-8.5'
 				: 'rounded-2xl border border-border bg-white px-6 py-11';
 	// Empty-state type per platform (Android mockup: 15px title, 12.5px hint,
-	// accent-700 CTA; iOS mockup: 14px title, 12.5px hint, accent CTA).
+	// accent-700 CTA; iOS mockup: 14px title, 12.5px hint, accent CTA; desktop
+	// mockup: 16px title — nearest token is --text-subheading at 15.5px — and a
+	// 13px hint).
 	const emptyTitleClass =
-		platform === 'android'
+		platform === 'android' || platform === 'other'
 			? 'text-subheading text-text'
 			: 'text-sm font-semibold text-text';
 	const emptyHintClass =
@@ -75,7 +77,7 @@
 			? 'mt-1 mb-4 text-body-sm text-text-faint'
 			: platform === 'ios'
 				? 'mt-1.5 mb-4 text-body-sm text-text-faint'
-				: 'mt-1 mb-4 text-xs text-text-faint';
+				: 'mt-1.5 mb-4 text-label text-text-faint';
 	const emptyCtaClass =
 		platform === 'android'
 			? 'text-accent-700 hover:text-accent-800'
@@ -105,7 +107,10 @@
 				</a>
 			</div>
 		{:else}
-			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+			<!-- Desktop mockup: 18px grid gap; mobile keeps the tighter 12px. -->
+			<div
+				class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:gap-4.5 xl:grid-cols-3"
+			>
 				{#each cardTiles as model (model.id)}
 					<ResourceTile {model} showBarcode compact {onShowBarcode} />
 				{/each}

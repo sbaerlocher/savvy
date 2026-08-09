@@ -44,27 +44,23 @@
 
 	const tr = (key: string) => get(t)(key);
 
-	// Header chrome per platform (dashboard/wallet mockups). Both native
-	// platforms use the uppercase 11px eyebrow and the tighter 20px bottom gap;
-	// they differ in title step (Android ~26px --text-title, iOS 28px
-	// --text-screen-title) and action spacing (Android 4px between round
-	// buttons, iOS 20px between bare glyphs). Desktop keeps the previous
-	// chrome. `platform` is a module constant, so plain consts, not $derived.
+	// Header chrome per platform (dashboard/wallet mockups). All three use the
+	// uppercase 11px eyebrow; they differ in title step (Android ~26px
+	// --text-title, iOS 28px --text-screen-title, desktop --text-title), bottom
+	// gap (native 20px, desktop 32px) and action spacing (Android 4px between
+	// round buttons, iOS 20px between bare glyphs). `platform` is a module
+	// constant, so plain consts, not $derived.
 	const NATIVE = platform === 'android' || platform === 'ios';
 	const HEADER_MB = NATIVE ? 'mb-5' : 'mb-8';
-	const EYEBROW_BASE = NATIVE
-		? 'text-eyebrow text-text-subtle'
-		: 'text-sm text-text-subtle';
-	// Uppercase is the native kicker treatment; user-entered eyebrows opt out.
+	const EYEBROW_BASE = 'text-eyebrow text-text-subtle';
+	// Uppercase is the kicker treatment; user-entered eyebrows opt out.
 	const eyebrowClass = $derived(
-		NATIVE && !eyebrowVerbatim ? `${EYEBROW_BASE} uppercase` : EYEBROW_BASE
+		eyebrowVerbatim ? EYEBROW_BASE : `${EYEBROW_BASE} uppercase`
 	);
 	const TITLE_CLASS =
-		platform === 'android'
-			? 'mt-0.5 text-title text-text'
-			: platform === 'ios'
-				? 'text-screen-title text-text'
-				: 'text-3xl font-bold tracking-tight text-text';
+		platform === 'ios'
+			? 'text-screen-title text-text'
+			: 'mt-0.5 text-title text-text';
 	const ACTIONS_GAP =
 		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-0' : 'gap-2.5';
 
