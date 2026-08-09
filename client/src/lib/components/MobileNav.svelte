@@ -17,6 +17,14 @@
 	const isActive = (path: string) => $page.url.pathname.startsWith(path);
 	const preloadStrategy = $derived($isOnline ? 'hover' : 'off');
 
+	// M3 allows one FAB per screen. Resource detail pages carry their own edit
+	// FAB in the same slot (ResourceDetail.svelte), and it is the only edit
+	// affordance on Android — ResourceActions hides the header pencil there. So
+	// the nav drops its "New" FAB on those routes instead of covering it.
+	const onResourceDetail = $derived(
+		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
+	);
+
 	// Three places: Start (dashboard), Wallet, Profile.
 	// href is resolved up-front (resolve() needs literal routes, not a variable).
 	const places = [
@@ -88,8 +96,6 @@
 		const base =
 			'flex flex-col items-center justify-center transition-colors relative';
 		if (!isActive(path)) return `${base} text-text-muted`;
-		if (platform === 'android')
-			return `${base} text-accent-hover font-semibold`;
 		return `${base} text-accent font-semibold`;
 	};
 </script>
@@ -209,66 +215,114 @@
 	</div>
 {:else}
 	<!-- Android Material 3 edge-to-edge bar + FAB for New. Search lives in top bar. -->
-	<button
-		type="button"
-		onclick={onNew}
-		aria-label={$t('common.new')}
-		class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center bg-accent text-white mobile-nav-fab {platform ===
-		'android'
-			? 'rounded-[var(--radius-m3-lg)] shadow-[var(--shadow-fab)]'
-			: 'rounded-2xl shadow-lg'}"
-	>
-		<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M12 4v16m8-8H4"
-			/>
-		</svg>
-	</button>
+	{#if !(platform === 'android' && onResourceDetail)}
+		<button
+			type="button"
+			onclick={onNew}
+			aria-label={$t('common.new')}
+			class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center bg-accent text-white {platform ===
+			'android'
+				? 'mobile-nav-fab-android rounded-[var(--radius-m3-lg)] shadow-[var(--shadow-fab)]'
+				: 'mobile-nav-fab rounded-2xl shadow-lg'}"
+		>
+			<svg
+				class="w-7 h-7"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M12 4v16m8-8H4"
+				/>
+			</svg>
+		</button>
+	{/if}
 	<nav
 		data-testid="mobile-nav"
 		class="sm:hidden fixed bottom-0 left-0 right-0 z-50 mobile-nav {platform ===
 		'android'
-			? 'bg-surface border-t border-border shadow-[var(--shadow-sheet)]'
+			? 'bg-surface-3 border-t border-border-soft'
 			: 'bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-t border-white/40 shadow-lg'}"
 		style="-webkit-tap-highlight-color: transparent;"
 	>
-		<div class="grid grid-cols-3 h-16">
-			{#each places as place (place.path)}
-				<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
-				<a
-					href={place.href}
-					data-sveltekit-preload-data={preloadStrategy}
-					class={linkClass(place.path)}
-				>
-					<!-- eslint-enable svelte/no-navigation-without-resolve -->
-					{#if platform === 'android' && isActive(place.path)}
+		{#if platform === 'android'}
+			<!-- M3 navigation bar: 64x32 pill indicator around the icon only,
+			     label outside the pill (mockup ui-AndroidNav). -->
+			<div class="flex items-start px-1.5 pt-3 pb-4">
+				{#each places as place (place.path)}
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
+					<a
+						href={place.href}
+						data-sveltekit-preload-data={preloadStrategy}
+						class="flex flex-1 flex-col items-center gap-1"
+					>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						<span
-							class="absolute -inset-x-1.5 top-1 bottom-1 bg-[var(--color-m3-secondary-container)] rounded-full -z-10"
-						></span>
-					{:else if isActive(place.path)}
-						<span class="liquid-glass-pill"></span>
-					{/if}
-					<svg
-						class="w-6 h-6"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
+							class="flex h-8 w-16 items-center justify-center rounded-full transition-colors {isActive(
+								place.path
+							)
+								? 'bg-m3-secondary-container text-m3-on-secondary-container'
+								: 'text-text-subtle'}"
+						>
+							<svg
+								class="w-5.25 h-5.25"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d={place.icon}
+								/>
+							</svg>
+						</span>
+						<span
+							class="text-[length:var(--text-body-sm)] leading-tight {isActive(
+								place.path
+							)
+								? 'font-semibold text-text'
+								: 'font-medium text-text-subtle'}">{$t(place.label)}</span
+						>
+					</a>
+				{/each}
+			</div>
+		{:else}
+			<div class="grid grid-cols-3 h-16">
+				{#each places as place (place.path)}
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- place.href is produced by resolve() above -->
+					<a
+						href={place.href}
+						data-sveltekit-preload-data={preloadStrategy}
+						class={linkClass(place.path)}
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d={place.icon}
-						/>
-					</svg>
-					<span class="text-[length:var(--text-tag)] leading-tight mt-1"
-						>{$t(place.label)}</span
-					>
-				</a>
-			{/each}
-		</div>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+						{#if isActive(place.path)}
+							<span class="liquid-glass-pill"></span>
+						{/if}
+						<svg
+							class="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d={place.icon}
+							/>
+						</svg>
+						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
+							>{$t(place.label)}</span
+						>
+					</a>
+				{/each}
+			</div>
+		{/if}
 	</nav>
 {/if}

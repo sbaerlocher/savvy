@@ -64,18 +64,33 @@
 		platform === 'ios'
 			? 'liquid-glass-card rounded-[var(--radius-inset)]'
 			: platform === 'android'
-				? 'bg-m3-surface-container rounded-[var(--radius-m3-lg)]'
+				? 'bg-m3-card rounded-[var(--radius-m3-lg)]'
 				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
 
 	// Barcode chip sits one elevation step above the card on every platform:
-	// glass-surface-2 over the card's glass-surface-3 (iOS), container-high over
-	// container (Android), surface-1 over surface (desktop).
+	// glass-surface-2 over the card's glass-surface-3 (iOS), card-chip over the
+	// white container (Android), surface-1 over surface (desktop). Android is
+	// borderless with the M3 small radius (mockup); iOS/desktop keep the
+	// hairline border.
 	const CHIP_CLASS =
 		platform === 'ios'
-			? 'bg-[var(--color-glass-surface-2)]'
+			? 'bg-[var(--color-glass-surface-2)] rounded-lg border border-border-soft'
 			: platform === 'android'
-				? 'bg-m3-surface-container-high'
-				: 'bg-surface-1';
+				? 'bg-m3-card-chip rounded-[var(--radius-m3-sm)]'
+				: 'bg-surface-1 rounded-lg border border-border-soft';
+
+	// Type-icon tile: Android M3 uses the secondary container on the small
+	// shape (mockup); iOS/desktop keep the neutral soft tile.
+	const ICON_TILE_CLASS =
+		platform === 'android'
+			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-m3-on-secondary-container'
+			: 'h-9 w-9 rounded-lg bg-border-soft text-text-subtle';
+
+	// Badge shape: Android M3 extra-small corners, others stay pills (mockup).
+	const BADGE_RADIUS =
+		platform === 'android' ? 'rounded-[var(--radius-m3-xs)]' : 'rounded-full';
+	const STATUS_BADGE_RADIUS =
+		platform === 'android' ? 'rounded-[var(--radius-m3-sm)]' : 'rounded-full';
 
 	function handleBarcodeClick(e: MouseEvent) {
 		e.preventDefault();
@@ -98,7 +113,7 @@
 			class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
 		>
 			<span
-				class="rounded-full border border-border-field bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-ink2 shadow-sm"
+				class="{STATUS_BADGE_RADIUS} border border-border-field bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-ink2 shadow-sm"
 			>
 				{model.statusBadge}
 			</span>
@@ -133,9 +148,7 @@
 	{#snippet tileBody()}
 		<!-- Header: icon + type label + merchant name | amount + expiry -->
 		<div class="flex items-start gap-3">
-			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-border-soft text-text-subtle"
-			>
+			<div class="flex shrink-0 items-center justify-center {ICON_TILE_CLASS}">
 				<svg
 					class="h-5 w-5"
 					fill="none"
@@ -222,7 +235,7 @@
 				{/if}
 				{#if model.expiryBadge}
 					<span
-						class="rounded-full px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium {model.expiryUrgent
+						class="{BADGE_RADIUS} px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium {model.expiryUrgent
 							? 'bg-warning-50 text-warning-700'
 							: 'bg-border-soft text-text-subtle'}"
 					>
@@ -230,7 +243,7 @@
 					</span>
 				{:else if model.notYetValid}
 					<span
-						class="rounded-full bg-border-soft px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium text-text-subtle"
+						class="{BADGE_RADIUS} bg-border-soft px-2 py-0.5 text-[length:var(--text-eyebrow)] font-medium text-text-subtle"
 					>
 						{model.notYetValid}
 					</span>
@@ -258,7 +271,7 @@
 	     barcode is already shown inline, so render a static box (no fake tap). -->
 	{#if showBarcode && model.barcodeValue}
 		{@const barcodeValue = model.barcodeValue}
-		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center rounded-lg border border-border-soft p-3 ${CHIP_CLASS} ${model.isActive ? '' : 'opacity-50 grayscale'}`}
+		{@const boxClass = `mx-3 mb-3 flex flex-col items-center justify-center p-3 ${CHIP_CLASS} ${model.isActive ? '' : 'opacity-50 grayscale'}`}
 		{#snippet barcodeContent()}
 			<!-- Barcode image only; the raw value already shows masked in the
 			     footer (·· 1234), so no duplicate full-value text here. -->

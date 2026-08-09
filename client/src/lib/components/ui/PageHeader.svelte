@@ -12,6 +12,7 @@
 	let {
 		title,
 		eyebrow,
+		eyebrowAside,
 		actions,
 		mobileActions = true,
 		showSearch = false,
@@ -21,6 +22,8 @@
 		title: string;
 		/** Small line above the title, e.g. a greeting "Hallo Anna". */
 		eyebrow?: string;
+		/** Inline element next to the eyebrow (Android mockup: refresh indicator). */
+		eyebrowAside?: Snippet;
 		/** Optional trailing controls (buttons, links) rendered on the right. */
 		actions?: Snippet;
 		/** Render the mobile header actions (bell + New) on the title row. Top-level
@@ -34,6 +37,21 @@
 	} = $props();
 
 	const tr = (key: string) => get(t)(key);
+
+	// Android M3 header (dashboard/wallet mockups): uppercase 11px eyebrow,
+	// ~26px title (--text-title), tighter 20px bottom gap, 44px round borderless
+	// icon buttons. iOS/desktop keep the previous chrome. `platform` is a
+	// module constant, so plain consts, not $derived.
+	const HEADER_MB = platform === 'android' ? 'mb-5' : 'mb-8';
+	const EYEBROW_CLASS =
+		platform === 'android'
+			? 'text-eyebrow uppercase text-text-subtle'
+			: 'text-sm text-text-subtle';
+	const TITLE_CLASS =
+		platform === 'android'
+			? 'mt-0.5 text-title text-text'
+			: 'text-3xl font-bold tracking-tight text-text';
+	const ACTIONS_GAP = platform === 'android' ? 'gap-1' : 'gap-2.5';
 
 	// Android M3: the header search icon expands an inline docked search field
 	// that replaces the title row. Typing drives /wallet?search=<query> so the
@@ -84,7 +102,7 @@
 {#if searchActive}
 	<!-- Inline M3 docked search field replacing the header row (Android). -->
 	<div
-		class="mb-8 flex h-12 items-center gap-3 rounded-full border border-border bg-white px-4"
+		class="{HEADER_MB} flex h-12 items-center gap-3 rounded-full border border-border bg-white px-4"
 	>
 		<svg
 			class="h-5 w-5 shrink-0 text-text-muted"
@@ -124,7 +142,7 @@
 	</div>
 {:else}
 	<!-- Page header: plain type hierarchy, no left accent bar (mockup). -->
-	<div class="mb-8 flex items-start justify-between gap-4">
+	<div class="{HEADER_MB} flex items-start justify-between gap-4">
 		<div class="flex min-w-0 items-center gap-2">
 			{#if onBack}
 				<button
@@ -150,22 +168,27 @@
 			{/if}
 			<div class="min-w-0">
 				{#if eyebrow}
-					<p class="text-sm text-text-subtle">{eyebrow}</p>
+					<div class="flex items-center gap-2">
+						<p class={EYEBROW_CLASS}>{eyebrow}</p>
+						{#if eyebrowAside}
+							{@render eyebrowAside()}
+						{/if}
+					</div>
 				{/if}
-				<h1 class="text-3xl font-bold tracking-tight text-text">{title}</h1>
+				<h1 class={TITLE_CLASS}>{title}</h1>
 			</div>
 		</div>
 		{#if actions || mobileActions || (showSearch && platform === 'android')}
-			<div class="flex shrink-0 items-center gap-2.5">
+			<div class="flex shrink-0 items-center {ACTIONS_GAP}">
 				{#if showSearch && platform === 'android'}
 					<button
 						type="button"
 						onclick={openSearch}
 						aria-label={tr('common.search')}
-						class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-text-muted transition-colors hover:bg-surface-1"
+						class="inline-flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-1"
 					>
 						<svg
-							class="h-5 w-5"
+							class="h-5.5 w-5.5"
 							fill="none"
 							stroke="currentColor"
 							stroke-width="2"

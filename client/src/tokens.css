@@ -295,6 +295,15 @@
      ========================================================================== */
 	--color-m3-surface-container: #eeebe3;
 	--color-m3-surface-container-high: #e7e3da;
+	/* Cards, stat tiles and the empty state sit white like iOS/Desktop, against
+	   --color-ground (#eceae4, the body background). The tonal container above
+	   scored 1.01 against that ground — a step nobody can see; white scores
+	   1.203. Sheets and dialogs keep the tonal container, so this is its own
+	   token rather than a new value for it. */
+	--color-m3-card: #ffffff;
+	/* Chip inside a white card: --color-m3-surface-container-high is tuned
+	   against --color-ground, this against the white card. */
+	--color-m3-card-chip: #f0ece4;
 	--color-m3-secondary-container: #d9e3e0;
 	--color-m3-on-secondary-container: #1e3b3f;
 	--color-m3-inverse-surface: #313030; /* snackbar surface */

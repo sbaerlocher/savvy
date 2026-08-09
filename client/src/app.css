@@ -172,6 +172,26 @@
 		bottom: calc(4rem + var(--mobile-nav-offset) + 0.5rem);
 	}
 
+	/* Android M3 nav bar is taller (80px: icon pill + label + paddings) and the
+	   FAB floats 18px above its top edge (mockup ui-AndroidNav: 56px FAB at
+	   top -74px). 6.125rem = 80px bar + 18px gap. */
+	.mobile-nav-fab-android {
+		bottom: calc(6.125rem + env(safe-area-inset-bottom));
+	}
+
+	/* Android batch panel: flush on top of the 80px M3 nav bar, which carries the
+	   safe-area inset as padding (.mobile-nav). Above sm the nav is gone, so the
+	   panel drops to the viewport edge. */
+	.batch-panel-android {
+		bottom: calc(5rem + env(safe-area-inset-bottom));
+	}
+
+	@media (width >= 40rem) {
+		.batch-panel-android {
+			bottom: 0;
+		}
+	}
+
 	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
 	   translucent tint so content behind shows through, a bright hairline border
 	   and an inset specular highlight. No SVG displacement (unsupported in
@@ -262,6 +282,11 @@
 	/* Main content spacing when mobile nav is visible */
 	.main-with-mobile-nav {
 		padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1rem) !important;
+	}
+
+	/* Android: clear the taller 80px M3 nav bar */
+	.main-with-mobile-nav-android {
+		padding-bottom: calc(5rem + env(safe-area-inset-bottom) + 1rem) !important;
 	}
 
 	/* Extra spacing for floating nav (iOS) */
