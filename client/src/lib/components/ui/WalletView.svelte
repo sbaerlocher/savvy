@@ -955,13 +955,13 @@
 		class="flex items-center justify-center gap-2 control px-4 bg-white border hover:bg-surface-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {DESKTOP_CHROME
 			? 'rounded-lg'
 			: 'rounded-md'} {selectMode
-			? 'ring-2 ring-accent border-accent text-accent-hover'
+			? `ring-2 ring-accent border-accent${DESKTOP_CHROME ? ' text-accent-hover' : ''}`
 			: 'border-border-field'}"
 		title={tr('batch.selectMode')}
 		aria-label={tr('batch.selectMode')}
 		aria-pressed={selectMode}
 	>
-		{@render toolbarIcon(ICON_CLIPBOARD_CHECK, selectMode)}
+		{@render toolbarIcon(ICON_CLIPBOARD_CHECK, selectMode && DESKTOP_CHROME)}
 	</button>
 	<!-- Filter Button -->
 	<button
@@ -1188,7 +1188,10 @@
 		     outright rather than hiding it per breakpoint — two headings in the
 		     DOM would give the page two `h1`s, the hidden one first. Rendered
 		     above the empty-state branch so an empty wallet still has a title. -->
-		<div class="mb-6 flex items-center gap-4">
+		<!-- `flex-wrap`: the row is the only toolbar at every width now, and its
+		     labelled buttons do not shrink — below `sm` they need a second line
+		     rather than overflowing the page. -->
+		<div class="mb-6 flex flex-wrap items-center gap-4">
 			<div class="min-w-0 flex-1">
 				<p class="text-eyebrow text-text-subtle uppercase">{chromeEyebrow}</p>
 				<h1 class="mt-0.5 text-title text-text">{chromeHeading}</h1>
