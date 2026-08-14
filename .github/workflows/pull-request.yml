@@ -94,6 +94,56 @@ jobs:
         dde project:e2e:logs -- 200
       teardown-command: dde project:e2e:down
 
+  # Non-blocking on purpose: the "Mobile Chrome" project has never run in any
+  # gate, so its spec suite is expected to start out red. This job is reporting
+  # only — it is deliberately NOT listed in the `main-branch-protection`
+  # ruleset's required status checks, so a failure here surfaces the count
+  # without blocking merges while it is driven down. Note that
+  # `continue-on-error` cannot be used for this: GitHub rejects it on a job that
+  # calls a reusable workflow, which invalidates the whole file. Promoting this
+  # to a real gate therefore means adding it to the ruleset, and that switch is
+  # tracked as its own intake card, because a comment alone reminds nobody.
+  # `playwright-browsers: chromium` is deliberate: "Mobile Chrome" is the
+  # `devices['Pixel 5']` descriptor (client/playwright.config.ts), which runs on
+  # the chromium binary rather than a browser of its own.
+  e2e-mobile:
+    name: E2E Tests (Mobile Chrome)
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
+    with:
+      dde-version: v2.0.0-beta.2
+      compose-profiles: e2e
+      playwright-directory: ./client
+      playwright-browsers: chromium
+      pre-test-commands: |
+        dde project:e2e:reset-db
+        dde project:e2e:wait -- --timeout 90
+      test-command-override: dde project:e2e:test -- --project="Mobile Chrome"
+      failure-logs-command: |
+        dde project:e2e:logs -- 200
+      teardown-command: dde project:e2e:down
+      concurrency-suffix: "mobile"
+
+  # Non-blocking for the same reason as `e2e-mobile`: the firefox project is
+  # defined in client/playwright.config.ts but has never been gated, and this
+  # job is kept out of the ruleset's required status checks. Promote it by
+  # adding it there once it passes; tracked as its own intake card.
+  e2e-firefox:
+    name: E2E Tests (Firefox)
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
+    with:
+      dde-version: v2.0.0-beta.2
+      compose-profiles: e2e
+      playwright-directory: ./client
+      playwright-browsers: firefox
+      pre-test-commands: |
+        dde project:e2e:reset-db
+        dde project:e2e:wait -- --timeout 90
+      test-command-override: dde project:e2e:test -- --project=firefox
+      failure-logs-command: |
+        dde project:e2e:logs -- 200
+      teardown-command: dde project:e2e:down
+      concurrency-suffix: "firefox"
+
   code-review:
     name: Claude Code Review
     uses: sbaerlocher/.github/.github/workflows/ai-claude-review.yml@2026-08-13
