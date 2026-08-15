@@ -296,11 +296,14 @@ test.describe('Batch Operations', () => {
 
 		// Batch operations assume a single concrete type — a mixed selection would
 		// route to the wrong endpoint — so select mode must not offer a way back
-		// to 'all'. The desktop wallet has no chip row of its own (the type is
-		// picked in the filter panel, which select mode replaces with the batch
-		// panel), so no type control may be reachable at all here.
-		await expect(page.getByTestId('type-chip-all')).toHaveCount(0);
-		await expect(page.getByTestId('type-chip-cards')).toHaveCount(0);
+		// to 'all'. Desktop drops the chip row entirely (the type is picked in the
+		// filter panel, which select mode replaces with the batch panel), while
+		// Android only hides it via `max-sm:hidden` (WalletView.svelte,
+		// ANDROID_SELECT_HIDDEN) and so keeps it in the DOM. Assert what the rule
+		// actually protects — no reachable way to change the type — rather than
+		// its absence from the DOM, which only holds on one of the two layouts.
+		await expect(page.getByTestId('type-chip-all')).toBeHidden();
+		await expect(page.getByTestId('type-chip-cards')).toBeHidden();
 
 		// Leaving select mode brings the type control back, still on 'cards'.
 		// Via the page object: on Android below `sm` the toolbar toggle is hidden

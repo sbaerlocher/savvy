@@ -239,12 +239,26 @@ test.describe('Vouchers Management', () => {
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
 		// so the tile is shown.
 		await vouchersListPage.filterButton.click();
-		await page
-			.getByRole('menuitemradio', { name: /Inaktiv|Inactive/ })
-			.or(page.getByRole('radio', { name: /Inaktiv|Inactive/ }))
+		// The filter sheet renders its groups as accordions on the native layouts
+		// (FilterGroup.svelte: the radios live behind `{#if open}`), while the
+		// desktop panel lays the chips out flat. Expand the collapsed group first
+		// so the option exists, otherwise the click waits on a node that is never
+		// rendered.
+		const inactiveOption = page
+			.getByRole('radio', { name: /Inaktiv|Inactive/ })
 			.filter({ visible: true })
-			.first()
-			.click();
+			.first();
+		if ((await inactiveOption.count()) === 0) {
+			await page
+				// The collapsed header renders "Status" plus the current value
+				// (FilterGroup.svelte: `{#if !open}{currentLabel}{/if}`), so match on
+				// the label as a prefix rather than the whole accessible name.
+				.getByRole('button', { name: /Status/i, expanded: false })
+				.filter({ visible: true })
+				.first()
+				.click();
+		}
+		await inactiveOption.click();
 
 		// A future-valid_from voucher must render as inactive. In ResourceTile the
 		// status badge is a sibling of the [data-owner] link, so match the tile
