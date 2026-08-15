@@ -15,9 +15,7 @@ test.describe('Batch Operations', () => {
 
 		await cardsListPage.enterSelectMode();
 		// Verify BatchPanel is visible with "Select all" button
-		await expect(
-			cardsListPage.page.locator('text=/Alle auswählen|Select all/i').first()
-		).toBeVisible();
+		await expect(cardsListPage.selectAllButton).toBeVisible();
 	});
 
 	test('should select multiple cards', async ({
