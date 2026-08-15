@@ -16,10 +16,17 @@ export class AdminPage extends BasePage {
 	}
 
 	get searchInput(): Locator {
+		// The admin page owns a search field that renders on every viewport
+		// (routes/admin/users/+page.svelte). The global chrome adds more fields
+		// with the same shape — DesktopNav's is `hidden sm:flex`, so on mobile a
+		// blind .first() picks that hidden one. Scope to the page content (the
+		// navs are siblings of <main>) and require visibility.
 		return this.page
+			.locator('main')
 			.locator(
 				'input[type="search"], input[placeholder*="Search" i], input[placeholder*="Suchen" i]'
 			)
+			.filter({ visible: true })
 			.first();
 	}
 

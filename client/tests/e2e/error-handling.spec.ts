@@ -118,11 +118,29 @@ test.describe('Error Handling', () => {
 		);
 
 		await page.goto('/cards');
+		await expect(page).toHaveURL(/\/wallet\?type=cards/);
 
-		const errorMessage = page.locator('text=/Fehler|Error|Server/i');
-		const toast = page.locator('[role="status"], [role="alert"], .toast');
+		// `cardsApi.list` catches API failures and falls back to the IndexedDB
+		// cache (api/cards.ts:76-79), so a 500 raises no toast — `loadData` never
+		// rejects, so `toastStore.error` (wallet/+page.svelte:122) never fires.
+		// The old `text=/Fehler|Error|Server/i` matched the footer's "Fehler
+		// melden" link instead (AppFooter.svelte:93), which is `hidden sm:block`
+		// — so this passed vacuously on desktop and had nothing to match below
+		// `sm`. Assert the contract that actually holds: a 500 degrades to the
+		// cached list rather than taking the page down.
+		const heading = page.locator('h1').first();
+		await expect(heading).toContainText(/Wallet/i, { timeout: 10000 });
 
-		await expect(errorMessage.or(toast).first()).toBeVisible({ timeout: 5000 });
+		// Spinner must clear — a stuck loader would mean the failure was not
+		// handled at all.
+		await expect(page.locator('img[alt="Savvy"].animate-pulse')).toBeHidden({
+			timeout: 10000
+		});
+
+		// And the raw server error must never reach the user.
+		await expect(
+			page.locator('text=/Internal Server Error/i')
+		).toHaveCount(0);
 
 		await page.unroute('**/api/v1/cards**');
 	});

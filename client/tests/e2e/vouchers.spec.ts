@@ -242,6 +242,7 @@ test.describe('Vouchers Management', () => {
 		await page
 			.getByRole('menuitemradio', { name: /Inaktiv|Inactive/ })
 			.or(page.getByRole('radio', { name: /Inaktiv|Inactive/ }))
+			.filter({ visible: true })
 			.first()
 			.click();
 

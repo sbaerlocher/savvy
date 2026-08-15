@@ -55,13 +55,27 @@ export class ResourceListPage extends BasePage {
 	}
 
 	get searchInput(): Locator {
+		// The wallet has no search field of its own — the input lives in the
+		// platform chrome (DesktopNav bar, Android header, iOS bottom-nav pill)
+		// and only the one for the current platform is rendered/visible. Filter
+		// on visibility so we never land on a `hidden sm:flex` desktop field
+		// while on mobile.
 		return this.page
 			.locator('input[placeholder*="Search" i], input[placeholder*="Suchen" i]')
+			.filter({ visible: true })
 			.first();
 	}
 
 	get selectModeButton(): Locator {
-		return this.page.getByRole('button', { name: /Select|Auswählen/i }).first();
+		// The entry into select mode is rendered per layout (desktop chrome row,
+		// Android M3 chip, plain mobile toolbar button), all labelled
+		// `batch.selectMode`. getByRole drops `display:none` subtrees, but
+		// Tailwind's `invisible`/opacity variants stay in the accessibility tree,
+		// so filter on visibility too rather than trusting DOM order.
+		return this.page
+			.getByRole('button', { name: /Select|Auswählen/i })
+			.filter({ visible: true })
+			.first();
 	}
 
 	get selectAllButton(): Locator {
@@ -80,10 +94,14 @@ export class ResourceListPage extends BasePage {
 	}
 
 	get filterButton(): Locator {
+		// Same layout duplication as selectModeButton: the filter control is
+		// rendered per platform (desktop chrome row `hidden sm:flex`, Android M3
+		// chip, plain mobile toolbar button), desktop first in DOM order. The old
+		// CSS-selector `.first()` is not accessibility-filtered, so below `sm` it
+		// resolved to the `display:none` desktop copy and its clicks timed out.
 		return this.page
-			.locator(
-				'button:has-text("filtern"), button:has-text("Filter"), button[aria-label*="Filter" i]'
-			)
+			.getByRole('button', { name: /Filter|filtern/i })
+			.filter({ visible: true })
 			.first();
 	}
 
@@ -172,16 +190,71 @@ export class ResourceListPage extends BasePage {
 	}
 
 	async search(term: string) {
+		// Desktop keeps a permanently visible field in the nav bar; the native
+		// layouts collapse it behind a search icon (Android expands an inline
+		// header field via the mobile header actions, iOS expands the bottom-nav
+		// pill). Open it through the chrome's own control when it isn't showing,
+		// so the app's real flow runs. Only the button the current layout renders
+		// is in the accessibility tree, so getByRole picks the right one.
+		if (!(await this.searchInput.isVisible())) {
+			await this.page
+				.getByRole('button', { name: /Search|Suchen/i })
+				.first()
+				.click();
+		}
 		await expect(this.searchInput).toBeVisible({ timeout: 5000 });
 		await this.searchInput.fill(term);
-		// Wait for debounce to settle - search filters client-side
-		await this.page.waitForFunction(() => true, null, { timeout: 600 });
+		// How the query reaches the wallet differs per chrome: the native fields
+		// debounce their input (250ms) and navigate on their own, while the
+		// desktop nav field is a <form> that only navigates on submit. Enter
+		// covers both — it submits the desktop form and is a no-op for the others.
+		await this.searchInput.press('Enter');
+		// The wallet mirrors ?search= into its filter state, so the URL carrying
+		// the term is the proof that the filter was actually applied. Waiting for
+		// it also absorbs the debounce before the caller counts items.
+		await expect(this.page).toHaveURL(
+			new RegExp(`search=${encodeURIComponent(term)}`),
+			{ timeout: 5000 }
+		);
+		await this.waitForPageReady();
 	}
 
 	async enterSelectMode() {
 		await this.selectModeButton.click();
 		// App uses ring borders for selection (no checkboxes) - wait for BatchPanel with "Select all" button
 		await expect(this.selectAllButton).toBeVisible({ timeout: 3000 });
+		// Second, independent signal, and the one the callers actually rely on:
+		// ResourceTile swaps its clickable element from the navigating `<a href>`
+		// to a `<button>` that toggles the selection. Same `data-owner`, so
+		// `items` covers both — assert the tag, which only select mode produces.
+		// Not aria-pressed on the toggle: Android hides the whole toolbar row below
+		// `sm` once selecting (the contextual top app bar replaces it), so no
+		// select-mode *button* stays visible there to carry the attribute.
+		await expect(this.firstItem).toHaveJSProperty('tagName', 'BUTTON', {
+			timeout: 3000
+		});
+	}
+
+	async exitSelectMode() {
+		// The way out of select mode differs per layout. Desktop keeps the
+		// toolbar's toggle (`Select`/`Auswählen`) on screen, but Android below
+		// `sm` hides that whole row (ANDROID_SELECT_HIDDEN, WalletView.svelte)
+		// and replaces it with a contextual top app bar whose close button is
+		// labelled `batch.exitSelectMode` (`Cancel`/`Abbrechen`,
+		// WalletView.svelte:1106). Both call the same toggleSelectMode.
+		// getByRole is accessibility-filtered, so only the control the current
+		// layout actually renders is matched.
+		await this.page
+			.getByRole('button', {
+				name: /Select|Auswählen|Cancel|Abbrechen/i
+			})
+			.filter({ visible: true })
+			.first()
+			.click();
+		// Leaving select mode restores the navigating <a href> tiles.
+		await expect(this.firstItem).toHaveJSProperty('tagName', 'A', {
+			timeout: 3000
+		});
 	}
 
 	async selectItemByIndex(index: number) {

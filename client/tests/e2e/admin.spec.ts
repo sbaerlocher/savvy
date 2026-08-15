@@ -137,7 +137,22 @@ test.describe('Admin Panel', () => {
 		await healthApiResponse;
 		await adminPage.waitForPageReady();
 
-		const dbStatus = page.locator('table >> text=/Database|Datenbank/i').first();
-		await expect(dbStatus).toBeVisible({ timeout: 10000 });
+		// The service list has two layouts: a `hidden md:block` <table> on desktop
+		// and a `md:hidden` card list below `md` (system-health/+page.svelte:321 vs
+		// :693). Pixel 5 is 393px, so a `table`-scoped locator resolves to the
+		// display:none copy there and never becomes visible. Assert on the row
+		// itself instead — it exists in both layouts and carries the same content.
+		const dbRow = page
+			.locator('tr, button')
+			.filter({ hasText: /Database|Datenbank/i })
+			.filter({ visible: true })
+			.first();
+		await expect(dbRow).toBeVisible({ timeout: 10000 });
+
+		// The row must actually report a status, not just name the service —
+		// that is what distinguishes a rendered health check from an empty shell.
+		await expect(dbRow).toHaveText(
+			/Healthy|Unhealthy|Not configured|Gesund|Fehlerhaft|Nicht konfiguriert/i
+		);
 	});
 });

@@ -110,7 +110,7 @@ jobs:
   # the chromium binary rather than a browser of its own.
   e2e-mobile:
     name: E2E Tests (Mobile Chrome)
-    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
     with:
       dde-version: v2.0.0
       compose-profiles: e2e
@@ -131,7 +131,7 @@ jobs:
   # adding it there once it passes; tracked as its own intake card.
   e2e-firefox:
     name: E2E Tests (Firefox)
-    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
     with:
       dde-version: v2.0.0
       compose-profiles: e2e

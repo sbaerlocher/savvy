@@ -303,7 +303,10 @@ test.describe('Batch Operations', () => {
 		await expect(page.getByTestId('type-chip-cards')).toHaveCount(0);
 
 		// Leaving select mode brings the type control back, still on 'cards'.
-		await cardsListPage.selectModeButton.click();
+		// Via the page object: on Android below `sm` the toolbar toggle is hidden
+		// while selecting, and the contextual top app bar's close button is the
+		// only way back.
+		await cardsListPage.exitSelectMode();
 		await cardsListPage.filterButton.click();
 		const cardsChip = page.getByTestId('type-chip-cards').first();
 		await expect(cardsChip).toBeVisible({ timeout: 10000 });

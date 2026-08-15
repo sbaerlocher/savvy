@@ -125,31 +125,34 @@ test.describe('Password Reset', () => {
 			await page.goto('/reset-password?token=invalid-token-12345');
 			await page.waitForURL(/\/reset-password/, { timeout: 10000 });
 
-			// Page shows form first (token present), fill and submit
+			// A token in the URL puts the page in its 'form' state
+			// (reset-password/+page.svelte:32-36), so the form is the only state
+			// this test can reach. The old `isVisible({ timeout: 5000 })` branch
+			// treated a slow hydration as "no form" and then waited for an error
+			// screen that never comes — an emulated Pixel 5 is where that 5s budget
+			// actually runs out. Wait for the form properly instead of guessing.
 			const passwordInputs = page.locator('input[type="password"]');
-			const hasForm = await passwordInputs
-				.first()
-				.isVisible({ timeout: 5000 })
-				.catch(() => false);
+			await expect(passwordInputs.first()).toBeVisible({ timeout: 15000 });
 
-			if (hasForm) {
-				await passwordInputs.nth(0).fill('newPassword123');
-				await passwordInputs.nth(1).fill('newPassword123');
+			await passwordInputs.nth(0).fill('newPassword123');
+			await passwordInputs.nth(1).fill('newPassword123');
 
-				const submitButton = page.locator('button[type="submit"]').first();
-				await submitButton.click();
+			const submitButton = page.locator('button[type="submit"]').first();
+			await submitButton.click();
 
-				// Error after API rejects
-				const errorContent = page
-					.locator('text=/Fehler|Error|Ungültig|invalid|abgelaufen|expired/i')
-					.first();
-				await expect(errorContent).toBeVisible({ timeout: 15000 });
-			} else {
-				const errorContent = page
-					.locator('text=/Fehler|Error|Ungültig|invalid/i')
-					.first();
-				await expect(errorContent).toBeVisible({ timeout: 10000 });
-			}
+			// The error screen replaces the form outright (status === 'error'),
+			// so the form disappearing is the unambiguous signal that the app
+			// rejected the token — unlike a bare text match, which the footer's
+			// "Fehler melden" link satisfied on desktop while being `hidden
+			// sm:block` below `sm` (AppFooter.svelte:8/93).
+			await expect(passwordInputs.first()).toBeHidden({ timeout: 15000 });
+
+			// The error heading is rendered by the error branch only.
+			await expect(
+				page.getByRole('heading', {
+					name: /Fehler beim Zurücksetzen|Failed to reset|Error/i
+				})
+			).toBeVisible({ timeout: 5000 });
 		});
 	});
 });
