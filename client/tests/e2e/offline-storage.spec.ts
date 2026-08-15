@@ -13,30 +13,33 @@ test.describe('Offline Storage', () => {
 	}
 
 	async function logoutUser(page: Page) {
-		// Open user menu dropdown first
+		// Logout must go through the app: clearing cookies would skip
+		// `clearOfflineData()`, which runs inside `authStore.logout()` — and this
+		// suite asserts exactly that IndexedDB is emptied. DesktopNav's user menu
+		// holds the action above `sm`; below it the menu does not render and the
+		// button lives on /profile instead.
 		const userMenuButton = page
 			.locator(
 				'button[aria-label*="user" i], button[aria-label*="Benutzer" i], button[aria-label*="menu" i]'
 			)
+			.filter({ visible: true })
 			.first();
 		if (await userMenuButton.isVisible({ timeout: 3000 }).catch(() => false)) {
 			await userMenuButton.click();
 		}
 
+		// Match the accessible name: /profile styles account deletion with the
+		// same danger class and renders it first, so a broader selector could hit
+		// that instead.
 		const logoutButton = page
-			.locator(
-				'button:has-text("Abmelden"), button:has-text("Logout"), button:has-text("Sign out"), a:has-text("Abmelden"), a:has-text("Logout"), [data-testid="logout"]'
-			)
+			.getByRole('button', { name: /Logout|Abmelden|Déconnexion/i })
+			.filter({ visible: true })
 			.first();
-		if (await logoutButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await logoutButton.click();
-			await page.waitForURL(/\/login/, { timeout: 10000 });
-		} else {
-			// Fallback: clear cookies and navigate to login
-			await page.context().clearCookies();
-			await page.goto('/login');
-			await page.waitForURL(/\/login/, { timeout: 10000 });
+		if (!(await logoutButton.isVisible({ timeout: 3000 }).catch(() => false))) {
+			await page.goto('/profile');
 		}
+		await logoutButton.click();
+		await page.waitForURL(/\/login/, { timeout: 10000 });
 	}
 
 	async function getIndexedDBDatabases(page: Page): Promise<string[]> {
