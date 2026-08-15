@@ -36,7 +36,13 @@ test.describe('Gift Cards Management', () => {
 		});
 		await giftCardFormPage.submit();
 
-		await page.waitForURL(/\/gift-cards($|\/[^/]+$)/, { timeout: 10000 });
+		// `/gift-cards/new` already satisfies `\/gift-cards\/[^/]+$`, so the old
+		// loose pattern resolved instantly on the form URL — before the create
+		// handler's `window.location.href = /gift-cards/<id>`
+		// (gift-cards/new/+page.svelte:113) had even fired. The following goto()
+		// then raced that in-flight full document load and stalled until its
+		// timeout. Anchor on the UUID so this waits for the real detail route.
+		await page.waitForURL(/\/gift-cards\/[a-f0-9-]{36}$/, { timeout: 15000 });
 		await giftCardsListPage.goto();
 		await expect(
 			page.locator(`text=${giftCardData.merchant_name}`).first()

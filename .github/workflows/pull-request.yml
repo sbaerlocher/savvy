@@ -79,10 +79,12 @@ jobs:
     name: E2E Tests
     uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
     with:
-      # Pinned beta: alpha.5 built a dev-layer over distroless images and
-      # crashed; the beta line skips shell-less bases and renamed plugin
-      # invocation from `project:exec:<name>` to `project:<name>`.
-      dde-version: v2.0.0-beta.2
+      # Pinned to the v2.0.0 stable line: releases up to and including
+      # v2.0.0-beta.2 abort a plugin call after 300 seconds, which is barely
+      # above this suite's runtime and kills the mobile/firefox jobs outright.
+      # v2.0.0-rc.1 removed that cap. Renovate does not track this pin, so bump
+      # it by hand.
+      dde-version: v2.0.0
       compose-profiles: e2e
       playwright-directory: ./client
       playwright-browsers: chromium
@@ -93,6 +95,54 @@ jobs:
       failure-logs-command: |
         dde project:e2e:logs -- 200
       teardown-command: dde project:e2e:down
+
+  # Reporting only for now: this job is deliberately NOT in the
+  # `main-branch-protection` ruleset's required status checks, so a regression
+  # surfaces without blocking merges. The suite passes as of this change, so
+  # promoting it to a real gate is a matter of adding it to the ruleset — that
+  # switch is tracked as its own intake card, because a comment reminds nobody.
+  # Note that `continue-on-error` cannot stand in for this: GitHub rejects it on
+  # a job calling a reusable workflow, which invalidates the whole file.
+  # `playwright-browsers: chromium` is deliberate: "Mobile Chrome" is the
+  # `devices['Pixel 5']` descriptor (client/playwright.config.ts), which runs on
+  # the chromium binary rather than a browser of its own.
+  e2e-mobile:
+    name: E2E Tests (Mobile Chrome)
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
+    with:
+      dde-version: v2.0.0
+      compose-profiles: e2e
+      playwright-directory: ./client
+      playwright-browsers: chromium
+      pre-test-commands: |
+        dde project:e2e:reset-db
+        dde project:e2e:wait -- --timeout 90
+      test-command-override: dde project:e2e:test -- --project="Mobile Chrome"
+      failure-logs-command: |
+        dde project:e2e:logs -- 200
+      teardown-command: dde project:e2e:down
+      concurrency-suffix: "mobile"
+
+  # Reporting only for the same reason as `e2e-mobile`: the firefox project is
+  # defined in client/playwright.config.ts but has never been gated, so this job
+  # stays out of the ruleset's required status checks for now. It passes as of
+  # this change; promoting it is tracked as its own intake card.
+  e2e-firefox:
+    name: E2E Tests (Firefox)
+    uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
+    with:
+      dde-version: v2.0.0
+      compose-profiles: e2e
+      playwright-directory: ./client
+      playwright-browsers: firefox
+      pre-test-commands: |
+        dde project:e2e:reset-db
+        dde project:e2e:wait -- --timeout 90
+      test-command-override: dde project:e2e:test -- --project=firefox
+      failure-logs-command: |
+        dde project:e2e:logs -- 200
+      teardown-command: dde project:e2e:down
+      concurrency-suffix: "firefox"
 
   code-review:
     name: Claude Code Review

@@ -239,11 +239,28 @@ test.describe('Vouchers Management', () => {
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
 		// so the tile is shown.
 		await vouchersListPage.filterButton.click();
+		// One status radio exists per layout — the desktop panel below `lg` is
+		// display:none, which getByRole drops from the accessibility tree — so this
+		// resolves to whichever surface the current viewport renders.
 		await page
-			.getByRole('menuitemradio', { name: /Inaktiv|Inactive/ })
-			.or(page.getByRole('radio', { name: /Inaktiv|Inactive/ }))
+			.getByRole('radio', { name: /Inaktiv|Inactive/ })
 			.first()
 			.click();
+
+		// Picking a status does not dismiss the sheet (FilterGroup's chip variant
+		// only assigns the value), and its scrim covers the list underneath, so
+		// every later click would be intercepted. Close it through the sheet's own
+		// confirm button — "N Ergebnisse anzeigen" on Android, "Fertig" elsewhere.
+		// The desktop panel has no sheet and no such button, hence the guard.
+		const closeSheet = page
+			.getByRole('button', {
+				name: /Ergebnisse anzeigen|Show \d+ results|Fertig|Done/i
+			})
+			.first();
+		if (await closeSheet.isVisible().catch(() => false)) {
+			await closeSheet.click();
+			await expect(page.getByRole('dialog')).toBeHidden({ timeout: 5000 });
+		}
 
 		// A future-valid_from voucher must render as inactive. In ResourceTile the
 		// status badge is a sibling of the [data-owner] link, so match the tile

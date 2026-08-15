@@ -23,6 +23,15 @@
 	let isReregistering = $state(false);
 	let swSupported = $state(false);
 
+	// The only other logout lives in DesktopNav's user menu, which is
+	// `hidden sm:block` — so below `sm` there was no way to sign out at all.
+	// Profile is the bottom nav's account destination, so the action belongs
+	// here. Same full reload as the desktop one, to drop all in-memory state.
+	async function handleLogout() {
+		await authStore.logout();
+		window.location.href = '/login';
+	}
+
 	onMount(async () => {
 		swSupported = 'serviceWorker' in navigator;
 
@@ -105,6 +114,33 @@
 						</button>
 					</div>
 				{/if}
+
+				<!-- Sign out. Only below `sm`: wider viewports already carry this in
+				     DesktopNav's user menu, and two logout buttons on one screen would
+				     be redundant. -->
+				<div class="sm:hidden">
+					<button
+						type="button"
+						onclick={handleLogout}
+						class="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-danger-600 transition-colors hover:bg-surface-1"
+					>
+						<svg
+							class="h-5 w-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+							/>
+						</svg>
+						{tr('nav.logout')}
+					</button>
+				</div>
 			</div>
 		</div>
 	{/if}

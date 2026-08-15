@@ -39,17 +39,34 @@ test.describe('Wallet Overview', () => {
 		await gotoWallet(page);
 		const totalCount = await items(page).count();
 
-		// Open the filter panel and pick the vouchers type.
-		await page
-			.locator('button[aria-label*="Filter" i], button:has-text("Filter")')
-			.first()
-			.click();
-		await page
-			.getByRole('button', { name: /Vouchers|Gutscheine/i })
-			.first()
-			.click();
+		// Where the type is picked differs per chrome: desktop has no chip row at
+		// all (WalletView.svelte:1204 gates it on `!DESKTOP_CHROME`) and offers the
+		// type only inside the filter panel, while Android/iOS render the chip row
+		// above the toolbar. Both render TypeFilterButtons, which stamps a stable
+		// `data-testid` on every chip (TypeFilterButtons.svelte:130/151), so open
+		// the filter panel only when the chip is not already on screen.
+		const voucherChip = page
+			.locator('[data-testid="type-chip-vouchers"]')
+			.filter({ visible: true })
+			.first();
+
+		if (!(await voucherChip.isVisible().catch(() => false))) {
+			// The filter control exists twice — `hidden sm:flex` desktop actions
+			// come first in DOM order, so a plain .first() picks the display:none
+			// copy on a 393px viewport. getByRole reads the accessibility tree,
+			// which drops display:none subtrees, so it lands on the rendered one.
+			await page
+				.getByRole('button', { name: /^Filter/i })
+				.filter({ visible: true })
+				.first()
+				.click();
+		}
+
+		await voucherChip.click();
 
 		await expect(page).toHaveURL(/\/wallet/);
+		// The chip must actually engage the filter, not just be clickable.
+		await expect(voucherChip).toHaveAttribute('aria-pressed', 'true');
 		const vouchersCount = await items(page).count();
 		expect(vouchersCount).toBeGreaterThan(0);
 		expect(vouchersCount).toBeLessThanOrEqual(totalCount);

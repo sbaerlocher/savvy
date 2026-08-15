@@ -41,14 +41,30 @@ test.describe('Authentication', () => {
 		);
 		await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
 
-		const userMenuButton = page.locator(
-			'button[aria-label*="User" i], button[aria-label*="Benutzer" i]'
-		);
-		await userMenuButton.waitFor({ state: 'visible', timeout: 10000 });
-		await userMenuButton.click();
+		// Logout sits in DesktopNav's user menu, which is `hidden sm:block`. Below
+		// `sm` that menu does not exist and the action lives on /profile instead,
+		// the account destination of the bottom nav — so take whichever route the
+		// current layout offers.
+		const userMenuButton = page
+			.locator(
+				'button[aria-label*="User" i], button[aria-label*="Benutzer" i]'
+			)
+			.filter({ visible: true })
+			.first();
+		if (await userMenuButton.isVisible().catch(() => false)) {
+			await userMenuButton.click();
+		} else {
+			await page.goto('/profile');
+		}
 
-		const logoutButton = page.locator('button.text-danger-600');
-		await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+		// Match on the accessible name, not on `.text-danger-600`: the profile page
+		// styles account deletion with that same class and renders it before the
+		// logout, so a class-based `.first()` would click "delete account" there.
+		const logoutButton = page
+			.getByRole('button', { name: /Logout|Abmelden|Déconnexion/i })
+			.filter({ visible: true })
+			.first();
+		await logoutButton.waitFor({ state: 'visible', timeout: 10000 });
 		await logoutButton.click();
 
 		await expect(page).toHaveURL('/login', { timeout: 10000 });

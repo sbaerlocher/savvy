@@ -62,19 +62,11 @@
 </script>
 
 {#if open}
-	<div
-		class={backdropClass}
-		onclick={onClose}
-		onkeydown={(e) => {
-			if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				onClose();
-			}
-		}}
-		role="button"
-		tabindex="0"
-		aria-hidden="true"
-	>
+	<!-- The scrim is decorative: it carries no role and stays out of the
+	     accessibility tree, so the dialog nested inside it is not swallowed by an
+	     inherited aria-hidden. Dismissal by keyboard is the dialog's own Escape
+	     handler below; the click here is the pointer shortcut. -->
+	<div class={backdropClass} onclick={onClose} role="presentation">
 		<div
 			bind:this={dialogRef}
 			class={sheetClass}
