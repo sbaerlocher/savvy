@@ -65,6 +65,29 @@ func (m *MockNotificationRepository) ArchiveOldRead(ctx context.Context, cutoff 
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockNotificationRepository) ClaimPendingEmails(ctx context.Context, limit int) ([]models.Notification, error) {
+	args := m.Called(ctx, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]models.Notification), args.Error(1)
+}
+
+func (m *MockNotificationRepository) MarkEmailResult(ctx context.Context, id uuid.UUID, sendErr error, maxAttempts int) error {
+	args := m.Called(ctx, id, sendErr, maxAttempts)
+	return args.Error(0)
+}
+
+func (m *MockNotificationRepository) ResetStaleSendingEmails(ctx context.Context, cutoff time.Time) (int64, error) {
+	args := m.Called(ctx, cutoff)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockNotificationRepository) CountPendingEmails(ctx context.Context) (int64, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 // Ensure MockNotificationRepository implements NotificationRepository
 var _ repository.NotificationRepository = (*MockNotificationRepository)(nil)
 
@@ -947,16 +970,18 @@ func TestNotificationService_ShareEmailGating_BothEnabled(t *testing.T) {
 	recipient.Email = "test@example.com"
 	recipient.FirstName = "Test"
 
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
-	// GetByID is called twice: once for push gating (getRecipient), once for sendShareEmail
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
-	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("test-token", nil)
-	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	// The mail is queued on the row, not sent here — EmailDispatchService delivers it.
+	assert.Equal(t, models.EmailStatusPending, created.EmailStatus)
+	emailSvc.AssertNotCalled(t, "SendShareNotification")
 }
 
 // TestNotificationService_TransferPushGating_PushSharingDisabled verifies that
@@ -1053,17 +1078,20 @@ func TestNotificationService_TransferGating_AllEnabled(t *testing.T) {
 	recipient.Email = "test@example.com"
 	recipient.FirstName = "Test"
 
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
 	pushSvc.On("SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("test-token", nil)
-	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "gift_card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
+	// Push stays inline; email is queued for EmailDispatchService.
 	pushSvc.AssertCalled(t, "SendPushToUser", ctx, recipientID, mock.Anything, mock.Anything, mock.Anything)
-	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "John", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	assert.Equal(t, models.EmailStatusPending, created.EmailStatus)
+	emailSvc.AssertNotCalled(t, "SendTransferNotification")
 }
 
 // ============================================================================
@@ -1287,9 +1315,9 @@ func TestNotificationService_SendPush_NilPushService(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestNotificationService_SendShareEmail_UserRepoError verifies that sendShareEmail
-// handles userRepo.GetByID errors gracefully (best-effort)
-func TestNotificationService_SendShareEmail_UserRepoError(t *testing.T) {
+// TestNotificationService_ShareEmail_UserRepoError verifies that an unreadable
+// recipient yields a skipped row rather than a queued mail with no address.
+func TestNotificationService_ShareEmail_UserRepoError(t *testing.T) {
 	notifRepo := new(MockNotificationRepository)
 	userRepo := new(MockUserRepoForNotification)
 	emailSvc := new(MockEmailSvcForNotification)
@@ -1308,20 +1336,24 @@ func TestNotificationService_SendShareEmail_UserRepoError(t *testing.T) {
 	fromUserID := uuid.New()
 	resourceID := uuid.New()
 
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	// getRecipient call returns nil (error)
 	userRepo.On("GetByID", ctx, recipientID).Return(nil, errors.New("user not found"))
 
-	// Email should not be called because userRepo.GetByID failed
+	// No mail may be queued or sent when the recipient cannot be loaded.
 	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
+	assert.Equal(t, models.EmailStatusSkipped, created.EmailStatus)
 	emailSvc.AssertNotCalled(t, "SendShareNotification")
 }
 
-// TestNotificationService_SendTransferEmail_UserRepoError verifies that sendTransferEmail
-// handles userRepo.GetByID errors gracefully (best-effort)
-func TestNotificationService_SendTransferEmail_UserRepoError(t *testing.T) {
+// TestNotificationService_TransferEmail_UserRepoError verifies the same for
+// transfers: no recipient, no queued mail.
+func TestNotificationService_TransferEmail_UserRepoError(t *testing.T) {
 	notifRepo := new(MockNotificationRepository)
 	userRepo := new(MockUserRepoForNotification)
 	emailSvc := new(MockEmailSvcForNotification)
@@ -1340,19 +1372,23 @@ func TestNotificationService_SendTransferEmail_UserRepoError(t *testing.T) {
 	fromUserID := uuid.New()
 	resourceID := uuid.New()
 
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
+	var created *models.Notification
+	notifRepo.On("Create", ctx, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		created = args.Get(1).(*models.Notification)
+	})
 	userRepo.On("GetByID", ctx, recipientID).Return(nil, errors.New("user not found"))
 
-	// Email should not be called because userRepo.GetByID failed
+	// No mail may be queued or sent when the recipient cannot be loaded.
 	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "voucher", ResourceID: resourceID})
 
 	assert.NoError(t, err)
+	assert.Equal(t, models.EmailStatusSkipped, created.EmailStatus)
 	emailSvc.AssertNotCalled(t, "SendTransferNotification")
 }
 
-// TestNotificationService_SendShareEmail_NilEmailService verifies sendShareEmail
-// is a no-op when emailService is nil
-func TestNotificationService_SendShareEmail_NilEmailService(t *testing.T) {
+// TestNotificationService_ShareEmail_NilEmailService verifies notification
+// creation still succeeds when no SMTP is configured.
+func TestNotificationService_ShareEmail_NilEmailService(t *testing.T) {
 	notifRepo := new(MockNotificationRepository)
 	userRepo := new(MockUserRepoForNotification)
 
@@ -1373,84 +1409,6 @@ func TestNotificationService_SendShareEmail_NilEmailService(t *testing.T) {
 	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
 
 	assert.NoError(t, err)
-}
-
-// TestNotificationService_GenerateUnsubscribeURL_NilTokenService verifies that
-// generateUnsubscribeURL returns empty string when emailTokenService is nil
-func TestNotificationService_GenerateUnsubscribeURL_NilTokenService(t *testing.T) {
-	notifRepo := new(MockNotificationRepository)
-	userRepo := new(MockUserRepoForNotification)
-	emailSvc := new(MockEmailSvcForNotification)
-
-	svc := &NotificationService{
-		repo:         notifRepo,
-		userRepo:     userRepo,
-		emailService: emailSvc,
-		frontendURL:  "https://app.test",
-		// emailTokenService is nil
-	}
-	ctx := context.Background()
-
-	recipientID := uuid.New()
-	fromUserID := uuid.New()
-	resourceID := uuid.New()
-
-	recipient := &models.User{
-		PushNotificationsEnabled:  false,
-		PushSharingEnabled:        false,
-		EmailNotificationsEnabled: true,
-		EmailSharingEnabled:       true,
-	}
-	recipient.ID = recipientID
-	recipient.Email = "test@example.com"
-	recipient.FirstName = "Test"
-
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
-	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
-	// Unsubscribe URL will be "" because emailTokenService is nil
-	emailSvc.On("SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything).Return(nil)
-
-	err := svc.CreateShareNotification(ctx, ShareNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "John", ResourceType: "card", ResourceID: resourceID})
-
-	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendShareNotification", ctx, recipient.Email, mock.Anything, "John", "card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything)
-}
-
-// TestNotificationService_GenerateUnsubscribeURL_TokenError verifies that
-// generateUnsubscribeURL returns empty string when token creation fails
-func TestNotificationService_GenerateUnsubscribeURL_TokenError(t *testing.T) {
-	notifRepo := new(MockNotificationRepository)
-	userRepo := new(MockUserRepoForNotification)
-	emailSvc := new(MockEmailSvcForNotification)
-	emailTokenSvc := new(MockEmailTokenSvcForNotification)
-
-	svc := newTestNotificationService(notifRepo, userRepo, nil, emailSvc, emailTokenSvc)
-	ctx := context.Background()
-
-	recipientID := uuid.New()
-	fromUserID := uuid.New()
-	resourceID := uuid.New()
-
-	recipient := &models.User{
-		PushNotificationsEnabled:  false,
-		PushSharingEnabled:        false,
-		EmailNotificationsEnabled: true,
-		EmailSharingEnabled:       true,
-	}
-	recipient.ID = recipientID
-	recipient.Email = "test@example.com"
-	recipient.FirstName = "Test"
-
-	notifRepo.On("Create", ctx, mock.Anything).Return(nil)
-	userRepo.On("GetByID", ctx, recipientID).Return(recipient, nil)
-	emailTokenSvc.On("CreateUnsubscribeToken", ctx, recipientID).Return("", errors.New("token creation failed"))
-	// Unsubscribe URL will be "" because token creation failed
-	emailSvc.On("SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything).Return(nil)
-
-	err := svc.CreateTransferNotification(ctx, TransferNotificationInput{RecipientID: recipientID, FromUserID: fromUserID, FromUserName: "Bob", ResourceType: "gift_card", ResourceID: resourceID})
-
-	assert.NoError(t, err)
-	emailSvc.AssertCalled(t, "SendTransferNotification", ctx, recipient.Email, mock.Anything, "Bob", "gift_card", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, "", mock.Anything)
 }
 
 // TestNotificationService_SendShareEmail_SendError verifies that email send errors

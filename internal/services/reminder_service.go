@@ -29,8 +29,6 @@ type ReminderService struct {
 	giftCardShareRepo repository.GiftCardShareRepository
 	notifRepo         repository.NotificationRepository
 	pushService       PushServiceInterface
-	emailService      email.ServiceInterface
-	emailTokenService EmailTokenServiceInterface
 	daysBefore        []int
 	location          *time.Location // Timezone for date calculations
 	frontendURL       string         // Base URL for resource links in emails
@@ -45,8 +43,6 @@ func NewReminderService(
 	giftCardShareRepo repository.GiftCardShareRepository,
 	notifRepo repository.NotificationRepository,
 	pushService PushServiceInterface,
-	emailService email.ServiceInterface,
-	emailTokenService EmailTokenServiceInterface,
 	daysBefore []int,
 	location *time.Location,
 	frontendURL string,
@@ -62,8 +58,6 @@ func NewReminderService(
 		giftCardShareRepo: giftCardShareRepo,
 		notifRepo:         notifRepo,
 		pushService:       pushService,
-		emailService:      emailService,
-		emailTokenService: emailTokenService,
 		daysBefore:        daysBefore,
 		location:          location,
 		frontendURL:       strings.TrimSuffix(frontendURL, "/"),
@@ -279,7 +273,10 @@ func (s *ReminderService) sendReminderToUser(
 		return false
 	}
 
-	// Create in-app notification (always)
+	// Create in-app notification (always). The row also carries the email
+	// delivery state: code, value and resource_url are stored because the
+	// dispatcher builds the mail from metadata alone, and without them the
+	// reminder would go out with no code and a link to the bare list page.
 	notification := &models.Notification{
 		UserID:       userID,
 		Type:         models.NotificationTypeExpiryReminder,
@@ -289,8 +286,12 @@ func (s *ReminderService) sendReminderToUser(
 			"merchant_name": merchantName,
 			"days_left":     daysLeft,
 			"expires_at":    emailData.ExpiresAt,
+			"code":          emailData.Code,
+			"value":         emailData.Value,
+			"resource_url":  emailData.ResourceURL,
 		},
-		IsRead: false,
+		IsRead:      false,
+		EmailStatus: emailStatusFor(user != nil && user.EmailRemindersEnabled && user.EmailNotificationsEnabled),
 	}
 	if err := s.notifRepo.Create(ctx, notification); err != nil {
 		slog.WarnContext(ctx, "Failed to create expiry notification", "user_id", userID, "resource_type", resourceType, "resource_id", resourceID, "error", err)
@@ -302,14 +303,10 @@ func (s *ReminderService) sendReminderToUser(
 		lang = user.Language
 	}
 
-	// Send push notification (gated by category + channel preferences)
+	// Send push notification (gated by category + channel preferences).
+	// Push stays inline and best-effort; only email moved to the outbox.
 	if user == nil || (user.PushRemindersEnabled && user.PushNotificationsEnabled) {
 		s.sendPush(ctx, userID, merchantName, resourceType, daysLeft, lang)
-	}
-
-	// Send email notification (gated by category + channel preferences)
-	if user == nil || (user.EmailRemindersEnabled && user.EmailNotificationsEnabled) {
-		s.sendEmail(ctx, user, emailData)
 	}
 
 	// Mark reminder as sent
@@ -348,41 +345,14 @@ func (s *ReminderService) sendPush(ctx context.Context, userID uuid.UUID, mercha
 	}
 }
 
-func (s *ReminderService) sendEmail(ctx context.Context, user *models.User, data email.ExpiryReminderData) {
-	if s.emailService == nil || user == nil {
-		return
+// emailStatusFor maps "should this notification be emailed?" to the delivery
+// state its row starts in. Queued mail is picked up by EmailDispatchService;
+// 'skipped' rows are never looked at again.
+func emailStatusFor(wantsEmail bool) models.EmailStatus {
+	if wantsEmail {
+		return models.EmailStatusPending
 	}
-
-	userName := user.FirstName
-	if userName == "" {
-		userName = user.Email
-	}
-
-	lang := user.Language
-	if lang == "" {
-		lang = "en"
-	}
-
-	unsubscribeURL := s.generateUnsubscribeURL(ctx, user.ID)
-
-	if err := s.emailService.SendExpiryReminder(ctx, user.Email, userName, data, unsubscribeURL, lang); err != nil {
-		slog.WarnContext(ctx, "Failed to send expiry reminder email", "email", user.Email, "error", err)
-	}
-}
-
-// generateUnsubscribeURL creates a one-click unsubscribe URL for expiry reminders.
-func (s *ReminderService) generateUnsubscribeURL(ctx context.Context, userID uuid.UUID) string {
-	if s.emailTokenService == nil {
-		return ""
-	}
-
-	token, err := s.emailTokenService.CreateUnsubscribeReminderToken(ctx, userID)
-	if err != nil {
-		slog.WarnContext(ctx, "Failed to create unsubscribe reminder token", "user_id", userID, "error", err)
-		return ""
-	}
-
-	return s.frontendURL + "/unsubscribe?token=" + token + "&type=reminders"
+	return models.EmailStatusSkipped
 }
 
 // formatDate formats a date according to the user's language preference.
@@ -526,7 +496,8 @@ func (s *ReminderService) sendValidityStartToUser(
 		return false
 	}
 
-	// Create in-app notification (always)
+	// Create in-app notification (always). See sendReminderToUser: the row also
+	// carries the queued email, so the fields the template needs must be stored.
 	notification := &models.Notification{
 		UserID:       userID,
 		Type:         models.NotificationTypeValidityStart,
@@ -535,8 +506,12 @@ func (s *ReminderService) sendValidityStartToUser(
 		Metadata: models.NotificationMetadata{
 			"merchant_name": merchantName,
 			"valid_from":    emailData.ValidFrom,
+			"code":          emailData.Code,
+			"value":         emailData.Value,
+			"resource_url":  emailData.ResourceURL,
 		},
-		IsRead: false,
+		IsRead:      false,
+		EmailStatus: emailStatusFor(user != nil && user.EmailRemindersEnabled && user.EmailNotificationsEnabled),
 	}
 	if err := s.notifRepo.Create(ctx, notification); err != nil {
 		slog.WarnContext(ctx, "Failed to create validity start notification", "user_id", userID, "voucher_id", voucherID, "error", err)
@@ -548,14 +523,10 @@ func (s *ReminderService) sendValidityStartToUser(
 		lang = user.Language
 	}
 
-	// Send push notification (gated by category + channel preferences)
+	// Send push notification (gated by category + channel preferences).
+	// Push stays inline and best-effort; only email moved to the outbox.
 	if user == nil || (user.PushRemindersEnabled && user.PushNotificationsEnabled) {
 		s.sendValidityStartPush(ctx, userID, merchantName, lang)
-	}
-
-	// Send email notification (gated by category + channel preferences)
-	if user == nil || (user.EmailRemindersEnabled && user.EmailNotificationsEnabled) {
-		s.sendValidityStartEmail(ctx, user, emailData)
 	}
 
 	// Mark as sent
@@ -583,27 +554,5 @@ func (s *ReminderService) sendValidityStartPush(ctx context.Context, userID uuid
 
 	if err := s.pushService.SendPushToUser(ctx, userID, title, body, "/vouchers"); err != nil {
 		slog.WarnContext(ctx, "Failed to send validity start push notification", "user_id", userID, "error", err)
-	}
-}
-
-func (s *ReminderService) sendValidityStartEmail(ctx context.Context, user *models.User, data email.ValidityStartData) {
-	if s.emailService == nil || user == nil {
-		return
-	}
-
-	userName := user.FirstName
-	if userName == "" {
-		userName = user.Email
-	}
-
-	lang := user.Language
-	if lang == "" {
-		lang = "en"
-	}
-
-	unsubscribeURL := s.generateUnsubscribeURL(ctx, user.ID)
-
-	if err := s.emailService.SendValidityStart(ctx, user.Email, userName, data, unsubscribeURL, lang); err != nil {
-		slog.WarnContext(ctx, "Failed to send validity start email", "email", user.Email, "error", err)
 	}
 }

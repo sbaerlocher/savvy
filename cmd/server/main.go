@@ -132,11 +132,12 @@ func run() int {
 		giftCardRepo := repository.NewGiftCardRepository(database.DB)
 		voucherShareRepo := repository.NewVoucherShareRepository(database.DB)
 		giftCardShareRepo := repository.NewGiftCardShareRepository(database.DB)
+		// No email service here any more: reminders queue their mail on the
+		// notification row and EmailDispatchService delivers it.
 		reminderService := services.NewReminderService(
 			reminderRepo, voucherRepo, giftCardRepo,
 			voucherShareRepo, giftCardShareRepo,
-			notifRepo, serviceContainer.PushService, emailService,
-			serviceContainer.EmailTokenService,
+			notifRepo, serviceContainer.PushService,
 			cfg.ReminderDaysBefore,
 			cfg.Location,
 			cfg.FrontendURL,
@@ -144,6 +145,18 @@ func run() int {
 		serviceContainer.ReminderService = reminderService
 		slog.Info("Expiry reminders enabled", "days_before", cfg.ReminderDaysBefore, "check_time", cfg.ReminderCheckTime, "timezone", cfg.Timezone)
 	}
+
+	// Initialize the notification email dispatcher. Deliberately independent of
+	// EnableExpiryReminders: share and transfer notifications queue emails even
+	// when expiry reminders are switched off, and without a dispatcher those
+	// would sit in the outbox forever.
+	emailDispatchService := services.NewEmailDispatchService(
+		repository.NewNotificationRepository(database.DB),
+		repository.NewUserRepository(database.DB),
+		emailService,
+		serviceContainer.EmailTokenService,
+		cfg.FrontendURL,
+	)
 
 	// Initialize TOTP 2FA service whenever a key is configured — NOT only when
 	// ENABLE_2FA is on. Existing 2FA users must keep being challenged even if
@@ -205,6 +218,8 @@ func run() int {
 		}()
 		slog.Info("Expiry reminder background job started", "daily_at", cfg.ReminderCheckTime, "timezone", cfg.Timezone)
 	}
+
+	startEmailDispatcher(appCtx, emailDispatchService)
 
 	// Start session cleanup goroutine (runs every hour)
 	if serviceContainer.SessionService != nil {
@@ -290,6 +305,33 @@ func run() int {
 
 	log.Println("Server gracefully stopped")
 	return 0
+}
+
+// startEmailDispatcher runs the notification email outbox on a one-minute tick.
+//
+// The cadence keeps a queued mail feeling immediate while still giving a failed
+// send four more chances within five minutes. Several replicas may run this
+// concurrently — ClaimPendingEmails uses FOR UPDATE SKIP LOCKED, so each
+// instance takes a disjoint set of rows and no leader election is needed.
+func startEmailDispatcher(ctx context.Context, dispatcher services.EmailDispatchServiceInterface) {
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				sent, err := dispatcher.DispatchPending(ctx)
+				if err != nil {
+					slog.Error("Notification email dispatch failed", "error", err)
+				} else if sent > 0 {
+					slog.Info("Notification emails dispatched", "count", sent)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	slog.Info("Notification email dispatcher started", "interval", "1m")
 }
 
 // nextScheduledTime calculates the next occurrence of the given HH:MM time in the given timezone.

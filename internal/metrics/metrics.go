@@ -159,6 +159,39 @@ var (
 		},
 	)
 
+	// Notification Email Delivery Metrics
+	notificationEmailsSentTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "notification_emails_sent_total",
+			Help: "Total number of notification emails delivered successfully",
+		},
+	)
+
+	notificationEmailsFailedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "notification_emails_failed_total",
+			Help: "Total number of notification email delivery attempts that failed",
+		},
+	)
+
+	// A rising pending gauge is the only signal that separates a stalled
+	// dispatcher from an idle one — both send zero mails per minute.
+	notificationEmailsPending = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "notification_emails_pending",
+			Help: "Number of notification emails waiting to be delivered",
+		},
+	)
+
+	// 'failed' is terminal and nothing requeues it, so a parked row is silent
+	// data loss unless it is counted. Any non-zero value needs an operator.
+	notificationEmailsParked = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "notification_emails_parked",
+			Help: "Number of notification emails parked as permanently failed",
+		},
+	)
+
 	// Authentication Metrics
 	loginAttemptsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -268,6 +301,26 @@ func UpdateNotificationMetrics(m NotificationMetrics) {
 	pushSharingEnabledTotal.Set(float64(m.PushSharingEnabled))
 	emailRemindersEnabledTotal.Set(float64(m.EmailRemindersEnabled))
 	emailSharingEnabledTotal.Set(float64(m.EmailSharingEnabled))
+}
+
+// RecordNotificationEmailResult counts one delivery attempt by outcome.
+func RecordNotificationEmailResult(sent, failed int) {
+	if sent > 0 {
+		notificationEmailsSentTotal.Add(float64(sent))
+	}
+	if failed > 0 {
+		notificationEmailsFailedTotal.Add(float64(failed))
+	}
+}
+
+// UpdateNotificationEmailsPending sets the delivery backlog gauge.
+func UpdateNotificationEmailsPending(pending int64) {
+	notificationEmailsPending.Set(float64(pending))
+}
+
+// UpdateNotificationEmailsParked sets the permanently-failed gauge.
+func UpdateNotificationEmailsParked(parked int64) {
+	notificationEmailsParked.Set(float64(parked))
 }
 
 // RecordLoginAttempt increments the login attempts counter

@@ -321,6 +321,48 @@ func TestToNotificationDTO_WithoutReadAt(t *testing.T) {
 	assert.Equal(t, "transfer", dto.Type)
 }
 
+func TestToNotificationDTO_StripsDeliveryOnlyMetadata(t *testing.T) {
+	// code/value/resource_url exist only as dispatcher input. Serialising them
+	// would publish the voucher code through GET /api/v1/notifications — to any
+	// holder of the row, including a share recipient whose access was revoked
+	// (an unread reminder is never archived).
+	n := &models.Notification{
+		Type:         "expiry_reminder",
+		ResourceType: "voucher",
+		ResourceID:   uuid.New(),
+		Metadata: map[string]interface{}{
+			"merchant_name": "IKEA",
+			"days_left":     3,
+			"code":          "SECRET-CODE",
+			"value":         "CHF 50.00",
+			"resource_url":  "https://savvy.example.com/vouchers/abc",
+		},
+	}
+	n.ID = uuid.New()
+	n.CreatedAt = time.Now()
+
+	dto := toNotificationDTO(n)
+
+	assert.NotContains(t, dto.Metadata, "code")
+	assert.NotContains(t, dto.Metadata, "value")
+	assert.NotContains(t, dto.Metadata, "resource_url")
+
+	// The display fields must survive — stripping too much would empty the list.
+	assert.Equal(t, "IKEA", dto.Metadata["merchant_name"])
+	assert.Equal(t, 3, dto.Metadata["days_left"])
+
+	// The model itself keeps the keys; the dispatcher still needs them.
+	assert.Equal(t, "SECRET-CODE", n.Metadata["code"])
+}
+
+func TestToNotificationDTO_NilMetadataStaysNil(t *testing.T) {
+	n := &models.Notification{Type: "share", ResourceType: "card", ResourceID: uuid.New()}
+	n.ID = uuid.New()
+	n.CreatedAt = time.Now()
+
+	assert.Nil(t, toNotificationDTO(n).Metadata)
+}
+
 // ==================== List Tests (additional branches) ====================
 
 func TestNotificationsHandler_List_WithLimitParam(t *testing.T) {

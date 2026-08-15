@@ -24,6 +24,23 @@ const (
 	NotificationTypeValidityStart NotificationType = "validity_start"
 )
 
+// EmailStatus is the delivery state of a notification's email.
+type EmailStatus string
+
+const (
+	// EmailStatusPending marks a notification whose email is waiting to be sent.
+	EmailStatusPending EmailStatus = "pending"
+	// EmailStatusSending marks a notification claimed by a dispatcher run.
+	EmailStatusSending EmailStatus = "sending"
+	// EmailStatusSent marks a successfully delivered email.
+	EmailStatusSent EmailStatus = "sent"
+	// EmailStatusFailed marks an email that exhausted its delivery attempts.
+	EmailStatusFailed EmailStatus = "failed"
+	// EmailStatusSkipped marks a notification that never wanted an email —
+	// no SMTP configured, or the recipient disabled the category or channel.
+	EmailStatusSkipped EmailStatus = "skipped"
+)
+
 // NotificationMetadata represents the JSONB metadata stored with a notification
 type NotificationMetadata map[string]interface{}
 
@@ -60,11 +77,23 @@ type Notification struct {
 	ResourceID   uuid.UUID            `gorm:"type:uuid;not null" json:"resource_id"`
 	Metadata     NotificationMetadata `gorm:"type:jsonb;default:'{}'" json:"metadata"`
 	IsRead       bool                 `gorm:"default:false" json:"is_read"`
-	ReadAt       *time.Time           `gorm:"type:timestamp with time zone" json:"read_at,omitempty"`
-	ArchivedAt   *time.Time           `gorm:"type:timestamp with time zone;index" json:"archived_at,omitempty"`
-	CreatedAt    time.Time            `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt    time.Time            `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt    gorm.DeletedAt       `gorm:"index" json:"deleted_at,omitempty"`
+
+	// Email delivery state. The notification row doubles as the outbox entry for
+	// its email, so a send failure stays visible and retryable instead of being
+	// logged and forgotten. Not exposed to the API — this is delivery bookkeeping.
+	EmailStatus    EmailStatus `gorm:"type:varchar(20);not null;default:'skipped'" json:"-"`
+	EmailAttempts  int         `gorm:"not null;default:0" json:"-"`
+	EmailLastError *string     `gorm:"type:text" json:"-"`
+
+	ReadAt     *time.Time `gorm:"type:timestamp with time zone" json:"read_at,omitempty"`
+	ArchivedAt *time.Time `gorm:"type:timestamp with time zone;index" json:"archived_at,omitempty"`
+	CreatedAt  time.Time  `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
+	// autoUpdateTime is required, not cosmetic: stale-claim recovery decides by
+	// the age of updated_at. A plain default only fires on INSERT, so without
+	// this a claimed row would never age past the threshold and a row stranded
+	// by a dying pod would stay in 'sending' forever.
+	UpdatedAt time.Time      `gorm:"type:timestamp with time zone;autoUpdateTime;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 
 	// Associations
 	User *User `gorm:"foreignKey:UserID" json:"user,omitempty"`
