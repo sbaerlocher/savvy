@@ -65,7 +65,18 @@ export class ResourceListPage extends BasePage {
 	}
 
 	get selectAllButton(): Locator {
-		return this.page.getByText(/Select All|Alle auswählen/i).first();
+		// Order matters: filter to visible buttons BEFORE .first(). BatchPanel
+		// renders its desktop side panel (hidden below lg) ahead of the mobile
+		// bar in the DOM, so a leading .first() pins the hidden element and any
+		// later filter operates on the wrong match. getByRole (not getByText)
+		// because WalletView's mobile top bar is an icon-only button whose name
+		// comes from aria-label. .first() stays: on a small viewport both that
+		// top bar and BatchPanel's bottom bar can be visible at once, which
+		// would trip strict mode.
+		return this.page
+			.getByRole('button', { name: /Select All|Alle auswählen/i })
+			.filter({ visible: true })
+			.first();
 	}
 
 	get filterButton(): Locator {
@@ -170,11 +181,7 @@ export class ResourceListPage extends BasePage {
 	async enterSelectMode() {
 		await this.selectModeButton.click();
 		// App uses ring borders for selection (no checkboxes) - wait for BatchPanel with "Select all" button
-		await expect(
-			this.page.locator('text=/Alle auswählen|Select all/i').first()
-		).toBeVisible({
-			timeout: 3000
-		});
+		await expect(this.selectAllButton).toBeVisible({ timeout: 3000 });
 	}
 
 	async selectItemByIndex(index: number) {
