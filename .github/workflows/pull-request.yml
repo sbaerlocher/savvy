@@ -79,10 +79,12 @@ jobs:
     name: E2E Tests
     uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-13
     with:
-      # Pinned beta: alpha.5 built a dev-layer over distroless images and
-      # crashed; the beta line skips shell-less bases and renamed plugin
-      # invocation from `project:exec:<name>` to `project:<name>`.
-      dde-version: v2.0.0-beta.2
+      # Pinned to the v2.0.0 stable line: releases up to and including
+      # v2.0.0-beta.2 abort a plugin call after 300 seconds, which is barely
+      # above this suite's runtime and kills the mobile/firefox jobs outright.
+      # v2.0.0-rc.1 removed that cap. Renovate does not track this pin, so bump
+      # it by hand.
+      dde-version: v2.0.0
       compose-profiles: e2e
       playwright-directory: ./client
       playwright-browsers: chromium
@@ -110,7 +112,7 @@ jobs:
     name: E2E Tests (Mobile Chrome)
     uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
     with:
-      dde-version: v2.0.0-beta.2
+      dde-version: v2.0.0
       compose-profiles: e2e
       playwright-directory: ./client
       playwright-browsers: chromium
@@ -131,7 +133,7 @@ jobs:
     name: E2E Tests (Firefox)
     uses: sbaerlocher/.github/.github/workflows/e2e-dde.yml@2026-08-10
     with:
-      dde-version: v2.0.0-beta.2
+      dde-version: v2.0.0
       compose-profiles: e2e
       playwright-directory: ./client
       playwright-browsers: firefox
