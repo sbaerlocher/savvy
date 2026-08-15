@@ -239,16 +239,10 @@ test.describe('Vouchers Management', () => {
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
 		// so the tile is shown.
 		await vouchersListPage.filterButton.click();
-		// Below `lg` the filter lives in a BottomSheet capped at 80vh
-		// (BottomSheet.svelte), and the status group sits far enough down that the
-		// option starts outside the scroll viewport — Playwright reports it as
-		// hidden even though it is rendered and reachable. So scope to the open
-		// sheet and let click() scroll it into view, rather than filtering on
-		// visibility and waiting for something scrolling would have fixed. The
-		// desktop panel renders no dialog, so fall back to the whole page there.
-		const filterSurface = page.getByRole('dialog');
-		const scope = (await filterSurface.count()) > 0 ? filterSurface : page;
-		await scope
+		// One status radio exists per layout — the desktop panel below `lg` is
+		// display:none, which getByRole drops from the accessibility tree — so this
+		// resolves to whichever surface the current viewport renders.
+		await page
 			.getByRole('radio', { name: /Inaktiv|Inactive/ })
 			.first()
 			.click();
