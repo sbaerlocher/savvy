@@ -526,6 +526,9 @@ erDiagram
         string message
         jsonb metadata
         boolean is_read
+        string email_status
+        int email_attempts
+        text email_last_error
         timestamp created_at
     }
 
@@ -629,6 +632,57 @@ erDiagram
    - ✅ `(user_id, card_number)` for cards
    - ✅ `(user_id, code)` for vouchers
    - ✅ `(user_id, card_number)` for gift cards
+
+### Notification Email Delivery (Outbox)
+
+Notification emails are **decoupled** from notification creation. Creating a
+notification records that an email is due; a background dispatcher delivers it.
+
+```
+Reminder / Share / Transfer
+        │
+        ▼
+  notifications row  ──  email_status = pending | skipped
+        │
+        │  EmailDispatchService, 1-minute ticker
+        ▼
+  claim (FOR UPDATE SKIP LOCKED) → sending → SMTP → sent
+                                      │
+                                      └── error → pending (retry) → failed (~3h)
+```
+
+**Why it exists.** Email used to be sent inline while the row was created, and a
+send error was only logged — the reminder was then permanently marked as sent and
+never retried, so a brief SMTP outage silently dropped it for good.
+
+- **The row is the outbox.** No separate table: the template data already lives in
+  `metadata`, so `email_status`, `email_attempts` and `email_last_error` are enough.
+- **`skipped` is the default**, not `pending` — otherwise the first dispatcher run
+  after deploy would mail out the entire notification backlog.
+- **Two independent states.** `expiry_reminder_sents` stays the *schedule* guard
+  ("the 3-day reminder was due"); `notifications.email_status` is the *delivery*
+  state. Keeping them apart is what lets a failed send retry without the unique
+  constraint blocking it.
+- **Replica-safe without coordination.** `FOR UPDATE SKIP LOCKED` gives each
+  instance a disjoint set of rows, so the multi-replica production deployment
+  needs no leader election.
+- **At-least-once, not exactly-once.** A pod dying between a successful SMTP
+  handoff and the status write means the row is recovered after 10 minutes and
+  the mail goes out twice. A duplicate reminder is acceptable; a lost one is not.
+  Exactly-once would require a transaction spanning SMTP.
+- **`failed` is terminal.** Nothing requeues a parked row, so the retry budget has
+  to outlast a real provider incident rather than a blip — hence ~3 hours, not
+  minutes. Parked rows are counted by `notification_emails_parked`; a permanent
+  error (an unroutable notification type) skips the budget and parks at once,
+  since no retry can change that outcome.
+- **The batch stays inside the stale window.** A run claims 20 rows and delivers
+  them serially; that worst case must finish well before the 10-minute stale
+  reset, or a second replica would re-send rows the first is still working on.
+- **Delivery-only metadata is not public.** `code`, `value` and `resource_url`
+  exist on the row purely as dispatcher input and are stripped from the
+  notifications API response — otherwise a voucher code would be readable by
+  anyone holding the row, including a share recipient whose access was revoked.
+- **Push is unaffected** — it stays inline and best-effort.
 
 ---
 

@@ -37,6 +37,31 @@ type NotificationDTO struct {
 	CreatedAt    string                 `json:"created_at"`
 } // NotificationDTO
 
+// deliveryOnlyMetadataKeys are written to Metadata purely as dispatcher input
+// and must not reach the API.
+//
+// "code" carries the voucher code / gift card number. It used to live only in
+// the email body; serialising Metadata verbatim would hand it to every client
+// reading the notification list, including a share recipient whose access was
+// revoked afterwards (an unread reminder is never archived).
+var deliveryOnlyMetadataKeys = []string{"code", "value", "resource_url"}
+
+// publicMetadata copies the metadata without the delivery-only keys.
+func publicMetadata(m map[string]interface{}) map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+
+	out := make(map[string]interface{}, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	for _, k := range deliveryOnlyMetadataKeys {
+		delete(out, k)
+	}
+	return out
+}
+
 // toNotificationDTO converts a notification model to a DTO
 func toNotificationDTO(n *models.Notification) NotificationDTO {
 	dto := NotificationDTO{
@@ -44,7 +69,7 @@ func toNotificationDTO(n *models.Notification) NotificationDTO {
 		Type:         string(n.Type),
 		ResourceType: n.ResourceType,
 		ResourceID:   n.ResourceID.String(),
-		Metadata:     n.Metadata,
+		Metadata:     publicMetadata(n.Metadata),
 		IsRead:       n.IsRead,
 		CreatedAt:    n.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
