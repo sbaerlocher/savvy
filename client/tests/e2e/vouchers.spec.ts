@@ -247,6 +247,21 @@ test.describe('Vouchers Management', () => {
 			.first()
 			.click();
 
+		// Picking a status does not dismiss the sheet (FilterGroup's chip variant
+		// only assigns the value), and its scrim covers the list underneath, so
+		// every later click would be intercepted. Close it through the sheet's own
+		// confirm button — "N Ergebnisse anzeigen" on Android, "Fertig" elsewhere.
+		// The desktop panel has no sheet and no such button, hence the guard.
+		const closeSheet = page
+			.getByRole('button', {
+				name: /Ergebnisse anzeigen|Show \d+ results|Fertig|Done/i
+			})
+			.first();
+		if (await closeSheet.isVisible().catch(() => false)) {
+			await closeSheet.click();
+			await expect(page.getByRole('dialog')).toBeHidden({ timeout: 5000 });
+		}
+
 		// A future-valid_from voucher must render as inactive. In ResourceTile the
 		// status badge is a sibling of the [data-owner] link, so match the tile
 		// root that contains the badge and click its inner link.
