@@ -239,24 +239,26 @@ test.describe('Vouchers Management', () => {
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
 		// so the tile is shown.
 		await vouchersListPage.filterButton.click();
-		// The filter sheet renders its groups as accordions on the native layouts
-		// (FilterGroup.svelte: the radios live behind `{#if open}`), while the
-		// desktop panel lays the chips out flat. Expand the collapsed group first
-		// so the option exists, otherwise the click waits on a node that is never
-		// rendered.
+		// Only iOS collapses the filter groups into accordions (FilterGroup.svelte
+		// gates that layout on `platform === 'ios'`); Android and desktop render
+		// the radios flat and always present. So expand a group only when one is
+		// actually collapsed — waiting on that header unconditionally hangs on
+		// every other layout, where it does not exist.
 		const inactiveOption = page
 			.getByRole('radio', { name: /Inaktiv|Inactive/ })
 			.filter({ visible: true })
 			.first();
-		if ((await inactiveOption.count()) === 0) {
-			await page
-				// The collapsed header renders "Status" plus the current value
-				// (FilterGroup.svelte: `{#if !open}{currentLabel}{/if}`), so match on
-				// the label as a prefix rather than the whole accessible name.
-				.getByRole('button', { name: /Status/i, expanded: false })
-				.filter({ visible: true })
-				.first()
-				.click();
+		const collapsedStatusGroup = page
+			// The collapsed header renders "Status" plus the current value
+			// (`{#if !open}{currentLabel}{/if}`), so match the label as a prefix.
+			.getByRole('button', { name: /Status/i, expanded: false })
+			.filter({ visible: true })
+			.first();
+		if (
+			(await inactiveOption.count()) === 0 &&
+			(await collapsedStatusGroup.count()) > 0
+		) {
+			await collapsedStatusGroup.click();
 		}
 		await inactiveOption.click();
 
