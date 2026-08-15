@@ -239,28 +239,19 @@ test.describe('Vouchers Management', () => {
 		// (inactive) voucher. Open the filter panel and switch to "inactive"
 		// so the tile is shown.
 		await vouchersListPage.filterButton.click();
-		// Only iOS collapses the filter groups into accordions (FilterGroup.svelte
-		// gates that layout on `platform === 'ios'`); Android and desktop render
-		// the radios flat and always present. So expand a group only when one is
-		// actually collapsed — waiting on that header unconditionally hangs on
-		// every other layout, where it does not exist.
-		const inactiveOption = page
+		// Below `lg` the filter lives in a BottomSheet capped at 80vh
+		// (BottomSheet.svelte), and the status group sits far enough down that the
+		// option starts outside the scroll viewport — Playwright reports it as
+		// hidden even though it is rendered and reachable. So scope to the open
+		// sheet and let click() scroll it into view, rather than filtering on
+		// visibility and waiting for something scrolling would have fixed. The
+		// desktop panel renders no dialog, so fall back to the whole page there.
+		const filterSurface = page.getByRole('dialog');
+		const scope = (await filterSurface.count()) > 0 ? filterSurface : page;
+		await scope
 			.getByRole('radio', { name: /Inaktiv|Inactive/ })
-			.filter({ visible: true })
-			.first();
-		const collapsedStatusGroup = page
-			// The collapsed header renders "Status" plus the current value
-			// (`{#if !open}{currentLabel}{/if}`), so match the label as a prefix.
-			.getByRole('button', { name: /Status/i, expanded: false })
-			.filter({ visible: true })
-			.first();
-		if (
-			(await inactiveOption.count()) === 0 &&
-			(await collapsedStatusGroup.count()) > 0
-		) {
-			await collapsedStatusGroup.click();
-		}
-		await inactiveOption.click();
+			.first()
+			.click();
 
 		// A future-valid_from voucher must render as inactive. In ResourceTile the
 		// status badge is a sibling of the [data-owner] link, so match the tile
