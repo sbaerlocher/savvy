@@ -173,7 +173,7 @@ services:
     otel-collector:
         profiles:
             - observability
-        image: 'otel/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6'
+        image: 'otel/opentelemetry-collector-contrib:0.158.0@sha256:c5918f78992ee73b0d6f0e599423ac5ec52dd5d9726733114d6eca53d5a32ed5'
         restart: unless-stopped
         command:
             - '--config=/etc/otel-collector-config.yaml'
@@ -187,7 +187,7 @@ services:
     loki:
         profiles:
             - observability
-        image: 'grafana/loki:3.7.4@sha256:87f0a067673756a3cede1bcbf0c74875f7df9b09fddb53e399d0c576f756cfcc'
+        image: 'grafana/loki:3.7.6@sha256:efd47c67f9bac88ca29bcf8cb997d9ab29d1848bd0aff579282295542a745952'
         restart: unless-stopped
         command: '-config.file=/etc/loki/loki-config.yaml'
         volumes:
@@ -218,7 +218,7 @@ services:
     tempo:
         profiles:
             - observability
-        image: 'grafana/tempo:3.0.2@sha256:cda87c212d8c584dc0b89e337e7ed648a5100feb657e5d528480ee4fa03dbbe3'
+        image: 'grafana/tempo:3.0.3@sha256:0296560ac66f8a3600d7fb3014a52c189d4d9c3549ad6ff441bf2409855d68d5'
         restart: unless-stopped
         command: '-config.file=/etc/tempo/tempo-config.yaml'
         volumes:
