@@ -2,6 +2,8 @@ import type { Language } from '$lib/stores/i18n';
 
 export type TranslationKeys = {
 	common: {
+		showPassword: string;
+		hidePassword: string;
 		appName: string;
 		loading: string;
 		error: string;
@@ -681,6 +683,8 @@ export type TranslationKeys = {
 			noAccountYet: string;
 			registerNow: string;
 			forgotPassword: string;
+			subtitle: string;
+			oauthOnlyNote: string;
 			infoTitle: string;
 			infoDescription: string;
 			info1Title: string;
@@ -707,6 +711,8 @@ export type TranslationKeys = {
 			error: string;
 			hasAccount: string;
 			loginNow: string;
+			subtitle: string;
+			passwordHint: string;
 			benefitsTitle: string;
 			benefitsDescription: string;
 			benefit1Title: string;

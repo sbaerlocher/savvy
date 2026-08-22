@@ -37,16 +37,17 @@
 			!(platform !== 'other' && $selectModeActive)
 	);
 
-	// Android password-reset screens are full-bleed centered cards (mockup
-	// screen-PasswordResetAndroid): the shell's page padding would push the
-	// card off-center, so it steps aside for those two routes only. The footer
-	// goes with it — it is `hidden sm:block`, so on an Android tablet it would
-	// stack below a full-viewport-height main and turn the centered card into a
-	// scrolling page.
+	// Android auth screens are full-bleed centered cards (mockups
+	// screen-AuthAndroid / screen-PasswordResetAndroid): the shell's page
+	// padding would push the card off-center, so it steps aside for those
+	// routes only. The footer goes with it — it is `hidden sm:block`, so on an
+	// Android tablet it would stack below a full-viewport-height main and turn
+	// the centered card into a scrolling page.
 	const ANDROID_FULL_BLEED = $derived(
 		platform === 'android' &&
-			($page.url.pathname.startsWith('/forgot-password') ||
-				$page.url.pathname.startsWith('/reset-password'))
+			['/login', '/register', '/forgot-password', '/reset-password'].some(
+				(route) => $page.url.pathname.startsWith(route)
+			)
 	);
 
 	// Track preload state to prevent duplicate runs

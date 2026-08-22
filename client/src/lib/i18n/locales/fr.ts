@@ -2,6 +2,8 @@ import type { TranslationKeys } from '../types';
 
 export const fr: TranslationKeys = {
 	common: {
+		showPassword: 'Afficher le mot de passe',
+		hidePassword: 'Masquer le mot de passe',
 		appName: 'Savvy',
 		loading: 'Chargement...',
 		error: 'Erreur',
@@ -727,6 +729,9 @@ export const fr: TranslationKeys = {
 			noAccountYet: 'Pas encore de compte?',
 			registerNow: "S'inscrire maintenant",
 			forgotPassword: 'Mot de passe oublié ?',
+			subtitle: 'Bienvenue à nouveau sur Savvy',
+			oauthOnlyNote:
+				'La connexion locale est désactivée — connexion uniquement via SSO.',
 			infoTitle: 'Bon retour!',
 			infoDescription:
 				'Connectez-vous pour accéder à vos cartes, bons et cartes-cadeaux numériques.',
@@ -758,6 +763,9 @@ export const fr: TranslationKeys = {
 			error: "Échec de l'inscription",
 			hasAccount: 'Vous avez déjà un compte?',
 			loginNow: 'Se connecter maintenant',
+			subtitle: 'Toutes vos cartes au même endroit',
+			passwordHint:
+				'Au moins 12 caractères, avec lettres, chiffres et symboles',
 			benefitsTitle: 'Pourquoi utiliser Savvy?',
 			benefitsDescription:
 				'Avec un compte gratuit, tous les avantages toujours à portée de main:',

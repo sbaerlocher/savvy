@@ -10,6 +10,12 @@
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import M3TextField from '$lib/components/ui/M3TextField.svelte';
+	import { platform } from '$lib/utils/platform';
+
+	// Android mockup (screen-AuthAndroid) replaces the split layout with a
+	// centered M3 card, so it branches at the top level instead of overriding.
+	const ANDROID = platform === 'android';
 
 	const pageLogger = logger.child('LoginPage');
 
@@ -100,281 +106,422 @@
 	<title>{tr('auth.login.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
-<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-	<div class="max-w-5xl mx-auto">
+{#if ANDROID}
+	<!-- Android M3: centered tonal card, no info column, no logo header. -->
+	<div class="flex min-h-dvh items-center justify-center px-5">
 		{#if !configLoaded}
 			<LoadingSpinner fullPage />
 		{:else}
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<!-- Left column: Login Form (2/3 width) -->
-				<div class="lg:col-span-2">
-					<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-						<div class="mb-8 flex items-center gap-4">
-							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-							<h1 class="text-3xl font-bold text-text">
-								{tr('auth.login.title')}
-							</h1>
-						</div>
+			<div
+				class="bg-m3-card rounded-m3-lg w-full max-w-88 px-[var(--spacing-card)] pt-6.5 pb-6"
+			>
+				<div class="mb-6 flex flex-col items-center text-center">
+					<span
+						class="bg-accent-600 rounded-m3-md shadow-accent mb-3.5 flex h-13 w-13 items-center justify-center"
+					>
+						<svg
+							class="text-on-accent h-7 w-7"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							viewBox="0 0 24 24"
+						>
+							<rect x="2" y="5" width="20" height="14" rx="3" />
+							<path d="M2 10h20" />
+							<path d="M6 15h4" />
+						</svg>
+					</span>
+					<h1 class="text-heading text-text">{tr('auth.login.title')}</h1>
+					<p class="text-label text-text-muted mt-1 font-normal">
+						{tr('auth.login.subtitle')}
+					</p>
+				</div>
 
-						<!-- OAuth Error Message -->
-						{#if oauthError}
-							<div class="rounded-md bg-danger-50 p-4 mb-6">
-								<div class="flex">
-									<div class="flex-shrink-0">
+				{#if oauthError}
+					<div class="bg-danger-50 rounded-m3-sm mb-4.5 px-4 py-3">
+						<p class="text-body-sm text-danger-800 font-medium">
+							{tr('auth.login.oauthError')}
+						</p>
+					</div>
+				{/if}
+
+				{#if oauthEnabled}
+					<a
+						href={oauthLoginURL}
+						rel="external"
+						class="text-body bg-accent-100 text-accent-850 rounded-m3-full mb-4.5 flex h-12 w-full items-center justify-center gap-2.5 font-semibold"
+					>
+						<svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor">
+							<path
+								d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+							/>
+						</svg>
+						{tr('auth.login.oauthButton')}
+					</a>
+
+					{#if localLoginEnabled}
+						<div class="text-text-subtle mb-5 flex items-center gap-3">
+							<span class="bg-border h-px flex-1"></span>
+							<span class="text-chip font-medium">
+								{tr('auth.login.orDivider')}
+							</span>
+							<span class="bg-border h-px flex-1"></span>
+						</div>
+					{/if}
+				{/if}
+
+				{#if localLoginEnabled}
+					<form class="flex flex-col gap-5" onsubmit={handleLogin}>
+						<M3TextField
+							id="email"
+							name="email"
+							type="email"
+							autocomplete="email"
+							required
+							disabled={isLoading}
+							bind:value={email}
+							label={tr('auth.login.email')}
+						/>
+						<M3TextField
+							id="password"
+							name="password"
+							type="password"
+							autocomplete="current-password"
+							required
+							trailingIcon
+							disabled={isLoading}
+							bind:value={password}
+							label={tr('auth.login.password')}
+						/>
+
+						{#if $authStore.error}
+							<div class="bg-danger-50 rounded-m3-sm px-4 py-3">
+								<p class="text-body-sm text-danger-800 font-medium">
+									{$authStore.error}
+								</p>
+							</div>
+						{/if}
+
+						<button
+							type="submit"
+							disabled={isLoading}
+							class="text-subheading bg-accent-600 text-on-accent rounded-m3-full shadow-accent h-12.5 w-full disabled:opacity-50"
+						>
+							{isLoading
+								? tr('auth.login.loggingIn')
+								: tr('auth.login.loginButton')}
+						</button>
+
+						<div class="-mt-1.5 flex items-center justify-between">
+							{#if registrationEnabled}
+								<a
+									href={resolve('/register')}
+									class="text-label text-accent-600 font-semibold"
+								>
+									{tr('auth.login.registerNow')}
+								</a>
+							{:else}
+								<span></span>
+							{/if}
+							<a
+								href={resolve('/forgot-password')}
+								class="text-label text-accent-600 font-semibold"
+							>
+								{tr('auth.login.forgotPassword')}
+							</a>
+						</div>
+					</form>
+				{:else}
+					<p class="text-body-sm text-text-subtle text-center">
+						{tr('auth.login.oauthOnlyNote')}
+					</p>
+				{/if}
+			</div>
+		{/if}
+	</div>
+{:else}
+	<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+		<div class="max-w-5xl mx-auto">
+			{#if !configLoaded}
+				<LoadingSpinner fullPage />
+			{:else}
+				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<!-- Left column: Login Form (2/3 width) -->
+					<div class="lg:col-span-2">
+						<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+							<div class="mb-8 flex items-center gap-4">
+								<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
+								<h1 class="text-3xl font-bold text-text">
+									{tr('auth.login.title')}
+								</h1>
+							</div>
+
+							<!-- OAuth Error Message -->
+							{#if oauthError}
+								<div class="rounded-md bg-danger-50 p-4 mb-6">
+									<div class="flex">
+										<div class="flex-shrink-0">
+											<svg
+												class="h-5 w-5 text-danger-400"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+											>
+												<path
+													fill-rule="evenodd"
+													d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+													clip-rule="evenodd"
+												/>
+											</svg>
+										</div>
+										<div class="ml-3">
+											<p class="text-sm font-medium text-danger-800">
+												{tr('auth.login.oauthError')}
+											</p>
+										</div>
+									</div>
+								</div>
+							{/if}
+
+							<!-- OAuth Button (if enabled) -->
+							{#if oauthEnabled}
+								<div class="mb-6">
+									<a
+										href={oauthLoginURL}
+										rel="external"
+										class="btn btn-ghost w-full"
+									>
 										<svg
-											class="h-5 w-5 text-danger-400"
-											viewBox="0 0 20 20"
+											class="h-5 w-5"
+											viewBox="0 0 24 24"
 											fill="currentColor"
 										>
 											<path
-												fill-rule="evenodd"
-												d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-												clip-rule="evenodd"
-											/>
+												d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+											></path>
 										</svg>
+										{tr('auth.login.oauthButton')}
+									</a>
+								</div>
+
+								<!-- Divider only if both OAuth and local login are enabled -->
+								{#if localLoginEnabled}
+									<div class="relative my-6">
+										<div class="absolute inset-0 flex items-center">
+											<div class="w-full border-t border-border-field"></div>
+										</div>
+										<div class="relative flex justify-center text-sm">
+											<span class="px-2 bg-white text-text-subtle"
+												>{tr('auth.login.orDivider')}</span
+											>
+										</div>
 									</div>
-									<div class="ml-3">
-										<p class="text-sm font-medium text-danger-800">
-											{tr('auth.login.oauthError')}
+								{/if}
+							{/if}
+
+							<!-- Local Login Form (only if enabled) -->
+							{#if localLoginEnabled}
+								<form class="space-y-6" onsubmit={handleLogin}>
+									<div>
+										<label
+											for="email"
+											class="block text-sm font-medium text-text-ink2 mb-1"
+										>
+											{tr('auth.login.email')}
+										</label>
+										<input
+											id="email"
+											name="email"
+											type="email"
+											autocomplete="email"
+											required
+											bind:value={email}
+											disabled={isLoading}
+											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+											placeholder={tr('auth.login.email')}
+										/>
+									</div>
+
+									<div>
+										<label
+											for="password"
+											class="block text-sm font-medium text-text-ink2 mb-1"
+										>
+											{tr('auth.login.password')}
+										</label>
+										<input
+											id="password"
+											name="password"
+											type="password"
+											autocomplete="current-password"
+											required
+											bind:value={password}
+											disabled={isLoading}
+											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+											placeholder={tr('auth.login.password')}
+										/>
+									</div>
+
+									{#if $authStore.error}
+										<div class="rounded-md bg-danger-50 p-4">
+											<div class="flex">
+												<div class="flex-shrink-0">
+													<svg
+														class="h-5 w-5 text-danger-400"
+														viewBox="0 0 20 20"
+														fill="currentColor"
+													>
+														<path
+															fill-rule="evenodd"
+															d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+															clip-rule="evenodd"
+														/>
+													</svg>
+												</div>
+												<div class="ml-3">
+													<p class="text-sm font-medium text-danger-800">
+														{$authStore.error}
+													</p>
+												</div>
+											</div>
+										</div>
+									{/if}
+
+									<div class="pt-2">
+										<Button type="submit" class="w-full" loading={isLoading}>
+											{#if isLoading}
+												{tr('auth.login.loggingIn')}
+											{:else}
+												{tr('auth.login.loginButton')}
+											{/if}
+										</Button>
+									</div>
+
+									<div class="flex items-center justify-between pt-4">
+										{#if registrationEnabled}
+											<a
+												href={resolve('/register')}
+												class="font-medium text-accent hover:text-accent text-sm"
+											>
+												{tr('auth.login.noAccountYet')}
+												{tr('auth.login.registerNow')}
+											</a>
+										{:else}
+											<span></span>
+										{/if}
+										<a
+											href={resolve('/forgot-password')}
+											class="font-medium text-accent hover:text-accent text-sm"
+										>
+											{tr('auth.login.forgotPassword')}
+										</a>
+									</div>
+								</form>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Right column: Information (1/3 width) -->
+					<div class="lg:col-span-1">
+						<div class="bg-white rounded-lg shadow-lg p-6">
+							<h2 class="text-xl font-bold text-text mb-4">
+								{tr('auth.login.infoTitle')}
+							</h2>
+							<p class="text-sm text-text-muted mb-4">
+								{tr('auth.login.infoDescription')}
+							</p>
+
+							<div class="space-y-4">
+								<div class="flex items-start">
+									<svg
+										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									<div>
+										<h3 class="text-sm font-medium text-text">
+											{tr('auth.login.info1Title')}
+										</h3>
+										<p class="text-xs text-text-muted mt-1">
+											{tr('auth.login.info1Desc')}
+										</p>
+									</div>
+								</div>
+
+								<div class="flex items-start">
+									<svg
+										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									<div>
+										<h3 class="text-sm font-medium text-text">
+											{tr('auth.login.info2Title')}
+										</h3>
+										<p class="text-xs text-text-muted mt-1">
+											{tr('auth.login.info2Desc')}
+										</p>
+									</div>
+								</div>
+
+								<div class="flex items-start">
+									<svg
+										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									<div>
+										<h3 class="text-sm font-medium text-text">
+											{tr('auth.login.info3Title')}
+										</h3>
+										<p class="text-xs text-text-muted mt-1">
+											{tr('auth.login.info3Desc')}
 										</p>
 									</div>
 								</div>
 							</div>
-						{/if}
 
-						<!-- OAuth Button (if enabled) -->
-						{#if oauthEnabled}
-							<div class="mb-6">
-								<a
-									href={oauthLoginURL}
-									rel="external"
-									class="btn btn-ghost w-full"
-								>
-									<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+							<div class="mt-6 pt-6 border-t border-border">
+								<div class="flex items-center text-sm text-text-muted">
+									<svg
+										class="w-5 h-5 text-accent mr-2 flex-shrink-0"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
 										<path
-											d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
-										></path>
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+										/>
 									</svg>
-									{tr('auth.login.oauthButton')}
-								</a>
-							</div>
-
-							<!-- Divider only if both OAuth and local login are enabled -->
-							{#if localLoginEnabled}
-								<div class="relative my-6">
-									<div class="absolute inset-0 flex items-center">
-										<div class="w-full border-t border-border-field"></div>
-									</div>
-									<div class="relative flex justify-center text-sm">
-										<span class="px-2 bg-white text-text-subtle"
-											>{tr('auth.login.orDivider')}</span
-										>
-									</div>
+									<span class="text-xs">{tr('auth.login.securityNote')}</span>
 								</div>
-							{/if}
-						{/if}
-
-						<!-- Local Login Form (only if enabled) -->
-						{#if localLoginEnabled}
-							<form class="space-y-6" onsubmit={handleLogin}>
-								<div>
-									<label
-										for="email"
-										class="block text-sm font-medium text-text-ink2 mb-1"
-									>
-										{tr('auth.login.email')}
-									</label>
-									<input
-										id="email"
-										name="email"
-										type="email"
-										autocomplete="email"
-										required
-										bind:value={email}
-										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-										placeholder={tr('auth.login.email')}
-									/>
-								</div>
-
-								<div>
-									<label
-										for="password"
-										class="block text-sm font-medium text-text-ink2 mb-1"
-									>
-										{tr('auth.login.password')}
-									</label>
-									<input
-										id="password"
-										name="password"
-										type="password"
-										autocomplete="current-password"
-										required
-										bind:value={password}
-										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-										placeholder={tr('auth.login.password')}
-									/>
-								</div>
-
-								{#if $authStore.error}
-									<div class="rounded-md bg-danger-50 p-4">
-										<div class="flex">
-											<div class="flex-shrink-0">
-												<svg
-													class="h-5 w-5 text-danger-400"
-													viewBox="0 0 20 20"
-													fill="currentColor"
-												>
-													<path
-														fill-rule="evenodd"
-														d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-														clip-rule="evenodd"
-													/>
-												</svg>
-											</div>
-											<div class="ml-3">
-												<p class="text-sm font-medium text-danger-800">
-													{$authStore.error}
-												</p>
-											</div>
-										</div>
-									</div>
-								{/if}
-
-								<div class="pt-2">
-									<Button type="submit" class="w-full" loading={isLoading}>
-										{#if isLoading}
-											{tr('auth.login.loggingIn')}
-										{:else}
-											{tr('auth.login.loginButton')}
-										{/if}
-									</Button>
-								</div>
-
-								<div class="flex items-center justify-between pt-4">
-									{#if registrationEnabled}
-										<a
-											href={resolve('/register')}
-											class="font-medium text-accent hover:text-accent text-sm"
-										>
-											{tr('auth.login.noAccountYet')}
-											{tr('auth.login.registerNow')}
-										</a>
-									{:else}
-										<span></span>
-									{/if}
-									<a
-										href={resolve('/forgot-password')}
-										class="font-medium text-accent hover:text-accent text-sm"
-									>
-										{tr('auth.login.forgotPassword')}
-									</a>
-								</div>
-							</form>
-						{/if}
-					</div>
-				</div>
-
-				<!-- Right column: Information (1/3 width) -->
-				<div class="lg:col-span-1">
-					<div class="bg-white rounded-lg shadow-lg p-6">
-						<h2 class="text-xl font-bold text-text mb-4">
-							{tr('auth.login.infoTitle')}
-						</h2>
-						<p class="text-sm text-text-muted mb-4">
-							{tr('auth.login.infoDescription')}
-						</p>
-
-						<div class="space-y-4">
-							<div class="flex items-start">
-								<svg
-									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								<div>
-									<h3 class="text-sm font-medium text-text">
-										{tr('auth.login.info1Title')}
-									</h3>
-									<p class="text-xs text-text-muted mt-1">
-										{tr('auth.login.info1Desc')}
-									</p>
-								</div>
-							</div>
-
-							<div class="flex items-start">
-								<svg
-									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								<div>
-									<h3 class="text-sm font-medium text-text">
-										{tr('auth.login.info2Title')}
-									</h3>
-									<p class="text-xs text-text-muted mt-1">
-										{tr('auth.login.info2Desc')}
-									</p>
-								</div>
-							</div>
-
-							<div class="flex items-start">
-								<svg
-									class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								<div>
-									<h3 class="text-sm font-medium text-text">
-										{tr('auth.login.info3Title')}
-									</h3>
-									<p class="text-xs text-text-muted mt-1">
-										{tr('auth.login.info3Desc')}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						<div class="mt-6 pt-6 border-t border-border">
-							<div class="flex items-center text-sm text-text-muted">
-								<svg
-									class="w-5 h-5 text-accent mr-2 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-									/>
-								</svg>
-								<span class="text-xs">{tr('auth.login.securityNote')}</span>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
-</div>
+{/if}
