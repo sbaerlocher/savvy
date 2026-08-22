@@ -199,11 +199,17 @@
 								class="h-12.5 w-full rounded-lg border border-border-field bg-surface-2 pl-3.75 pr-11.5 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
 								placeholder={tr('auth.login.passwordPlaceholder')}
 							/>
+							<!-- Centre a 24x24 hit area (WCAG 2.2 AA) on the mockup's
+							     19px glyph, so the padding grows outward only. -->
 							<button
 								type="button"
+								disabled={isLoading}
 								onclick={() => (showPassword = !showPassword)}
-								aria-label={tr('auth.login.password')}
-								class="absolute right-3.75 top-1/2 -translate-y-1/2 text-text-faint"
+								aria-label={showPassword
+									? tr('common.hidePassword')
+									: tr('common.showPassword')}
+								aria-pressed={showPassword}
+								class="absolute right-3.125 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-xs text-text-faint focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-600 disabled:opacity-50"
 							>
 								<svg
 									width="19"

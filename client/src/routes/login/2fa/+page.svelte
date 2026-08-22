@@ -28,6 +28,8 @@
 	let backupCode = $state('');
 	let isLoading = $state(false);
 	let useBackup = $state(false);
+	// The real input is transparent, so the boxes render the focus ring.
+	let focused = $state(false);
 	let error = $state('');
 
 	onMount(() => {
@@ -141,15 +143,19 @@
 						<label for="totp-code-ios" class="sr-only">
 							{tr('auth.twoFactor.codeLabel')}
 						</label>
-						<div class="flex justify-center gap-2.25">
+						<!-- The mockup's own measures do not fit: six 44px boxes plus five
+						     9px gaps need 309px, while its 344px card leaves 296px between
+						     the 24px paddings. The boxes carry the digits, so they keep the
+						     44px and the gap gives way — 6x44 + 5x6 = 294px. -->
+						<div class="flex justify-center gap-1.5">
 							{#each Array(6) as _, i (i)}
 								<span
-									class="flex h-14 w-11 items-center justify-center rounded-lg font-mono text-title font-semibold {code.length ===
-									i
+									class="flex h-14 w-11 shrink-0 items-center justify-center rounded-lg font-mono text-title font-semibold {focused &&
+									code.length === i
 										? 'border-2 border-accent-600 bg-surface text-accent-700'
 										: 'border border-border-field bg-surface-2 text-text'}"
 								>
-									{#if code.length === i}
+									{#if focused && code.length === i}
 										<!-- The real input is transparent, so the mockup's caret
 										     is drawn on the active box instead. -->
 										<span class="h-6.5 w-0.5 rounded-full bg-accent-600"></span>
@@ -169,6 +175,8 @@
 							required
 							bind:value={code}
 							disabled={isLoading}
+							onfocus={() => (focused = true)}
+							onblur={() => (focused = false)}
 							class="absolute inset-0 h-full w-full cursor-default text-transparent caret-transparent opacity-0"
 						/>
 					</div>
