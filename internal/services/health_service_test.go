@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
 	"savvy/internal/config"
+	"savvy/internal/email"
 )
 
 // ============================================================================
@@ -160,4 +163,65 @@ func TestNewHealthCheckService(t *testing.T) {
 	assert.NotNil(t, svc)
 	assert.Equal(t, cfg, svc.config)
 	assert.NotNil(t, svc.httpClient)
+}
+
+// ============================================================================
+// CheckReadiness Concurrency Tests
+// ============================================================================
+
+// blockingEmailService keeps checkSMTP's goroutine in flight until released, so
+// the calling goroutine is guaranteed to reach the "not_configured" writes for
+// the disabled checks while that goroutine is still running.
+type blockingEmailService struct {
+	email.ServiceInterface
+	started chan struct{}
+	release chan struct{}
+}
+
+func (b *blockingEmailService) CheckConnection(context.Context) error {
+	close(b.started)
+	<-b.release
+	return nil
+}
+
+// TestCheckReadiness_NoConcurrentMapWrites pins the fix for the fatal
+// "concurrent map writes" crash: the checks map was written by the check
+// goroutines under mu and by the calling goroutine (the "not_configured"
+// branches) without it. Go aborts the process on concurrent map writes, so this
+// is unrecoverable in production. Run with -race to detect it deterministically.
+func TestCheckReadiness_NoConcurrentMapWrites(t *testing.T) {
+	emailSvc := &blockingEmailService{
+		started: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+
+	// SMTP enabled (runs as a goroutine); OAuth, push and TOTP left unconfigured
+	// so they take the "not_configured" branch on the calling goroutine.
+	svc := &HealthCheckService{
+		db:           &gorm.DB{},
+		emailService: emailSvc,
+		config: &config.Config{
+			SMTPHost:      "smtp.example.test",
+			SMTPFromEmail: "noreply@example.test",
+		},
+	}
+
+	done := make(chan *ReadinessReport, 1)
+	go func() {
+		report, err := svc.CheckReadiness(context.Background())
+		assert.NoError(t, err)
+		done <- report
+	}()
+
+	// Only release the SMTP check once it is actually running, so the caller's
+	// map writes and the goroutine's map write overlap.
+	<-emailSvc.started
+	close(emailSvc.release)
+
+	report := <-done
+	require.NotNil(t, report)
+	assert.Equal(t, "healthy", report.Checks["smtp"].Status)
+	assert.Equal(t, "not_configured", report.Checks["oauth"].Status)
+	assert.Equal(t, "not_configured", report.Checks["vapid"].Status)
+	assert.Equal(t, "not_configured", report.Checks["totp_encryption"].Status)
 }

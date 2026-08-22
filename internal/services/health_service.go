@@ -65,7 +65,11 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 	defer cancel()
 
 	checks := make(map[string]CheckResult)
-	var mu sync.Mutex // Protect map writes
+	// mu guards every write to checks, including the "not_configured" writes
+	// below: those run on the calling goroutine while the check goroutines are
+	// already in flight, so leaving them unlocked is a concurrent map write and
+	// aborts the process with a non-recoverable fatal error.
+	var mu sync.Mutex
 	var wg sync.WaitGroup
 
 	// 1. Database check (CRITICAL)
@@ -89,7 +93,9 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 			mu.Unlock()
 		}()
 	} else {
+		mu.Lock()
 		checks["smtp"] = CheckResult{Status: "not_configured", Enabled: false}
+		mu.Unlock()
 	}
 
 	// 3. OAuth check (OPTIONAL) - only if enabled
@@ -103,7 +109,9 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 			mu.Unlock()
 		}()
 	} else {
+		mu.Lock()
 		checks["oauth"] = CheckResult{Status: "not_configured", Enabled: false}
+		mu.Unlock()
 	}
 
 	// 4. VAPID check (OPTIONAL) - only if enabled
@@ -117,7 +125,9 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 			mu.Unlock()
 		}()
 	} else {
+		mu.Lock()
 		checks["vapid"] = CheckResult{Status: "not_configured", Enabled: false}
+		mu.Unlock()
 	}
 
 	// 5. TOTP encryption check (OPTIONAL) - whenever the service can run
@@ -132,7 +142,9 @@ func (s *HealthCheckService) CheckReadiness(ctx context.Context) (*ReadinessRepo
 			mu.Unlock()
 		}()
 	} else {
+		mu.Lock()
 		checks["totp_encryption"] = CheckResult{Status: "not_configured", Enabled: false}
+		mu.Unlock()
 	}
 
 	wg.Wait()
