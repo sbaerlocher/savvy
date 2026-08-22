@@ -15,6 +15,10 @@
 	// centered M3 card, so it branches at the top level instead of overriding.
 	const ANDROID = platform === 'android';
 
+	// Desktop mockup (screen-AuthDesktop, board B) swaps the logo for an accent
+	// card tile and pairs the name fields in two columns. Mobile keeps its layout.
+	const isDesktop = platform === 'other';
+
 	const pageLogger = logger.child('RegisterPage');
 
 	// Svelte 5 compatible translation wrapper
@@ -209,21 +213,119 @@
 				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<!-- Left column: Registration Form (2/3 width) -->
 					<div class="lg:col-span-2">
-						<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-							<div class="mb-8 flex items-center gap-4">
-								<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-								<h1 class="text-3xl font-bold text-text">
+						<div
+							class={isDesktop
+								? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 sm:p-8 lg:p-10'
+								: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
+						>
+							<div
+								class="mb-8 flex items-center gap-4 {isDesktop
+									? 'lg:mb-7.5 lg:gap-3.5'
+									: ''}"
+							>
+								{#if isDesktop}
+									<span
+										class="flex h-13 w-13 flex-none items-center justify-center rounded-lg bg-accent shadow-accent"
+									>
+										<svg
+											class="h-7 w-7 text-on-accent"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<rect x="2" y="5" width="20" height="14" rx="3" />
+											<path d="M2 10h20" />
+											<path d="M6 15h4" />
+										</svg>
+									</span>
+								{:else}
+									<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
+								{/if}
+								<h1
+									class="font-bold text-text {isDesktop
+										? 'text-3xl lg:text-screen-title'
+										: 'text-3xl'}"
+								>
 									{tr('auth.register.title')}
 								</h1>
 							</div>
 
-							<form class="space-y-6" onsubmit={handleRegister}>
+							<form
+								class="space-y-6 {isDesktop ? 'lg:space-y-5' : ''}"
+								onsubmit={handleRegister}
+							>
+								<div
+									class={isDesktop
+										? 'space-y-6 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0'
+										: 'space-y-6'}
+								>
+									<div>
+										<label
+											for="first_name"
+											class="block font-medium text-text-ink2 mb-1 {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+												: 'text-sm'}"
+										>
+											{tr('auth.register.firstName')}
+											<span class={isDesktop ? 'lg:text-text-faint' : ''}
+												>*</span
+											>
+										</label>
+										<input
+											id="first_name"
+											name="first_name"
+											type="text"
+											autocomplete="given-name"
+											required
+											bind:value={firstName}
+											disabled={isLoading}
+											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+												? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+												: ''}"
+											placeholder={tr('auth.register.firstName')}
+										/>
+									</div>
+
+									<div>
+										<label
+											for="last_name"
+											class="block font-medium text-text-ink2 mb-1 {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+												: 'text-sm'}"
+										>
+											{tr('auth.register.lastName')}
+											<span class={isDesktop ? 'lg:text-text-faint' : ''}
+												>*</span
+											>
+										</label>
+										<input
+											id="last_name"
+											name="last_name"
+											type="text"
+											autocomplete="family-name"
+											required
+											bind:value={lastName}
+											disabled={isLoading}
+											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+												? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+												: ''}"
+											placeholder={tr('auth.register.lastName')}
+										/>
+									</div>
+								</div>
+
 								<div>
 									<label
 										for="email"
-										class="block text-sm font-medium text-text-ink2 mb-1"
+										class="block font-medium text-text-ink2 mb-1 {isDesktop
+											? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+											: 'text-sm'}"
 									>
-										{tr('auth.register.email')} *
+										{tr('auth.register.email')}
+										<span class={isDesktop ? 'lg:text-text-faint' : ''}>*</span>
 									</label>
 									<input
 										id="email"
@@ -233,7 +335,9 @@
 										required
 										bind:value={email}
 										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+											? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+											: ''}"
 										placeholder={tr('auth.register.email')}
 									/>
 								</div>
@@ -241,9 +345,12 @@
 								<div>
 									<label
 										for="password"
-										class="block text-sm font-medium text-text-ink2 mb-1"
+										class="block font-medium text-text-ink2 mb-1 {isDesktop
+											? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+											: 'text-sm'}"
 									>
-										{tr('auth.register.password')} *
+										{tr('auth.register.password')}
+										<span class={isDesktop ? 'lg:text-text-faint' : ''}>*</span>
 									</label>
 									<input
 										id="password"
@@ -253,48 +360,10 @@
 										required
 										bind:value={password}
 										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+											? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+											: ''}"
 										placeholder={tr('auth.register.password')}
-									/>
-								</div>
-
-								<div>
-									<label
-										for="first_name"
-										class="block text-sm font-medium text-text-ink2 mb-1"
-									>
-										{tr('auth.register.firstName')} *
-									</label>
-									<input
-										id="first_name"
-										name="first_name"
-										type="text"
-										autocomplete="given-name"
-										required
-										bind:value={firstName}
-										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-										placeholder={tr('auth.register.firstName')}
-									/>
-								</div>
-
-								<div>
-									<label
-										for="last_name"
-										class="block text-sm font-medium text-text-ink2 mb-1"
-									>
-										{tr('auth.register.lastName')} *
-									</label>
-									<input
-										id="last_name"
-										name="last_name"
-										type="text"
-										autocomplete="family-name"
-										required
-										bind:value={lastName}
-										disabled={isLoading}
-										class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-										placeholder={tr('auth.register.lastName')}
 									/>
 								</div>
 
@@ -323,11 +392,13 @@
 									</div>
 								{/if}
 
-								<div class="pt-2">
+								<div class={isDesktop ? 'pt-2 lg:pt-0' : 'pt-2'}>
 									<button
 										type="submit"
 										disabled={isLoading}
-										class="btn btn-primary w-full"
+										class="btn btn-primary w-full {isDesktop
+											? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:font-semibold lg:shadow-accent'
+											: ''}"
 									>
 										{#if isLoading}
 											<span class="relative inline-flex h-3 w-3 mr-2"
@@ -344,10 +415,12 @@
 									</button>
 								</div>
 
-								<div class="text-center pt-4">
+								<div class="text-center pt-4 {isDesktop ? 'lg:pt-0' : ''}">
 									<a
 										href={resolve('/login')}
-										class="font-medium text-accent hover:text-accent"
+										class="font-medium text-accent hover:text-accent {isDesktop
+											? 'lg:text-body lg:font-semibold'
+											: ''}"
 									>
 										{tr('auth.register.hasAccount')}
 									</a>
@@ -358,18 +431,30 @@
 
 					<!-- Right column: Information (1/3 width) -->
 					<div class="lg:col-span-1">
-						<div class="bg-white rounded-lg shadow-lg p-6">
-							<h2 class="text-xl font-bold text-text mb-4">
+						<div
+							class={isDesktop
+								? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 lg:p-7'
+								: 'bg-white rounded-lg shadow-lg p-6'}
+						>
+							<h2
+								class="font-bold text-text {isDesktop
+									? 'text-xl lg:text-heading mb-4 lg:mb-1.5'
+									: 'text-xl mb-4'}"
+							>
 								{tr('auth.register.benefitsTitle')}
 							</h2>
-							<p class="text-sm text-text-muted mb-4">
+							<p
+								class="text-text-muted mb-4 {isDesktop
+									? 'text-sm lg:text-label lg:font-normal lg:mb-5'
+									: 'text-sm'}"
+							>
 								{tr('auth.register.benefitsDescription')}
 							</p>
 
 							<div class="space-y-4">
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -391,7 +476,7 @@
 
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -413,7 +498,7 @@
 
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -435,7 +520,7 @@
 
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -456,10 +541,16 @@
 								</div>
 							</div>
 
-							<div class="mt-6 pt-6 border-t border-border">
+							<div
+								class="border-t border-border {isDesktop
+									? 'mt-6 pt-6 lg:mt-5.5 lg:pt-5'
+									: 'mt-6 pt-6'}"
+							>
 								<div class="flex items-center text-sm text-text-muted">
 									<svg
-										class="w-5 h-5 text-accent mr-2 flex-shrink-0"
+										class="text-accent mr-2 flex-shrink-0 {isDesktop
+											? 'w-5 h-5 lg:w-4.5 lg:h-4.5'
+											: 'w-5 h-5'}"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"

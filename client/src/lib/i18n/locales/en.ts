@@ -760,7 +760,7 @@ export const en: TranslationKeys = {
 			benefit4Title: 'Everywhere in sync',
 			benefit4Desc:
 				'Organize on your computer, use in-store on the go - always up-to-date',
-			securityNote: '🔒 Bank-level encryption for maximum security of your data'
+			securityNote: 'Bank-level encryption for maximum security of your data'
 		},
 		verification: {
 			title: 'Verify Email',
