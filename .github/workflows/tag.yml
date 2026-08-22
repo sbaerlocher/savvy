@@ -18,7 +18,7 @@ jobs:
     uses: sbaerlocher/.github/.github/workflows/release-go.yml@2026-08-20
     with:
       # renovate: datasource=golang-version depName=golang
-      go-version: "1.26.6"
+      go-version: "1.27.0"
 
   docker-release:
     name: Docker Multi-Platform
