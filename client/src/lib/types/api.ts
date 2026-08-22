@@ -428,7 +428,7 @@ export interface ImportPreview {
 
 // Notification Types
 export type NotificationType =
-	'share_received' | 'transfer_received' | 'expiry_reminder';
+	'share_received' | 'transfer_received' | 'expiry_reminder' | 'validity_start';
 
 export interface NotificationDTO {
 	id: string;
