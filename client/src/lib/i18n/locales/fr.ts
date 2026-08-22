@@ -1200,6 +1200,11 @@ export const fr: TranslationKeys = {
 		inSwitzerland: 'en Suisse'
 	},
 	notifications: {
+		ios: {
+			allRead: 'Tout est lu',
+			swipeRead: 'Lu',
+			swipeDelete: 'Supprimer'
+		},
 		title: 'Notifications',
 		markAllAsRead: 'Tout marquer comme lu',
 		noNotifications: 'Aucune notification',

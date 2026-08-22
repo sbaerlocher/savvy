@@ -22,10 +22,12 @@
 		get(t)(key, params);
 
 	// Desktop renders the mockup layout (centred column, Neu/Früher sections,
-	// boxed row actions). iOS/Android keep the existing list. `platform` is a
-	// module constant, so this is a plain const, not $derived.
+	// boxed row actions). Android renders the M3 list, iOS the push screen with
+	// grouped-inset sections and swipe row actions. `platform` is a module
+	// constant, so these are plain consts, not $derived.
 	const IS_DESKTOP = platform === 'other';
 	const IS_ANDROID = platform === 'android';
+	const IS_IOS = platform === 'ios';
 
 	let notifications = $state<NotificationDTO[]>([]);
 	let isLoadingNotifications = $state(true);
@@ -35,6 +37,34 @@
 
 	const unreadNotifications = $derived(notifications.filter((n) => !n.is_read));
 	const readNotifications = $derived(notifications.filter((n) => n.is_read));
+
+	// Swipe-to-reveal for the iOS rows: unread rows expose mark-read plus delete
+	// (2 x 70px), read rows only delete.
+	const SWIPE_REVEAL = 140;
+	const SWIPE_REVEAL_READ = 70;
+	let swipedId = $state<string | null>(null);
+	let touchStartX = 0;
+	let touchStartY = 0;
+	let touchAxis: 'none' | 'x' | 'y' = 'none';
+
+	function onRowTouchStart(event: TouchEvent) {
+		touchStartX = event.touches[0].clientX;
+		touchStartY = event.touches[0].clientY;
+		touchAxis = 'none';
+	}
+
+	function onRowTouchMove(event: TouchEvent, id: string) {
+		const dx = event.touches[0].clientX - touchStartX;
+		const dy = event.touches[0].clientY - touchStartY;
+		// Lock the axis once, so a vertical scroll never opens the actions.
+		if (touchAxis === 'none') {
+			if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+			touchAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+		}
+		if (touchAxis !== 'x') return;
+		if (dx < -30) swipedId = id;
+		else if (dx > 30) swipedId = null;
+	}
 
 	// Id of the row whose overflow menu is open (Android), or null.
 	let openMenuId = $state<string | null>(null);
@@ -54,10 +84,10 @@
 		else goto(resolve('/dashboard'));
 	}
 
-	// Headline for the Android list row (the mockup splits headline and detail
-	// across two lines). It names the kind of event; the detail line below
+	// Headline for the Android and iOS list rows (both mockups split headline and
+	// detail across two lines). It names the kind of event; the detail line below
 	// carries the actor and merchant, so the two must not repeat each other.
-	function formatAndroidTitle(notification: NotificationDTO): string {
+	function formatTypeTitle(notification: NotificationDTO): string {
 		// $t() echoes the key back when it is missing, so compare against it
 		// rather than relying on a falsy return for unknown notification types.
 		const key = `notifications.typeTitle.${notification.type}`;
@@ -407,7 +437,7 @@
 							? 'font-medium text-text-muted'
 							: 'font-semibold text-text'}"
 					>
-						{formatAndroidTitle(notification)}
+						{formatTypeTitle(notification)}
 					</span>
 					<span
 						class="shrink-0 text-eyebrow font-normal whitespace-nowrap text-text-faint"
@@ -469,6 +499,116 @@
 				</button>
 			</div>
 		{/if}
+	</div>
+{/snippet}
+
+<!-- One row implementation for both iOS sections. Read rows keep the swipe
+     wrapper so they stay deletable; only the mark-read action is unread-only. -->
+{#snippet row(notification: NotificationDTO)}
+	{@const t = notificationTone(notification.type)}
+	{@const isRead = notification.is_read}
+	<div
+		class="relative overflow-hidden border-b border-border-soft last:border-b-0"
+	>
+		<!-- Swipe actions sit behind the row. -->
+		<div class="absolute inset-y-0 right-0 flex items-stretch">
+			{#if !isRead}
+				<button
+					type="button"
+					onclick={() => {
+						swipedId = null;
+						handleMarkAsRead(notification.id);
+					}}
+					class="flex w-17.5 flex-col items-center justify-center gap-0.75 bg-accent-600 text-[length:var(--text-tag)] font-semibold text-white"
+				>
+					<svg
+						class="h-4.25 w-4.25"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M20 6L9 17l-5-5" />
+					</svg>
+					{tr('notifications.ios.swipeRead')}
+				</button>
+			{/if}
+			<button
+				type="button"
+				onclick={() => {
+					swipedId = null;
+					handleDelete(notification.id);
+				}}
+				class="flex w-17.5 flex-col items-center justify-center gap-0.75 bg-danger-600 text-[length:var(--text-tag)] font-semibold text-white"
+			>
+				<svg
+					class="h-4.25 w-4.25"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+				</svg>
+				{tr('notifications.ios.swipeDelete')}
+			</button>
+		</div>
+		<div
+			class="relative flex items-start gap-3 px-3.75 py-3.5 transition-transform {isRead
+				? 'bg-surface'
+				: 'bg-accent-50'}"
+			style:transform={swipedId === notification.id
+				? `translateX(-${isRead ? SWIPE_REVEAL_READ : SWIPE_REVEAL}px)`
+				: 'translateX(0)'}
+			ontouchstart={onRowTouchStart}
+			ontouchmove={(e) => onRowTouchMove(e, notification.id)}
+			onclick={() =>
+				swipedId === notification.id
+					? (swipedId = null)
+					: handleNotificationClick(notification)}
+			onkeydown={(e) =>
+				e.key === 'Enter' && handleNotificationClick(notification)}
+			role="button"
+			tabindex="0"
+		>
+			<span
+				class="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg {t.tile} {t.ink} {isRead
+					? 'opacity-75'
+					: ''}"
+			>
+				<NotificationTypeIcon type={notification.type} />
+			</span>
+			<div class="min-w-0 flex-1">
+				<div class="flex items-baseline gap-2">
+					<span
+						class="min-w-0 flex-1 text-subheading {isRead
+							? 'font-medium text-text-muted'
+							: 'text-text'}"
+					>
+						{formatTypeTitle(notification)}
+					</span>
+					<span
+						class="shrink-0 whitespace-nowrap text-[length:var(--text-eyebrow)] text-text-faint"
+					>
+						{formatTimeAgo(notification.created_at)}
+					</span>
+				</div>
+				<p
+					class="mt-0.5 text-body-sm {isRead
+						? 'text-text-subtle'
+						: 'text-text-muted'}"
+				>
+					{formatNotificationMessage(notification)}
+				</p>
+			</div>
+			{#if !isRead}
+				<span class="mt-1.5 h-1.75 w-1.75 shrink-0 rounded-full {t.dot}"></span>
+			{/if}
+		</div>
 	</div>
 {/snippet}
 
@@ -717,6 +857,166 @@
 
 			<p
 				class="mt-3.5 px-6 text-center text-eyebrow font-normal text-text-faint"
+			>
+				{tr('notifications.archiveHint')}
+			</p>
+		{/if}
+	</div>
+{:else if IS_IOS}
+	<!-- iOS push screen: in-flow glass header, grouped-inset sections, swipe
+	     actions (screen-NotificationsIOS mockup). -->
+	<div class="pb-6">
+		<div class="flex items-start justify-between gap-3 pb-3 pt-2">
+			<div class="flex min-w-0 items-start gap-2.75">
+				<button
+					type="button"
+					onclick={goBack}
+					aria-label={tr('common.back')}
+					class="liquid-glass-surface inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-accent-700"
+				>
+					<svg
+						class="h-5 w-5"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.3"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M15 18l-6-6 6-6" />
+					</svg>
+				</button>
+				<div class="min-w-0">
+					<!-- Count comes from the store (server-side, authoritative), not
+						     from the paginated list. -->
+					<p class="text-eyebrow uppercase text-text-subtle">
+						{$notificationStore.unreadCount > 0
+							? $t('notifications.unreadCount', {
+									count: $notificationStore.unreadCount
+								})
+							: $t('notifications.ios.allRead')}
+					</p>
+					<h1 class="mt-0.5 text-screen-title text-text">
+						{tr('notifications.title')}
+					</h1>
+				</div>
+			</div>
+			<button
+				type="button"
+				onclick={handleMarkAllAsRead}
+				disabled={unreadNotifications.length === 0}
+				aria-label={tr('notifications.markAllAsRead')}
+				class="liquid-glass-surface mt-0.75 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full {unreadNotifications.length >
+				0
+					? 'text-accent-700'
+					: 'text-text-faint'}"
+			>
+				<svg
+					class="h-5 w-5"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.3"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M20 6L9 17l-5-5" />
+				</svg>
+			</button>
+		</div>
+
+		{#if isLoadingNotifications}
+			<LoadingSpinner />
+		{:else if notifications.length === 0}
+			<!-- Empty state: glass bell-off medallion, copy, settings pill. -->
+			<!-- Mockup centers the empty state in the remaining screen height. -->
+			<div
+				class="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center"
+			>
+				<span
+					class="liquid-glass-card mb-5.5 flex h-21 w-21 items-center justify-center rounded-full text-text-faint"
+				>
+					<svg
+						class="h-9.5 w-9.5"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path
+							d="M18 8a6 6 0 00-9.3-5M5.2 8.7C5 12.5 3 15 3 15h13M13.7 21a2 2 0 01-3.4 0"
+						/>
+						<path d="M3 3l18 18" />
+					</svg>
+				</span>
+				<p class="text-heading text-text-strong">
+					{tr('notifications.emptyTitle')}
+				</p>
+				<p class="mt-2 max-w-62.5 text-label font-normal text-text-muted">
+					{tr('notifications.emptyDescription')}
+				</p>
+				<a
+					href={resolve('/notifications/settings')}
+					class="liquid-glass-surface mt-5.5 inline-flex items-center gap-1.75 rounded-full px-4.5 py-2.75 text-label text-accent-700"
+				>
+					<svg
+						class="h-4 w-4"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.9"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="12" cy="12" r="3" />
+						<path
+							d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+						/>
+					</svg>
+					{tr('notifications.settingsLink')}
+				</a>
+			</div>
+		{:else}
+			{#if unreadNotifications.length > 0}
+				<p class="mx-1 mb-2 mt-1.5 text-eyebrow uppercase text-text-subtle">
+					{tr('notifications.sectionNew')}
+				</p>
+				<div class="overflow-hidden rounded-inset bg-surface">
+					{#each unreadNotifications as notification (notification.id)}
+						{@render row(notification)}
+					{/each}
+				</div>
+			{/if}
+
+			{#if readNotifications.length > 0}
+				<p class="mx-1 mb-2 mt-4.5 text-eyebrow uppercase text-text-subtle">
+					{tr('notifications.sectionEarlier')}
+				</p>
+				<div class="overflow-hidden rounded-inset bg-surface">
+					{#each readNotifications as notification (notification.id)}
+						{@render row(notification)}
+					{/each}
+				</div>
+			{/if}
+
+			{#if hasMore}
+				<div class="pt-4 text-center">
+					<button
+						class="text-label text-accent disabled:opacity-50"
+						onclick={loadMore}
+						disabled={isLoadingMore}
+					>
+						{isLoadingMore
+							? tr('notifications.loadingMore')
+							: tr('notifications.loadMore')}
+					</button>
+				</div>
+			{/if}
+
+			<p
+				class="mt-4 text-center text-[length:var(--text-eyebrow)] leading-normal text-text-faint"
 			>
 				{tr('notifications.archiveHint')}
 			</p>

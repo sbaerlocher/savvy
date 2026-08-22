@@ -1196,6 +1196,11 @@ export const de: TranslationKeys = {
 		inSwitzerland: 'in der Schweiz'
 	},
 	notifications: {
+		ios: {
+			allRead: 'Alles gelesen',
+			swipeRead: 'Gelesen',
+			swipeDelete: 'Löschen'
+		},
 		title: 'Mitteilungen',
 		markAllAsRead: 'Alle als gelesen markieren',
 		noNotifications: 'Keine Benachrichtigungen',
