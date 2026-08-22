@@ -729,6 +729,8 @@ export const de: TranslationKeys = {
 			noAccountYet: 'Noch kein Konto?',
 			registerNow: 'Jetzt registrieren',
 			forgotPassword: 'Passwort vergessen?',
+			subtitle: 'Willkommen zurück bei Savvy',
+			oauthOnlyNote: 'Lokaler Login ist deaktiviert — Anmeldung nur über SSO.',
 			infoTitle: 'Willkommen zurück!',
 			infoDescription:
 				'Melden Sie sich an, um auf Ihre digitalen Karten, Gutscheine und Geschenkkarten zuzugreifen.',
@@ -760,6 +762,8 @@ export const de: TranslationKeys = {
 			error: 'Registrierung fehlgeschlagen',
 			hasAccount: 'Schon ein Konto?',
 			loginNow: 'Jetzt anmelden',
+			subtitle: 'Alle Karten an einem Ort',
+			passwordHint: 'Mindestens 8 Zeichen',
 			benefitsTitle: 'Warum Savvy nutzen?',
 			benefitsDescription:
 				'Mit einem kostenlosen Konto haben Sie alle Vorteile immer dabei:',
