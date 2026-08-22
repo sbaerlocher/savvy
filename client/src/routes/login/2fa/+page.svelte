@@ -145,12 +145,13 @@
 						</label>
 						<!-- The mockup's own measures do not fit: six 44px boxes plus five
 						     9px gaps need 309px, while its 344px card leaves 296px between
-						     the 24px paddings. The boxes carry the digits, so they keep the
-						     44px and the gap gives way — 6x44 + 5x6 = 294px. -->
-						<div class="flex justify-center gap-1.5">
+						     the 24px paddings. The gap gives way first (6x44 + 5x6 = 294px),
+						     and the columns cap at the mockup's 44px so narrower screens
+						     shrink the boxes evenly instead of overhanging the card. -->
+						<div class="grid grid-cols-6 justify-items-center gap-1.5">
 							{#each Array(6) as _, i (i)}
 								<span
-									class="flex h-14 w-11 shrink-0 items-center justify-center rounded-lg font-mono text-title font-semibold {focused &&
+									class="flex h-14 w-full max-w-11 items-center justify-center rounded-lg font-mono text-title font-semibold {focused &&
 									code.length === i
 										? 'border-2 border-accent-600 bg-surface text-accent-700'
 										: 'border border-border-field bg-surface-2 text-text'}"
