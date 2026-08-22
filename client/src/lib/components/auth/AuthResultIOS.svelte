@@ -33,9 +33,8 @@
 			height="32"
 			viewBox="0 0 24 24"
 			fill="none"
-			stroke={tone === 'success'
-				? 'var(--color-success-600)'
-				: 'var(--color-danger-600)'}
+			stroke="currentColor"
+			class={tone === 'success' ? 'text-success-600' : 'text-danger-600'}
 			stroke-width="2"
 			stroke-linecap="round"
 			stroke-linejoin="round"
