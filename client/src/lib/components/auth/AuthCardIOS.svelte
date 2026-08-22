@@ -20,18 +20,18 @@
 <!-- The app shell pads `main` by 16px; the mockup insets this screen by 22px
      from the device edge, so cancel the shell padding before applying ours. -->
 <div
-	class="-mx-4 flex min-h-[calc(100dvh-var(--spacing-page-y))] items-center justify-center px-[var(--spacing-card)] sm:-mx-6 lg:-mx-8"
+	class="-mx-4 flex min-h-[calc(100dvh-var(--spacing-page-y))] items-center justify-center px-card sm:-mx-6 lg:-mx-8"
 >
 	<div
-		class="w-full max-w-[344px] rounded-inset bg-surface px-6 pt-[26px] shadow-card {compact
+		class="w-full max-w-86 rounded-inset bg-surface px-6 pt-6.5 shadow-card {compact
 			? 'pb-7'
 			: 'pb-6'}"
 	>
 		<div
-			class="flex items-center gap-[11px] {compact ? 'mb-3.5' : 'mb-[18px]'}"
+			class="flex items-center gap-2.75 {compact ? 'mb-3.5' : 'mb-4.5'}"
 		>
 			<span
-				class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-accent-600 shadow-accent"
+				class="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg bg-accent-600 shadow-accent"
 			>
 				<svg
 					width="21"
