@@ -2,6 +2,8 @@ import type { TranslationKeys } from '../types';
 
 export const en: TranslationKeys = {
 	common: {
+		showPassword: 'Show password',
+		hidePassword: 'Hide password',
 		appName: 'Savvy',
 		loading: 'Loading...',
 		error: 'Error',
@@ -743,7 +745,8 @@ export const en: TranslationKeys = {
 			hasAccount: 'Already have an account?',
 			loginNow: 'Sign in now',
 			subtitle: 'All your cards in one place',
-			passwordHint: 'At least 8 characters',
+			passwordHint:
+				'At least 12 characters, mixing letters, digits and symbols',
 			benefitsTitle: 'Why use Savvy?',
 			benefitsDescription:
 				'With a free account, you have all advantages always with you:',

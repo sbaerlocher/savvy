@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
+	import { t } from '$lib/stores/i18n';
 
 	// Material 3 outlined text field (Android auth screens): floating label that
 	// sits on the white card surface (--color-m3-card), accent 2px outline while focused, neutral 1px
@@ -34,8 +35,9 @@
 
 	let focused = $state(false);
 
-	// Svelte forbids a dynamic `type` alongside `bind:value`, so the three
-	// variants are spelled out and share this class string.
+	// A dynamic `type` alongside `bind:value` is the pattern Svelte's
+	// `attribute_invalid_type` rule targets, so every variant — including the
+	// revealed password — is spelled out and shares this class string.
 	const inputClass = $derived(
 		`text-subheading text-text h-14 w-full rounded-m3-xs bg-transparent px-4 disabled:opacity-50 ${
 			trailingIcon ? 'pr-11.5' : ''
@@ -57,11 +59,24 @@
 			onblur={() => (focused = false)}
 			class={inputClass}
 		/>
+	{:else if type === 'password' && revealed}
+		<input
+			{id}
+			{name}
+			type="text"
+			{autocomplete}
+			{required}
+			{disabled}
+			bind:value
+			onfocus={() => (focused = true)}
+			onblur={() => (focused = false)}
+			class={inputClass}
+		/>
 	{:else if type === 'password'}
 		<input
 			{id}
 			{name}
-			type={revealed ? 'text' : 'password'}
+			type="password"
 			{autocomplete}
 			{required}
 			{disabled}
@@ -87,10 +102,13 @@
 	{#if trailingIcon}
 		<button
 			type="button"
+			{disabled}
 			onclick={() => (revealed = !revealed)}
-			aria-label={label}
+			aria-label={revealed
+				? $t('common.hidePassword')
+				: $t('common.showPassword')}
 			aria-pressed={revealed}
-			class="text-text-faint absolute top-1/2 right-3.5 -translate-y-1/2"
+			class="text-text-faint absolute top-1/2 right-3.5 -translate-y-1/2 disabled:opacity-50"
 		>
 			<svg
 				class="h-4.5 w-4.5"
@@ -118,9 +136,9 @@
 		{label}
 	</label>
 	{#if hint}
-		<span
-			class="text-text-subtle text-mono-sm absolute top-full left-3.5 mt-1 font-sans"
-		>
+		<!-- In flow, not absolute: the copy can wrap to a second line and would
+		     otherwise run under whatever follows the field. -->
+		<span class="text-text-subtle text-mono-sm mt-1 block pl-3.5 font-sans">
 			{hint}
 		</span>
 	{/if}

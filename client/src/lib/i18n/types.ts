@@ -2,6 +2,8 @@ import type { Language } from '$lib/stores/i18n';
 
 export type TranslationKeys = {
 	common: {
+		showPassword: string;
+		hidePassword: string;
 		appName: string;
 		loading: string;
 		error: string;
