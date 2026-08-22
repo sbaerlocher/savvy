@@ -69,9 +69,11 @@
 						: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
 				>
 					<div
-						class="flex items-center gap-4 lg:gap-3.5 {isDesktop && submitted
-							? 'mb-8 lg:mb-3'
-							: 'mb-8 lg:mb-6'}"
+						class="mb-8 flex items-center gap-4 {isDesktop
+							? submitted
+								? 'lg:mb-3 lg:gap-3.5'
+								: 'lg:mb-6 lg:gap-3.5'
+							: ''}"
 					>
 						{#if isDesktop}
 							<span
@@ -110,7 +112,9 @@
 								: ''}"
 						>
 							<div
-								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4 lg:mb-4.5"
+								class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-100 {isDesktop
+									? 'lg:mb-4.5'
+									: ''}"
 							>
 								<svg
 									class="h-8 w-8 text-success-600"

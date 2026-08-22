@@ -88,10 +88,11 @@
 				: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
 		>
 			<div
-				class="flex items-center gap-4 lg:gap-3.5 {isDesktop &&
-				status === 'form'
-					? 'mb-8 lg:mb-4.5'
-					: 'mb-8 lg:mb-2.5'}"
+				class="mb-8 flex items-center gap-4 {isDesktop
+					? status === 'form'
+						? 'lg:mb-4.5 lg:gap-3.5'
+						: 'lg:mb-2.5 lg:gap-3.5'
+					: ''}"
 			>
 				{#if isDesktop}
 					<span
@@ -126,7 +127,9 @@
 			{#if status === 'success'}
 				<div class="text-center py-8 {isDesktop ? 'lg:pt-7 lg:pb-1' : ''}">
 					<div
-						class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4 lg:mb-4.5"
+						class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-100 {isDesktop
+							? 'lg:mb-4.5'
+							: ''}"
 					>
 						<svg
 							class="h-8 w-8 text-success-600"
@@ -168,7 +171,9 @@
 			{:else if status === 'error'}
 				<div class="text-center py-8 {isDesktop ? 'lg:pt-7 lg:pb-1' : ''}">
 					<div
-						class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-danger-100 mb-4 lg:mb-4.5"
+						class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-100 {isDesktop
+							? 'lg:mb-4.5'
+							: ''}"
 					>
 						<svg
 							class="h-8 w-8 text-danger-600"
