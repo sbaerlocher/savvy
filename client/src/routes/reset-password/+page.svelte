@@ -3,6 +3,8 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { ApiError, authApi } from '$lib/api';
+	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
+	import AuthResultIOS from '$lib/components/auth/AuthResultIOS.svelte';
 	import M3TextField from '$lib/components/ui/M3TextField.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
@@ -21,6 +23,10 @@
 	// Android mockup (screen-PasswordResetAndroid) replaces the split with a
 	// centered M3 card, so it branches at the top level instead of overriding.
 	const ANDROID = platform === 'android';
+
+	// iOS mockup (screen-PasswordResetIOS) uses its own grouped-inset card,
+	// so it branches at the top level like Android does.
+	const IOS = platform === 'ios';
 
 	let password = $state('');
 	let confirmPassword = $state('');
@@ -85,7 +91,113 @@
 	<title>{tr('auth.resetPassword.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
-{#if ANDROID}
+{#if IOS}
+	<AuthCardIOS
+		title={tr('auth.resetPassword.title')}
+		compact={status !== 'form'}
+	>
+		{#if status === 'success'}
+			<AuthResultIOS
+				tone="success"
+				icon="check"
+				heading={tr('auth.resetPassword.success')}
+				message={tr('auth.resetPassword.successMessage')}
+			>
+				<a
+					href={resolve('/login')}
+					class="flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent"
+				>
+					{tr('auth.resetPassword.goToLogin')}
+				</a>
+			</AuthResultIOS>
+		{:else if status === 'error'}
+			<AuthResultIOS
+				tone="danger"
+				icon="cross"
+				heading={tr('auth.resetPassword.error')}
+				message={errorMessage}
+			>
+				<div class="flex flex-col gap-3">
+					{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
+						<a
+							href={resolve('/forgot-password')}
+							class="flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent"
+						>
+							{tr('auth.resetPassword.requestNew')}
+						</a>
+					{/if}
+					<a
+						href={resolve('/login')}
+						class="flex h-13 w-full items-center justify-center rounded-xl border border-border-field bg-surface text-amount font-semibold text-text"
+					>
+						{tr('auth.resetPassword.goToLogin')}
+					</a>
+				</div>
+			</AuthResultIOS>
+		{:else}
+			<p class="mb-5 text-body text-text-muted">
+				{tr('auth.resetPassword.description')}
+			</p>
+
+			<form class="flex flex-col gap-4" onsubmit={handleSubmit}>
+				<div class="flex flex-col gap-[7px]">
+					<label for="password-ios" class="pl-0.5 text-label text-text-ink2">
+						{tr('auth.resetPassword.password')}
+					</label>
+					<input
+						id="password-ios"
+						name="password"
+						type="password"
+						autocomplete="new-password"
+						required
+						bind:value={password}
+						disabled={isLoading}
+						class="h-[50px] rounded-lg border border-border-field bg-surface-2 px-[15px] text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+						placeholder={tr('auth.resetPassword.passwordPlaceholder')}
+					/>
+				</div>
+
+				<div class="flex flex-col gap-[7px]">
+					<label
+						for="confirmPassword-ios"
+						class="pl-0.5 text-label text-text-ink2"
+					>
+						{tr('auth.resetPassword.confirmPassword')}
+					</label>
+					<input
+						id="confirmPassword-ios"
+						name="confirmPassword"
+						type="password"
+						autocomplete="new-password"
+						required
+						bind:value={confirmPassword}
+						disabled={isLoading}
+						class="h-[50px] rounded-lg border border-border-field bg-surface-2 px-[15px] text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+						placeholder={tr('auth.resetPassword.confirmPasswordPlaceholder')}
+					/>
+				</div>
+
+				<button
+					type="submit"
+					disabled={isLoading}
+					class="mt-0.5 flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent disabled:opacity-50"
+				>
+					{#if isLoading}
+						{tr('auth.resetPassword.submitting')}
+					{:else}
+						{tr('auth.resetPassword.submitButton')}
+					{/if}
+				</button>
+
+				<div class="pt-1 text-center">
+					<a href={resolve('/login')} class="text-label text-accent-600">
+						{tr('auth.resetPassword.goToLogin')}
+					</a>
+				</div>
+			</form>
+		{/if}
+	</AuthCardIOS>
+{:else if ANDROID}
 	<!-- Android M3: centered tonal card, no logo header. -->
 	<div class="flex min-h-dvh items-center justify-center px-5">
 		{#if status === 'success'}
