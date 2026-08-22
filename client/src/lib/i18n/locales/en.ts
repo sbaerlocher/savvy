@@ -826,6 +826,7 @@ export const en: TranslationKeys = {
 		},
 		twoFactor: {
 			title: 'Two-Factor Authentication',
+			heading: 'Verification',
 			subtitle: 'Enter the 6-digit code from your authenticator app.',
 			codeLabel: 'Verification Code',
 			codePlaceholder: '000000',

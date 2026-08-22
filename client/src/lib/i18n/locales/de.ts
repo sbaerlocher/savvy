@@ -849,6 +849,7 @@ export const de: TranslationKeys = {
 		},
 		twoFactor: {
 			title: 'Zwei-Faktor-Authentifizierung',
+			heading: 'Bestätigung',
 			subtitle:
 				'Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.',
 			codeLabel: 'Bestätigungscode',

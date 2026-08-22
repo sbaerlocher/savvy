@@ -11,11 +11,16 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import M3TextField from '$lib/components/ui/M3TextField.svelte';
+	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
 	import { platform } from '$lib/utils/platform';
 
 	// Android mockup (screen-AuthAndroid) replaces the split layout with a
 	// centered M3 card, so it branches at the top level instead of overriding.
 	const ANDROID = platform === 'android';
+
+	// iOS mockup (screen-AuthIOS) replaces the desktop two-column
+	// layout with a grouped-inset card, so it branches at the top level.
+	const IOS = platform === 'ios';
 
 	// Desktop mockup (screen-AuthDesktop, board A) swaps the logo for an accent
 	// card tile and raises the type steps. Mobile keeps its layout.
@@ -36,6 +41,7 @@
 	let localLoginEnabled = $state(false);
 	let registrationEnabled = $state(false);
 	let oauthError = $state('');
+	let showPassword = $state(false);
 	let passwordVisible = $state(false);
 
 	// Redirect if already logged in
@@ -111,7 +117,158 @@
 	<title>{tr('auth.login.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
-{#if ANDROID}
+{#if IOS}
+	{#if !configLoaded}
+		<LoadingSpinner fullPage />
+	{:else}
+		<AuthCardIOS
+			title={tr('auth.login.title')}
+			subtitle={tr('auth.login.subtitle')}
+		>
+			{#if oauthError}
+				<p
+					class="mb-4 rounded-lg bg-danger-50 p-3 text-body-sm text-danger-800"
+				>
+					{tr('auth.login.oauthError')}
+				</p>
+			{/if}
+
+			{#if oauthEnabled}
+				<a
+					href={oauthLoginURL}
+					rel="external"
+					class="mb-4 flex h-13 w-full items-center justify-center gap-2.5 rounded-lg border border-border-field bg-surface-2 text-subheading font-semibold text-text"
+				>
+					<svg
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						aria-hidden="true"
+					>
+						<path
+							d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+						></path>
+					</svg>
+					{tr('auth.login.oauthButton')}
+				</a>
+
+				{#if localLoginEnabled}
+					<div
+						class="mb-4.5 flex items-center gap-3 text-body-sm font-medium text-text-subtle"
+					>
+						<span class="h-px flex-1 bg-border"></span>
+						{tr('auth.login.orDivider')}
+						<span class="h-px flex-1 bg-border"></span>
+					</div>
+				{/if}
+			{/if}
+
+			{#if localLoginEnabled}
+				<form class="flex flex-col gap-3.5" onsubmit={handleLogin}>
+					<div class="flex flex-col gap-1.75">
+						<label for="email-ios" class="pl-0.5 text-label text-text-ink2">
+							{tr('auth.login.email')}
+						</label>
+						<input
+							id="email-ios"
+							name="email"
+							type="email"
+							autocomplete="email"
+							required
+							bind:value={email}
+							disabled={isLoading}
+							class="h-12.5 rounded-lg border border-border-field bg-surface-2 px-3.75 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+							placeholder={tr('auth.login.emailPlaceholder')}
+						/>
+					</div>
+
+					<div class="flex flex-col gap-1.75">
+						<label for="password-ios" class="pl-0.5 text-label text-text-ink2">
+							{tr('auth.login.password')}
+						</label>
+						<div class="relative">
+							<input
+								id="password-ios"
+								name="password"
+								type={showPassword ? 'text' : 'password'}
+								autocomplete="current-password"
+								required
+								bind:value={password}
+								disabled={isLoading}
+								class="h-12.5 w-full rounded-lg border border-border-field bg-surface-2 pl-3.75 pr-11.5 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+								placeholder={tr('auth.login.passwordPlaceholder')}
+							/>
+							<button
+								type="button"
+								onclick={() => (showPassword = !showPassword)}
+								aria-label={tr('auth.login.password')}
+								class="absolute right-3.75 top-1/2 -translate-y-1/2 text-text-faint"
+							>
+								<svg
+									width="19"
+									height="19"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true"
+								>
+									<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+									></path>
+									<circle cx="12" cy="12" r="3"></circle>
+									{#if showPassword}
+										<path d="M4 20L20 4"></path>
+									{/if}
+								</svg>
+							</button>
+						</div>
+					</div>
+
+					{#if $authStore.error}
+						<p class="rounded-lg bg-danger-50 p-3 text-body-sm text-danger-800">
+							{$authStore.error}
+						</p>
+					{/if}
+
+					<button
+						type="submit"
+						disabled={isLoading}
+						class="mt-0.5 flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent disabled:opacity-50"
+					>
+						{#if isLoading}
+							{tr('auth.login.loggingIn')}
+						{:else}
+							{tr('auth.login.loginButton')}
+						{/if}
+					</button>
+
+					<div class="flex items-center justify-between pt-0.5">
+						{#if registrationEnabled}
+							<a href={resolve('/register')} class="text-label text-accent-600"
+								>{tr('auth.register.title')}</a
+							>
+						{:else}
+							<span></span>
+						{/if}
+						<a
+							href={resolve('/forgot-password')}
+							class="text-label text-accent-600"
+						>
+							{tr('auth.login.forgotPassword')}
+						</a>
+					</div>
+				</form>
+			{:else}
+				<p class="text-center text-body-sm text-text-subtle">
+					{tr('auth.login.oauthOnlyNote')}
+				</p>
+			{/if}
+		</AuthCardIOS>
+	{/if}
+{:else if ANDROID}
 	<!-- Android M3: centered tonal card, no info column, no logo header. -->
 	<div class="flex min-h-dvh items-center justify-center px-5">
 		{#if !configLoaded}

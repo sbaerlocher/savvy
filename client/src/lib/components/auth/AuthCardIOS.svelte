@@ -1,15 +1,20 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	// iOS grouped-inset auth card (mockup screen-PasswordResetIOS, frames 1-5):
-	// solid card on the system background, accent icon tile next to the title.
-	// Frames differ only in the card body, so the chrome lives here once.
+	// iOS grouped-inset auth card (mockups screen-PasswordResetIOS frames 1-5,
+	// screen-AuthIOS phones 1-2): solid card on the system background, accent
+	// icon tile next to the title. Frames differ only in the card body, so the
+	// chrome lives here once.
 	let {
 		title,
+		subtitle,
 		compact = false,
 		children
 	}: {
 		title: string;
+		// The auth mockups pair the title with a muted second line; the
+		// password-reset frames use the title alone.
+		subtitle?: string;
 		// Success/error frames pair a 14px title gap with 28px card bottom
 		// padding; the form frames use 18px and 24px.
 		compact?: boolean;
@@ -28,7 +33,11 @@
 			: 'pb-6'}"
 	>
 		<div
-			class="flex items-center gap-2.75 {compact ? 'mb-3.5' : 'mb-4.5'}"
+			class="flex items-center gap-2.75 {compact
+				? 'mb-3.5'
+				: subtitle
+					? 'mb-card'
+					: 'mb-4.5'}"
 		>
 			<span
 				class="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg bg-accent-600 shadow-accent"
@@ -50,7 +59,12 @@
 					<path d="M6 15h4"></path>
 				</svg>
 			</span>
-			<h1 class="text-heading text-text">{title}</h1>
+			<div>
+				<h1 class="text-heading text-text">{title}</h1>
+				{#if subtitle}
+					<p class="mt-0.75 text-body-sm text-text-muted">{subtitle}</p>
+				{/if}
+			</div>
 		</div>
 
 		{@render children()}

@@ -783,6 +783,7 @@ export type TranslationKeys = {
 		};
 		twoFactor: {
 			title: string;
+			heading: string;
 			subtitle: string;
 			codeLabel: string;
 			codePlaceholder: string;

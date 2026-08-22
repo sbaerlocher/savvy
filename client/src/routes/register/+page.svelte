@@ -9,11 +9,16 @@
 	import { logger } from '$lib/utils/logger';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import M3TextField from '$lib/components/ui/M3TextField.svelte';
+	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
 	import { platform } from '$lib/utils/platform';
 
 	// Android mockup (screen-AuthAndroid) replaces the split layout with a
 	// centered M3 card, so it branches at the top level instead of overriding.
 	const ANDROID = platform === 'android';
+
+	// iOS mockup (screen-AuthIOS) replaces the desktop two-column
+	// layout with a grouped-inset card, so it branches at the top level.
+	const IOS = platform === 'ios';
 
 	// Desktop mockup (screen-AuthDesktop, board B) swaps the logo for an accent
 	// card tile and pairs the name fields in two columns. Mobile keeps its layout.
@@ -89,7 +94,117 @@
 	<title>{tr('auth.register.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
-{#if ANDROID}
+{#if IOS}
+	{#if !configLoaded}
+		<LoadingSpinner fullPage />
+	{:else}
+		<AuthCardIOS
+			title={tr('auth.register.title')}
+			subtitle={tr('auth.register.subtitle')}
+		>
+			<form class="flex flex-col gap-3.25" onsubmit={handleRegister}>
+				<div class="flex gap-2.5">
+					<div class="flex flex-1 flex-col gap-1.75">
+						<label
+							for="first-name-ios"
+							class="pl-0.5 text-label text-text-ink2"
+						>
+							{tr('auth.register.firstName')}
+						</label>
+						<input
+							id="first-name-ios"
+							name="first_name"
+							type="text"
+							autocomplete="given-name"
+							required
+							bind:value={firstName}
+							disabled={isLoading}
+							class="h-12 w-full rounded-lg border border-border-field bg-surface-2 px-3.5 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+							placeholder={tr('auth.register.firstNamePlaceholder')}
+						/>
+					</div>
+					<div class="flex flex-1 flex-col gap-1.75">
+						<label for="last-name-ios" class="pl-0.5 text-label text-text-ink2">
+							{tr('auth.register.lastName')}
+						</label>
+						<input
+							id="last-name-ios"
+							name="last_name"
+							type="text"
+							autocomplete="family-name"
+							required
+							bind:value={lastName}
+							disabled={isLoading}
+							class="h-12 w-full rounded-lg border border-border-field bg-surface-2 px-3.5 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+							placeholder={tr('auth.register.lastNamePlaceholder')}
+						/>
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-1.75">
+					<label for="email-ios" class="pl-0.5 text-label text-text-ink2">
+						{tr('auth.register.email')}
+					</label>
+					<input
+						id="email-ios"
+						name="email"
+						type="email"
+						autocomplete="email"
+						required
+						bind:value={email}
+						disabled={isLoading}
+						class="h-12 rounded-lg border border-border-field bg-surface-2 px-3.75 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+						placeholder={tr('auth.register.emailPlaceholder')}
+					/>
+				</div>
+
+				<div class="flex flex-col gap-1.75">
+					<label for="password-ios" class="pl-0.5 text-label text-text-ink2">
+						{tr('auth.register.password')}
+					</label>
+					<input
+						id="password-ios"
+						name="password"
+						type="password"
+						autocomplete="new-password"
+						required
+						bind:value={password}
+						disabled={isLoading}
+						class="h-12 rounded-lg border border-border-field bg-surface-2 px-3.75 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+						placeholder={tr('auth.register.passwordPlaceholder')}
+					/>
+				</div>
+
+				{#if $authStore.error}
+					<p class="rounded-lg bg-danger-50 p-3 text-body-sm text-danger-800">
+						{$authStore.error}
+					</p>
+				{/if}
+
+				<button
+					type="submit"
+					disabled={isLoading}
+					class="mt-0.5 flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent disabled:opacity-50"
+				>
+					{#if isLoading}
+						{tr('auth.register.registering')}
+					{:else}
+						{tr('auth.register.registerButton')}
+					{/if}
+				</button>
+
+				<div class="pt-0.5 text-center">
+					<span class="text-label font-normal text-text-muted"
+						>{tr('auth.register.hasAccount')}
+					</span>
+					<a href={resolve('/login')} class="text-label text-accent-600">
+						{tr('auth.register.loginNow')}
+					</a>
+				</div>
+			</form>
+		</AuthCardIOS>
+	{/if}
+{:else if ANDROID}
 	<!-- Android M3: centered tonal card, no benefits column, no logo header. -->
 	<div class="flex min-h-dvh items-center justify-center px-5">
 		{#if !configLoaded}
