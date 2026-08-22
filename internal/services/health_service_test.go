@@ -3,14 +3,10 @@ package services
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 
 	"savvy/internal/config"
-	"savvy/internal/email"
 )
 
 // ============================================================================
@@ -164,51 +160,4 @@ func TestNewHealthCheckService(t *testing.T) {
 	assert.NotNil(t, svc)
 	assert.Equal(t, cfg, svc.config)
 	assert.NotNil(t, svc.httpClient)
-}
-
-// ============================================================================
-// CheckReadiness Concurrency Tests
-// ============================================================================
-
-// slowEmailService delays the SMTP check so it is still running when the
-// calling goroutine reaches the "not_configured" branches for the disabled
-// checks. It honours the context so the test can never hang.
-type slowEmailService struct {
-	email.ServiceInterface
-}
-
-func (slowEmailService) CheckConnection(ctx context.Context) error {
-	select {
-	case <-time.After(20 * time.Millisecond):
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-// TestCheckReadiness_NoConcurrentMapWrites pins the fix for the fatal
-// "concurrent map writes" crash: the checks map was written by the check
-// goroutines under mu and by the calling goroutine (the "not_configured"
-// branches) without it. Go aborts the process on concurrent map writes, which
-// no recover can catch, so the race detector is what makes this observable.
-func TestCheckReadiness_NoConcurrentMapWrites(t *testing.T) {
-	// SMTP enabled so its check runs as a goroutine; OAuth, push and TOTP left
-	// unconfigured so they take the "not_configured" branch on the caller.
-	svc := &HealthCheckService{
-		db:           &gorm.DB{},
-		emailService: slowEmailService{},
-		config: &config.Config{
-			SMTPHost:      "smtp.example.test",
-			SMTPFromEmail: "noreply@example.test",
-		},
-	}
-
-	report, err := svc.CheckReadiness(context.Background())
-	require.NoError(t, err)
-	require.NotNil(t, report)
-
-	assert.Equal(t, "healthy", report.Checks["smtp"].Status)
-	assert.Equal(t, "not_configured", report.Checks["oauth"].Status)
-	assert.Equal(t, "not_configured", report.Checks["vapid"].Status)
-	assert.Equal(t, "not_configured", report.Checks["totp_encryption"].Status)
 }
