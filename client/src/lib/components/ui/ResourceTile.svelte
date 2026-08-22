@@ -57,15 +57,15 @@
 	// to scan). On desktop the inline barcode is enough — no modal.
 	const barcodeEnlargeable = $derived(!!onShowBarcode && platform !== 'other');
 
-	// Card chrome per platform: iOS outlined white (tile mockup), Android M3
-	// tonal, Desktop solid — mirrors the BottomSheet.svelte platform-switch
-	// pattern. `platform` is a module-level constant, so these never change:
-	// plain consts, not $derived. Each carries its own hover affordance so it
-	// stays with the chrome that defines it (none on Android, field border on
-	// desktop).
+	// Card chrome per platform: iOS outlined white on the 15px tile radius
+	// (mockup non-m3), Android M3 tonal, Desktop solid — mirrors the
+	// BottomSheet.svelte platform-switch pattern. `platform` is a module-level
+	// constant, so these never change: plain consts, not $derived. Each carries
+	// its own hover affordance so it stays with the chrome that defines it
+	// (none on Android, field border on desktop).
 	const CARD_CLASS =
 		platform === 'ios'
-			? 'border border-border bg-surface rounded-[var(--radius-inset)]'
+			? 'border border-border bg-surface rounded-2xl'
 			: platform === 'android'
 				? 'bg-m3-card rounded-[var(--radius-m3-lg)]'
 				: 'border border-border/80 bg-surface shadow-[var(--shadow-card)] rounded-xl hover:border-border-field';
@@ -82,11 +82,12 @@
 				: 'bg-surface-1 rounded-lg border border-border-soft';
 
 	// Type-icon tile: Android M3 uses the secondary container on the small
-	// shape (mockup); iOS/desktop keep the neutral soft tile.
+	// shape (mockup); iOS/desktop take the neutral tile tint the mockup
+	// specifies for the non-m3 chrome.
 	const ICON_TILE_CLASS =
 		platform === 'android'
 			? 'h-8.5 w-8.5 rounded-[var(--radius-m3-sm)] bg-m3-secondary-container text-m3-on-secondary-container'
-			: 'h-9 w-9 rounded-lg bg-border-soft text-text-subtle';
+			: 'h-9 w-9 rounded-lg bg-tile-tint text-text-subtle';
 
 	// iOS select mode marks the tile with a round checkbox in the corner and
 	// scales it down slightly, rather than only drawing a ring (mockup
