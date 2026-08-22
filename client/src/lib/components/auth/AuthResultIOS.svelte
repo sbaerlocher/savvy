@@ -21,7 +21,7 @@
 	} = $props();
 </script>
 
-<div class="pt-[22px] text-center">
+<div class="pt-card text-center">
 	<span
 		class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full {tone ===
 		'success'

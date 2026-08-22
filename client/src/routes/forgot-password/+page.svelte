@@ -91,7 +91,7 @@
 			</p>
 
 			<form class="flex flex-col gap-4" onsubmit={handleSubmit}>
-				<div class="flex flex-col gap-[7px]">
+				<div class="flex flex-col gap-1.75">
 					<label for="email-ios" class="pl-0.5 text-label text-text-ink2">
 						{tr('auth.forgotPassword.email')}
 					</label>
@@ -103,7 +103,7 @@
 						required
 						bind:value={email}
 						disabled={isLoading}
-						class="h-[50px] rounded-lg border border-border-field bg-surface-2 px-[15px] text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
+						class="h-12.5 rounded-lg border border-border-field bg-surface-2 px-3.75 text-amount font-normal text-text placeholder:text-text-placeholder focus:border-accent focus:outline-none"
 						placeholder={tr('auth.forgotPassword.emailPlaceholder')}
 					/>
 				</div>
@@ -133,7 +133,7 @@
 	<div class="flex min-h-dvh items-center justify-center px-5">
 		{#if submitted}
 			<div
-				class="bg-m3-card rounded-m3-lg w-full max-w-88 px-[var(--spacing-card)] pt-8 pb-7 text-center"
+				class="bg-m3-card rounded-m3-lg w-full max-w-88 px-card pt-8 pb-7 text-center"
 			>
 				<span
 					class="bg-success-100 rounded-m3-full mb-4 inline-flex h-16 w-16 items-center justify-center"
@@ -166,9 +166,7 @@
 				</a>
 			</div>
 		{:else}
-			<div
-				class="bg-m3-card rounded-m3-lg w-full max-w-88 px-[var(--spacing-card)] pt-6 pb-6"
-			>
+			<div class="bg-m3-card rounded-m3-lg w-full max-w-88 px-card pt-6 pb-6">
 				<div class="mb-4.5 flex flex-col items-center text-center">
 					<span
 						class="bg-accent-600 rounded-m3-md shadow-accent mb-3.5 flex h-13 w-13 items-center justify-center"
