@@ -31,20 +31,17 @@
 
 	// iOS renders the wallet's type filter as a UIKit segmented control: equal
 	// segments inside one tinted track, the active segment raised in white
-	// (mockup screen-WalletIOS). Only the 'pill' variant switches — the 'chip'
-	// variant inside the filter sheet stays a chip row on every platform.
+	// (mockup screen-WalletIOS — three segments, no explicit "All"). Tapping the
+	// active one clears back to 'all', same as the chip row, so unlike a real
+	// UISegmentedControl the default 'all' state rests with no segment raised —
+	// the mockup draws that flat track too, all three segments muted. Only the
+	// 'pill' variant switches — the 'chip' variant inside the filter sheet stays
+	// a chip row on every platform.
 	const segmented = $derived(platform === 'ios' && variant === 'pill');
 
 	function handleClick(type: 'all' | 'cards' | 'vouchers' | 'gift-cards') {
 		if (type === 'all') {
 			typeFilter = 'all';
-			return;
-		}
-		// A segmented control always keeps exactly one selection, so tapping the
-		// active segment is a no-op there. The chip row instead toggles back to
-		// 'all', where "nothing highlighted" legibly means "every type".
-		if (segmented) {
-			typeFilter = type;
 			return;
 		}
 		typeFilter = allowToggle && typeFilter === type ? 'all' : type;
@@ -57,10 +54,7 @@
 	const entries = $derived(
 		(
 			[
-				// The segmented control has no "nothing selected" reading, so it
-				// always carries the 'all' segment — that is the wallet's default
-				// filter and it needs somewhere to show.
-				{ key: 'all', label: 'common.all', show: showAll || segmented },
+				{ key: 'all', label: 'common.all', show: showAll },
 				{
 					key: 'cards',
 					label: 'merchantOverview.filterCards',
