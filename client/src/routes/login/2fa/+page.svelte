@@ -13,6 +13,10 @@
 	// with a centered M3 card and a six-box code display.
 	const ANDROID = platform === 'android';
 
+	// Desktop mockup (screen-AuthDesktop, board C) enlarges the centered card's
+	// chrome, icon circle and code field. Mobile keeps its layout.
+	const isDesktop = platform === 'other';
+
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
 
@@ -189,13 +193,21 @@
 {:else}
 	<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
 		<div class="max-w-md mx-auto">
-			<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-				<div class="mb-6 text-center">
+			<div
+				class={isDesktop
+					? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 sm:p-8 lg:p-10'
+					: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
+			>
+				<div class="mb-6 text-center {isDesktop ? 'lg:mb-7' : ''}">
 					<div
-						class="mx-auto w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mb-4"
+						class="mx-auto bg-accent-100 rounded-full flex items-center justify-center mb-4 {isDesktop
+							? 'w-12 h-12 lg:h-14 lg:w-14'
+							: 'w-12 h-12'}"
 					>
 						<svg
-							class="w-6 h-6 text-accent"
+							class="text-accent {isDesktop
+								? 'w-6 h-6 lg:h-6.5 lg:w-6.5 lg:text-accent-700'
+								: 'w-6 h-6'}"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -208,10 +220,18 @@
 							/>
 						</svg>
 					</div>
-					<h1 class="text-2xl font-bold text-text">
+					<h1
+						class="font-bold text-text {isDesktop
+							? 'text-2xl lg:text-title'
+							: 'text-2xl'}"
+					>
 						{tr('auth.twoFactor.title')}
 					</h1>
-					<p class="text-sm text-text-muted mt-2">
+					<p
+						class="text-text-muted mt-2 {isDesktop
+							? 'text-sm lg:text-label lg:font-normal'
+							: 'text-sm'}"
+					>
 						{#if useBackup}
 							{tr('auth.twoFactor.backupCodeLabel')}
 						{:else}
@@ -225,7 +245,9 @@
 						<div>
 							<label
 								for="backupCode"
-								class="block text-sm font-medium text-text-ink2 mb-1"
+								class="block font-medium text-text-ink2 mb-1 {isDesktop
+									? 'text-sm lg:text-body lg:font-semibold lg:mb-2'
+									: 'text-sm'}"
 							>
 								{tr('auth.twoFactor.backupCodeLabel')}
 							</label>
@@ -236,7 +258,9 @@
 								required
 								bind:value={backupCode}
 								disabled={isLoading}
-								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent font-mono"
+								class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent font-mono {isDesktop
+									? 'lg:h-15 lg:rounded-lg lg:py-0 lg:text-center lg:text-body lg:font-semibold'
+									: ''}"
 								placeholder={tr('auth.twoFactor.backupCodePlaceholder')}
 							/>
 						</div>
@@ -244,7 +268,9 @@
 						<div>
 							<label
 								for="totpCode"
-								class="block text-sm font-medium text-text-ink2 mb-1"
+								class="block font-medium text-text-ink2 mb-1 {isDesktop
+									? 'text-sm lg:text-body lg:font-semibold lg:mb-2'
+									: 'text-sm'}"
 							>
 								{tr('auth.twoFactor.codeLabel')}
 							</label>
@@ -258,7 +284,9 @@
 								required
 								bind:value={code}
 								disabled={isLoading}
-								class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center text-2xl font-mono tracking-widest"
+								class="w-full px-4 py-3 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent text-center font-mono tracking-widest {isDesktop
+									? 'text-2xl lg:h-15 lg:rounded-lg lg:py-0 lg:text-stat lg:font-semibold lg:tracking-[0.32em]'
+									: 'text-2xl'}"
 								placeholder={tr('auth.twoFactor.codePlaceholder')}
 							/>
 						</div>
@@ -290,7 +318,9 @@
 					<button
 						type="submit"
 						disabled={isLoading}
-						class="btn btn-primary w-full"
+						class="btn btn-primary w-full {isDesktop
+							? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:font-semibold lg:shadow-accent'
+							: ''}"
 					>
 						{#if isLoading}
 							<span class="relative inline-flex h-3 w-3 mr-2"
@@ -307,12 +337,29 @@
 					</button>
 				</form>
 
-				<div class="mt-4 space-y-2">
+				<div
+					class="mt-4 space-y-2 {isDesktop ? 'lg:mt-5.5 lg:space-y-3.5' : ''}"
+				>
 					<button
 						type="button"
 						onclick={toggleBackupMode}
-						class="w-full text-sm text-accent hover:text-accent text-center"
+						class="w-full text-sm text-accent hover:text-accent text-center {isDesktop
+							? 'lg:inline-flex lg:items-center lg:justify-center lg:gap-1.5 lg:text-body lg:font-semibold'
+							: ''}"
 					>
+						{#if isDesktop}
+							<svg
+								class="hidden h-4 w-4 lg:block"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path d="M4 7h16M4 12h10M4 17h7" />
+							</svg>
+						{/if}
 						{#if useBackup}
 							{tr('auth.twoFactor.useAuthenticator')}
 						{:else}
@@ -322,7 +369,9 @@
 
 					<a
 						href={resolve('/login')}
-						class="block w-full text-sm text-text-subtle hover:text-text-ink2 text-center"
+						class="block w-full text-sm text-text-subtle hover:text-text-ink2 text-center {isDesktop
+							? 'lg:text-label lg:font-normal'
+							: ''}"
 					>
 						{tr('auth.twoFactor.backToLogin')}
 					</a>

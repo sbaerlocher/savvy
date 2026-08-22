@@ -782,7 +782,7 @@ export const fr: TranslationKeys = {
 			benefit4Desc:
 				"Organisez sur l'ordinateur, utilisez en magasin - toujours à jour",
 			securityNote:
-				'🔒 Cryptage bancaire pour une sécurité maximale de vos données'
+				'Cryptage bancaire pour une sécurité maximale de vos données'
 		},
 		verification: {
 			title: "Vérifier l'e-mail",

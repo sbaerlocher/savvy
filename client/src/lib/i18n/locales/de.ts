@@ -782,7 +782,7 @@ export const de: TranslationKeys = {
 			benefit4Desc:
 				'Am Computer organisieren, unterwegs im Geschäft nutzen - immer aktuell',
 			securityNote:
-				'🔒 Bank-Level Verschlüsselung für maximale Sicherheit Ihrer Daten'
+				'Bank-Level Verschlüsselung für maximale Sicherheit Ihrer Daten'
 		},
 		verification: {
 			title: 'E-Mail verifizieren',

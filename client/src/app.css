@@ -35,6 +35,14 @@
 		padding-right: 2.25rem;
 	}
 
+	/* Edge still ships its own reveal/clear controls inside password inputs.
+	   They stack on top of the app's own visibility toggle and swallow its
+	   clicks, so they are suppressed globally. */
+	input[type='password']::-ms-reveal,
+	input[type='password']::-ms-clear {
+		display: none;
+	}
+
 	/* iOS floating nav offset – single source of truth for nav, batch panel and
 	   main content. --mobile-nav-offset is defined in exactly one place (here,
 	   plus the standalone override below), so layer order never has to arbitrate

@@ -17,6 +17,10 @@
 	// centered M3 card, so it branches at the top level instead of overriding.
 	const ANDROID = platform === 'android';
 
+	// Desktop mockup (screen-AuthDesktop, board A) swaps the logo for an accent
+	// card tile and raises the type steps. Mobile keeps its layout.
+	const isDesktop = platform === 'other';
+
 	const pageLogger = logger.child('LoginPage');
 
 	// Svelte 5 compatible translation wrapper
@@ -32,6 +36,7 @@
 	let localLoginEnabled = $state(false);
 	let registrationEnabled = $state(false);
 	let oauthError = $state('');
+	let passwordVisible = $state(false);
 
 	// Redirect if already logged in
 	onMount(async () => {
@@ -250,10 +255,42 @@
 				<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					<!-- Left column: Login Form (2/3 width) -->
 					<div class="lg:col-span-2">
-						<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-							<div class="mb-8 flex items-center gap-4">
-								<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-								<h1 class="text-3xl font-bold text-text">
+						<div
+							class={isDesktop
+								? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 sm:p-8 lg:p-10'
+								: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
+						>
+							<div
+								class="mb-8 flex items-center gap-4 {isDesktop
+									? 'lg:mb-7.5 lg:gap-3.5'
+									: ''}"
+							>
+								{#if isDesktop}
+									<span
+										class="flex h-13 w-13 flex-none items-center justify-center rounded-lg bg-accent shadow-accent"
+									>
+										<svg
+											class="h-7 w-7 text-on-accent"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<rect x="2" y="5" width="20" height="14" rx="3" />
+											<path d="M2 10h20" />
+											<path d="M6 15h4" />
+										</svg>
+									</span>
+								{:else}
+									<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
+								{/if}
+								<h1
+									class="font-bold text-text {isDesktop
+										? 'text-3xl lg:text-screen-title'
+										: 'text-3xl'}"
+								>
 									{tr('auth.login.title')}
 								</h1>
 							</div>
@@ -286,11 +323,13 @@
 
 							<!-- OAuth Button (if enabled) -->
 							{#if oauthEnabled}
-								<div class="mb-6">
+								<div class="mb-6 {isDesktop ? 'lg:mb-5' : ''}">
 									<a
 										href={oauthLoginURL}
 										rel="external"
-										class="btn btn-ghost w-full"
+										class="btn btn-ghost w-full {isDesktop
+											? 'lg:h-12 lg:gap-2.5 lg:rounded-lg lg:border-border-field lg:text-body lg:font-semibold'
+											: ''}"
 									>
 										<svg
 											class="h-5 w-5"
@@ -307,26 +346,50 @@
 
 								<!-- Divider only if both OAuth and local login are enabled -->
 								{#if localLoginEnabled}
-									<div class="relative my-6">
-										<div class="absolute inset-0 flex items-center">
+									<div
+										class="relative my-6 {isDesktop
+											? 'lg:my-0 lg:mb-5.5 lg:flex lg:items-center lg:gap-3.5'
+											: ''}"
+									>
+										<div
+											class="absolute inset-0 flex items-center {isDesktop
+												? 'lg:static lg:flex-1'
+												: ''}"
+										>
 											<div class="w-full border-t border-border-field"></div>
 										</div>
-										<div class="relative flex justify-center text-sm">
-											<span class="px-2 bg-white text-text-subtle"
-												>{tr('auth.login.orDivider')}</span
+										<div
+											class="relative flex justify-center text-sm {isDesktop
+												? 'lg:static lg:text-label lg:font-normal'
+												: ''}"
+										>
+											<span
+												class="px-2 text-text-subtle {isDesktop
+													? 'bg-surface lg:px-0'
+													: 'bg-white'}">{tr('auth.login.orDivider')}</span
 											>
 										</div>
+										{#if isDesktop}
+											<div
+												class="hidden lg:block lg:h-px lg:flex-1 lg:bg-border-field"
+											></div>
+										{/if}
 									</div>
 								{/if}
 							{/if}
 
 							<!-- Local Login Form (only if enabled) -->
 							{#if localLoginEnabled}
-								<form class="space-y-6" onsubmit={handleLogin}>
+								<form
+									class="space-y-6 {isDesktop ? 'lg:space-y-5' : ''}"
+									onsubmit={handleLogin}
+								>
 									<div>
 										<label
 											for="email"
-											class="block text-sm font-medium text-text-ink2 mb-1"
+											class="block font-medium text-text-ink2 mb-1 {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+												: 'text-sm'}"
 										>
 											{tr('auth.login.email')}
 										</label>
@@ -338,7 +401,9 @@
 											required
 											bind:value={email}
 											disabled={isLoading}
-											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
+											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+												? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+												: ''}"
 											placeholder={tr('auth.login.email')}
 										/>
 									</div>
@@ -346,21 +411,67 @@
 									<div>
 										<label
 											for="password"
-											class="block text-sm font-medium text-text-ink2 mb-1"
+											class="block font-medium text-text-ink2 mb-1 {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+												: 'text-sm'}"
 										>
 											{tr('auth.login.password')}
 										</label>
-										<input
-											id="password"
-											name="password"
-											type="password"
-											autocomplete="current-password"
-											required
-											bind:value={password}
-											disabled={isLoading}
-											class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-											placeholder={tr('auth.login.password')}
-										/>
+										<div class="relative">
+											<input
+												id="password"
+												name="password"
+												type={passwordVisible ? 'text' : 'password'}
+												autocomplete="current-password"
+												required
+												bind:value={password}
+												disabled={isLoading}
+												class="w-full px-4 py-2 pr-11.5 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent {isDesktop
+													? 'lg:h-11.5 lg:rounded-lg lg:py-0 lg:text-body'
+													: ''}"
+												placeholder={tr('auth.login.password')}
+											/>
+											<button
+												type="button"
+												onclick={() => (passwordVisible = !passwordVisible)}
+												aria-label={passwordVisible
+													? tr('common.hidePassword')
+													: tr('common.showPassword')}
+												class="absolute right-3.5 top-1/2 -mr-1.5 -translate-y-1/2 p-1.5 text-text-faint hover:text-text-ink2"
+											>
+												{#if passwordVisible}
+													<svg
+														class="h-4.5 w-4.5"
+														viewBox="0 0 24 24"
+														fill="none"
+														stroke="currentColor"
+														stroke-width="2"
+														stroke-linecap="round"
+														stroke-linejoin="round"
+													>
+														<path
+															d="M2 12s3.5-7 10-7c1.9 0 3.5.6 4.9 1.4M22 12s-3.5 7-10 7c-1.9 0-3.5-.6-4.9-1.4"
+														/>
+														<path d="M3 3l18 18" />
+													</svg>
+												{:else}
+													<svg
+														class="h-4.5 w-4.5"
+														viewBox="0 0 24 24"
+														fill="none"
+														stroke="currentColor"
+														stroke-width="2"
+														stroke-linecap="round"
+														stroke-linejoin="round"
+													>
+														<path
+															d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+														/>
+														<circle cx="12" cy="12" r="3" />
+													</svg>
+												{/if}
+											</button>
+										</div>
 									</div>
 
 									{#if $authStore.error}
@@ -388,8 +499,14 @@
 										</div>
 									{/if}
 
-									<div class="pt-2">
-										<Button type="submit" class="w-full" loading={isLoading}>
+									<div class={isDesktop ? 'pt-2 lg:pt-0' : 'pt-2'}>
+										<Button
+											type="submit"
+											class="w-full {isDesktop
+												? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:font-semibold lg:shadow-accent'
+												: ''}"
+											loading={isLoading}
+										>
 											{#if isLoading}
 												{tr('auth.login.loggingIn')}
 											{:else}
@@ -398,11 +515,17 @@
 										</Button>
 									</div>
 
-									<div class="flex items-center justify-between pt-4">
+									<div
+										class="flex items-center justify-between pt-4 {isDesktop
+											? 'lg:pt-0'
+											: ''}"
+									>
 										{#if registrationEnabled}
 											<a
 												href={resolve('/register')}
-												class="font-medium text-accent hover:text-accent text-sm"
+												class="font-medium text-accent hover:text-accent text-sm {isDesktop
+													? 'lg:text-body lg:font-semibold'
+													: ''}"
 											>
 												{tr('auth.login.noAccountYet')}
 												{tr('auth.login.registerNow')}
@@ -412,7 +535,9 @@
 										{/if}
 										<a
 											href={resolve('/forgot-password')}
-											class="font-medium text-accent hover:text-accent text-sm"
+											class="font-medium text-accent hover:text-accent text-sm {isDesktop
+												? 'lg:text-body lg:font-semibold'
+												: ''}"
 										>
 											{tr('auth.login.forgotPassword')}
 										</a>
@@ -424,18 +549,30 @@
 
 					<!-- Right column: Information (1/3 width) -->
 					<div class="lg:col-span-1">
-						<div class="bg-white rounded-lg shadow-lg p-6">
-							<h2 class="text-xl font-bold text-text mb-4">
+						<div
+							class={isDesktop
+								? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 lg:p-7'
+								: 'bg-white rounded-lg shadow-lg p-6'}
+						>
+							<h2
+								class="font-bold text-text {isDesktop
+									? 'text-xl lg:text-heading mb-4 lg:mb-1.5'
+									: 'text-xl mb-4'}"
+							>
 								{tr('auth.login.infoTitle')}
 							</h2>
-							<p class="text-sm text-text-muted mb-4">
+							<p
+								class="text-text-muted mb-4 {isDesktop
+									? 'text-sm lg:text-label lg:font-normal lg:mb-5'
+									: 'text-sm'}"
+							>
 								{tr('auth.login.infoDescription')}
 							</p>
 
 							<div class="space-y-4">
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -446,10 +583,18 @@
 										/>
 									</svg>
 									<div>
-										<h3 class="text-sm font-medium text-text">
+										<h3
+											class="font-medium text-text {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold'
+												: 'text-sm'}"
+										>
 											{tr('auth.login.info1Title')}
 										</h3>
-										<p class="text-xs text-text-muted mt-1">
+										<p
+											class="text-text-muted mt-1 {isDesktop
+												? 'text-xs lg:text-body-sm'
+												: 'text-xs'}"
+										>
 											{tr('auth.login.info1Desc')}
 										</p>
 									</div>
@@ -457,7 +602,7 @@
 
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -468,10 +613,18 @@
 										/>
 									</svg>
 									<div>
-										<h3 class="text-sm font-medium text-text">
+										<h3
+											class="font-medium text-text {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold'
+												: 'text-sm'}"
+										>
 											{tr('auth.login.info2Title')}
 										</h3>
-										<p class="text-xs text-text-muted mt-1">
+										<p
+											class="text-text-muted mt-1 {isDesktop
+												? 'text-xs lg:text-body-sm'
+												: 'text-xs'}"
+										>
 											{tr('auth.login.info2Desc')}
 										</p>
 									</div>
@@ -479,7 +632,7 @@
 
 								<div class="flex items-start">
 									<svg
-										class="w-5 h-5 text-success-500 mt-0.5 mr-3 flex-shrink-0"
+										class="w-5 h-5 text-success-600 mt-0.5 mr-3 flex-shrink-0"
 										fill="currentColor"
 										viewBox="0 0 20 20"
 									>
@@ -490,20 +643,34 @@
 										/>
 									</svg>
 									<div>
-										<h3 class="text-sm font-medium text-text">
+										<h3
+											class="font-medium text-text {isDesktop
+												? 'text-sm lg:text-body lg:font-semibold'
+												: 'text-sm'}"
+										>
 											{tr('auth.login.info3Title')}
 										</h3>
-										<p class="text-xs text-text-muted mt-1">
+										<p
+											class="text-text-muted mt-1 {isDesktop
+												? 'text-xs lg:text-body-sm'
+												: 'text-xs'}"
+										>
 											{tr('auth.login.info3Desc')}
 										</p>
 									</div>
 								</div>
 							</div>
 
-							<div class="mt-6 pt-6 border-t border-border">
+							<div
+								class="border-t border-border {isDesktop
+									? 'mt-6 pt-6 lg:mt-5.5 lg:pt-5'
+									: 'mt-6 pt-6'}"
+							>
 								<div class="flex items-center text-sm text-text-muted">
 									<svg
-										class="w-5 h-5 text-accent mr-2 flex-shrink-0"
+										class="text-accent mr-2 flex-shrink-0 {isDesktop
+											? 'w-5 h-5 lg:w-4.5 lg:h-4.5'
+											: 'w-5 h-5'}"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
