@@ -5,11 +5,16 @@
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
+	import { platform } from '$lib/utils/platform';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
+
+	// Desktop mockup (screen-PasswordResetDesktop) wraps the split in a raised
+	// panel and swaps the logo for an accent card tile. Mobile keeps its layout.
+	const isDesktop = platform === 'other';
 
 	let email = $state('');
 	let isLoading = $state(false);
@@ -58,18 +63,54 @@
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 			<!-- Left column: Form (2/3 width) -->
 			<div class="lg:col-span-2">
-				<div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-					<div class="mb-8 flex items-center gap-4">
-						<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
-						<h1 class="text-2xl font-bold text-text">
+				<div
+					class={isDesktop
+						? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 sm:p-8 lg:p-10'
+						: 'bg-white rounded-lg shadow-lg p-6 sm:p-8'}
+				>
+					<div
+						class="flex items-center gap-4 lg:gap-3.5 {isDesktop && submitted
+							? 'mb-8 lg:mb-3'
+							: 'mb-8 lg:mb-6'}"
+					>
+						{#if isDesktop}
+							<span
+								class="flex h-13 w-13 flex-none items-center justify-center rounded-lg bg-accent shadow-accent"
+							>
+								<svg
+									class="h-7 w-7 text-on-accent"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<rect x="2" y="5" width="20" height="14" rx="3" />
+									<path d="M2 10h20" />
+									<path d="M6 15h4" />
+								</svg>
+							</span>
+						{:else}
+							<img src="/logo.png" alt="Savvy Logo" class="h-12 sm:h-16" />
+						{/if}
+						<h1
+							class="font-bold text-text {isDesktop
+								? 'text-2xl lg:text-screen-title'
+								: 'text-2xl'}"
+						>
 							{tr('auth.forgotPassword.title')}
 						</h1>
 					</div>
 
 					{#if submitted}
-						<div class="text-center py-8">
+						<div
+							class="text-center py-8 {isDesktop
+								? 'lg:mx-auto lg:max-w-md lg:pt-8 lg:pb-2'
+								: ''}"
+						>
 							<div
-								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4"
+								class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success-100 mb-4 lg:mb-4.5"
 							>
 								<svg
 									class="h-8 w-8 text-success-600"
@@ -85,26 +126,48 @@
 									/>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold text-text mb-2">
+							<h2
+								class="font-semibold text-text mb-2 {isDesktop
+									? 'text-xl lg:text-heading lg:font-semibold'
+									: 'text-xl'}"
+							>
 								{tr('auth.forgotPassword.success')}
 							</h2>
-							<p class="text-text-muted mb-6">
+							<p
+								class="text-text-muted mb-6 {isDesktop
+									? 'lg:text-body lg:mb-6.5'
+									: ''}"
+							>
 								{tr('auth.forgotPassword.successMessage')}
 							</p>
-							<a href={resolve('/login')} class="btn btn-primary w-full">
+							<a
+								href={resolve('/login')}
+								class="btn btn-primary w-full {isDesktop
+									? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:shadow-accent'
+									: ''}"
+							>
 								{tr('auth.forgotPassword.backToLogin')}
 							</a>
 						</div>
 					{:else}
-						<p class="text-text-muted mb-6">
+						<p
+							class="text-text-muted mb-6 {isDesktop
+								? 'lg:text-body lg:max-w-lg lg:mb-6.5'
+								: ''}"
+						>
 							{tr('auth.forgotPassword.description')}
 						</p>
 
-						<form class="space-y-6" onsubmit={handleSubmit}>
+						<form
+							class="space-y-6 {isDesktop ? 'lg:space-y-5.5' : ''}"
+							onsubmit={handleSubmit}
+						>
 							<div>
 								<label
 									for="email"
-									class="block text-sm font-medium text-text-ink2 mb-1"
+									class="block font-medium text-text-ink2 mb-1 {isDesktop
+										? 'text-sm lg:text-body lg:font-semibold lg:mb-1.5'
+										: 'text-sm'}"
 								>
 									{tr('auth.forgotPassword.email')}
 								</label>
@@ -116,16 +179,20 @@
 									required
 									bind:value={email}
 									disabled={isLoading}
-									class="input"
+									class="input {isDesktop
+										? 'lg:h-11.5 lg:rounded-lg lg:text-body'
+										: ''}"
 									placeholder={tr('auth.forgotPassword.emailPlaceholder')}
 								/>
 							</div>
 
-							<div class="pt-2">
+							<div class={isDesktop ? 'pt-2 lg:pt-0' : 'pt-2'}>
 								<button
 									type="submit"
 									disabled={isLoading || !configLoaded}
-									class="btn btn-primary w-full"
+									class="btn btn-primary w-full {isDesktop
+										? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:shadow-accent'
+										: ''}"
 								>
 									{#if isLoading}
 										<span class="relative inline-flex h-3 w-3 mr-2"
@@ -142,10 +209,12 @@
 								</button>
 							</div>
 
-							<div class="text-center pt-4">
+							<div class="text-center pt-4 {isDesktop ? 'lg:pt-0' : ''}">
 								<a
 									href={resolve('/login')}
-									class="font-medium text-accent hover:text-accent"
+									class="font-medium text-accent hover:text-accent {isDesktop
+										? 'lg:text-body lg:font-semibold'
+										: ''}"
 								>
 									{tr('auth.forgotPassword.backToLogin')}
 								</a>
@@ -157,11 +226,23 @@
 
 			<!-- Right column: Info (1/3 width) -->
 			<div class="lg:col-span-1">
-				<div class="bg-white rounded-lg shadow-lg p-6">
-					<h2 class="text-xl font-bold text-text mb-4">
+				<div
+					class={isDesktop
+						? 'bg-surface rounded-lg lg:rounded-2xl shadow-lg lg:shadow-card p-6 lg:p-7'
+						: 'bg-white rounded-lg shadow-lg p-6'}
+				>
+					<h2
+						class="font-bold text-text {isDesktop
+							? 'text-xl lg:text-heading mb-4 lg:mb-1.5'
+							: 'text-xl mb-4'}"
+					>
 						{tr('auth.forgotPassword.infoTitle')}
 					</h2>
-					<p class="text-sm text-text-muted mb-4">
+					<p
+						class="text-text-muted mb-4 {isDesktop
+							? 'text-sm lg:text-label lg:mb-5'
+							: 'text-sm'}"
+					>
 						{tr('auth.forgotPassword.infoDescription')}
 					</p>
 
@@ -181,10 +262,18 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-text">
+								<h3
+									class="font-medium text-text {isDesktop
+										? 'text-sm lg:text-body lg:font-semibold'
+										: 'text-sm'}"
+								>
 									{tr('auth.forgotPassword.step1Title')}
 								</h3>
-								<p class="text-xs text-text-muted mt-1">
+								<p
+									class="text-text-muted mt-1 {isDesktop
+										? 'text-xs lg:text-body-sm'
+										: 'text-xs'}"
+								>
 									{tr('auth.forgotPassword.step1Desc')}
 								</p>
 							</div>
@@ -205,10 +294,18 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-text">
+								<h3
+									class="font-medium text-text {isDesktop
+										? 'text-sm lg:text-body lg:font-semibold'
+										: 'text-sm'}"
+								>
 									{tr('auth.forgotPassword.step2Title')}
 								</h3>
-								<p class="text-xs text-text-muted mt-1">
+								<p
+									class="text-text-muted mt-1 {isDesktop
+										? 'text-xs lg:text-body-sm'
+										: 'text-xs'}"
+								>
 									{tr('auth.forgotPassword.step2Desc')}
 								</p>
 							</div>
@@ -229,20 +326,34 @@
 								/>
 							</svg>
 							<div>
-								<h3 class="text-sm font-medium text-text">
+								<h3
+									class="font-medium text-text {isDesktop
+										? 'text-sm lg:text-body lg:font-semibold'
+										: 'text-sm'}"
+								>
 									{tr('auth.forgotPassword.step3Title')}
 								</h3>
-								<p class="text-xs text-text-muted mt-1">
+								<p
+									class="text-text-muted mt-1 {isDesktop
+										? 'text-xs lg:text-body-sm'
+										: 'text-xs'}"
+								>
 									{tr('auth.forgotPassword.step3Desc')}
 								</p>
 							</div>
 						</div>
 					</div>
 
-					<div class="mt-6 pt-6 border-t border-border">
+					<div
+						class="border-t border-border {isDesktop
+							? 'mt-6 pt-6 lg:mt-5.5 lg:pt-5'
+							: 'mt-6 pt-6'}"
+					>
 						<div class="flex items-center text-sm text-text-muted">
 							<svg
-								class="w-5 h-5 text-accent mr-2 flex-shrink-0"
+								class="text-accent mr-2 flex-shrink-0 {isDesktop
+									? 'w-5 h-5 lg:w-4.5 lg:h-4.5'
+									: 'w-5 h-5'}"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
