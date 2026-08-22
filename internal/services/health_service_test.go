@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -169,57 +170,43 @@ func TestNewHealthCheckService(t *testing.T) {
 // CheckReadiness Concurrency Tests
 // ============================================================================
 
-// blockingEmailService keeps checkSMTP's goroutine in flight until released, so
-// the calling goroutine is guaranteed to reach the "not_configured" writes for
-// the disabled checks while that goroutine is still running.
-type blockingEmailService struct {
+// slowEmailService delays the SMTP check so it is still running when the
+// calling goroutine reaches the "not_configured" branches for the disabled
+// checks. It honours the context so the test can never hang.
+type slowEmailService struct {
 	email.ServiceInterface
-	started chan struct{}
-	release chan struct{}
 }
 
-func (b *blockingEmailService) CheckConnection(context.Context) error {
-	close(b.started)
-	<-b.release
-	return nil
+func (slowEmailService) CheckConnection(ctx context.Context) error {
+	select {
+	case <-time.After(20 * time.Millisecond):
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // TestCheckReadiness_NoConcurrentMapWrites pins the fix for the fatal
 // "concurrent map writes" crash: the checks map was written by the check
 // goroutines under mu and by the calling goroutine (the "not_configured"
-// branches) without it. Go aborts the process on concurrent map writes, so this
-// is unrecoverable in production. Run with -race to detect it deterministically.
+// branches) without it. Go aborts the process on concurrent map writes, which
+// no recover can catch, so the race detector is what makes this observable.
 func TestCheckReadiness_NoConcurrentMapWrites(t *testing.T) {
-	emailSvc := &blockingEmailService{
-		started: make(chan struct{}),
-		release: make(chan struct{}),
-	}
-
-	// SMTP enabled (runs as a goroutine); OAuth, push and TOTP left unconfigured
-	// so they take the "not_configured" branch on the calling goroutine.
+	// SMTP enabled so its check runs as a goroutine; OAuth, push and TOTP left
+	// unconfigured so they take the "not_configured" branch on the caller.
 	svc := &HealthCheckService{
 		db:           &gorm.DB{},
-		emailService: emailSvc,
+		emailService: slowEmailService{},
 		config: &config.Config{
 			SMTPHost:      "smtp.example.test",
 			SMTPFromEmail: "noreply@example.test",
 		},
 	}
 
-	done := make(chan *ReadinessReport, 1)
-	go func() {
-		report, err := svc.CheckReadiness(context.Background())
-		assert.NoError(t, err)
-		done <- report
-	}()
-
-	// Only release the SMTP check once it is actually running, so the caller's
-	// map writes and the goroutine's map write overlap.
-	<-emailSvc.started
-	close(emailSvc.release)
-
-	report := <-done
+	report, err := svc.CheckReadiness(context.Background())
+	require.NoError(t, err)
 	require.NotNil(t, report)
+
 	assert.Equal(t, "healthy", report.Checks["smtp"].Status)
 	assert.Equal(t, "not_configured", report.Checks["oauth"].Status)
 	assert.Equal(t, "not_configured", report.Checks["vapid"].Status)
