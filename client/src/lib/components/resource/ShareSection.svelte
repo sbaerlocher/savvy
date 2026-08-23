@@ -32,6 +32,12 @@
 		isOffline: boolean;
 		/** 'editable' shows edit/delete permission checkboxes; 'readonly' (voucher). */
 		shareMode?: 'editable' | 'readonly';
+		/**
+		 * 'sheet' renders the Android M3 bottom-sheet body (mockup frame 7): the
+		 * create form is always open — the sheet itself is the disclosure — and
+		 * the card chrome around it drops away.
+		 */
+		variant?: 'card' | 'sheet';
 	}
 
 	let {
@@ -39,8 +45,11 @@
 		resource,
 		shares = $bindable(),
 		isOffline,
-		shareMode = 'editable'
+		shareMode = 'editable',
+		variant = 'card'
 	}: Props = $props();
+
+	const isSheet = $derived(variant === 'sheet');
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -209,56 +218,28 @@
 	const LOCK_PATH = ICON_LOCK;
 </script>
 
-<!-- Sharing Box -->
-<div class="rounded-xl border border-border bg-white p-6">
-	<div class="flex justify-between items-center mb-4">
-		<h3 class="text-lg font-semibold text-text">
-			{tr(c.shareTitle)}
-		</h3>
-		{#if !showShareForm}
-			<button
-				onclick={() => (showShareForm = true)}
-				disabled={isOffline}
-				class="btn btn-xs btn-primary whitespace-nowrap flex items-center gap-1.5 {isOffline
-					? 'pointer-events-none blur-[0.5px]'
-					: ''}"
-			>
-				{#if isOffline}
-					<svg
-						class="w-3.5 h-3.5"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d={LOCK_PATH}
-						></path>
-					</svg>
-				{:else}
-					<span>+</span>
-				{/if}
-				{tr(c.shareAddButton)}
-			</button>
-		{/if}
-	</div>
+{#if isSheet}
+	<!-- Android M3 bottom sheet (screen-ResourceDetailAndroid, frame 7): the
+	     create form is permanently visible, the recipient list follows below. -->
+	<h2 class="text-heading text-text mb-4.5 font-semibold tracking-tight">
+		{tr(c.shareTitle)}
+	</h2>
 
-	{#if showShareForm}
-		<div
-			class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
-		>
-			<EmailAutocomplete
-				multiple
-				bind:values={shareEmails}
-				label={tr(c.shareUserEmail)}
-				hint={tr(c.shareHint)}
-				inputId="share-email-input"
-				disabled={isOffline}
-			/>
+	<div class="flex flex-col gap-4">
+		<EmailAutocomplete
+			multiple
+			bind:values={shareEmails}
+			label={tr(c.shareUserEmail)}
+			hint={tr(c.shareHint)}
+			inputId="share-email-input"
+			disabled={isOffline}
+		/>
 
-			{#if cfg.sharePermissions}
+		{#if cfg.sharePermissions}
+			<div>
+				<p class="text-eyebrow text-text-subtle mb-2.5 font-bold uppercase">
+					{tr('common.permissions')}
+				</p>
 				<SharePermissions
 					bind:canEdit
 					bind:canDelete
@@ -275,143 +256,334 @@
 						? tr(c.canManageTransactionsDesc)
 						: undefined}
 				/>
-			{/if}
+			</div>
+		{/if}
 
-			<div class="bg-white border border-accent-200 rounded-lg p-3">
-				<h4 class="font-medium text-accent-900 text-sm mb-2">
-					{tr(c.whatIsShared)}
-				</h4>
+		<div
+			class="bg-accent-50 border-accent-200 rounded-m3-md border px-3.5 py-3"
+		>
+			<p class="text-body-sm text-accent-900 mb-1 font-semibold">
+				{tr(c.whatIsShared)}
+			</p>
+			<p class="text-mono-sm text-accent-800 font-sans tracking-normal">
 				{#if kind === 'voucher'}
-					<ul class="text-xs text-accent-800 space-y-1">
-						<li>{tr(c.sharedCode)}</li>
-						<li>{tr(c.sharedDetails)}</li>
-						<li>{tr(c.sharedDescription)}</li>
-					</ul>
-					<p class="text-xs text-accent-hover mt-2 italic">
-						{tr(c.readOnlyNote)}
-					</p>
+					{[
+						tr(c.sharedCode),
+						tr(c.sharedDetails),
+						tr(c.sharedDescription)
+					].join(' · ')}
 				{:else if kind === 'gift_card'}
-					<ul class="text-xs text-accent-800 space-y-1">
-						<li>{tr('giftCards.sharing.sharedItemCardNumber')}</li>
-						<li>{tr('giftCards.sharing.sharedItemBalance')}</li>
-						<li>{tr('giftCards.sharing.sharedItemDetails')}</li>
-						<li>{tr('giftCards.sharing.sharedItemTransactions')}</li>
-						<li>{tr('giftCards.sharing.sharedItemNotes')}</li>
-					</ul>
+					{[
+						tr('giftCards.sharing.sharedItemCardNumber'),
+						tr('giftCards.sharing.sharedItemBalance'),
+						tr('giftCards.sharing.sharedItemDetails'),
+						tr('giftCards.sharing.sharedItemTransactions'),
+						tr('giftCards.sharing.sharedItemNotes')
+					].join(' · ')}
 				{:else}
-					<ul class="text-xs text-accent-800 space-y-1">
-						<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
-						<li>{tr('cards.sharing.sharedItemDetails')}</li>
-						<li>{tr('cards.sharing.sharedItemNotes')}</li>
-					</ul>
+					{[
+						tr('cards.sharing.sharedItemCardNumber'),
+						tr('cards.sharing.sharedItemDetails'),
+						tr('cards.sharing.sharedItemNotes')
+					].join(' · ')}
 				{/if}
-			</div>
-
-			<div class="flex gap-2">
-				<button
-					onclick={handleShare}
-					disabled={isOffline}
-					class="btn btn-primary flex-1 {isOffline
-						? 'opacity-50 cursor-not-allowed'
-						: ''}"
-				>
-					{tr(c.shareNow)}
-				</button>
-				<button onclick={resetShareForm} class="btn btn-ghost">
-					{tr('common.cancel')}
-				</button>
-			</div>
+			</p>
 		</div>
-	{/if}
 
-	{#if shares.length > 0}
-		<div class="space-y-3">
-			{#each shares as share (share.shared_with_user.id)}
-				{#if shareMode === 'readonly'}
-					<ShareListItem
-						{share}
-						isEditing={managingShareId === share.shared_with_user.id}
-						{isOffline}
-						editButtonLabel={tr(c.manage)}
-						deleteButtonLabel={tr(c.removeShare)}
-						alwaysViewOnly={true}
-						onstartEdit={() => startManageShare(share.shared_with_user.id)}
-						oncancel={cancelManageShare}
-						ondelete={() => promptDeleteShare(share.shared_with_user.id)}
-					>
-						<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
-							<p class="text-xs font-medium text-warning-800 mb-1">
-								{tr(c.alwaysReadOnly)}
-							</p>
-							<p class="text-xs text-warning-700">
-								{tr(c.canOnlyRemove)}
-							</p>
-						</div>
-					</ShareListItem>
-				{:else}
-					<ShareListItem
-						{share}
-						isEditing={editingShareId === share.shared_with_user.id}
-						{isOffline}
-						showTransactionsBadge={cfg.showEditTransactions}
-						onstartEdit={() => startEditShare(share)}
-						onsave={() => saveShareEdit(share.shared_with_user.id)}
-						oncancel={cancelEditShare}
-						ondelete={() => promptDeleteShare(share.shared_with_user.id)}
-					>
-						<SharePermissions
-							bind:canEdit={editShareCanEdit}
-							bind:canDelete={editShareCanDelete}
-							bind:canEditTransactions={editShareCanEditTransactions}
-							showEditTransactions={cfg.showEditTransactions}
-							labelEdit={tr(c.canEdit)}
-							labelEditDesc={tr(c.canEditDesc)}
-							labelDelete={tr(c.canDelete)}
-							labelDeleteDesc={tr(c.canDeleteDesc)}
-							labelEditTransactions={cfg.showEditTransactions
-								? tr(c.canManageTransactions)
-								: undefined}
-							labelEditTransactionsDesc={cfg.showEditTransactions
-								? tr(c.canManageTransactionsDesc)
-								: undefined}
-						/>
-					</ShareListItem>
-				{/if}
-			{/each}
-		</div>
 		<button
 			type="button"
-			onclick={promptRevokeAll}
-			disabled={isOffline}
-			class="btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50"
+			onclick={handleShare}
+			disabled={isOffline || shareEmails.length === 0}
+			class="bg-accent-600 text-on-accent text-label flex h-12 w-full items-center justify-center rounded-m3-full disabled:opacity-50"
 		>
-			{tr(c.revokeAll)}
+			{tr(c.shareNow)}
 		</button>
-	{:else}
-		<p class="text-sm text-text-subtle text-center py-4">
-			{tr(c.notSharedYet)}
-		</p>
-	{/if}
-</div>
 
-<ConfirmModal
-	isOpen={showDeleteShareModal}
-	title={tr(c.removeConfirm)}
-	message={tr(c.removeConfirmMessage)}
-	confirmText={tr('common.remove')}
-	cancelText={tr('common.cancel')}
-	variant="danger"
-	onconfirm={confirmDeleteShare}
-	oncancel={() => (showDeleteShareModal = false)}
-/>
+		{#if shares.length > 0}
+			<div>
+				<p class="text-eyebrow text-text-subtle mb-2.5 font-bold uppercase">
+					{tr('common.alreadySharedWith')}
+				</p>
+				<div class="flex flex-col gap-2.5">
+					{#each shares as share (share.shared_with_user.id)}
+						<ShareListItem
+							{share}
+							isEditing={shareMode === 'readonly'
+								? managingShareId === share.shared_with_user.id
+								: editingShareId === share.shared_with_user.id}
+							{isOffline}
+							showTransactionsBadge={cfg.showEditTransactions}
+							alwaysViewOnly={shareMode === 'readonly'}
+							editButtonLabel={shareMode === 'readonly'
+								? tr(c.manage)
+								: undefined}
+							deleteButtonLabel={shareMode === 'readonly'
+								? tr(c.removeShare)
+								: undefined}
+							onstartEdit={() =>
+								shareMode === 'readonly'
+									? startManageShare(share.shared_with_user.id)
+									: startEditShare(share)}
+							onsave={shareMode === 'readonly'
+								? undefined
+								: () => saveShareEdit(share.shared_with_user.id)}
+							oncancel={shareMode === 'readonly'
+								? cancelManageShare
+								: cancelEditShare}
+							ondelete={() => promptDeleteShare(share.shared_with_user.id)}
+						>
+							{#if shareMode === 'readonly'}
+								<div
+									class="bg-warning-50 border-warning-200 rounded-m3-md border px-3.5 py-3"
+								>
+									<p class="text-body-sm text-warning-800 mb-0.5 font-semibold">
+										{tr(c.alwaysReadOnly)}
+									</p>
+									<p
+										class="text-mono-sm text-warning-700 font-sans tracking-normal"
+									>
+										{tr(c.canOnlyRemove)}
+									</p>
+								</div>
+							{:else}
+								<SharePermissions
+									bind:canEdit={editShareCanEdit}
+									bind:canDelete={editShareCanDelete}
+									bind:canEditTransactions={editShareCanEditTransactions}
+									showEditTransactions={cfg.showEditTransactions}
+									labelEdit={tr(c.canEdit)}
+									labelEditDesc={tr(c.canEditDesc)}
+									labelDelete={tr(c.canDelete)}
+									labelDeleteDesc={tr(c.canDeleteDesc)}
+									labelEditTransactions={cfg.showEditTransactions
+										? tr(c.canManageTransactions)
+										: undefined}
+									labelEditTransactionsDesc={cfg.showEditTransactions
+										? tr(c.canManageTransactionsDesc)
+										: undefined}
+								/>
+							{/if}
+						</ShareListItem>
+					{/each}
+				</div>
+				<button
+					type="button"
+					onclick={promptRevokeAll}
+					disabled={isOffline}
+					class="text-label text-danger-600 mt-3 inline-flex h-10 items-center rounded-m3-full px-3 disabled:opacity-50"
+				>
+					{tr(c.revokeAll)}
+				</button>
+			</div>
+		{/if}
+	</div>
+{:else}
+	<!-- Sharing Box -->
+	<div class="rounded-xl border border-border bg-white p-6">
+		<div class="flex justify-between items-center mb-4">
+			<h3 class="text-lg font-semibold text-text">
+				{tr(c.shareTitle)}
+			</h3>
+			{#if !showShareForm}
+				<button
+					onclick={() => (showShareForm = true)}
+					disabled={isOffline}
+					class="btn btn-xs btn-primary whitespace-nowrap flex items-center gap-1.5 {isOffline
+						? 'pointer-events-none blur-[0.5px]'
+						: ''}"
+				>
+					{#if isOffline}
+						<svg
+							class="w-3.5 h-3.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d={LOCK_PATH}
+							></path>
+						</svg>
+					{:else}
+						<span>+</span>
+					{/if}
+					{tr(c.shareAddButton)}
+				</button>
+			{/if}
+		</div>
 
-<ConfirmModal
-	isOpen={showRevokeAllModal}
-	title={tr(c.revokeAllConfirm)}
-	message={tr(c.revokeAllConfirmMessage)}
-	confirmText={tr(c.revokeAll)}
-	cancelText={tr('common.cancel')}
-	variant="danger"
-	onconfirm={confirmRevokeAll}
-	oncancel={() => (showRevokeAllModal = false)}
-/>
+		{#if showShareForm}
+			<div
+				class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4 mb-4"
+			>
+				<EmailAutocomplete
+					multiple
+					bind:values={shareEmails}
+					label={tr(c.shareUserEmail)}
+					hint={tr(c.shareHint)}
+					inputId="share-email-input"
+					disabled={isOffline}
+				/>
+
+				{#if cfg.sharePermissions}
+					<SharePermissions
+						bind:canEdit
+						bind:canDelete
+						bind:canEditTransactions
+						showEditTransactions={cfg.showEditTransactions}
+						labelEdit={tr(c.canEdit)}
+						labelEditDesc={tr(c.canEditDesc)}
+						labelDelete={tr(c.canDelete)}
+						labelDeleteDesc={tr(c.canDeleteDesc)}
+						labelEditTransactions={cfg.showEditTransactions
+							? tr(c.canManageTransactions)
+							: undefined}
+						labelEditTransactionsDesc={cfg.showEditTransactions
+							? tr(c.canManageTransactionsDesc)
+							: undefined}
+					/>
+				{/if}
+
+				<div class="bg-white border border-accent-200 rounded-lg p-3">
+					<h4 class="font-medium text-accent-900 text-sm mb-2">
+						{tr(c.whatIsShared)}
+					</h4>
+					{#if kind === 'voucher'}
+						<ul class="text-xs text-accent-800 space-y-1">
+							<li>{tr(c.sharedCode)}</li>
+							<li>{tr(c.sharedDetails)}</li>
+							<li>{tr(c.sharedDescription)}</li>
+						</ul>
+						<p class="text-xs text-accent-hover mt-2 italic">
+							{tr(c.readOnlyNote)}
+						</p>
+					{:else if kind === 'gift_card'}
+						<ul class="text-xs text-accent-800 space-y-1">
+							<li>{tr('giftCards.sharing.sharedItemCardNumber')}</li>
+							<li>{tr('giftCards.sharing.sharedItemBalance')}</li>
+							<li>{tr('giftCards.sharing.sharedItemDetails')}</li>
+							<li>{tr('giftCards.sharing.sharedItemTransactions')}</li>
+							<li>{tr('giftCards.sharing.sharedItemNotes')}</li>
+						</ul>
+					{:else}
+						<ul class="text-xs text-accent-800 space-y-1">
+							<li>{tr('cards.sharing.sharedItemCardNumber')}</li>
+							<li>{tr('cards.sharing.sharedItemDetails')}</li>
+							<li>{tr('cards.sharing.sharedItemNotes')}</li>
+						</ul>
+					{/if}
+				</div>
+
+				<div class="flex gap-2">
+					<button
+						onclick={handleShare}
+						disabled={isOffline}
+						class="btn btn-primary flex-1 {isOffline
+							? 'opacity-50 cursor-not-allowed'
+							: ''}"
+					>
+						{tr(c.shareNow)}
+					</button>
+					<button onclick={resetShareForm} class="btn btn-ghost">
+						{tr('common.cancel')}
+					</button>
+				</div>
+			</div>
+		{/if}
+
+		{#if shares.length > 0}
+			<div class="space-y-3">
+				{#each shares as share (share.shared_with_user.id)}
+					{#if shareMode === 'readonly'}
+						<ShareListItem
+							{share}
+							isEditing={managingShareId === share.shared_with_user.id}
+							{isOffline}
+							editButtonLabel={tr(c.manage)}
+							deleteButtonLabel={tr(c.removeShare)}
+							alwaysViewOnly={true}
+							onstartEdit={() => startManageShare(share.shared_with_user.id)}
+							oncancel={cancelManageShare}
+							ondelete={() => promptDeleteShare(share.shared_with_user.id)}
+						>
+							<div
+								class="bg-warning-50 border border-warning-200 rounded-lg p-3"
+							>
+								<p class="text-xs font-medium text-warning-800 mb-1">
+									{tr(c.alwaysReadOnly)}
+								</p>
+								<p class="text-xs text-warning-700">
+									{tr(c.canOnlyRemove)}
+								</p>
+							</div>
+						</ShareListItem>
+					{:else}
+						<ShareListItem
+							{share}
+							isEditing={editingShareId === share.shared_with_user.id}
+							{isOffline}
+							showTransactionsBadge={cfg.showEditTransactions}
+							onstartEdit={() => startEditShare(share)}
+							onsave={() => saveShareEdit(share.shared_with_user.id)}
+							oncancel={cancelEditShare}
+							ondelete={() => promptDeleteShare(share.shared_with_user.id)}
+						>
+							<SharePermissions
+								bind:canEdit={editShareCanEdit}
+								bind:canDelete={editShareCanDelete}
+								bind:canEditTransactions={editShareCanEditTransactions}
+								showEditTransactions={cfg.showEditTransactions}
+								labelEdit={tr(c.canEdit)}
+								labelEditDesc={tr(c.canEditDesc)}
+								labelDelete={tr(c.canDelete)}
+								labelDeleteDesc={tr(c.canDeleteDesc)}
+								labelEditTransactions={cfg.showEditTransactions
+									? tr(c.canManageTransactions)
+									: undefined}
+								labelEditTransactionsDesc={cfg.showEditTransactions
+									? tr(c.canManageTransactionsDesc)
+									: undefined}
+							/>
+						</ShareListItem>
+					{/if}
+				{/each}
+			</div>
+			<button
+				type="button"
+				onclick={promptRevokeAll}
+				disabled={isOffline}
+				class="btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50"
+			>
+				{tr(c.revokeAll)}
+			</button>
+		{:else}
+			<p class="text-sm text-text-subtle text-center py-4">
+				{tr(c.notSharedYet)}
+			</p>
+		{/if}
+	</div>
+
+	<ConfirmModal
+		isOpen={showDeleteShareModal}
+		title={tr(c.removeConfirm)}
+		message={tr(c.removeConfirmMessage)}
+		confirmText={tr('common.remove')}
+		cancelText={tr('common.cancel')}
+		variant="danger"
+		onconfirm={confirmDeleteShare}
+		oncancel={() => (showDeleteShareModal = false)}
+	/>
+
+	<ConfirmModal
+		isOpen={showRevokeAllModal}
+		title={tr(c.revokeAllConfirm)}
+		message={tr(c.revokeAllConfirmMessage)}
+		confirmText={tr(c.revokeAll)}
+		cancelText={tr('common.cancel')}
+		variant="danger"
+		onconfirm={confirmRevokeAll}
+		oncancel={() => (showRevokeAllModal = false)}
+	/>
+{/if}

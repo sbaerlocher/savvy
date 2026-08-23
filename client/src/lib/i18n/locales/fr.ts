@@ -116,6 +116,10 @@ export const fr: TranslationKeys = {
 		rateLimitExceededMinutes:
 			'Trop de requêtes. Veuillez attendre {minutes} minute(s).',
 		transferOwnership: 'Transfert de propriété',
+		transferOwnershipTitle: 'Transférer la propriété',
+		permissions: 'Autorisations',
+		alreadySharedWith: 'Déjà partagé avec',
+		transfer: 'Transférer',
 		share: 'Partager',
 		export: 'Exporter',
 		add: 'Ajouter',
@@ -237,6 +241,7 @@ export const fr: TranslationKeys = {
 		noCards: 'Aucune carte',
 		noCardsHint: 'Créez votre première carte',
 		newCard: 'Nouvelle carte',
+		editCard: 'Modifier la carte',
 		myCards: 'Mes cartes',
 		allCards: 'Toutes les cartes',
 		activeOnly: 'Actives seulement',

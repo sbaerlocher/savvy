@@ -38,6 +38,7 @@ export const CONFIG: Record<Kind, KindConfig> = {
 		offlineDelete: (id) => offlineDB.deleteCard(id),
 		i18n: {
 			titleFallback: 'common.card',
+			editTitle: 'cards.editCard',
 			sharedBy: 'cards.sharedBy',
 			deleteButton: 'cards.deleteButton',
 			deleteConfirm: 'cards.deleteConfirm',
@@ -94,6 +95,7 @@ export const CONFIG: Record<Kind, KindConfig> = {
 		offlineDelete: (id) => offlineDB.deleteVoucher(id),
 		i18n: {
 			titleFallback: 'vouchers.title',
+			editTitle: 'vouchers.editVoucher',
 			sharedBy: 'vouchers.sharedBy',
 			deleteButton: 'vouchers.deleteButton',
 			deleteConfirm: 'vouchers.deleteConfirm',
@@ -154,6 +156,7 @@ export const CONFIG: Record<Kind, KindConfig> = {
 		offlineDelete: (id) => offlineDB.deleteGiftCard(id),
 		i18n: {
 			titleFallback: 'giftCards.title',
+			editTitle: 'giftCards.editGiftCard',
 			sharedBy: 'giftCards.sharedBy',
 			notFound: 'giftCards.notFound',
 			backToList: 'giftCards.backToList',

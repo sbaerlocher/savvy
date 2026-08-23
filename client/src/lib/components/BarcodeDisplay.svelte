@@ -7,6 +7,8 @@
 	import { formatDisplayDate } from '$lib/utils/date';
 	import { logger } from '$lib/utils/logger';
 	import { is2DType } from '$lib/utils/barcode';
+	import { platform } from '$lib/utils/platform';
+	import { portal } from '$lib/actions/portal';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -48,6 +50,13 @@
 		expiresAt,
 		currency
 	}: Props = $props();
+
+	// Android renders the inline block on the M3 detail card: the barcode box
+	// takes the tonal chip step against the white card, and the fullscreen view
+	// it opens is rotated (mockup screen-BarcodeFullscreen). Tapping the code
+	// itself is the only way in — the mockup shows no separate control.
+	// `platform` is a module constant, so a plain const, not $derived.
+	const IS_ANDROID = platform === 'android';
 
 	const hasValidityInfo = $derived(validFrom || validUntil);
 	const showStatusBadge = $derived(status && status !== 'active');
@@ -200,7 +209,11 @@
 	{/if}
 {/snippet}
 
-<div class="bg-surface-1 rounded-lg p-4 text-center border-t border-border">
+<div
+	class="border-t border-border text-center {IS_ANDROID
+		? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
+		: 'bg-surface-1 rounded-lg p-4'}"
+>
 	<!-- Status Badge + Validity Period (for Vouchers) -->
 	{#if showValidStatusBadge || showStatusBadge || hasValidityInfo}
 		<div class="flex items-center justify-center gap-4 mb-4 flex-wrap">
@@ -259,9 +272,14 @@
 
 <!-- Barcode Fullscreen Overlay (landscape on mobile, or tap to enlarge) -->
 {#if showFullscreen}
+	<!-- Portalled to <body>: a backdrop-filter ancestor (the iOS glass surfaces)
+	     establishes a containing block for position:fixed and would otherwise
+	     trap this overlay inside the card. -->
 	<div
+		use:portal
 		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
+		class:is-rotated={IS_ANDROID}
 		onclick={closeFullscreen}
 		role="button"
 		tabindex="0"
@@ -327,8 +345,15 @@
 					</div>
 				{/if}
 			</div>
+			<!-- Android keeps the hint inside the rotated stage so it reads with
+			     the rest of it; the other platforms leave it upright below. -->
+			{#if IS_ANDROID}
+				<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
+			{/if}
 		</div>
-		<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
+		{#if !IS_ANDROID}
+			<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
+		{/if}
 	</div>
 {/if}
 
@@ -358,6 +383,39 @@
 		padding: 1rem;
 		touch-action: manipulation;
 		overflow: hidden;
+	}
+
+	/* Android (mockup screen-BarcodeFullscreen): the code always lies across the
+	   screen, so the whole stage is rotated a quarter turn and swaps the
+	   viewport axes — the code then uses the device height as its width and
+	   grows as large as the screen allows. Portrait only; a landscape device is
+	   already wide enough and rotating there would undo the gain. */
+	@media (orientation: portrait) {
+		.barcode-fullscreen-overlay.is-rotated {
+			justify-content: center;
+			padding: 0;
+		}
+
+		.barcode-fullscreen-overlay.is-rotated .barcode-content-wrapper {
+			width: 100dvh;
+			height: 100dvw;
+			max-width: none;
+			padding: 1.375rem 1.875rem;
+			box-sizing: border-box;
+			transform: rotate(90deg);
+		}
+
+		/* The hint rides along inside the rotated stage (mockup ui-BarcodeStage
+		   puts it at the stage's own bottom edge); left upright outside it, the
+		   text would read sideways against everything else. */
+		.barcode-fullscreen-overlay.is-rotated .barcode-close-hint {
+			position: absolute;
+			right: 1.875rem;
+			bottom: 1.375rem;
+			width: auto;
+			padding: 0;
+			text-align: right;
+		}
 	}
 
 	.barcode-fullscreen-overlay .barcode-content-wrapper {

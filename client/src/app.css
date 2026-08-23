@@ -320,3 +320,66 @@
 		}
 	}
 }
+
+/* Android resource-detail edit forms (screen-ResourceDetailAndroid, frames
+   4-6) use M3 *filled* fields: tonal tile-tint fill, rounded top corners
+   only and a bottom indicator that thickens to accent on focus. The three
+   per-kind forms are shared with iOS/desktop and keep their .input/.label
+   markup — this scoped override restyles them where the Android detail card
+   wraps them, so no form gains a platform branch. */
+.m3-filled-form input.input,
+.m3-filled-form select.input,
+.m3-filled-form textarea.input {
+	border-radius: var(--radius-m3-xs) var(--radius-m3-xs) 0 0;
+	border-top: none;
+	border-inline: none;
+	border-bottom: 1.5px solid var(--color-border-strong);
+	background-color: var(--color-tile-tint);
+	padding: 0.5rem 0.875rem 0.5625rem;
+}
+
+.m3-filled-form input.input:focus,
+.m3-filled-form select.input:focus,
+.m3-filled-form textarea.input:focus {
+	border-bottom: 2px solid var(--color-accent-600);
+	box-shadow: none;
+	outline: none;
+}
+
+.m3-filled-form .label {
+	font-size: var(--text-eyebrow);
+	font-weight: 400;
+	letter-spacing: normal;
+	color: var(--color-text-subtle);
+	margin-bottom: 0.1875rem;
+}
+
+/* The shared forms end in a stretched submit/cancel pair. Android's mockup
+   puts them right-aligned as an M3 text button plus a filled pill, so the
+   final row of the form is re-laid-out here rather than branched per form. */
+.m3-filled-form form > .flex.gap-2:last-child {
+	justify-content: flex-end;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.m3-filled-form form > .flex.gap-2:last-child > .btn {
+	flex: none;
+	height: 2.5rem;
+	border-radius: var(--radius-m3-full);
+	font-size: var(--text-label);
+	font-weight: 600;
+}
+
+.m3-filled-form form > .flex.gap-2:last-child > .btn-primary {
+	padding-inline: 1.5rem;
+}
+
+.m3-filled-form form > .flex.gap-2:last-child > .btn-ghost {
+	padding-inline: 0.75rem;
+	color: var(--color-accent-700);
+	background: transparent;
+	border-color: transparent;
+	box-shadow: none;
+	order: -1;
+}
