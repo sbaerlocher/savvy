@@ -153,8 +153,17 @@ test.describe('Sharing', () => {
 			await suggestion.click();
 		}
 
-		// Click the initial transfer button in the form
-		const confirmTransfer = page
+		// Confirm inside the form. Android renders it in a bottom sheet, so the
+		// search is scoped to the open dialog when there is one — otherwise the
+		// row button behind the scrim matches first and swallows the click.
+		const transferForm = page.locator('[role="dialog"]');
+		const transferFormScope = (await transferForm
+			.first()
+			.isVisible({ timeout: 1000 })
+			.catch(() => false))
+			? transferForm.first()
+			: page.locator('body');
+		const confirmTransfer = transferFormScope
 			.locator(
 				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)
@@ -295,7 +304,17 @@ test.describe('Sharing', () => {
 			await suggestion.click();
 		}
 
-		const confirmTransfer = page
+		// Confirm inside the form. Android renders it in a bottom sheet, so the
+		// search is scoped to the open dialog when there is one — otherwise the
+		// row button behind the scrim matches first and swallows the click.
+		const transferForm = page.locator('[role="dialog"]');
+		const transferFormScope = (await transferForm
+			.first()
+			.isVisible({ timeout: 1000 })
+			.catch(() => false))
+			? transferForm.first()
+			: page.locator('body');
+		const confirmTransfer = transferFormScope
 			.locator(
 				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)
@@ -373,7 +392,17 @@ test.describe('Sharing', () => {
 			await suggestion.click();
 		}
 
-		const confirmTransfer = page
+		// Confirm inside the form. Android renders it in a bottom sheet, so the
+		// search is scoped to the open dialog when there is one — otherwise the
+		// row button behind the scrim matches first and swallows the click.
+		const transferForm = page.locator('[role="dialog"]');
+		const transferFormScope = (await transferForm
+			.first()
+			.isVisible({ timeout: 1000 })
+			.catch(() => false))
+			? transferForm.first()
+			: page.locator('body');
+		const confirmTransfer = transferFormScope
 			.locator(
 				'button:has-text("übertragen"), button:has-text("Übergeben"), button:has-text("Transfer"), button:has-text("Transférer")'
 			)

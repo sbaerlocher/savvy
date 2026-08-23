@@ -8,6 +8,7 @@
 	import { logger } from '$lib/utils/logger';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
+	import { platform } from '$lib/utils/platform';
 	import { formatDisplayDate, todayInputValue } from '$lib/utils/date';
 	import type { GiftCardDTO, TransactionDTO } from '$lib/types/api';
 
@@ -38,6 +39,10 @@
 
 	let showDeleteTransactionModal = $state(false);
 	let transactionToDelete: string | null = null;
+
+	// Android renders the ledger as a second M3 card stacked under the barcode
+	// card (screen-ResourceDetailAndroid, frame 3).
+	const isAndroid = platform === 'android';
 
 	const percentageRemaining = $derived(
 		giftCard
@@ -118,40 +123,64 @@
 </script>
 
 <!-- Balance & Transactions Box -->
-<div class="rounded-xl border border-border bg-white p-6">
+<div
+	class={isAndroid
+		? 'rounded-m3-lg bg-m3-card p-5'
+		: 'rounded-xl border border-border bg-white p-6'}
+>
 	<!-- Balance Display -->
-	<div class="mb-6">
-		<p class="text-sm text-text-ink2 mb-1">
+	<div class={isAndroid ? 'mb-0' : 'mb-6'}>
+		<p
+			class="{isAndroid
+				? 'text-label font-normal'
+				: 'text-sm'} text-text-ink2 mb-1"
+		>
 			{tr('giftCards.balance.current')}
 		</p>
 		<p
-			class="text-3xl font-bold"
-			style="color: {giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}"
+			class={isAndroid
+				? 'text-giftcard-ink text-screen-title font-mono font-semibold'
+				: 'text-3xl font-bold'}
+			style={isAndroid
+				? undefined
+				: `color: ${giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}`}
 		>
 			{giftCard.current_balance.toFixed(2)}
 			{giftCard.currency}
 		</p>
 		<!-- Progress Bar -->
-		<div class="mt-3 bg-border rounded-full h-3">
+		<div class="mt-3 bg-border rounded-full {isAndroid ? 'h-2.25' : 'h-3'}">
 			<div
-				class="h-3 rounded-full transition-all {percentageRemaining > 50
-					? 'bg-success-500'
-					: percentageRemaining > 20
-						? 'bg-warning-500'
-						: 'bg-danger-600'}"
+				class="h-full rounded-full transition-all {isAndroid
+					? 'bg-giftcard-line'
+					: percentageRemaining > 50
+						? 'bg-success-500'
+						: percentageRemaining > 20
+							? 'bg-warning-500'
+							: 'bg-danger-600'}"
 				style="width: {percentageRemaining}%"
 			></div>
 		</div>
-		<p class="text-xs text-text-muted mt-2">
+		<p class="text-xs text-text-subtle mt-2">
 			{tr('giftCards.balance.initial')}: {giftCard.initial_balance.toFixed(2)}
 			{giftCard.currency}
 		</p>
 	</div>
 
 	<!-- Transactions Section -->
-	<div class="border-t pt-6">
-		<div class="flex justify-between items-center mb-4">
-			<h3 class="text-sm font-medium text-text-ink2">
+	<div
+		class={isAndroid
+			? 'border-border-soft mt-4.5 border-t pt-4'
+			: 'border-t pt-6'}
+	>
+		<div
+			class="flex justify-between items-center {isAndroid ? 'mb-3.5' : 'mb-4'}"
+		>
+			<h3
+				class={isAndroid
+					? 'text-label text-text-ink2'
+					: 'text-sm font-medium text-text-ink2'}
+			>
 				{tr('giftCards.transactions.title')}
 			</h3>
 			{#if giftCard.permissions?.can_edit_transactions && !showTransactionForm}
@@ -159,9 +188,13 @@
 					data-testid="add-transaction"
 					onclick={() => (showTransactionForm = true)}
 					disabled={isOffline}
-					class="btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 {isOffline
-						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-						: ''}"
+					class={isAndroid
+						? 'bg-danger-600 text-chip rounded-m3-full inline-flex items-center gap-1 px-3.25 py-1.5 whitespace-nowrap text-white disabled:opacity-50'
+						: `btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 ${
+								isOffline
+									? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
+									: ''
+							}`}
 				>
 					{#if isOffline}
 						<svg
@@ -187,12 +220,14 @@
 
 		{#if showTransactionForm}
 			<div
-				class="border border-danger-200 bg-danger-50 rounded-lg p-4 space-y-4 mb-4"
+				class={isAndroid
+					? 'border-danger-200 bg-danger-50 rounded-m3-md mb-3.5 flex flex-col gap-3 border p-3.5'
+					: 'border border-danger-200 bg-danger-50 rounded-lg p-4 space-y-4 mb-4'}
 			>
 				<div>
 					<label
 						for="transactionDate-input"
-						class="block text-sm font-medium text-text-ink2 mb-1"
+						class="text-body-sm text-text-ink2 mb-1.5 block font-medium"
 					>
 						{tr('giftCards.transactions.date')} *
 					</label>
@@ -202,14 +237,16 @@
 						required
 						bind:value={transactionDate}
 						max={todayInputValue()}
-						class="input w-full text-base bg-white"
+						class={isAndroid
+							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
+							: 'input w-full text-base bg-white'}
 					/>
 				</div>
 
 				<div>
 					<label
 						for="transactionAmount-input"
-						class="block text-sm font-medium text-text-ink2 mb-1"
+						class="text-body-sm text-text-ink2 mb-1.5 block font-medium"
 					>
 						{tr('giftCards.transactions.amount')} *
 					</label>
@@ -220,7 +257,9 @@
 						min="0.01"
 						required
 						bind:value={transactionAmount}
-						class="input bg-white"
+						class={isAndroid
+							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
+							: 'input bg-white'}
 						placeholder="10.00"
 					/>
 				</div>
@@ -228,7 +267,7 @@
 				<div>
 					<label
 						for="transactionDescription-input"
-						class="block text-sm font-medium text-text-ink2 mb-1"
+						class="text-body-sm text-text-ink2 mb-1.5 block font-medium"
 					>
 						{tr('giftCards.transactions.description')}
 					</label>
@@ -236,50 +275,90 @@
 						id="transactionDescription-input"
 						type="text"
 						bind:value={transactionDescription}
-						class="input bg-white"
+						class={isAndroid
+							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
+							: 'input bg-white'}
 						placeholder={tr('giftCards.transactions.descriptionPlaceholder')}
 					/>
 				</div>
 
-				<div class="flex gap-2">
-					<button
-						onclick={handleAddTransaction}
-						disabled={isOffline}
-						class="btn btn-danger flex-1 {isOffline
-							? 'opacity-50 cursor-not-allowed'
-							: ''}"
-					>
-						{tr('common.save')}
-					</button>
-					<button
-						onclick={() => (showTransactionForm = false)}
-						class="btn btn-ghost"
-					>
-						{tr('common.cancel')}
-					</button>
+				<!-- Android puts cancel/save right-aligned as M3 text + filled
+				     buttons; the other platforms keep the stretched pair. -->
+				<div
+					class={isAndroid
+						? 'flex items-center justify-end gap-2'
+						: 'flex gap-2'}
+				>
+					{#if isAndroid}
+						<button
+							type="button"
+							onclick={() => (showTransactionForm = false)}
+							class="text-label text-accent-700 rounded-m3-full inline-flex h-10 items-center px-3"
+						>
+							{tr('common.cancel')}
+						</button>
+						<button
+							type="button"
+							onclick={handleAddTransaction}
+							disabled={isOffline}
+							class="bg-accent-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center px-6 disabled:opacity-50"
+						>
+							{tr('common.save')}
+						</button>
+					{:else}
+						<button
+							onclick={handleAddTransaction}
+							disabled={isOffline}
+							class="btn btn-danger flex-1 {isOffline
+								? 'opacity-50 cursor-not-allowed'
+								: ''}"
+						>
+							{tr('common.save')}
+						</button>
+						<button
+							onclick={() => (showTransactionForm = false)}
+							class="btn btn-ghost"
+						>
+							{tr('common.cancel')}
+						</button>
+					{/if}
 				</div>
 			</div>
 		{/if}
 
 		{#if transactions.length > 0}
-			<div class="space-y-2">
+			<div class={isAndroid ? 'flex flex-col gap-2' : 'space-y-2'}>
 				{#each transactions as transaction (transaction.id)}
 					<div
-						class="flex items-center justify-between p-3 bg-surface-1 rounded gap-3"
+						class="flex items-center justify-between bg-surface-1 gap-3 {isAndroid
+							? 'rounded-m3-sm px-3.25 py-2.75'
+							: 'rounded p-3'}"
 					>
-						<div class="flex-1">
-							<div class="font-medium text-danger-600">
+						<div class="min-w-0 flex-1">
+							<div
+								class="text-danger-600 {isAndroid
+									? 'text-label font-mono'
+									: 'font-medium'}"
+							>
 								-{transaction.amount.toFixed(2)}
 								{giftCard.currency}
 							</div>
 							{#if transaction.description}
-								<div class="text-sm text-text-muted">
+								<div
+									class="text-text-subtle {isAndroid
+										? 'text-mono-sm truncate font-sans tracking-normal'
+										: 'text-sm text-text-muted'}"
+								>
 									{transaction.description}
 								</div>
 							{/if}
 						</div>
 						<div class="flex items-center gap-3">
-							<div class="text-xs text-text-subtle">
+							<div
+								class="text-text-faint {isAndroid
+									? 'text-mono-sm font-mono whitespace-nowrap'
+									: 'text-xs text-text-subtle'}"
+							>
 								{formatDisplayDate(transaction.transaction_date, currentLocale)}
 							</div>
 							{#if giftCard.permissions?.can_edit_transactions}
@@ -315,7 +394,11 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="text-center py-8 bg-surface-1 rounded">
+			<div
+				class="text-center py-8 {isAndroid
+					? 'bg-m3-card-chip rounded-m3-sm'
+					: 'bg-surface-1 rounded'}"
+			>
 				{#if isOffline}
 					<p class="text-warning-600 text-sm">
 						{tr('giftCards.transactions.notCachedOffline')}

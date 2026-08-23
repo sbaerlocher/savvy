@@ -100,6 +100,10 @@ export type TranslationKeys = {
 		rateLimitExceededSeconds: string;
 		rateLimitExceededMinutes: string;
 		transferOwnership: string;
+		transferOwnershipTitle: string;
+		permissions: string;
+		alreadySharedWith: string;
+		transfer: string;
 		share: string;
 		export: string;
 		add: string;
@@ -219,6 +223,7 @@ export type TranslationKeys = {
 		noCards: string;
 		noCardsHint: string;
 		newCard: string;
+		editCard: string;
 		myCards: string;
 		allCards: string;
 		activeOnly: string;

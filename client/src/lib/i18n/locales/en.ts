@@ -111,6 +111,10 @@ export const en: TranslationKeys = {
 		rateLimitExceededMinutes:
 			'Too many requests. Please wait {minutes} minute(s).',
 		transferOwnership: 'Transfer Ownership',
+		transferOwnershipTitle: 'Transfer ownership',
+		permissions: 'Permissions',
+		alreadySharedWith: 'Already shared with',
+		transfer: 'Transfer',
 		share: 'Share',
 		export: 'Export',
 		add: 'Add',
@@ -232,6 +236,7 @@ export const en: TranslationKeys = {
 		noCards: 'No cards yet',
 		noCardsHint: 'Create your first card',
 		newCard: 'New Card',
+		editCard: 'Edit Card',
 		myCards: 'My Cards',
 		allCards: 'All Cards',
 		activeOnly: 'Active Only',

@@ -19,6 +19,10 @@
 	import ShareSection from '$lib/components/resource/ShareSection.svelte';
 	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import BottomSheet from '$lib/components/BottomSheet.svelte';
+	import M3DetailAppBar from '$lib/components/ui/M3DetailAppBar.svelte';
+	import M3DetailBarActions from '$lib/components/ui/M3DetailBarActions.svelte';
+	import M3DetailOverflowSheet from '$lib/components/ui/M3DetailOverflowSheet.svelte';
 	import type {
 		CardDTO,
 		VoucherDTO,
@@ -59,6 +63,15 @@
 	}: Props = $props();
 
 	let isEditing = $state(false);
+
+	// Android detail chrome (screen-ResourceDetailAndroid): the M3 top app bar
+	// replaces the PageHeader, sharing and transfer move from permanent cards
+	// into bottom sheets opened from a button row under the resource card, and
+	// the overflow menu holds delete.
+	const isAndroid = platform === 'android';
+	let showOverflowSheet = $state(false);
+	let showShareSheet = $state(false);
+	let showTransferSheet = $state(false);
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -368,8 +381,34 @@
 </script>
 
 {#if resource}
+	<!-- Android: M3 small top app bar in both modes — view mode carries the
+	     resource title with star + overflow, edit mode swaps to a close cross
+	     and the "<kind> bearbeiten" title (mockup frames 4-6). -->
+	{#if isAndroid}
+		<M3DetailAppBar
+			title={isEditing ? tr(c.editTitle) : pageTitle}
+			nav={isEditing ? 'close' : 'back'}
+			onNav={isEditing ? cancelEdit : goBack}
+		>
+			{#snippet actions()}
+				{#if !isEditing}
+					<M3DetailBarActions
+						{isOffline}
+						isFavorite={resource!.is_favorite}
+						{isTogglingFavorite}
+						showOverflow={!!resource!.permissions?.can_delete}
+						favoriteTitleAdd={tr(cfg.favoriteAdd)}
+						favoriteTitleRemove={tr(cfg.favoriteRemove)}
+						ontoggleFavorite={toggleFavorite}
+						onoverflow={() => (showOverflowSheet = true)}
+					/>
+				{/if}
+			{/snippet}
+		</M3DetailAppBar>
+	{/if}
+
 	<!-- Page header (view mode only; the edit form keeps its own title). -->
-	{#if !isEditing}
+	{#if !isEditing && !isAndroid}
 		<PageHeader
 			title={pageTitle}
 			{eyebrow}
@@ -398,18 +437,22 @@
 				})}
 			</p>
 		{/if}
+	{/if}
 
+	{#if !isEditing}
 		<!-- Android M3: edit is a bottom-right FAB. It opens the same edit mode by
 	     toggling the form; the route renders the form via the edit snippet, but
 	     the trigger lives here. Uses startEdit which the route overrides through
-	     ResourceActions above — the FAB simply mirrors it. -->
-		{#if resource.permissions?.can_edit && platform === 'android'}
+	     ResourceActions above — the FAB simply mirrors it. The detail route has
+	     no bottom nav (mockup), so the FAB sits on the screen edge. -->
+		{#if resource.permissions?.can_edit && isAndroid}
 			<button
 				type="button"
 				onclick={startEdit}
 				disabled={isOffline}
 				aria-label={tr('common.edit')}
-				class="sm:hidden fixed right-4 z-50 h-14 w-14 flex items-center justify-center rounded-[var(--radius-m3-lg)] bg-accent text-white shadow-[var(--shadow-fab)] mobile-nav-fab-android disabled:opacity-50 disabled:pointer-events-none"
+				style="bottom: calc(1.375rem + env(safe-area-inset-bottom))"
+				class="bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] disabled:pointer-events-none disabled:opacity-50"
 			>
 				<svg
 					class="w-6 h-6"
@@ -428,16 +471,43 @@
 		{/if}
 	{/if}
 
+	{#if isAndroid && !isEditing}
+		<!-- Body eyebrow: the M3 top app bar carries only the title, so the kind
+		     kicker and the "geteilt von" line sit above the card (mockup). -->
+		{#if eyebrow}
+			<p
+				class="text-eyebrow text-text-faint mx-0.5 mb-3.5 {eyebrowVerbatim
+					? ''
+					: 'uppercase'}"
+			>
+				{eyebrow}
+			</p>
+		{/if}
+		{#if resource.owner && resource.owner.id !== $authStore.user?.id}
+			<p class="text-text-faint mx-0.5 -mt-2 mb-3.5 text-xs">
+				{tr(c.sharedBy, {
+					name: resource.owner.first_name || resource.owner.email
+				})}
+			</p>
+		{/if}
+	{/if}
+
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left column: resource details / edit form -->
 		<div class="lg:col-span-2">
 			{#if !isEditing}
 				<!-- View Mode -->
 				<div
-					class="overflow-hidden rounded-xl border border-border/80 bg-white"
+					class={isAndroid
+						? 'rounded-m3-lg bg-m3-card overflow-hidden'
+						: 'overflow-hidden rounded-xl border border-border/80 bg-white'}
 					style="border-left: 3px solid color-mix(in srgb, {accentColor} 70%, transparent)"
 				>
-					<div class="p-6 {isDimmed ? 'opacity-50 grayscale' : ''}">
+					<div
+						class="{isAndroid ? 'p-5' : 'p-6'} {isDimmed
+							? 'opacity-50 grayscale'
+							: ''}"
+					>
 						{#if resource.duplicate_warning}
 							<div class="mb-6">
 								<DuplicateWarningBanner
@@ -458,19 +528,86 @@
 
 						{#if notes}
 							<div
-								class="mt-4 bg-warning-50 border-l-4 border-warning-400 p-3 rounded"
+								class="mt-3.5 bg-warning-50 border-l-4 border-warning-400 px-3.5 py-2.5 {isAndroid
+									? 'rounded-m3-xs'
+									: 'rounded'}"
 							>
-								<p class="text-sm text-text-ink2">{notes}</p>
+								<p class="text-body-sm text-text-ink2">{notes}</p>
 							</div>
 						{/if}
 					</div>
 				</div>
+
+				<!-- Android stacks the gift-card ledger directly under the barcode
+				     card, above the action row (mockup frame 3) — the grid's right
+				     column would otherwise push it below the buttons. -->
+				{#if isAndroid && ledger}
+					<div class="mt-3">
+						{@render ledger()}
+					</div>
+				{/if}
+
+				<!-- Android: share / transfer sit as a button row under the card and
+				     open M3 bottom sheets (mockup frames 1-3, 7, 8). A recipient
+				     (is_owner false) gets no row at all — frame 9. -->
+				{#if isAndroid && resource.permissions?.is_owner}
+					<div class="mt-3 flex gap-2.5">
+						<button
+							type="button"
+							onclick={() => (showShareSheet = true)}
+							disabled={isOffline}
+							class="bg-accent-600 text-on-accent text-label flex h-12 flex-1 items-center justify-center gap-2 rounded-m3-full disabled:opacity-50"
+						>
+							<svg
+								class="h-4.5 w-4.5"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								viewBox="0 0 24 24"
+							>
+								<circle cx="18" cy="5" r="3" />
+								<circle cx="6" cy="12" r="3" />
+								<circle cx="18" cy="19" r="3" />
+								<path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+							</svg>
+							{tr(c.shareTitle)}
+						</button>
+						<button
+							type="button"
+							onclick={() => (showTransferSheet = true)}
+							disabled={isOffline}
+							class="bg-m3-card border-transfer-200 text-transfer-700 text-label flex h-12 flex-1 items-center justify-center gap-2 rounded-m3-full border disabled:opacity-50"
+						>
+							<svg
+								class="h-4.5 w-4.5"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								viewBox="0 0 24 24"
+							>
+								<path d="M7 4L3 8l4 4" />
+								<path d="M3 8h13" />
+								<path d="M17 20l4-4-4-4" />
+								<path d="M21 16H8" />
+							</svg>
+							{tr('common.transfer')}
+						</button>
+					</div>
+				{/if}
 			{:else}
 				<!-- Edit Mode: per-kind form slot + shared delete button. -->
-				<div class="overflow-hidden rounded-xl border border-border bg-white">
-					<div class="p-6">
+				<div
+					class={isAndroid
+						? 'rounded-m3-lg bg-m3-card overflow-hidden'
+						: 'overflow-hidden rounded-xl border border-border bg-white'}
+				>
+					<div class={isAndroid ? 'm3-filled-form p-4' : 'p-6'}>
 						{@render edit({ cancel: cancelEdit, close: cancelEdit })}
-						{#if resource.permissions?.can_delete}
+						{#if resource.permissions?.can_delete && !isAndroid}
 							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
@@ -501,16 +638,48 @@
 						{/if}
 					</div>
 				</div>
+
+				<!-- Android: delete leaves the form card — the mockup puts it below a
+				     divider as a plain danger text button (frames 4-6). -->
+				{#if isAndroid && resource.permissions?.can_delete}
+					<div class="border-border-soft mt-5 border-t pt-3">
+						<button
+							type="button"
+							onclick={promptDelete}
+							disabled={isOffline}
+							class="text-label text-danger-600 inline-flex h-10 items-center gap-2 rounded-m3-full px-3 disabled:opacity-50"
+						>
+							<svg
+								class="h-4.25 w-4.25"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								viewBox="0 0 24 24"
+							>
+								{#if isOffline}
+									<path d={LOCK_PATH} />
+								{:else}
+									<path d="M4 7h16" />
+									<path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+									<path d="M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13" />
+								{/if}
+							</svg>
+							{tr(c.deleteButton)}
+						</button>
+					</div>
+				{/if}
 			{/if}
 		</div>
 
 		<!-- Right column: ledger (gift), transfer & sharing (owners) -->
 		<div class="lg:col-span-1 space-y-4">
-			{#if ledger}
+			{#if ledger && !isAndroid}
 				{@render ledger()}
 			{/if}
 
-			{#if resource.permissions?.is_owner}
+			{#if resource.permissions?.is_owner && !isAndroid}
 				<!-- Transfer Box -->
 				<TransferBox
 					{isOffline}
@@ -541,9 +710,73 @@
 		</div>
 	</div>
 
+	<!-- Android sheets: overflow (delete), share and transfer. The share and
+	     transfer bodies are the same components the other platforms show inline,
+	     rendered sheet-flavoured so the data flow stays identical. -->
+	{#if isAndroid}
+		<M3DetailOverflowSheet
+			open={showOverflowSheet}
+			{isOffline}
+			deleteLabel={tr(c.deleteButton)}
+			onClose={() => (showOverflowSheet = false)}
+			ondelete={promptDelete}
+		/>
+
+		<BottomSheet
+			open={showShareSheet}
+			onClose={() => (showShareSheet = false)}
+			tonalAndroid
+			allowWide
+			maxHeight="90%"
+			ariaLabel={tr(c.shareTitle)}
+		>
+			<div class="px-4.5 pb-2">
+				<ShareSection
+					{kind}
+					resource={resource!}
+					bind:shares
+					{isOffline}
+					{shareMode}
+					variant="sheet"
+				/>
+			</div>
+		</BottomSheet>
+
+		<BottomSheet
+			open={showTransferSheet}
+			onClose={() => (showTransferSheet = false)}
+			tonalAndroid
+			allowWide
+			maxHeight="90%"
+			ariaLabel={tr(c.transferTransferButton)}
+		>
+			<div class="px-4.5 pb-2">
+				<TransferBox
+					{isOffline}
+					variant="sheet"
+					title={tr('common.transferOwnershipTitle')}
+					openButtonLabel={tr(c.transferTransferButton)}
+					transferButtonLabel={tr(c.transferTransferButton)}
+					warningTitle={tr(c.transferWarning)}
+					warningDetails={tr(c.transferWarningDetails)}
+					emailLabel={tr(c.transferEmailLabel)}
+					emailHint={tr(c.transferEmailHint)}
+					whatHappensLabel={tr(c.transferWhatHappens)}
+					details={transferDetails}
+					bind:email={transferEmail}
+					ontransfer={promptTransfer}
+				/>
+			</div>
+		</BottomSheet>
+	{/if}
+
 	<!-- Confirmation Modals -->
+	<!-- Elevated while a sheet is open: the sheet's own z-60 backdrop would
+	     otherwise sit above the modal and swallow its outside-click. Closing the
+	     sheet instead would drop the state the user is about to confirm. -->
 	<ConfirmModal
 		isOpen={showDeleteModal}
+		layer={showShareSheet || showTransferSheet ? 'elevated' : 'default'}
 		title={tr(c.deleteConfirm)}
 		message={tr(c.deleteConfirmMessage)}
 		confirmText={tr('common.delete')}
@@ -555,6 +788,7 @@
 
 	<ConfirmModal
 		isOpen={showTransferModal}
+		layer={showTransferSheet ? 'elevated' : 'default'}
 		title={tr(c.transferConfirmTitle)}
 		message={tr(c.transferConfirmMessage)}
 		confirmText={tr(c.transferTransferButton)}
