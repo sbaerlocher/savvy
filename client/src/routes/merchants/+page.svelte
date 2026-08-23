@@ -320,7 +320,7 @@
 	</a>
 {/snippet}
 
-<!-- Storefront glyph above the empty-state copy (Android mockup). -->
+<!-- Storefront glyph above the empty-state copy (Android and iOS mockups). -->
 {#snippet emptyIcon()}
 	<svg
 		class="h-10.5 w-10.5 text-text-placeholder"

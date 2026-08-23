@@ -60,6 +60,57 @@
 	}
 }
 
+/* Apple Liquid Glass (iOS 26). Safari-safe: backdrop blur + saturate, a
+   translucent tint so content behind shows through, a bright hairline border and
+   an inset specular highlight. No SVG displacement (unsupported in
+   Safari/WebView). Two tints: --color-glass-surface (deeper, the panel) and
+   --color-glass-surface-3 (lighter milky insets that sit on the sheet).
+
+   These are @utility, not @layer components: a components-layer class produces
+   no variant copies, so `max-sm:liquid-glass-card` would silently emit nothing
+   and no `sm:` utility could take the glass back off again. The native screens
+   need both — the chrome is phone-only and the desktop panel is flat. */
+@utility liquid-glass-surface {
+	background: var(--color-glass-surface);
+	backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+	-webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+	border: 1px solid var(--color-glass-edge);
+	box-shadow: var(--shadow-glass);
+
+	@supports not (backdrop-filter: blur(1px)) {
+		background: var(--color-surface);
+	}
+}
+
+/* iOS grouped-inset card groups: flat (no drop shadow), only the inset light
+   edge. Lighter, more opaque fill than the floating surface. */
+@utility liquid-glass-card {
+	background: var(--color-glass-surface-3);
+	backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
+	-webkit-backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
+	border: 1px solid var(--color-glass-edge);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+	@supports not (backdrop-filter: blur(1px)) {
+		background: var(--color-surface);
+	}
+}
+
+/* Pull-down menu: an iOS context menu is deliberately near-opaque so its text
+   stays readable — denser than the flat glass surfaces. A dark hairline (not the
+   white glass edge) delineates it against the light page. */
+@utility liquid-glass-menu {
+	background: var(--color-glass-menu);
+	backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
+	-webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
+	border: 1px solid var(--color-glass-menu-edge);
+	box-shadow: var(--shadow-glass);
+
+	@supports not (backdrop-filter: blur(1px)) {
+		background: var(--color-surface);
+	}
+}
+
 @layer components {
 	/* Button Base Styles - Consistent sizing, typography, and transitions */
 	.btn {
@@ -195,52 +246,6 @@
 	   safe-area inset comes from the inline padding-bottom at the call site. */
 	.batch-panel-android {
 		bottom: 0;
-	}
-
-	/* Apple Liquid Glass surface (iOS 26). Safari-safe: backdrop blur + saturate,
-	   translucent tint so content behind shows through, a bright hairline border
-	   and an inset specular highlight. No SVG displacement (unsupported in
-	   Safari/WebView). Two tints: --color-glass-surface (deeper, the panel) and
-	   --color-glass-surface-3 (lighter milky insets that sit on the sheet). */
-	.liquid-glass-surface {
-		background: var(--color-glass-surface);
-		backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
-		-webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
-		border: 1px solid var(--color-glass-edge);
-		box-shadow: var(--shadow-glass);
-	}
-
-	/* iOS grouped-inset card groups: flat (no drop shadow), only the inset
-	   light edge. Lighter, more opaque fill than the floating surface. */
-	.liquid-glass-card {
-		background: var(--color-glass-surface-3);
-		backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
-		-webkit-backdrop-filter: blur(18px) saturate(180%) brightness(1.06);
-		border: 1px solid var(--color-glass-edge);
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-	}
-
-	/* Pull-down menu: an iOS context menu is deliberately near-opaque so its
-	   text stays readable — denser than the flat glass surfaces. A dark hairline
-	   (not the white glass edge) delineates it against the light page. */
-	.liquid-glass-menu {
-		background: var(--color-glass-menu);
-		backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
-		-webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.06);
-		border: 1px solid var(--color-glass-menu-edge);
-		box-shadow: var(--shadow-glass);
-	}
-
-	@supports not (backdrop-filter: blur(1px)) {
-		.liquid-glass-surface {
-			background: var(--color-surface);
-		}
-		.liquid-glass-card {
-			background: var(--color-surface);
-		}
-		.liquid-glass-menu {
-			background: var(--color-surface);
-		}
 	}
 
 	/* Apple Liquid Glass: active tab pill indicator */
