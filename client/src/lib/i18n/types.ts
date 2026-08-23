@@ -112,6 +112,7 @@ export type TranslationKeys = {
 		alreadySharedWith: string;
 		transfer: string;
 		share: string;
+		moreActions: string;
 		export: string;
 		add: string;
 		manage: string;
@@ -205,6 +206,7 @@ export type TranslationKeys = {
 		barcodeHint: string;
 		tapToClose: string;
 		tapToEnlarge: string;
+		rotateToClose: string;
 	};
 	tile: {
 		expired: string;

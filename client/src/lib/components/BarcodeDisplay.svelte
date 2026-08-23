@@ -56,15 +56,20 @@
 	// it opens is rotated (mockup screen-BarcodeFullscreen). Tapping the code
 	// itself is the only way in — the mockup shows no separate control.
 	const isAndroid = platform === 'android';
+	// iOS renders the inline code inside a --surface-2 inset box and reaches the
+	// same rotated fullscreen by turning the device (mockups
+	// screen-ResourceDetailIOS / screen-BarcodeFullscreen).
+	const IS_IOS = platform === 'ios';
 
 	const hasValidityInfo = $derived(validFrom || validUntil);
 	const showStatusBadge = $derived(status && status !== 'active');
 	const showValidStatusBadge = $derived(status === 'valid');
 
-	// Fullscreen state
+	// Fullscreen state. On iOS this is driven purely by device orientation:
+	// turning the phone sideways shows the enlarged code, turning it back hides
+	// it again — the mockup has no tap target. Android and desktop additionally
+	// open it by tapping the code itself.
 	let isLandscape = $state(false);
-	// Explicit user-triggered fullscreen (tap/click/keyboard), independent of
-	// device orientation — works on desktop and portrait phones too.
 	let manualFullscreen = $state(false);
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -209,9 +214,13 @@
 {/snippet}
 
 <div
-	class="border-t border-border text-center {isAndroid
-		? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
-		: 'bg-surface-1 rounded-lg p-4'}"
+	class={IS_IOS
+		? 'relative rounded-[var(--radius-xl)] border border-border-soft bg-surface-2 px-[18px] py-[22px] text-center'
+		: `border-t border-border text-center ${
+				isAndroid
+					? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
+					: 'bg-surface-1 rounded-lg p-4'
+			}`}
 >
 	<!-- Status Badge + Validity Period (for Vouchers) -->
 	{#if showValidStatusBadge || showStatusBadge || hasValidityInfo}
@@ -221,17 +230,21 @@
 		</div>
 	{/if}
 
-	<!-- Barcode Image (tap to enlarge for scanning) -->
+	<!-- Barcode image; rotate the device to enlarge it for scanning. -->
 	<div class="flex justify-center mb-4">
-		<button
-			type="button"
-			class="barcode-zoom-button"
-			onclick={openFullscreen}
-			aria-label={tr('dashboard.tapToEnlarge')}
-			title={tr('dashboard.tapToEnlarge')}
-		>
+		{#if IS_IOS}
 			<Barcode {value} {type} {height} />
-		</button>
+		{:else}
+			<button
+				type="button"
+				class="barcode-zoom-button"
+				onclick={openFullscreen}
+				aria-label={tr('dashboard.tapToEnlarge')}
+				title={tr('dashboard.tapToEnlarge')}
+			>
+				<Barcode {value} {type} {height} />
+			</button>
+		{/if}
 	</div>
 
 	<!-- Code/Number -->
@@ -278,7 +291,7 @@
 		use:portal
 		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
-		class:is-rotated={isAndroid}
+		class:is-rotated={isAndroid || IS_IOS}
 		onclick={closeFullscreen}
 		role="button"
 		tabindex="0"
@@ -350,7 +363,9 @@
 				<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 			{/if}
 		</div>
-		{#if !isAndroid}
+		{#if IS_IOS}
+			<p class="barcode-close-hint">{tr('dashboard.rotateToClose')}</p>
+		{:else if !isAndroid}
 			<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 		{/if}
 	</div>

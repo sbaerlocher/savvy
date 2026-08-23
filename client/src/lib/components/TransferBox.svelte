@@ -23,7 +23,8 @@
 		/** Desktop only: second line under the title in the collapsed panel. */
 		subtitle?: string;
 		/**
-		 * 'sheet' renders the Android M3 bottom-sheet body (mockup frame 8): the
+		 * 'sheet' renders the native bottom-sheet body (mockups
+		 * screen-ResourceDetailAndroid frame 8 / screen-ResourceDetailIOS): the
 		 * form is always open — the sheet itself is the disclosure — and the
 		 * surrounding card chrome drops away.
 		 */

@@ -64,6 +64,14 @@
 	const ACTIONS_GAP =
 		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-0' : 'gap-2.5';
 
+	// iOS renders back as a floating 36px liquid-glass circle (mockup
+	// screen-ResourceDetailIOS); the other platforms keep the flat chevron.
+	const BACK_CLASS =
+		platform === 'ios'
+			? 'liquid-glass-surface mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-accent-hover'
+			: '-ml-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-surface-1';
+	const BACK_ICON_CLASS = platform === 'ios' ? 'h-5 w-5' : 'h-6 w-6';
+
 	// Android M3: the header search icon expands an inline docked search field
 	// that replaces the title row. Typing drives /wallet?search=<query> so the
 	// wallet list filters reactively (same flow as the iOS bottom-nav search).
@@ -154,25 +162,29 @@
 {:else}
 	<!-- Page header: plain type hierarchy, no left accent bar (mockup). -->
 	<div class="{HEADER_MB} flex items-start justify-between gap-4">
-		<div class="flex min-w-0 items-center gap-2">
+		<div
+			class="flex min-w-0 {platform === 'ios'
+				? 'items-start gap-[11px]'
+				: 'items-center gap-2'}"
+		>
 			{#if onBack}
 				<button
 					type="button"
 					onclick={onBack}
 					aria-label={tr('common.back')}
-					class="-ml-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-text-muted transition-colors hover:bg-surface-1"
+					class={BACK_CLASS}
 				>
 					<svg
-						class="h-6 w-6"
+						class={BACK_ICON_CLASS}
 						fill="none"
 						stroke="currentColor"
-						stroke-width="2"
+						stroke-width={platform === 'ios' ? '2.3' : '2'}
+						stroke-linecap="round"
+						stroke-linejoin="round"
 						viewBox="0 0 24 24"
 					>
 						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M15 19l-7-7 7-7"
+							d={platform === 'ios' ? 'M15 18l-6-6 6-6' : 'M15 19l-7-7 7-7'}
 						/>
 					</svg>
 				</button>

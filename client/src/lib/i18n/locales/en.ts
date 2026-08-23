@@ -122,6 +122,7 @@ export const en: TranslationKeys = {
 		alreadySharedWith: 'Already shared with',
 		transfer: 'Transfer',
 		share: 'Share',
+		moreActions: 'More actions',
 		export: 'Export',
 		add: 'Add',
 		manage: 'Manage',
@@ -216,7 +217,8 @@ export const en: TranslationKeys = {
 		showBarcode: 'Show barcode',
 		barcodeHint: 'Rotate your device to landscape for a larger view',
 		tapToClose: 'Tap to close',
-		tapToEnlarge: 'Tap to enlarge'
+		tapToEnlarge: 'Tap to enlarge',
+		rotateToClose: 'Rotate back to close'
 	},
 	tile: {
 		expired: 'Expired',

@@ -40,12 +40,17 @@
 	let showDeleteTransactionModal = $state(false);
 	let transactionToDelete: string | null = null;
 
-	// Android renders the ledger as a second M3 card stacked under the barcode
-	// card (screen-ResourceDetailAndroid, frame 3); desktop renders it in the
-	// right column with the gift-card gold accent and a mono balance
-	// (screen-ResourceDetailDesktop, board 3).
+	// Android and iOS render the ledger as a second card stacked under the
+	// barcode card (screen-ResourceDetailAndroid frame 3 /
+	// screen-ResourceDetailIOS); desktop renders it in the right column with the
+	// gift-card gold accent and a mono balance (screen-ResourceDetailDesktop,
+	// board 3). `platform` is a module constant, so plain consts.
 	const isAndroid = platform === 'android';
 	const IS_DESKTOP = platform === 'other';
+	const IS_IOS = platform === 'ios';
+	// Desktop and iOS lead with the currency ("CHF 85.50"); Android keeps the
+	// trailing-code form.
+	const currencyFirst = IS_DESKTOP || IS_IOS;
 
 	const percentageRemaining = $derived(
 		giftCard
@@ -131,7 +136,9 @@
 		? 'rounded-m3-lg bg-m3-card p-5'
 		: IS_DESKTOP
 			? 'rounded-2xl border border-border bg-white p-5'
-			: 'rounded-xl border border-border bg-white p-6'}
+			: IS_IOS
+				? 'rounded-[var(--radius-inset)] bg-surface p-5'
+				: 'rounded-xl border border-border bg-white p-6'}
 >
 	<!-- Balance Display -->
 	<div class={isAndroid || IS_DESKTOP ? 'mb-0' : 'mb-6'}>
@@ -143,19 +150,19 @@
 			{tr('giftCards.balance.current')}
 		</p>
 		<p
-			class={isAndroid
+			class={isAndroid || IS_IOS
 				? 'text-giftcard-ink text-screen-title font-mono font-semibold'
 				: IS_DESKTOP
 					? 'text-giftcard-ink text-display font-mono font-semibold'
 					: 'text-3xl font-bold'}
-			style={isAndroid || IS_DESKTOP
+			style={isAndroid || IS_DESKTOP || IS_IOS
 				? undefined
 				: `color: ${giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}`}
 		>
-			<!-- The desktop mockup leads with the currency throughout the board
-			     ("CHF 85.50", "Ausgangswert: CHF 150.00", "−CHF 14.50"); the native
-			     layouts keep the trailing form. -->
-			{#if IS_DESKTOP}
+			<!-- The desktop and iOS mockups lead with the currency ("CHF 85.50",
+			     "Ausgangswert: CHF 150.00", "−CHF 14.50"); Android keeps the
+			     trailing form. -->
+			{#if currencyFirst}
 				{giftCard.currency}
 				{giftCard.current_balance.toFixed(2)}
 			{:else}
@@ -165,14 +172,16 @@
 		</p>
 		<!-- Progress Bar -->
 		<div
-			class="mt-3 overflow-hidden bg-border rounded-full {isAndroid
+			class="mt-3 overflow-hidden bg-border rounded-full {isAndroid || IS_IOS
 				? 'h-2.25'
 				: IS_DESKTOP
 					? 'h-2.5'
 					: 'h-3'}"
 		>
 			<div
-				class="h-full rounded-full transition-all {isAndroid || IS_DESKTOP
+				class="h-full rounded-full transition-all {isAndroid ||
+				IS_DESKTOP ||
+				IS_IOS
 					? 'bg-giftcard-line'
 					: percentageRemaining > 50
 						? 'bg-success-500'
@@ -188,7 +197,7 @@
 				: 'text-xs text-text-subtle mt-2'}
 		>
 			{tr('giftCards.balance.initial')}:
-			{#if IS_DESKTOP}
+			{#if currencyFirst}
 				{giftCard.currency}
 				{giftCard.initial_balance.toFixed(2)}
 			{:else}
@@ -200,19 +209,21 @@
 
 	<!-- Transactions Section -->
 	<div
-		class={isAndroid
+		class={isAndroid || IS_IOS
 			? 'border-border-soft mt-4.5 border-t pt-4'
 			: IS_DESKTOP
 				? 'border-border-soft mt-4.5 border-t pt-4.5'
 				: 'border-t pt-6'}
 	>
 		<div
-			class="flex justify-between items-center {isAndroid || IS_DESKTOP
+			class="flex justify-between items-center {isAndroid ||
+			IS_DESKTOP ||
+			IS_IOS
 				? 'mb-3'
 				: 'mb-4'}"
 		>
 			<h3
-				class={isAndroid || IS_DESKTOP
+				class={isAndroid || IS_DESKTOP || IS_IOS
 					? 'text-label text-text-ink2'
 					: 'text-sm font-medium text-text-ink2'}
 			>
@@ -392,7 +403,7 @@
 										? 'text-danger-700 text-label font-mono'
 										: 'text-danger-600 font-medium'}
 							>
-								{#if IS_DESKTOP}
+								{#if currencyFirst}
 									−{giftCard.currency}
 									{transaction.amount.toFixed(2)}
 								{:else}
