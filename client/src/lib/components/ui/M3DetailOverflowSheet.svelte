@@ -23,7 +23,13 @@
 	const tr = (key: string) => get(t)(key);
 </script>
 
-<BottomSheet {open} {onClose} tonalAndroid ariaLabel={tr('common.more')}>
+<BottomSheet
+	{open}
+	{onClose}
+	tonalAndroid
+	allowWide
+	ariaLabel={tr('common.more')}
+>
 	<div class="px-2 pb-2">
 		<button
 			type="button"

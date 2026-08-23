@@ -339,6 +339,9 @@
 	}
 
 	function promptTransfer() {
+		// The Android sheet has to close first: its backdrop sits above the
+		// confirm modal's and would swallow the modal's outside-click.
+		showTransferSheet = false;
 		showTransferModal = true;
 	}
 
@@ -452,7 +455,7 @@
 				disabled={isOffline}
 				aria-label={tr('common.edit')}
 				style="bottom: calc(1.375rem + env(safe-area-inset-bottom))"
-				class="sm:hidden bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] disabled:pointer-events-none disabled:opacity-50"
+				class="bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] disabled:pointer-events-none disabled:opacity-50"
 			>
 				<svg
 					class="w-6 h-6"
@@ -475,7 +478,11 @@
 		<!-- Body eyebrow: the M3 top app bar carries only the title, so the kind
 		     kicker and the "geteilt von" line sit above the card (mockup). -->
 		{#if eyebrow}
-			<p class="text-eyebrow text-text-faint mx-0.5 mb-3.5 uppercase">
+			<p
+				class="text-eyebrow text-text-faint mx-0.5 mb-3.5 {eyebrowVerbatim
+					? ''
+					: 'uppercase'}"
+			>
 				{eyebrow}
 			</p>
 		{/if}
@@ -722,6 +729,7 @@
 			open={showShareSheet}
 			onClose={() => (showShareSheet = false)}
 			tonalAndroid
+			allowWide
 			maxHeight="90%"
 			ariaLabel={tr(c.shareTitle)}
 		>
@@ -733,6 +741,7 @@
 					{isOffline}
 					{shareMode}
 					variant="sheet"
+					onRequestClose={() => (showShareSheet = false)}
 				/>
 			</div>
 		</BottomSheet>
@@ -741,6 +750,7 @@
 			open={showTransferSheet}
 			onClose={() => (showTransferSheet = false)}
 			tonalAndroid
+			allowWide
 			maxHeight="90%"
 			ariaLabel={tr(c.transferTransferButton)}
 		>

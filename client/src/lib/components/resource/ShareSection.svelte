@@ -38,6 +38,11 @@
 		 * the card chrome around it drops away.
 		 */
 		variant?: 'card' | 'sheet';
+		/**
+		 * Sheet variant: close the surrounding sheet. Its backdrop sits above the
+		 * confirm modal's and would otherwise swallow the modal's outside-click.
+		 */
+		onRequestClose?: () => void;
 	}
 
 	let {
@@ -46,7 +51,8 @@
 		shares = $bindable(),
 		isOffline,
 		shareMode = 'editable',
-		variant = 'card'
+		variant = 'card',
+		onRequestClose
 	}: Props = $props();
 
 	const isSheet = $derived(variant === 'sheet');
@@ -178,6 +184,7 @@
 
 	function promptDeleteShare(sharedWithID: string) {
 		shareToDelete = sharedWithID;
+		onRequestClose?.();
 		showDeleteShareModal = true;
 	}
 
@@ -198,6 +205,7 @@
 	}
 
 	function promptRevokeAll() {
+		onRequestClose?.();
 		showRevokeAllModal = true;
 	}
 
@@ -564,26 +572,26 @@
 			</p>
 		{/if}
 	</div>
-
-	<ConfirmModal
-		isOpen={showDeleteShareModal}
-		title={tr(c.removeConfirm)}
-		message={tr(c.removeConfirmMessage)}
-		confirmText={tr('common.remove')}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmDeleteShare}
-		oncancel={() => (showDeleteShareModal = false)}
-	/>
-
-	<ConfirmModal
-		isOpen={showRevokeAllModal}
-		title={tr(c.revokeAllConfirm)}
-		message={tr(c.revokeAllConfirmMessage)}
-		confirmText={tr(c.revokeAll)}
-		cancelText={tr('common.cancel')}
-		variant="danger"
-		onconfirm={confirmRevokeAll}
-		oncancel={() => (showRevokeAllModal = false)}
-	/>
 {/if}
+
+<ConfirmModal
+	isOpen={showDeleteShareModal}
+	title={tr(c.removeConfirm)}
+	message={tr(c.removeConfirmMessage)}
+	confirmText={tr('common.remove')}
+	cancelText={tr('common.cancel')}
+	variant="danger"
+	onconfirm={confirmDeleteShare}
+	oncancel={() => (showDeleteShareModal = false)}
+/>
+
+<ConfirmModal
+	isOpen={showRevokeAllModal}
+	title={tr(c.revokeAllConfirm)}
+	message={tr(c.revokeAllConfirmMessage)}
+	confirmText={tr(c.revokeAll)}
+	cancelText={tr('common.cancel')}
+	variant="danger"
+	onconfirm={confirmRevokeAll}
+	oncancel={() => (showRevokeAllModal = false)}
+/>

@@ -13,6 +13,12 @@
 		 *  while sheets with white .input content (admin) stay on the light
 		 *  surface. */
 		tonalAndroid?: boolean;
+		/**
+		 * Keep the sheet available at `lg` and wider. The default hides it there
+		 * because most call sites have a desktop layout that replaces it; the
+		 * Android resource detail has none, so its sheets opt in.
+		 */
+		allowWide?: boolean;
 		children: Snippet;
 		dialogRef?: HTMLDivElement;
 	}
@@ -23,16 +29,18 @@
 		maxHeight = '85vh',
 		ariaLabel,
 		tonalAndroid = false,
+		allowWide = false,
 		children,
 		dialogRef = $bindable()
 	}: Props = $props();
 
 	const backdropClass = $derived.by(() => {
+		const wide = allowWide ? '' : 'lg:hidden ';
 		switch (platform) {
 			case 'ios':
-				return 'lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[60]';
+				return `${wide}fixed inset-0 bg-black/30 backdrop-blur-sm z-[60]`;
 			default:
-				return 'lg:hidden fixed inset-0 bg-black/50 z-[60]';
+				return `${wide}fixed inset-0 bg-black/50 z-[60]`;
 		}
 	});
 

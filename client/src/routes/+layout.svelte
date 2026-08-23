@@ -27,10 +27,10 @@
 	// Android resource detail is a sub-screen: the mockup
 	// (screen-ResourceDetailAndroid) has no M3 nav bar, only the back arrow in
 	// the top app bar and the edit FAB. The list routes themselves keep it, so
-	// this matches "/<kind>/<id>" and not "/<kind>".
+	// this matches "/<kind>/<id>" but neither "/<kind>" nor "/<kind>/new".
 	const ANDROID_DETAIL_ROUTE = $derived(
 		platform === 'android' &&
-			/^\/(cards|vouchers|gift-cards)\/[^/]+$/.test($page.url.pathname)
+			/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
 	);
 
 	// iOS select mode: the floating batch bar sits in the nav's own slot
