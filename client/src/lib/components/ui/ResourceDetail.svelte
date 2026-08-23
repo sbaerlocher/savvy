@@ -339,9 +339,6 @@
 	}
 
 	function promptTransfer() {
-		// The Android sheet has to close first: its backdrop sits above the
-		// confirm modal's and would swallow the modal's outside-click.
-		showTransferSheet = false;
 		showTransferModal = true;
 	}
 
@@ -741,7 +738,6 @@
 					{isOffline}
 					{shareMode}
 					variant="sheet"
-					onRequestClose={() => (showShareSheet = false)}
 				/>
 			</div>
 		</BottomSheet>
@@ -775,8 +771,12 @@
 	{/if}
 
 	<!-- Confirmation Modals -->
+	<!-- Elevated while a sheet is open: the sheet's own z-60 backdrop would
+	     otherwise sit above the modal and swallow its outside-click. Closing the
+	     sheet instead would drop the state the user is about to confirm. -->
 	<ConfirmModal
 		isOpen={showDeleteModal}
+		layer={showShareSheet || showTransferSheet ? 'elevated' : 'default'}
 		title={tr(c.deleteConfirm)}
 		message={tr(c.deleteConfirmMessage)}
 		confirmText={tr('common.delete')}
@@ -788,6 +788,7 @@
 
 	<ConfirmModal
 		isOpen={showTransferModal}
+		layer={showTransferSheet ? 'elevated' : 'default'}
 		title={tr(c.transferConfirmTitle)}
 		message={tr(c.transferConfirmMessage)}
 		confirmText={tr(c.transferTransferButton)}

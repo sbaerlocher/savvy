@@ -10,6 +10,7 @@
 		confirmText = 'Bestätigen',
 		cancelText = 'Abbrechen',
 		variant = 'warning' as 'danger' | 'warning' | 'info' | 'transfer',
+		layer = 'default' as 'default' | 'elevated',
 		onconfirm = () => {},
 		oncancel = () => {}
 	}: {
@@ -19,6 +20,8 @@
 		confirmText?: string;
 		cancelText?: string;
 		variant?: 'danger' | 'warning' | 'info' | 'transfer';
+		/** 'elevated' stacks above an open bottom sheet (z-60) instead of under it. */
+		layer?: 'default' | 'elevated';
 		onconfirm?: () => void;
 		oncancel?: () => void;
 	} = $props();
@@ -35,7 +38,7 @@
 	}
 </script>
 
-<Modal open={show} onclose={handleCancel} labelledby="modal-title">
+<Modal open={show} onclose={handleCancel} {layer} labelledby="modal-title">
 	<div
 		class="pointer-events-auto w-full sm:max-w-md p-6 {platform === 'ios'
 			? 'liquid-glass-surface rounded-t-3xl sm:rounded-2xl'

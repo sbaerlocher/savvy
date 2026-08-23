@@ -38,11 +38,6 @@
 		 * the card chrome around it drops away.
 		 */
 		variant?: 'card' | 'sheet';
-		/**
-		 * Sheet variant: close the surrounding sheet. Its backdrop sits above the
-		 * confirm modal's and would otherwise swallow the modal's outside-click.
-		 */
-		onRequestClose?: () => void;
 	}
 
 	let {
@@ -51,8 +46,7 @@
 		shares = $bindable(),
 		isOffline,
 		shareMode = 'editable',
-		variant = 'card',
-		onRequestClose
+		variant = 'card'
 	}: Props = $props();
 
 	const isSheet = $derived(variant === 'sheet');
@@ -184,7 +178,6 @@
 
 	function promptDeleteShare(sharedWithID: string) {
 		shareToDelete = sharedWithID;
-		onRequestClose?.();
 		showDeleteShareModal = true;
 	}
 
@@ -205,7 +198,6 @@
 	}
 
 	function promptRevokeAll() {
-		onRequestClose?.();
 		showRevokeAllModal = true;
 	}
 
@@ -574,8 +566,12 @@
 	</div>
 {/if}
 
+<!-- In the sheet variant the modal has to clear the sheet's own z-60 backdrop;
+     closing the sheet instead would unmount this component and the modal with
+     it. -->
 <ConfirmModal
 	isOpen={showDeleteShareModal}
+	layer={isSheet ? 'elevated' : 'default'}
 	title={tr(c.removeConfirm)}
 	message={tr(c.removeConfirmMessage)}
 	confirmText={tr('common.remove')}
@@ -587,6 +583,7 @@
 
 <ConfirmModal
 	isOpen={showRevokeAllModal}
+	layer={isSheet ? 'elevated' : 'default'}
 	title={tr(c.revokeAllConfirm)}
 	message={tr(c.revokeAllConfirmMessage)}
 	confirmText={tr(c.revokeAll)}
