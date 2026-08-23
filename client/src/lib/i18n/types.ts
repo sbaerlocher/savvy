@@ -1076,6 +1076,7 @@ export type TranslationKeys = {
 			noItems: string;
 			noItemsHint: string;
 			editMerchant: string;
+			typeFilter: string;
 			statusFilter: string;
 			statusAll: string;
 			statusExpired: string;

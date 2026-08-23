@@ -1172,6 +1172,7 @@ export const de: TranslationKeys = {
 			noItemsHint:
 				'Keine Kundenkarten, Gutscheine oder Geschenkkarten für diesen Händler gefunden.',
 			editMerchant: 'Bearbeiten',
+			typeFilter: 'Typ',
 			statusFilter: 'Status',
 			statusAll: 'Alle Status',
 			statusExpired: 'Abgelaufen',

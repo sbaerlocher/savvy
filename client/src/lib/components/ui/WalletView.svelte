@@ -93,6 +93,10 @@
 		matchMerchantName?: boolean;
 		typeFilterPlacement?: 'top' | 'batch-header';
 		barcodeButtonVariant?: 'label' | 'icon';
+		/** Android only: pull the barcode toggle out of the chip row and dock it
+		 *  as a square icon button at the end of the type-chip row (mockup
+		 *  screen-MerchantsAndroid, board 2). The wallet keeps the labelled chip. */
+		androidBarcodeInTypeRow?: boolean;
 		filterShowAll?: boolean;
 		maxWidth?: boolean;
 		/** Desktop mockup chrome: one row above the grid carrying count + title on
@@ -126,6 +130,7 @@
 		matchMerchantName = true,
 		typeFilterPlacement = 'top',
 		barcodeButtonVariant = 'label',
+		androidBarcodeInTypeRow = false,
 		filterShowAll = false,
 		maxWidth = true,
 		desktopChrome = false,
@@ -184,6 +189,8 @@
 	// desktop. `platform` is a module constant, but the opt-in is a prop — so
 	// $derived.
 	const DESKTOP_CHROME = $derived(desktopChrome && IS_DESKTOP);
+	// Opt-in is a prop, the platform is a module constant — so $derived.
+	const BARCODE_IN_TYPE_ROW = $derived(androidBarcodeInTypeRow && IS_ANDROID);
 
 	const detailSortOptions = $derived.by(() => {
 		const opts = [
@@ -1205,32 +1212,81 @@
 	{/if}
 
 	{#if totalItems === 0}
-		<div class="bg-surface-1 rounded-lg p-12 text-center">
+		<!-- Android draws the empty state as a flat M3 card with the glyph above
+		     the copy (mockup screen-MerchantsAndroid); the other platforms keep the
+		     plain panel. -->
+		<div
+			class="bg-surface-1 rounded-lg p-12 text-center {IS_ANDROID
+				? 'max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2 max-sm:rounded-m3-lg max-sm:bg-m3-card max-sm:px-6.5 max-sm:py-11.5'
+				: ''}"
+		>
 			{@render emptyIcon?.()}
-			<p class="text-text-muted text-lg mb-4">
+			<p
+				class="text-text-muted text-lg mb-4 {IS_ANDROID
+					? 'max-sm:mt-1.5 max-sm:mb-0 max-sm:text-subheading'
+					: ''}"
+			>
 				{tr('merchantOverview.detail.noItems')}
 			</p>
-			<p class="text-text-faint text-sm">
+			<p
+				class="text-text-faint text-sm {IS_ANDROID ? 'max-sm:max-w-62.5' : ''}"
+			>
 				{tr('merchantOverview.detail.noItemsHint')}
 			</p>
 		</div>
 	{:else}
+		<!-- Android draws the search field above the type chips (mockup
+		     screen-MerchantsAndroid, board 2); the other platforms keep the chip
+		     row first. -->
+		{#if IS_ANDROID}
+			{@render searchField?.()}
+		{/if}
 		<!-- Type filter (top placement). The desktop mockup has no chip row — the
 		     type is picked in the filter panel — so it drops out entirely there. -->
 		{#if typeFilterPlacement === 'top' && !DESKTOP_CHROME}
-			<div class="mb-4 {ANDROID_SELECT_HIDDEN}">
-				<TypeFilterButtons
-					bind:typeFilter={filters.typeFilter}
-					cardsCount={cards.length}
-					vouchersCount={vouchers.length}
-					giftCardsCount={giftCards.length}
-					showAll={filterShowAll}
-					allowToggle={!selectMode}
-				/>
+			<div class="mb-4 flex items-center gap-2.5 {ANDROID_SELECT_HIDDEN}">
+				<div class="min-w-0 flex-1">
+					<TypeFilterButtons
+						bind:typeFilter={filters.typeFilter}
+						cardsCount={cards.length}
+						vouchersCount={vouchers.length}
+						giftCardsCount={giftCards.length}
+						showAll={filterShowAll}
+						allowToggle={!selectMode}
+					/>
+				</div>
+				{#if BARCODE_IN_TYPE_ROW}
+					<!-- Square M3 icon button closing the chip row (mockup). -->
+					<button
+						type="button"
+						onclick={toggleBarcodes}
+						aria-pressed={showBarcodes}
+						aria-label={showBarcodes
+							? tr('barcodeToggle.hide')
+							: tr('barcodeToggle.show')}
+						class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-m3-sm transition-colors {showBarcodes
+							? 'bg-m3-secondary-container text-m3-on-secondary-container'
+							: 'border border-border-chip text-text-muted'}"
+					>
+						<svg
+							class="h-4.25 w-4.25"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.9"
+							stroke-linecap="round"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+						>
+							<path d={ICON_BARCODE_BARS} />
+						</svg>
+					</button>
+				{/if}
 			</div>
 		{/if}
 
-		{@render searchField?.()}
+		{#if !IS_ANDROID}
+			{@render searchField?.()}
+		{/if}
 
 		<!-- WalletToolbar: Select · Filter · Barcode-Toggle · Import. Android hides
 		     the block in select mode below `sm`, where the contextual top app bar
@@ -1275,12 +1331,14 @@
 							hasActiveFilters,
 							showFilterMenu
 						)}
-						{@render androidChip(
-							tr('barcodeToggle.label'),
-							'M4 6v12M7 6v12M10.5 6v12M14 6v12M17 6v12M20 6v12',
-							showBarcodes,
-							toggleBarcodes
-						)}
+						{#if !BARCODE_IN_TYPE_ROW}
+							{@render androidChip(
+								tr('barcodeToggle.label'),
+								ICON_BARCODE_BARS,
+								showBarcodes,
+								toggleBarcodes
+							)}
+						{/if}
 					</div>
 				{:else}
 					<div class="flex sm:hidden gap-3">

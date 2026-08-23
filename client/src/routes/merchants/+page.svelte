@@ -15,9 +15,17 @@
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
+	import { ICON_CLOSE, ICON_FILTER_LINES, ICON_SEARCH } from '$lib/icons';
+	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
+
+	// Android renders this screen as Material 3 (mockup screen-MerchantsAndroid):
+	// a one-column list of tonal cards, a single outlined "Filter" chip instead
+	// of the search+filter+new row, and search moved into the filter sheet.
+	// `platform` is a module constant, so a plain const, not $derived.
+	const IS_ANDROID = platform === 'android';
 
 	const isAdmin = $derived($authStore.user?.is_admin || false);
 	const isOffline = $derived(!$isOnline);
@@ -239,6 +247,15 @@
 		{ value: 'balance-desc', label: tr('merchantOverview.sortBalanceDesc') }
 	]);
 
+	// Empty-state card. Android draws it as a flat M3 card carrying the building
+	// glyph above the copy (mockup); the other platforms keep the plain panel.
+	const EMPTY_CARD_CLASS = IS_ANDROID
+		? 'max-sm:rounded-m3-lg max-sm:bg-m3-card max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2 max-sm:px-6.5 max-sm:py-11.5 bg-surface-1 rounded-lg p-12 text-center'
+		: 'bg-surface-1 rounded-lg p-12 text-center';
+	const EMPTY_TITLE_CLASS = IS_ANDROID
+		? 'text-text-muted max-sm:mb-0 max-sm:mt-1.5 max-sm:text-subheading text-lg mb-4'
+		: 'text-text-muted text-lg mb-4';
+
 	const listStatusOptions = $derived([
 		{ value: 'all', label: tr('merchantOverview.filterStatusAll') },
 		{ value: 'active', label: tr('merchantOverview.filterStatusActive') },
@@ -250,13 +267,95 @@
 	<title>{tr('merchantOverview.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
+<!-- Storefront glyph above the empty-state copy (Android mockup). -->
+{#snippet emptyIcon()}
+	<svg
+		class="h-10.5 w-10.5 text-text-placeholder"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="1.5"
+		viewBox="0 0 24 24"
+		aria-hidden="true"
+	>
+		<path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+		/>
+	</svg>
+{/snippet}
+
+<!-- One count chip on a merchant card: outlined for active counts, filled-flat
+     for the inactive/expired ones. Android steps the chip up to the M3 size
+     from the mockup; the other platforms keep the smaller pill. -->
+{#snippet countChip(count: number, label: string, active: boolean)}
+	<span
+		class="inline-flex items-center rounded-full {IS_ANDROID
+			? 'max-sm:text-chip max-sm:px-2.75 max-sm:py-1 px-2.5 py-0.5 text-xs font-medium'
+			: 'px-2.5 py-0.5 text-xs font-medium'} {active
+			? 'bg-surface-1 border border-border text-text-muted'
+			: 'bg-border-soft text-text-faint'}"
+	>
+		{count}
+		{label}
+	</span>
+{/snippet}
+
 <div class="px-4 pb-20 md:pb-4">
-	<!-- Header -->
-	<PageHeader title={tr('merchantOverview.title')} />
+	<!-- Header. Android carries the count as an eyebrow and keeps the mobile
+	     header actions (search + bell); the other platforms keep the bare title. -->
+	<PageHeader
+		title={tr('merchantOverview.title')}
+		eyebrow={IS_ANDROID
+			? `${filteredMerchants.length} ${tr('nav.merchants')}`
+			: undefined}
+		mobileActions={IS_ANDROID}
+	/>
+
+	{#if IS_ANDROID}
+		<!-- M3 chip row: one content-sized outlined "Filter" chip. Search lives in
+		     the sheet, and "New" is the nav FAB (mockup). -->
+		<div class="mb-3.5 flex items-center gap-2 sm:hidden">
+			<button
+				type="button"
+				data-testid="merchant-filter-chip"
+				onclick={(e: MouseEvent) => {
+					e.stopPropagation();
+					showFilterMenu = !showFilterMenu;
+				}}
+				aria-pressed={hasActiveFilters}
+				aria-expanded={showFilterMenu}
+				class="relative inline-flex h-8 items-center gap-1.5 rounded-m3-sm px-3.5 text-label whitespace-nowrap transition-colors {hasActiveFilters
+					? 'bg-m3-secondary-container text-m3-on-secondary-container'
+					: 'border border-border-chip text-text-muted'}"
+			>
+				<svg
+					class="h-4.5 w-4.5 shrink-0"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.9"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_FILTER_LINES}
+					/>
+				</svg>
+				{tr('common.filter')}
+			</button>
+		</div>
+	{/if}
 
 	{#if merchants.length > 0}
-		<!-- Search + Filter + New Button -->
-		<div class="flex flex-col sm:flex-row gap-3 mb-6">
+		<!-- Search + Filter + New Button. Android replaces the phone-width row with
+		     the M3 chip above, so it starts at `sm` there. -->
+		<div
+			class="flex flex-col sm:flex-row gap-3 mb-6 {IS_ANDROID
+				? 'max-sm:hidden'
+				: ''}"
+		>
 			<!-- Search Bar -->
 			<div class="flex-1">
 				<input
@@ -396,7 +495,7 @@
 			</div>
 		</div>
 	{:else if !isLoading && isAdmin}
-		<div class="inline-block mb-6">
+		<div class="inline-block mb-6 {IS_ANDROID ? 'max-sm:hidden' : ''}">
 			<a
 				href={resolve('/admin/merchants/new')}
 				onclick={(e) => {
@@ -433,19 +532,29 @@
 		<LoadingSpinner />
 	{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
 		<!-- No results with filters -->
-		<div class="bg-surface-1 rounded-lg p-12 text-center">
-			<p class="text-text-muted text-lg mb-4">{tr('search.no_results')}</p>
+		<div class={EMPTY_CARD_CLASS}>
+			{#if IS_ANDROID}
+				{@render emptyIcon()}
+			{/if}
+			<p class={EMPTY_TITLE_CLASS}>{tr('search.no_results')}</p>
 			<button type="button" onclick={resetFilters} class="btn btn-ghost">
 				{tr('common.resetFilters')}
 			</button>
 		</div>
 	{:else if filteredMerchants.length === 0}
 		<!-- Empty State -->
-		<div class="bg-surface-1 rounded-lg p-12 text-center">
-			<p class="text-text-muted text-lg mb-4">
+		<div class={EMPTY_CARD_CLASS}>
+			{#if IS_ANDROID}
+				{@render emptyIcon()}
+			{/if}
+			<p class={EMPTY_TITLE_CLASS}>
 				{tr('merchantOverview.noMerchants')}
 			</p>
-			<p class="text-text-faint text-sm mt-1">
+			<p
+				class="text-text-faint text-sm {IS_ANDROID
+					? 'max-sm:mt-0 max-sm:max-w-62.5 mt-1'
+					: 'mt-1'}"
+			>
 				{tr('merchantOverview.noMerchantsHint')}
 			</p>
 		</div>
@@ -459,90 +568,118 @@
 				<div
 					class="grid grid-cols-1 sm:grid-cols-2 {showFilterMenu
 						? ''
-						: 'lg:grid-cols-3'} gap-4"
+						: 'lg:grid-cols-3'} {IS_ANDROID ? 'max-sm:gap-3' : ''} gap-4"
 				>
 					{#each filteredMerchants as merchant (merchant.id)}
+						<!-- Android M3 card: flat tonal card, no shadow, the merchant colour
+						     as a 6px bar inside the clipped corner radius (mockup). -->
 						<a
 							href={resolve(`/merchants/${merchant.id}`)}
-							class="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden group h-full flex flex-col"
-							style="border-left: 6px solid {merchant.color}"
+							class="overflow-hidden group h-full flex flex-col {IS_ANDROID
+								? 'relative max-sm:rounded-m3-lg max-sm:bg-m3-card sm:rounded-lg sm:bg-white sm:shadow sm:hover:shadow-md sm:transition-shadow'
+								: 'bg-white rounded-lg shadow hover:shadow-md transition-shadow'}"
+							style={IS_ANDROID
+								? undefined
+								: `border-left: 6px solid ${merchant.color}`}
 						>
-							<div class="p-4 flex flex-col flex-1">
+							{#if IS_ANDROID}
+								<span
+									class="absolute inset-y-0 left-0 w-1.5"
+									style="background-color: {merchant.color}"
+								></span>
+							{/if}
+							<div
+								class="flex flex-col flex-1 {IS_ANDROID
+									? 'max-sm:gap-2.25 max-sm:pt-3.75 max-sm:pr-4 max-sm:pb-3.25 max-sm:pl-5 p-4'
+									: 'p-4'}"
+							>
 								<!-- Merchant name -->
-								<h2 class="text-lg font-semibold text-text truncate">
+								<h2
+									class="text-text truncate {IS_ANDROID
+										? 'max-sm:text-heading text-lg font-semibold'
+										: 'text-lg font-semibold'}"
+								>
 									{merchant.name}
 								</h2>
 
 								<!-- Active item counts -->
 								{#if merchant.cards_count > 0 || merchant.vouchers_count > 0 || merchant.gift_cards_count > 0}
-									<div class="mt-3 flex flex-wrap gap-2">
+									<div
+										class="flex flex-wrap {IS_ANDROID
+											? 'max-sm:mt-0 max-sm:gap-1.5 mt-3 gap-2'
+											: 'mt-3 gap-2'}"
+									>
 										{#if merchant.cards_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
-											>
-												{merchant.cards_count}
-												{tr('merchantOverview.cards')}
-											</span>
+											{@render countChip(
+												merchant.cards_count,
+												tr('merchantOverview.cards'),
+												true
+											)}
 										{/if}
 										{#if merchant.vouchers_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
-											>
-												{merchant.vouchers_count}
-												{tr('merchantOverview.vouchers')}
-											</span>
+											{@render countChip(
+												merchant.vouchers_count,
+												tr('merchantOverview.vouchers'),
+												true
+											)}
 										{/if}
 										{#if merchant.gift_cards_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-1 border border-border text-text-muted"
-											>
-												{merchant.gift_cards_count}
-												{tr('merchantOverview.giftCards')}
-											</span>
+											{@render countChip(
+												merchant.gift_cards_count,
+												tr('merchantOverview.giftCards'),
+												true
+											)}
 										{/if}
 									</div>
 								{/if}
 
 								<!-- Inactive/expired item counts (greyed out) -->
 								{#if merchant.cards_inactive_count > 0 || merchant.vouchers_inactive_count > 0 || merchant.gift_cards_inactive_count > 0}
-									<div class="mt-1.5 flex flex-wrap gap-2">
+									<div
+										class="flex flex-wrap {IS_ANDROID
+											? 'max-sm:mt-0 max-sm:gap-1.5 mt-1.5 gap-2'
+											: 'mt-1.5 gap-2'}"
+									>
 										{#if merchant.cards_inactive_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
-											>
-												{merchant.cards_inactive_count}
-												{tr('merchantOverview.cards')}
-											</span>
+											{@render countChip(
+												merchant.cards_inactive_count,
+												tr('merchantOverview.cards'),
+												false
+											)}
 										{/if}
 										{#if merchant.vouchers_inactive_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
-											>
-												{merchant.vouchers_inactive_count}
-												{tr('merchantOverview.vouchers')}
-											</span>
+											{@render countChip(
+												merchant.vouchers_inactive_count,
+												tr('merchantOverview.vouchers'),
+												false
+											)}
 										{/if}
 										{#if merchant.gift_cards_inactive_count > 0}
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-border-soft text-text-faint"
-											>
-												{merchant.gift_cards_inactive_count}
-												{tr('merchantOverview.giftCards')}
-											</span>
+											{@render countChip(
+												merchant.gift_cards_inactive_count,
+												tr('merchantOverview.giftCards'),
+												false
+											)}
 										{/if}
 									</div>
 								{/if}
 
 								<!-- Balance + total items (pushed to bottom) -->
 								<div
-									class="mt-auto pt-3 flex items-center justify-between text-sm text-text-subtle"
+									class="mt-auto flex items-center justify-between text-text-subtle {IS_ANDROID
+										? 'max-sm:pt-1.25 max-sm:text-chip max-sm:font-normal pt-3 text-sm'
+										: 'pt-3 text-sm'}"
 								>
 									<span
 										>{getTotalItems(merchant)}
 										{tr('merchantOverview.items')}</span
 									>
 									{#if merchant.total_gift_card_balance > 0}
-										<span class="font-semibold text-text">
+										<span
+											class="font-semibold text-text {IS_ANDROID
+												? 'max-sm:text-label max-sm:tabular-nums'
+												: ''}"
+										>
 											CHF {formatBalance(merchant.total_gift_card_balance)}
 										</span>
 									{/if}
@@ -640,9 +777,34 @@
 	ariaLabel={tr('common.filter')}
 	tonalAndroid
 >
-	<div class="p-6">
-		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-semibold text-text">
+	<div class={IS_ANDROID ? 'px-5.5 pb-5.5' : 'p-6'}>
+		<div
+			class="flex items-center justify-between {IS_ANDROID
+				? 'pt-1.5 pb-3.5'
+				: 'mb-4'}"
+		>
+			<!-- M3 sheet title carries the filter glyph next to the label (mockup). -->
+			<h3
+				class="flex items-center gap-2.25 text-text {IS_ANDROID
+					? 'text-heading'
+					: 'text-lg font-semibold'}"
+			>
+				{#if IS_ANDROID}
+					<svg
+						class="h-4.25 w-4.25 shrink-0 text-text-subtle"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d={ICON_FILTER_LINES}
+						/>
+					</svg>
+				{/if}
 				{tr('common.filter')}
 			</h3>
 			<button
@@ -652,22 +814,49 @@
 				aria-label={tr('common.close')}
 			>
 				<svg
-					class="w-6 h-6"
+					class={IS_ANDROID ? 'h-5.25 w-5.25' : 'w-6 h-6'}
 					fill="none"
 					stroke="currentColor"
+					stroke-width="2"
 					viewBox="0 0 24 24"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE} />
 				</svg>
 			</button>
 		</div>
 
-		<div class="px-6 pt-4">
+		{#if IS_ANDROID}
+			<!-- Android moves the merchant search off the list and into the sheet as
+			     an outlined M3 text field (mockup). -->
+			<div
+				class="mb-4.5 flex h-12 items-center gap-2.25 rounded-m3-xs border border-border-field px-3.5"
+			>
+				<svg
+					class="h-4.5 w-4.5 shrink-0 text-text-faint"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_SEARCH}
+					/>
+				</svg>
+				<input
+					type="search"
+					data-testid="merchant-search-sheet"
+					bind:value={searchInput}
+					placeholder={tr('common.search')}
+					aria-label={tr('common.search')}
+					class="min-w-0 flex-1 bg-transparent text-text placeholder:text-text-placeholder focus:outline-none"
+				/>
+			</div>
+		{/if}
+
+		<div class={IS_ANDROID ? '' : 'px-6 pt-4'}>
 			<MerchantFilters
 				bind:typeFilter
 				bind:statusFilter
@@ -679,15 +868,18 @@
 				giftCardsCount={merchantsWithGiftCards}
 				{hasActiveFilters}
 				onReset={resetFilters}
+				showTypeLabel={IS_ANDROID}
 				idPrefix="merchants-mobile"
 			/>
 		</div>
 
-		<div class="px-6 pb-4 pt-2">
+		<div class={IS_ANDROID ? 'pt-4.5' : 'px-6 pb-4 pt-2'}>
 			<button
 				type="button"
 				onclick={() => (showFilterMenu = false)}
-				class="w-full btn btn-primary"
+				class={IS_ANDROID
+					? 'w-full rounded-m3-full bg-accent px-4 py-3.25 text-label text-white shadow-[var(--shadow-accent)] transition-colors'
+					: 'w-full btn btn-primary'}
 			>
 				{tr('common.done')}
 			</button>

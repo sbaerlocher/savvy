@@ -1176,6 +1176,7 @@ export const fr: TranslationKeys = {
 			noItemsHint:
 				'Aucune carte, bon ou carte-cadeau trouvé pour ce commerçant.',
 			editMerchant: 'Modifier',
+			typeFilter: 'Type',
 			statusFilter: 'Statut',
 			statusAll: 'Tous les statuts',
 			statusExpired: 'Expiré',
