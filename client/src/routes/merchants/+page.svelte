@@ -634,15 +634,17 @@
 		</div>
 	{/if}
 
-	<!-- Loading -->
-	{#if isLoading}
-		<LoadingSpinner />
-	{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
-		<!-- No results with filters. The panel stays mounted beside the message: on
-		     desktop it carries the search field that produced this state, so
-		     unmounting it would take away the only way to correct the query. -->
-		<div class="grid grid-cols-1 {panelOpen ? 'lg:grid-cols-3' : ''} gap-6">
-			<div class={panelOpen ? 'lg:col-span-2' : ''}>
+	<!-- One grid wrapper around every state, with the panel rendered once outside
+	     the branch chain. Svelte does not share DOM across if-branches, so a panel
+	     rendered per branch would remount its search input whenever a keystroke
+	     crossed the zero-results boundary — dropping focus mid-word. -->
+	<div class="grid grid-cols-1 {panelOpen ? 'lg:grid-cols-3' : ''} gap-6">
+		<div class={panelOpen ? 'lg:col-span-2' : ''}>
+			<!-- Loading -->
+			{#if isLoading}
+				<LoadingSpinner />
+			{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
+				<!-- No results with filters -->
 				<div class={EMPTY_CARD_CLASS}>
 					{#if IS_ANDROID}
 						{@render emptyIcon()}
@@ -652,33 +654,24 @@
 						{tr('common.resetFilters')}
 					</button>
 				</div>
-			</div>
-			{#if panelOpen}
-				{@render filterSidePanel()}
-			{/if}
-		</div>
-	{:else if filteredMerchants.length === 0}
-		<!-- Empty State -->
-		<div class={EMPTY_CARD_CLASS}>
-			{#if IS_ANDROID}
-				{@render emptyIcon()}
-			{/if}
-			<p class={EMPTY_TITLE_CLASS}>
-				{tr('merchantOverview.noMerchants')}
-			</p>
-			<p
-				class="text-text-faint text-sm {IS_ANDROID
-					? 'max-sm:mt-0 max-sm:max-w-62.5 mt-1'
-					: 'mt-1'}"
-			>
-				{tr('merchantOverview.noMerchantsHint')}
-			</p>
-		</div>
-	{:else}
-		<!-- Grid with optional Side-Panel -->
-		<div class="grid grid-cols-1 {panelOpen ? 'lg:grid-cols-3' : ''} gap-6">
-			<!-- Merchant Grid -->
-			<div class={panelOpen ? 'lg:col-span-2' : ''}>
+			{:else if filteredMerchants.length === 0}
+				<!-- Empty State -->
+				<div class={EMPTY_CARD_CLASS}>
+					{#if IS_ANDROID}
+						{@render emptyIcon()}
+					{/if}
+					<p class={EMPTY_TITLE_CLASS}>
+						{tr('merchantOverview.noMerchants')}
+					</p>
+					<p
+						class="text-text-faint text-sm {IS_ANDROID
+							? 'max-sm:mt-0 max-sm:max-w-62.5 mt-1'
+							: 'mt-1'}"
+					>
+						{tr('merchantOverview.noMerchantsHint')}
+					</p>
+				</div>
+			{:else}
 				<div
 					class="grid grid-cols-1 sm:grid-cols-2 {panelOpen
 						? ''
@@ -808,22 +801,22 @@
 						</a>
 					{/each}
 				</div>
-			</div>
-
-			<!-- Filter Side-Panel (desktop only). Shown at every desktop width, not
-			     `hidden lg:block`: it holds the only search field on desktop, so
-			     hiding it below `lg` would leave no way to search — the bottom sheet
-			     is gated off there. Above `lg` it takes its own grid column. -->
-			{#if panelOpen}
-				{@render filterSidePanel()}
 			{/if}
 		</div>
-	{/if}
+
+		<!-- Filter Side-Panel (desktop only). Shown at every desktop width, not
+		     `hidden lg:block`: it holds the only search field on desktop, so hiding
+		     it below `lg` would leave no way to search — the bottom sheet is gated
+		     off there. Above `lg` it takes its own grid column. -->
+		{#if panelOpen}
+			{@render filterSidePanel()}
+		{/if}
+	</div>
 </div>
 
-<!-- Desktop filter side panel. A snippet so the empty-result branch can
-     render it too: it carries the only desktop search field, so unmounting
-     it there would take away the input holding the query. -->
+<!-- Desktop filter side panel, rendered from a single call site outside the
+     state chain so its search input keeps its identity — and its focus — while
+     the list swaps between results, no-results and empty. -->
 {#snippet filterSidePanel()}
 	<div class="lg:col-span-1">
 		<div class="bg-white rounded-xl shadow-card sticky top-4 overflow-hidden">
