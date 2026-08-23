@@ -17,7 +17,9 @@
 		options,
 		idPrefix = 'filter',
 		groupKey = idPrefix,
-		openGroup = $bindable('')
+		openGroup = $bindable(''),
+		flat = false,
+		variant = 'list'
 	}: {
 		label: string;
 		value: string;
@@ -30,6 +32,12 @@
 		 *  expanding one collapses the others. A call site that does not bind it
 		 *  gets a self-contained row that opens and closes on its own. */
 		openGroup?: string;
+		/** iOS only: skip the accordion — render the caption above the options,
+		 *  permanently expanded (mockup screen-MerchantsIOS filter sheet). */
+		flat?: boolean;
+		/** iOS flat groups only: 'list' keeps the checkmark rows, 'chips' lays the
+		 *  options out as a wrapping pill row. */
+		variant?: 'list' | 'chips';
 	} = $props();
 
 	const groupId = $derived(`${idPrefix}-group`);
@@ -68,7 +76,89 @@
 	}
 </script>
 
-{#if platform === 'ios'}
+{#if platform === 'ios' && flat}
+	<!-- iOS flat group: an uppercase caption above permanently expanded options
+	     (mockup screen-MerchantsIOS filter sheet). -->
+	<div>
+		<span
+			id={groupId}
+			class="mb-2.5 block text-section-eyebrow uppercase text-text-subtle"
+		>
+			{label}
+		</span>
+		{#if variant === 'chips'}
+			<div
+				role="radiogroup"
+				aria-labelledby={groupId}
+				class="flex flex-wrap gap-2"
+			>
+				{#each options as opt (opt.value)}
+					{@const selected = value === opt.value}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={selected}
+						onclick={() => (value = opt.value)}
+						class="inline-flex items-center gap-1.25 rounded-full px-3.25 py-1.75 text-label transition-colors {selected
+							? 'bg-accent text-on-accent'
+							: 'border border-border bg-surface text-text-muted'}"
+					>
+						{#if selected}
+							<svg
+								class="h-3.25 w-3.25"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.6"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M20 6L9 17l-5-5"
+								/>
+							</svg>
+						{/if}
+						{opt.label}
+					</button>
+				{/each}
+			</div>
+		{:else}
+			<div role="radiogroup" aria-labelledby={groupId} class="flex flex-col">
+				{#each options as opt (opt.value)}
+					{@const selected = value === opt.value}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={selected}
+						onclick={() => (value = opt.value)}
+						class="flex w-full items-center gap-3 py-2.25 text-left text-[length:var(--text-code)] font-normal {selected
+							? 'text-text'
+							: 'text-text-muted'}"
+					>
+						<span class="flex h-4 w-4 shrink-0 items-center justify-center">
+							{#if selected}
+								<svg
+									class="h-4 w-4 text-accent"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.4"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M20 6L9 17l-5-5"
+									/>
+								</svg>
+							{/if}
+						</span>
+						{opt.label}
+					</button>
+				{/each}
+			</div>
+		{/if}
+	</div>
+{:else if platform === 'ios'}
 	<!-- iOS: an inline accordion row. Collapsed it shows label + current value +
 	     chevron; tapping expands the options in place (checkmark on the picked
 	     one) and picking collapses it again (mockup screen-WalletIOS). Only one

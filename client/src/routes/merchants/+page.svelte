@@ -26,6 +26,10 @@
 	// of the search+filter+new row, and search moved into the filter sheet.
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_ANDROID = platform === 'android';
+	// iOS renders its own chrome for this screen (mockup screen-MerchantsIOS): a
+	// count eyebrow, a right-aligned glass "Filter" pill next to an admin "+",
+	// one stacked column of bordered cards and a glass empty state.
+	const IOS = platform === 'ios';
 
 	// Desktop renders its own chrome (mockup screen-MerchantsDesktop): a count
 	// eyebrow above the title, a single filter icon button, and search moved into
@@ -61,21 +65,7 @@
 	const panelOpen = $derived(showFilterMenu && IS_DESKTOP);
 
 	const filteredMerchants = $derived.by(() => {
-		let result = merchants;
-
-		// Hide merchants with 0 items for non-admin users
-		if (!isAdmin) {
-			result = result.filter(
-				(m) =>
-					m.cards_count +
-						m.cards_inactive_count +
-						m.vouchers_count +
-						m.vouchers_inactive_count +
-						m.gift_cards_count +
-						m.gift_cards_inactive_count >
-					0
-			);
-		}
+		let result = visibleMerchants;
 
 		// Search filter
 		if (searchInput.trim()) {
@@ -279,14 +269,18 @@
 		{ value: 'balance-desc', label: tr('merchantOverview.sortBalanceDesc') }
 	]);
 
-	// Empty-state card. Android draws it as a flat M3 card carrying the building
-	// glyph above the copy (mockup); the other platforms keep the plain panel.
+	// Empty-state card. The phone carries a native card — a flat M3 one on
+	// Android, a glass grouped-inset one on iOS (mockups); from `sm` up every
+	// platform falls back to the plain panel.
 	const EMPTY_CARD_CLASS = IS_ANDROID
 		? 'max-sm:rounded-m3-lg max-sm:bg-m3-card max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2 max-sm:px-6.5 max-sm:py-11.5 bg-surface-1 rounded-lg p-12 text-center'
-		: 'bg-surface-1 rounded-lg p-12 text-center';
-	const EMPTY_TITLE_CLASS = IS_ANDROID
-		? 'text-text-muted max-sm:mb-0 max-sm:mt-1.5 max-sm:text-subheading text-lg mb-4'
-		: 'text-text-muted text-lg mb-4';
+		: IOS
+			? 'max-sm:liquid-glass-card max-sm:rounded-[var(--radius-inset)] max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2.5 max-sm:px-6.5 max-sm:py-11 bg-surface-1 rounded-lg p-12 text-center'
+			: 'bg-surface-1 rounded-lg p-12 text-center';
+	const EMPTY_TITLE_CLASS =
+		IS_ANDROID || IOS
+			? 'text-text-muted max-sm:mb-0 max-sm:mt-1.5 max-sm:text-subheading max-sm:text-text text-lg mb-4'
+			: 'text-text-muted text-lg mb-4';
 
 	const listStatusOptions = $derived([
 		{ value: 'all', label: tr('merchantOverview.filterStatusAll') },
@@ -298,6 +292,33 @@
 <svelte:head>
 	<title>{tr('merchantOverview.title')} - {tr('common.appName')}</title>
 </svelte:head>
+
+<!-- iOS admin shortcut to merchant creation, in the same glass pill shape as
+     the Filter control next to it. Disabled offline like every other mutation. -->
+{#snippet iosAdminAddPill()}
+	<a
+		href={resolve('/admin/merchants/new')}
+		onclick={(e) => {
+			if (isOffline) e.preventDefault();
+		}}
+		aria-label={tr('merchantOverview.addMerchant')}
+		title={tr('merchantOverview.addMerchant')}
+		class="liquid-glass-card inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-lg)] text-accent-700 {isOffline
+			? 'pointer-events-none opacity-50'
+			: ''}"
+	>
+		<svg
+			class="h-5 w-5"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2.1"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path stroke-linecap="round" d="M12 5v14M5 12h14" />
+		</svg>
+	</a>
+{/snippet}
 
 <!-- Storefront glyph above the empty-state copy (Android mockup). -->
 {#snippet emptyIcon()}
@@ -389,7 +410,7 @@
      from the mockup; the other platforms keep the smaller pill. -->
 {#snippet countChip(count: number, label: string, active: boolean)}
 	<span
-		class="inline-flex items-center rounded-full {IS_ANDROID
+		class="inline-flex items-center rounded-full {IS_ANDROID || IOS
 			? 'max-sm:text-chip max-sm:px-2.75 max-sm:py-1 px-2.5 py-0.5 text-xs font-medium'
 			: 'px-2.5 py-0.5 text-xs font-medium'} {active
 			? 'bg-surface-1 border border-border text-text-muted'
@@ -408,7 +429,7 @@
 		title={tr('merchantOverview.title')}
 		eyebrow={IS_ANDROID
 			? `${filteredMerchants.length} ${tr('nav.merchants')}`
-			: IS_DESKTOP
+			: IS_DESKTOP || IOS
 				? chromeEyebrow
 				: undefined}
 		mobileActions={!IS_DESKTOP}
@@ -416,6 +437,51 @@
 			? desktopFilterButton
 			: undefined}
 	/>
+
+	{#if IOS}
+		<!-- iOS phone chrome: a right-aligned glass Filter pill. Search, type,
+		     status and sort all live inside the filter sheet (mockup). Admins get
+		     an extra "+" pill — the header glyph opens the global TypeChoiceDialog,
+		     which creates resources, not merchants, so this is the only route to
+		     /admin/merchants/new on a phone. -->
+		<div class="mb-3.5 flex items-center justify-end gap-2 sm:hidden">
+			{#if isAdmin}
+				{@render iosAdminAddPill()}
+			{/if}
+			<button
+				type="button"
+				data-testid="merchant-filter-pill"
+				onclick={(e: MouseEvent) => {
+					e.stopPropagation();
+					showFilterMenu = !showFilterMenu;
+				}}
+				aria-pressed={hasActiveFilters}
+				aria-expanded={showFilterMenu}
+				class="liquid-glass-card relative inline-flex h-10 items-center gap-1.75 rounded-[var(--radius-lg)] px-3.5 text-body font-semibold text-text-muted"
+			>
+				<svg
+					class="h-4.5 w-4.5 shrink-0"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.9"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_FILTER_LINES}
+					/>
+				</svg>
+				{tr('common.filter')}
+				{#if hasActiveFilters}
+					<span
+						class="absolute -top-0.75 -right-0.75 h-2 w-2 rounded-full border border-surface bg-accent"
+					></span>
+				{/if}
+			</button>
+		</div>
+	{/if}
 
 	{#if IS_ANDROID}
 		<!-- M3 chip row: one content-sized outlined "Filter" chip. Search lives in
@@ -459,7 +525,7 @@
 		     entirely: the chrome row carries the filter button and search moved
 		     into the panel (mockup). -->
 		<div
-			class="flex flex-col sm:flex-row gap-3 mb-6 {IS_ANDROID
+			class="flex flex-col sm:flex-row gap-3 mb-6 {IS_ANDROID || IOS
 				? 'max-sm:hidden'
 				: ''}"
 		>
@@ -602,7 +668,16 @@
 			</div>
 		</div>
 	{:else if !isLoading && isAdmin && !IS_DESKTOP}
-		<div class="inline-block mb-6 {IS_ANDROID ? 'max-sm:hidden' : ''}">
+		{#if IOS}
+			<!-- Empty list, admin: the "+" pill is the only path to merchant
+			     creation on a phone. `platform` is width-independent — an iPad is
+			     `ios` at every width — so the labelled button below still covers
+			     `sm` and up. -->
+			<div class="mb-3.5 flex justify-end sm:hidden">
+				{@render iosAdminAddPill()}
+			</div>
+		{/if}
+		<div class="inline-block mb-6 {IS_ANDROID || IOS ? 'max-sm:hidden' : ''}">
 			<a
 				href={resolve('/admin/merchants/new')}
 				onclick={(e) => {
@@ -675,30 +750,33 @@
 				<div
 					class="grid grid-cols-1 sm:grid-cols-2 {panelOpen
 						? ''
-						: 'lg:grid-cols-3'} {IS_ANDROID ? 'max-sm:gap-3' : ''} gap-4"
+						: 'lg:grid-cols-3'} {IS_ANDROID || IOS ? 'max-sm:gap-3' : ''} gap-4"
 				>
 					{#each filteredMerchants as merchant (merchant.id)}
-						<!-- Android M3 card: flat tonal card, no shadow, the merchant colour
-						     as a 6px bar inside the clipped corner radius (mockup). -->
+						<!-- Native card: the merchant colour is a bar inside the clipped
+						     corner radius, not a left border on the box — flat and tonal on
+						     Android, bordered on white for iOS (mockups). -->
 						<a
 							href={resolve(`/merchants/${merchant.id}`)}
 							class="overflow-hidden group h-full flex flex-col {IS_ANDROID
 								? 'relative max-sm:rounded-m3-lg max-sm:bg-m3-card sm:rounded-lg sm:bg-white sm:shadow sm:hover:shadow-md sm:transition-shadow'
 								: IS_DESKTOP
 									? 'relative bg-white rounded-lg shadow-card transition-shadow'
-									: 'bg-white rounded-lg shadow hover:shadow-md transition-shadow'}"
-							style={IS_ANDROID || IS_DESKTOP
+									: IOS
+										? 'relative max-sm:rounded-[var(--radius-2xl)] max-sm:border max-sm:border-border max-sm:bg-surface max-sm:shadow-sm max-sm:transition-transform max-sm:active:scale-[0.99] sm:rounded-lg sm:bg-white sm:shadow sm:hover:shadow-md sm:transition-shadow'
+										: 'bg-white rounded-lg shadow hover:shadow-md transition-shadow'}"
+							style={IS_ANDROID || IS_DESKTOP || IOS
 								? undefined
 								: `border-left: 6px solid ${merchant.color}`}
 						>
-							{#if IS_ANDROID || IS_DESKTOP}
+							{#if IS_ANDROID || IS_DESKTOP || IOS}
 								<span
 									class="absolute inset-y-0 left-0 w-1.5"
 									style="background-color: {merchant.color}"
 								></span>
 							{/if}
 							<div
-								class="flex flex-col flex-1 {IS_ANDROID
+								class="flex flex-col flex-1 {IS_ANDROID || IOS
 									? 'max-sm:gap-2.25 max-sm:pt-3.75 max-sm:pr-4 max-sm:pb-3.25 max-sm:pl-5 p-4'
 									: IS_DESKTOP
 										? 'pt-4.25 pr-4.5 pb-3.75 pl-5.5'
@@ -706,11 +784,11 @@
 							>
 								<!-- Merchant name -->
 								<h2
-									class="text-text truncate {IS_ANDROID
-										? 'max-sm:text-heading text-lg font-semibold'
-										: IS_DESKTOP
-											? 'text-heading'
-											: 'text-lg font-semibold'}"
+									class="text-text truncate {IS_DESKTOP
+										? 'text-heading'
+										: 'text-lg font-semibold'} {IS_ANDROID
+										? 'max-sm:text-heading'
+										: ''} {IOS ? 'max-sm:-tracking-[0.01em]' : ''}"
 								>
 									{merchant.name}
 								</h2>
@@ -718,7 +796,7 @@
 								<!-- Active item counts -->
 								{#if merchant.cards_count > 0 || merchant.vouchers_count > 0 || merchant.gift_cards_count > 0}
 									<div
-										class="flex flex-wrap {IS_ANDROID
+										class="flex flex-wrap {IS_ANDROID || IOS
 											? 'max-sm:mt-0 max-sm:gap-1.5 mt-3 gap-2'
 											: 'mt-3 gap-2'}"
 									>
@@ -749,7 +827,7 @@
 								<!-- Inactive/expired item counts (greyed out) -->
 								{#if merchant.cards_inactive_count > 0 || merchant.vouchers_inactive_count > 0 || merchant.gift_cards_inactive_count > 0}
 									<div
-										class="flex flex-wrap {IS_ANDROID
+										class="flex flex-wrap {IS_ANDROID || IOS
 											? 'max-sm:mt-0 max-sm:gap-1.5 mt-1.5 gap-2'
 											: 'mt-1.5 gap-2'}"
 									>
@@ -779,7 +857,8 @@
 
 								<!-- Balance + total items (pushed to bottom) -->
 								<div
-									class="mt-auto flex items-center justify-between text-text-subtle {IS_ANDROID
+									class="mt-auto flex items-center justify-between text-text-subtle {IS_ANDROID ||
+									IOS
 										? 'max-sm:pt-1.25 max-sm:text-chip max-sm:font-normal pt-3 text-sm'
 										: 'pt-3 text-sm'}"
 								>
@@ -789,7 +868,7 @@
 									>
 									{#if merchant.total_gift_card_balance > 0}
 										<span
-											class="font-semibold text-text {IS_ANDROID
+											class="font-semibold text-text {IS_ANDROID || IOS
 												? 'max-sm:text-label max-sm:tabular-nums'
 												: ''}"
 										>
@@ -899,19 +978,22 @@
 	ariaLabel={tr('common.filter')}
 	tonalAndroid
 >
-	<div class={IS_ANDROID ? 'px-5.5 pb-5.5' : 'p-6'}>
+	<div class={IS_ANDROID ? 'px-5.5 pb-5.5' : IOS ? 'px-4 pt-1 pb-4' : 'p-6'}>
 		<div
 			class="flex items-center justify-between {IS_ANDROID
 				? 'pt-1.5 pb-3.5'
-				: 'mb-4'}"
+				: IOS
+					? 'px-1 pb-3'
+					: 'mb-4'}"
 		>
-			<!-- M3 sheet title carries the filter glyph next to the label (mockup). -->
+			<!-- Both native sheet titles carry the filter glyph next to the label
+			     (mockups). -->
 			<h3
-				class="flex items-center gap-2.25 text-text {IS_ANDROID
+				class="flex items-center gap-2.25 text-text {IS_ANDROID || IOS
 					? 'text-heading'
 					: 'text-lg font-semibold'}"
 			>
-				{#if IS_ANDROID}
+				{#if IS_ANDROID || IOS}
 					<svg
 						class="h-4.25 w-4.25 shrink-0 text-text-subtle"
 						fill="none"
@@ -929,23 +1011,70 @@
 				{/if}
 				{tr('common.filter')}
 			</h3>
-			<button
-				type="button"
-				onclick={() => (showFilterMenu = false)}
-				class="text-text-faint hover:text-text-muted transition-colors"
-				aria-label={tr('common.close')}
+			{#if IOS}
+				<!-- iOS closes the sheet with a "Done" text action, not a glyph
+				     (mockup); the scrim tap and Escape still dismiss it. -->
+				<button
+					type="button"
+					onclick={() => (showFilterMenu = false)}
+					class="text-[length:var(--text-code)] font-semibold text-accent-700 transition-opacity active:opacity-60"
+				>
+					{tr('common.done')}
+				</button>
+			{:else}
+				<button
+					type="button"
+					onclick={() => (showFilterMenu = false)}
+					class="text-text-faint hover:text-text-muted transition-colors"
+					aria-label={tr('common.close')}
+				>
+					<svg
+						class={IS_ANDROID ? 'h-5.25 w-5.25' : 'w-6 h-6'}
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d={ICON_CLOSE}
+						/>
+					</svg>
+				</button>
+			{/if}
+		</div>
+
+		{#if IOS}
+			<!-- iOS moves the merchant search into the sheet as a plain bordered
+			     field above the grouped-inset cards (mockup). -->
+			<label
+				class="mb-3 flex h-11 items-center gap-2.25 rounded-[var(--radius-lg)] border border-border-field bg-surface px-3.5"
 			>
 				<svg
-					class={IS_ANDROID ? 'h-5.25 w-5.25' : 'w-6 h-6'}
+					class="h-4.25 w-4.25 shrink-0 text-text-faint"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="2"
 					viewBox="0 0 24 24"
+					aria-hidden="true"
 				>
-					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE} />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_SEARCH}
+					/>
 				</svg>
-			</button>
-		</div>
+				<input
+					type="search"
+					data-testid="merchant-search-sheet-ios"
+					bind:value={searchInput}
+					placeholder={tr('common.search')}
+					aria-label={tr('common.search')}
+					class="min-w-0 flex-1 bg-transparent text-[length:var(--text-code)] text-text placeholder:text-text-placeholder focus:outline-none"
+				/>
+			</label>
+		{/if}
 
 		{#if IS_ANDROID}
 			<!-- Android moves the merchant search off the list and into the sheet as
@@ -978,7 +1107,7 @@
 			</div>
 		{/if}
 
-		<div class={IS_ANDROID ? '' : 'px-6 pt-4'}>
+		<div class={IS_ANDROID || IOS ? '' : 'px-6 pt-4'}>
 			<MerchantFilters
 				bind:typeFilter
 				bind:statusFilter
@@ -991,20 +1120,24 @@
 				{hasActiveFilters}
 				onReset={resetFilters}
 				showTypeLabel={IS_ANDROID}
+				iosFlatGroups
 				idPrefix="merchants-mobile"
 			/>
 		</div>
 
-		<div class={IS_ANDROID ? 'pt-4.5' : 'px-6 pb-4 pt-2'}>
-			<button
-				type="button"
-				onclick={() => (showFilterMenu = false)}
-				class={IS_ANDROID
-					? 'w-full rounded-m3-full bg-accent px-4 py-3.25 text-label text-white shadow-[var(--shadow-accent)] transition-colors'
-					: 'w-full btn btn-primary'}
-			>
-				{tr('common.done')}
-			</button>
-		</div>
+		{#if !IOS}
+			<!-- iOS confirms with the header's "Done" text action instead (mockup). -->
+			<div class={IS_ANDROID ? 'pt-4.5' : 'px-6 pb-4 pt-2'}>
+				<button
+					type="button"
+					onclick={() => (showFilterMenu = false)}
+					class={IS_ANDROID
+						? 'w-full rounded-m3-full bg-accent px-4 py-3.25 text-label text-white shadow-[var(--shadow-accent)] transition-colors'
+						: 'w-full btn btn-primary'}
+				>
+					{tr('common.done')}
+				</button>
+			</div>
+		{/if}
 	</div>
 </BottomSheet>

@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { ICON_LOCK, ICON_TRANSFER, ICON_TRASH } from '$lib/icons';
+	import {
+		ICON_LOCK,
+		ICON_PENCIL,
+		ICON_TRANSFER,
+		ICON_TRASH
+	} from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -655,9 +660,7 @@
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
-									d={isOffline
-										? LOCK_PATH
-										: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z'}
+									d={isOffline ? LOCK_PATH : ICON_PENCIL}
 								/>
 							</svg>
 							{tr('common.edit')}
