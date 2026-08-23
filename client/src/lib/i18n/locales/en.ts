@@ -1205,7 +1205,14 @@ export const en: TranslationKeys = {
 		emptyTitle: 'No notifications',
 		emptyDescription:
 			'New messages about shared cards, transfers and expiry reminders appear here. You are all caught up.',
-		settingsLink: 'Notification settings'
+		settingsLink: 'Notification settings',
+		typeTitle: {
+			share_received: 'Shared with you',
+			transfer_received: 'Transfer received',
+			expiry_reminder: 'Expiring soon',
+			validity_start: 'Now valid'
+		},
+		moreActions: 'More actions'
 	},
 	batch: {
 		selectMode: 'Select',

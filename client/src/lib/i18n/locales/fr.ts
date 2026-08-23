@@ -1242,7 +1242,14 @@ export const fr: TranslationKeys = {
 		emptyTitle: 'Aucune notification',
 		emptyDescription:
 			'Les nouveaux messages concernant les cartes partagées, les transferts et les rappels d’expiration apparaissent ici. Vous êtes à jour.',
-		settingsLink: 'Paramètres de notification'
+		settingsLink: 'Paramètres de notification',
+		typeTitle: {
+			share_received: 'Partagé avec vous',
+			transfer_received: 'Transfert reçu',
+			expiry_reminder: 'Expire bientôt',
+			validity_start: 'Maintenant valable'
+		},
+		moreActions: "Plus d'actions"
 	},
 	batch: {
 		selectMode: 'Sélectionner',

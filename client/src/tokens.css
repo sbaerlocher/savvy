@@ -80,6 +80,16 @@
 	--text-eyebrow--font-weight: 600;
 	--text-eyebrow--letter-spacing: 0.05em;
 
+	/* Section eyebrow — uppercase list-section kicker "NEU" / "FRÜHER"
+	   (11px, 600, 0.06em). Same size and weight as --text-eyebrow, one notch
+	   wider: the Android notification mockup tracks its list sections at 0.06em,
+	   the page-level eyebrow at 0.05em. Neither neighbour matches, so this is
+	   its own step rather than a new value for --text-eyebrow. */
+	--text-section-eyebrow: 0.6875rem; /* 11px */
+	--text-section-eyebrow--line-height: 1.2;
+	--text-section-eyebrow--font-weight: 600;
+	--text-section-eyebrow--letter-spacing: 0.06em;
+
 	/* Type tag — tiny uppercase resource-type label (9.5px, 600, wider) */
 	--text-tag: 0.59375rem; /* 9.5px */
 	--text-tag--line-height: 1.2;
@@ -290,6 +300,15 @@
 	--spacing-page-y: 44px; /* canvas page padding (top) */
 	--spacing-page-x: 48px; /* canvas page padding (sides) */
 	--spacing-section: 46px; /* gap between major sections */
+
+	/* Notification list row (Android M3, NotificationsAndroid mockup). The 42px
+	   tile falls between the Tailwind steps (h-10 = 40px, h-11 = 44px) and the
+	   21px glyph has no neighbour either; both are exact mockup values.
+	   TODO: adjust-me — confirm against the other native list rows before
+	   reusing outside the notifications screen. */
+	--spacing-notif-tile: 42px; /* tonal icon tile on a notification row */
+	--spacing-notif-glyph: 21px; /* glyph inside that tile */
+	--spacing-empty-copy: 250px; /* max-width of the empty-state description */
 
 	/* ==========================================================================
      MATERIAL 3 — shape scale (Android)

@@ -1240,7 +1240,14 @@ export const de: TranslationKeys = {
 		emptyTitle: 'Keine Benachrichtigungen',
 		emptyDescription:
 			'Neue Mitteilungen zu geteilten Karten, Übertragungen und Ablauf-Erinnerungen erscheinen hier. Du bist gerade auf dem neuesten Stand.',
-		settingsLink: 'Benachrichtigungs-Einstellungen'
+		settingsLink: 'Benachrichtigungs-Einstellungen',
+		typeTitle: {
+			share_received: 'Mit dir geteilt',
+			transfer_received: 'Übertragung erhalten',
+			expiry_reminder: 'Läuft bald ab',
+			validity_start: 'Ist jetzt gültig'
+		},
+		moreActions: 'Weitere Aktionen'
 	},
 	batch: {
 		selectMode: 'Auswählen',
