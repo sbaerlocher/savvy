@@ -638,15 +638,24 @@
 	{#if isLoading}
 		<LoadingSpinner />
 	{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
-		<!-- No results with filters -->
-		<div class={EMPTY_CARD_CLASS}>
-			{#if IS_ANDROID}
-				{@render emptyIcon()}
+		<!-- No results with filters. The panel stays mounted beside the message: on
+		     desktop it carries the search field that produced this state, so
+		     unmounting it would take away the only way to correct the query. -->
+		<div class="grid grid-cols-1 {panelOpen ? 'lg:grid-cols-3' : ''} gap-6">
+			<div class={panelOpen ? 'lg:col-span-2' : ''}>
+				<div class={EMPTY_CARD_CLASS}>
+					{#if IS_ANDROID}
+						{@render emptyIcon()}
+					{/if}
+					<p class={EMPTY_TITLE_CLASS}>{tr('search.no_results')}</p>
+					<button type="button" onclick={resetFilters} class="btn btn-ghost">
+						{tr('common.resetFilters')}
+					</button>
+				</div>
+			</div>
+			{#if panelOpen}
+				{@render filterSidePanel()}
 			{/if}
-			<p class={EMPTY_TITLE_CLASS}>{tr('search.no_results')}</p>
-			<button type="button" onclick={resetFilters} class="btn btn-ghost">
-				{tr('common.resetFilters')}
-			</button>
 		</div>
 	{:else if filteredMerchants.length === 0}
 		<!-- Empty State -->
@@ -806,83 +815,88 @@
 			     hiding it below `lg` would leave no way to search — the bottom sheet
 			     is gated off there. Above `lg` it takes its own grid column. -->
 			{#if panelOpen}
-				<div class="lg:col-span-1">
-					<div
-						class="bg-white rounded-xl shadow-card sticky top-4 overflow-hidden"
-					>
-						<!-- Header -->
-						<div class="px-5 py-4 bg-surface-1 border-b border-border-soft">
-							<div class="flex items-center justify-between">
-								<div class="flex items-center gap-2">
-									<svg
-										class="w-4 h-4 text-text-subtle"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-										/>
-									</svg>
-									<h3 class="text-sm font-semibold text-text">
-										{tr('common.filter')}
-									</h3>
-								</div>
-								<div class="flex items-center gap-2.5">
-									<span
-										class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
-									>
-										{tr('common.results', { count: filteredMerchants.length })}
-									</span>
-									<button
-										type="button"
-										onclick={() => (showFilterMenu = false)}
-										class="text-text-faint hover:text-text-muted transition-colors"
-										aria-label={tr('common.closeFilters')}
-									>
-										<svg
-											class="w-4 h-4"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d={ICON_CLOSE}
-											></path>
-										</svg>
-									</button>
-								</div>
-							</div>
-						</div>
-
-						<div class="p-5">
-							{@render searchField()}
-							<MerchantFilters
-								bind:typeFilter
-								bind:statusFilter
-								bind:sortBy
-								sortOptions={listSortOptions}
-								statusOptions={listStatusOptions}
-								cardsCount={merchantsWithCards}
-								vouchersCount={merchantsWithVouchers}
-								giftCardsCount={merchantsWithGiftCards}
-								{hasActiveFilters}
-								onReset={resetFilters}
-								idPrefix="merchants-desktop"
-							/>
-						</div>
-					</div>
-				</div>
+				{@render filterSidePanel()}
 			{/if}
 		</div>
 	{/if}
 </div>
+
+<!-- Desktop filter side panel. A snippet so the empty-result branch can
+     render it too: it carries the only desktop search field, so unmounting
+     it there would take away the input holding the query. -->
+{#snippet filterSidePanel()}
+	<div class="lg:col-span-1">
+		<div class="bg-white rounded-xl shadow-card sticky top-4 overflow-hidden">
+			<!-- Header -->
+			<div class="px-5 py-4 bg-surface-1 border-b border-border-soft">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<svg
+							class="w-4 h-4 text-text-subtle"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+							/>
+						</svg>
+						<h3 class="text-sm font-semibold text-text">
+							{tr('common.filter')}
+						</h3>
+					</div>
+					<div class="flex items-center gap-2.5">
+						<span
+							class="text-xs text-text-subtle bg-white px-2.5 py-1 rounded-full border border-border tabular-nums"
+						>
+							{tr('common.results', { count: filteredMerchants.length })}
+						</span>
+						<button
+							type="button"
+							onclick={() => (showFilterMenu = false)}
+							class="text-text-faint hover:text-text-muted transition-colors"
+							aria-label={tr('common.closeFilters')}
+						>
+							<svg
+								class="w-4 h-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d={ICON_CLOSE}
+								></path>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="p-5">
+				{@render searchField()}
+				<MerchantFilters
+					bind:typeFilter
+					bind:statusFilter
+					bind:sortBy
+					sortOptions={listSortOptions}
+					statusOptions={listStatusOptions}
+					cardsCount={merchantsWithCards}
+					vouchersCount={merchantsWithVouchers}
+					giftCardsCount={merchantsWithGiftCards}
+					{hasActiveFilters}
+					onReset={resetFilters}
+					idPrefix="merchants-desktop"
+				/>
+			</div>
+		</div>
+	</div>
+{/snippet}
 
 <!-- Mobile Filter Bottom Sheet -->
 <BottomSheet

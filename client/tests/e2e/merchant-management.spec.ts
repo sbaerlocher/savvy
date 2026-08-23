@@ -14,23 +14,22 @@ import type { Page } from '@playwright/test';
 async function searchMerchants(page: Page, term: string) {
 	const inline = page.getByTestId('merchant-search');
 	const filterChip = page.getByTestId('merchant-filter-chip');
-	const filterButton = page.getByRole('button', { name: /Filter/i });
-	// Desktop hides search behind the filter button that opens the side panel.
-	if (
-		!(await inline.isVisible().catch(() => false)) &&
-		!(await filterChip.isVisible().catch(() => false)) &&
-		(await filterButton.first().isVisible().catch(() => false))
-	) {
-		await filterButton.first().click();
-		await expect(inline).toBeVisible({ timeout: 10000 });
+	const filterButton = page.getByRole('button', { name: /Filter/i }).first();
+	// Wait for whichever control this layout renders before branching — probing
+	// visibility right after a navigation would find none of them and pick the
+	// wrong path.
+	await expect(inline.or(filterChip).or(filterButton).first()).toBeVisible({
+		timeout: 10000
+	});
+	if (await inline.isVisible()) {
 		await inline.fill(term);
 		return;
 	}
-	// Wait for whichever control this layout renders before branching — probing
-	// visibility right after a navigation would find neither and fall through to
-	// the Android path on desktop, where there is no filter chip to click.
-	await expect(inline.or(filterChip).first()).toBeVisible({ timeout: 10000 });
-	if (await inline.isVisible()) {
+	// Desktop hides search behind the filter button that opens the side panel;
+	// Android below `sm` behind the filter chip that opens the bottom sheet.
+	if (!(await filterChip.isVisible().catch(() => false))) {
+		await filterButton.click();
+		await expect(inline).toBeVisible({ timeout: 10000 });
 		await inline.fill(term);
 		return;
 	}
