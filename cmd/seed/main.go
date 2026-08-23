@@ -1344,6 +1344,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[1].ID.String(),
 				"from_user_name": "Anna Müller",
+				"merchant_name":  migrosCard.MerchantName,
 				"permissions":    map[string]interface{}{"can_edit": true, "can_delete": false},
 			},
 			IsRead:    false,
@@ -1358,6 +1359,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[2].ID.String(),
 				"from_user_name": "Thomas Schmidt",
+				"merchant_name":  summerVoucher.MerchantName,
 				"permissions":    map[string]interface{}{"can_edit": false, "can_delete": false},
 			},
 			IsRead:    true,
@@ -1373,6 +1375,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[3].ID.String(),
 				"from_user_name": "Maria Garcia",
+				"merchant_name":  galaxusGC.MerchantName,
 				"permissions":    map[string]interface{}{"can_edit": true, "can_delete": true, "can_edit_transactions": true},
 			},
 			IsRead:    false,
@@ -1387,6 +1390,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[1].ID.String(),
 				"from_user_name": "Anna Müller",
+				"merchant_name":  migrosCard.MerchantName,
 			},
 			IsRead:    false,
 			CreatedAt: now.Add(-12 * time.Hour),
@@ -1400,6 +1404,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[2].ID.String(),
 				"from_user_name": "Thomas Schmidt",
+				"merchant_name":  digitecGC.MerchantName,
 			},
 			IsRead:    true,
 			ReadAt:    &readAt,
@@ -1413,6 +1418,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringVoucher.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(7),
+				"days_left":     float64(7),
+				"merchant_name": expiringVoucher.MerchantName,
 				"resource_name": "GALAXUS-EXPIRING",
 				"expires_at":    time.Now().AddDate(0, 0, 3).Format(time.RFC3339),
 			},
@@ -1427,6 +1434,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringVoucher.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(3),
+				"days_left":     float64(3),
+				"merchant_name": expiringVoucher.MerchantName,
 				"resource_name": "GALAXUS-EXPIRING",
 				"expires_at":    time.Now().AddDate(0, 0, 3).Format(time.RFC3339),
 			},
@@ -1441,6 +1450,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringGC.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(7),
+				"days_left":     float64(7),
+				"merchant_name": expiringGC.MerchantName,
 				"resource_name": "ID-EXPIRING-SOON",
 				"expires_at":    time.Now().AddDate(0, 0, 5).Format(time.RFC3339),
 			},
@@ -1455,8 +1466,9 @@ func createNotifications(users []models.User) {
 			ResourceType: "voucher",
 			ResourceID:   tomorrowVoucher.ID,
 			Metadata: models.NotificationMetadata{
-				"valid_from": time.Now().AddDate(0, 0, 1).Format(time.RFC3339),
-				"code":       "HM-TOMORROW",
+				"merchant_name": tomorrowVoucher.MerchantName,
+				"valid_from":    time.Now().AddDate(0, 0, 1).Format(time.RFC3339),
+				"code":          "HM-TOMORROW",
 			},
 			IsRead:    false,
 			CreatedAt: now.Add(-30 * time.Minute),
@@ -1472,6 +1484,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[0].ID.String(),
 				"from_user_name": "Admin User",
+				"merchant_name":  migrosCard.MerchantName,
 				"permissions":    map[string]interface{}{"can_edit": true, "can_delete": true},
 			},
 			IsRead:    false,
@@ -1488,6 +1501,7 @@ func createNotifications(users []models.User) {
 			Metadata: models.NotificationMetadata{
 				"from_user_id":   users[0].ID.String(),
 				"from_user_name": "Admin User",
+				"merchant_name":  summerVoucher.MerchantName,
 			},
 			IsRead:    true,
 			ReadAt:    &readAt,
