@@ -5,6 +5,7 @@
 	import { toastStore } from '$lib/stores/toast';
 	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
 	import { CONFIG, type Kind } from '$lib/resource/config';
+	import { platform } from '$lib/utils/platform';
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
 	import SharePermissions from '$lib/components/SharePermissions.svelte';
@@ -51,6 +52,11 @@
 
 	const isSheet = $derived(variant === 'sheet');
 
+	// Desktop renders the collapsed card as a compact title/subtitle row and keeps
+	// "revoke all" as a centred text link (screen-ResourceDetailDesktop, boards A
+	// and B). `platform` is a module constant, so a plain const, not $derived.
+	const IS_DESKTOP = platform === 'other';
+
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
 
@@ -67,6 +73,12 @@
 	let canEdit = $state(false);
 	let canDelete = $state(false);
 	let canEditTransactions = $state(false);
+
+	// The collapsed desktop card is a one-line summary; the recipient list and the
+	// empty hint only appear once the form is open or shares exist.
+	const desktopCollapsed = $derived(
+		IS_DESKTOP && !showShareForm && shares.length === 0
+	);
 
 	// Share editing state (editable kinds: cards, gift-cards).
 	let editingShareId = $state<string | null>(null);
@@ -379,11 +391,30 @@
 	</div>
 {:else}
 	<!-- Sharing Box -->
-	<div class="rounded-xl border border-border bg-white p-6">
-		<div class="flex justify-between items-center mb-4">
-			<h3 class="text-lg font-semibold text-text">
-				{tr(c.shareTitle)}
-			</h3>
+	<div
+		class="border border-border bg-white {IS_DESKTOP
+			? `rounded-2xl ${desktopCollapsed ? 'px-5 py-4' : 'p-5'}`
+			: 'rounded-xl p-6'}"
+	>
+		<div
+			class={desktopCollapsed
+				? 'flex items-center justify-between gap-3'
+				: 'flex justify-between items-center mb-4'}
+		>
+			<div class="min-w-0">
+				<h3
+					class={IS_DESKTOP
+						? 'text-subheading font-bold text-text'
+						: 'text-lg font-semibold text-text'}
+				>
+					{tr(c.shareTitle)}
+				</h3>
+				{#if desktopCollapsed}
+					<p class="mt-0.5 text-body-sm text-text-subtle">
+						{tr('common.shareSubtitle')}
+					</p>
+				{/if}
+			</div>
 			{#if !showShareForm}
 				<button
 					onclick={() => (showShareForm = true)}
@@ -554,11 +585,13 @@
 				type="button"
 				onclick={promptRevokeAll}
 				disabled={isOffline}
-				class="btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50"
+				class={IS_DESKTOP
+					? 'mt-3.5 w-full text-center text-label text-danger-700 hover:text-danger-800 disabled:opacity-50'
+					: 'btn btn-ghost text-danger-600 mt-3 w-full disabled:opacity-50'}
 			>
 				{tr(c.revokeAll)}
 			</button>
-		{:else}
+		{:else if !desktopCollapsed}
 			<p class="text-sm text-text-subtle text-center py-4">
 				{tr(c.notSharedYet)}
 			</p>

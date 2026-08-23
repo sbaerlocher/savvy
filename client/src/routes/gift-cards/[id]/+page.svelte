@@ -190,7 +190,7 @@
 			{isOffline}
 			onStartEdit={startEdit}
 		>
-			{#snippet edit({ cancel, close })}
+			{#snippet edit({ cancel, close, deleteAction })}
 				<GiftCardForm
 					bind:cardNumber={editCardNumber}
 					bind:merchantId={editMerchantId}
@@ -204,6 +204,7 @@
 					onCancel={cancel}
 					isLoading={false}
 					submitLabel={tr('common.save')}
+					trailingActions={deleteAction}
 				/>
 			{/snippet}
 			{#snippet ledger()}

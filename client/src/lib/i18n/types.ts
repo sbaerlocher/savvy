@@ -29,6 +29,13 @@ export type TranslationKeys = {
 		filterVouchers: string;
 		filterGiftCards: string;
 		backToOverview: string;
+		/** Desktop detail header: plain back link without the arrow glyph. */
+		backToOverviewPlain: string;
+		backToCard: string;
+		backToVoucher: string;
+		backToGiftCard: string;
+		shareSubtitle: string;
+		transferSubtitle: string;
 		optional: string;
 		required: string;
 		saving: string;
@@ -219,6 +226,7 @@ export type TranslationKeys = {
 		hide: string;
 	};
 	cards: {
+		dataSection: string;
 		title: string;
 		noCards: string;
 		noCardsHint: string;
@@ -330,6 +338,7 @@ export type TranslationKeys = {
 		reregisterError: string;
 	};
 	giftCards: {
+		dataSection: string;
 		title: string;
 		newGiftCard: string;
 		editGiftCard: string;
@@ -503,6 +512,7 @@ export type TranslationKeys = {
 		};
 	};
 	vouchers: {
+		dataSection: string;
 		title: string;
 		newVoucher: string;
 		editVoucher: string;

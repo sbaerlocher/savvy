@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { platform } from '$lib/utils/platform';
 	import { merchantsApi } from '$lib/api';
 	import { onMount } from 'svelte';
 
@@ -28,6 +30,8 @@
 		onCancel: () => void;
 		isLoading: boolean;
 		submitLabel?: string;
+		/** Trailing action rendered right-aligned in the desktop action row. */
+		trailingActions?: Snippet;
 	}
 
 	let {
@@ -46,8 +50,12 @@
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel
+		submitLabel,
+		trailingActions
 	}: Props = $props();
+
+	// `platform` is a module constant, so a plain const, not $derived.
+	const IS_DESKTOP = platform === 'other';
 
 	let merchants = $state<MerchantDTO[]>([]);
 
@@ -106,32 +114,69 @@
 		typeLabel={$t('vouchers.barcodeType')}
 		inputId="code"
 		placeholder={$t('vouchers.codePlaceholder')}
+		part={IS_DESKTOP ? 'value' : 'both'}
 	/>
 
-	<div>
-		<label for="description" class="label">{$t('vouchers.description')}</label>
-		<textarea
-			id="description"
-			bind:value={description}
-			rows="3"
-			class="input"
-			placeholder={$t('vouchers.descriptionPlaceholder')}></textarea>
-	</div>
-
-	<!-- Typ / Wert -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+	{#snippet descriptionField()}
 		<div>
-			<label for="type" class="label">{$t('vouchers.type')} *</label>
-			<select id="type" bind:value={type} required class="input">
-				<option value="percentage">{$t('vouchers.typePercentage')}</option>
-				<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
-				<option value="points_multiplier"
-					>{$t('vouchers.typePointsMultiplier')}</option
-				>
-				<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
-				<option value="free">{$t('vouchers.typeFree')}</option>
-			</select>
+			<label for="description" class="label">{$t('vouchers.description')}</label
+			>
+			<textarea
+				id="description"
+				bind:value={description}
+				rows="3"
+				class="input"
+				placeholder={$t('vouchers.descriptionPlaceholder')}></textarea>
 		</div>
+	{/snippet}
+
+	<!-- Desktop moves the description to the end of the form (mockup); the native
+	     layouts keep it right after the code. -->
+	{#if !IS_DESKTOP}
+		{@render descriptionField()}
+	{/if}
+
+	<!-- Typ / Wert — desktop pairs the barcode type with the voucher type first. -->
+	{#if IS_DESKTOP}
+		<div class="grid grid-cols-2 gap-4">
+			<BarcodeFields
+				bind:value={code}
+				bind:barcodeType
+				label={$t('vouchers.code')}
+				typeLabel={$t('vouchers.barcodeType')}
+				inputId="code"
+				part="type"
+			/>
+			<div>
+				<label for="type" class="label">{$t('vouchers.type')} *</label>
+				<select id="type" bind:value={type} required class="input">
+					<option value="percentage">{$t('vouchers.typePercentage')}</option>
+					<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
+					<option value="points_multiplier"
+						>{$t('vouchers.typePointsMultiplier')}</option
+					>
+					<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
+					<option value="free">{$t('vouchers.typeFree')}</option>
+				</select>
+			</div>
+		</div>
+	{/if}
+
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		{#if !IS_DESKTOP}
+			<div>
+				<label for="type" class="label">{$t('vouchers.type')} *</label>
+				<select id="type" bind:value={type} required class="input">
+					<option value="percentage">{$t('vouchers.typePercentage')}</option>
+					<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
+					<option value="points_multiplier"
+						>{$t('vouchers.typePointsMultiplier')}</option
+					>
+					<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
+					<option value="free">{$t('vouchers.typeFree')}</option>
+				</select>
+			</div>
+		{/if}
 
 		{#if type !== 'free'}
 			<div>
@@ -303,12 +348,29 @@
 		</div>
 	</div>
 
-	<div class="flex gap-2">
-		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+	{#if IS_DESKTOP}
+		{@render descriptionField()}
+	{/if}
+
+	<!-- Desktop (mockup) puts save + cancel left and the trailing action (delete)
+	     hard right on a divided row; the native layouts keep the full-width save. -->
+	<div
+		class={IS_DESKTOP
+			? 'mt-6 flex items-center gap-2.5 border-t border-border-soft pt-5'
+			: 'flex gap-2'}
+	>
+		<button
+			type="submit"
+			class="btn btn-primary {IS_DESKTOP ? 'px-6' : 'flex-1'}"
+			disabled={isLoading}
+		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
 		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
+		{#if trailingActions}
+			<div class="ms-auto">{@render trailingActions()}</div>
+		{/if}
 	</div>
 </form>

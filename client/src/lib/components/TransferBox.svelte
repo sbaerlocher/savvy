@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
+	import { ICON_CHECK, ICON_LOCK, ICON_WARNING } from '$lib/icons';
 	import { t } from '$lib/stores/i18n';
+	import { platform } from '$lib/utils/platform';
 	import EmailAutocomplete from './EmailAutocomplete.svelte';
 
 	interface Props {
@@ -19,6 +20,8 @@
 		email?: string;
 		/** Called when user clicks the Transfer button (open confirm modal in parent) */
 		ontransfer?: () => void;
+		/** Desktop only: second line under the title in the collapsed panel. */
+		subtitle?: string;
 		/**
 		 * 'sheet' renders the Android M3 bottom-sheet body (mockup frame 8): the
 		 * form is always open — the sheet itself is the disclosure — and the
@@ -32,6 +35,7 @@
 	let {
 		isOffline,
 		title,
+		subtitle,
 		openButtonLabel,
 		transferButtonLabel,
 		warningTitle,
@@ -56,6 +60,12 @@
 		s.replace(/^(?:\s|[\u2713\u2714!]|\u26A0\uFE0F?)+/, '');
 
 	let showForm = $state(false);
+
+	// Desktop renders this as a flat outlined panel in the right column with a
+	// subtitle and a danger-toned warning (mockup screen-ResourceDetailDesktop,
+	// board B); the native card layout stays as it was. `platform` is a module
+	// constant, so a plain const, not $derived.
+	const IS_DESKTOP = platform === 'other';
 </script>
 
 {#if isSheet}
@@ -129,6 +139,132 @@
 	>
 		{transferButtonLabel}
 	</button>
+{:else if IS_DESKTOP}
+	<!-- Desktop panel (screen-ResourceDetailDesktop, board B): flat outlined card
+	     in the right column, collapsed to a title/subtitle row until opened. -->
+	<div
+		class="rounded-2xl border border-transfer-200 bg-white {showForm
+			? 'p-5'
+			: 'px-5 py-4'}"
+	>
+		<div
+			class={showForm
+				? 'flex justify-between items-center mb-4'
+				: 'flex items-center justify-between gap-3'}
+		>
+			<div class="min-w-0">
+				<h3 class="text-subheading font-bold text-transfer-900">
+					{title ?? $t('common.transferOwnership')}
+				</h3>
+				{#if subtitle && !showForm}
+					<p class="mt-0.5 text-body-sm text-text-subtle">{subtitle}</p>
+				{/if}
+			</div>
+			{#if !showForm}
+				<button
+					onclick={() => (showForm = true)}
+					disabled={isOffline}
+					class="btn btn-xs btn-transfer whitespace-nowrap flex items-center gap-1.5 {isOffline
+						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
+						: ''}"
+				>
+					{#if isOffline}
+						<svg
+							class="w-3.5 h-3.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d={LOCK_ICON_PATH}
+							></path>
+						</svg>
+						{transferButtonLabel}
+					{:else}
+						{openButtonLabel}
+					{/if}
+				</button>
+			{/if}
+		</div>
+
+		{#if showForm}
+			<div
+				class="mb-4 flex items-start gap-2.5 rounded-md border border-danger-200 bg-danger-50 px-3.5 py-3"
+			>
+				<svg
+					class="mt-px h-4.5 w-4.5 shrink-0 text-danger-700"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_WARNING}
+					/>
+				</svg>
+				<p class="text-body-sm text-danger-800">
+					<strong>{stripGlyph(warningTitle)}</strong>
+					{stripGlyph(warningDetails)}
+				</p>
+			</div>
+
+			<div class="mb-4">
+				<EmailAutocomplete
+					bind:value={email}
+					label={emailLabel}
+					hint={emailHint}
+					inputId="transfer-email-input"
+					disabled={isOffline}
+				/>
+			</div>
+
+			<p class="mb-2.5 text-section-eyebrow uppercase text-text-subtle">
+				{whatHappensLabel}
+			</p>
+			<ul class="mb-4 space-y-2.5">
+				{#each details as detail (detail)}
+					<li class="flex items-start gap-2.5">
+						<svg
+							class="mt-px h-4 w-4 shrink-0 text-transfer-600"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.2"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d={ICON_CHECK}
+							/>
+						</svg>
+						<span class="text-label font-normal text-text-ink2"
+							>{stripGlyph(detail)}</span
+						>
+					</li>
+				{/each}
+			</ul>
+
+			<div class="flex gap-2.5">
+				<button
+					onclick={ontransfer}
+					disabled={isOffline || !email.trim()}
+					class="btn btn-transfer flex-1 {isOffline || !email.trim()
+						? 'opacity-50 cursor-not-allowed'
+						: ''}"
+				>
+					{transferButtonLabel}
+				</button>
+				<button onclick={() => (showForm = false)} class="btn btn-ghost">
+					{$t('common.cancel')}
+				</button>
+			</div>
+		{/if}
+	</div>
 {:else}
 	<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-transfer-200">
 		<div class="flex justify-between items-center mb-4">

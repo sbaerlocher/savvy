@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { platform } from '$lib/utils/platform';
 	import { merchantsApi } from '$lib/api';
 	import { onMount } from 'svelte';
 	import { t } from '$lib/stores/i18n';
@@ -21,6 +23,8 @@
 		onCancel: () => void;
 		isLoading: boolean;
 		submitLabel?: string;
+		/** Trailing action rendered right-aligned in the desktop action row. */
+		trailingActions?: Snippet;
 	}
 
 	let {
@@ -33,8 +37,12 @@
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel
+		submitLabel,
+		trailingActions
 	}: Props = $props();
+
+	// `platform` is a module constant, so a plain const, not $derived.
+	const IS_DESKTOP = platform === 'other';
 
 	let merchants = $state<MerchantDTO[]>([]);
 
@@ -87,9 +95,10 @@
 		typeLabel={$t('cards.barcodeType')}
 		inputId="cardNumber"
 		placeholder="1234567890"
+		part={IS_DESKTOP ? 'value' : 'both'}
 	/>
 
-	{#if status !== undefined}
+	{#snippet statusField()}
 		<div>
 			<label for="status" class="label">{$t('cards.statusLabel')}</label>
 			<select id="status" bind:value={status} class="input">
@@ -100,6 +109,25 @@
 				<option value="blocked">{$t('cards.status.blocked')}</option>
 			</select>
 		</div>
+	{/snippet}
+
+	{#if IS_DESKTOP}
+		<!-- Desktop pairs barcode type with status on one row (mockup). -->
+		<div class="grid grid-cols-2 gap-4">
+			<BarcodeFields
+				bind:value={cardNumber}
+				bind:barcodeType
+				label={$t('cards.cardNumber')}
+				typeLabel={$t('cards.barcodeType')}
+				inputId="cardNumber"
+				part="type"
+			/>
+			{#if status !== undefined}
+				{@render statusField()}
+			{/if}
+		</div>
+	{:else if status !== undefined}
+		{@render statusField()}
 	{/if}
 
 	<div>
@@ -107,12 +135,25 @@
 		<textarea id="notes" bind:value={notes} rows="3" class="input"></textarea>
 	</div>
 
-	<div class="flex gap-2">
-		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+	<!-- Desktop (mockup) puts save + cancel left and the trailing action (delete)
+	     hard right on a divided row; the native layouts keep the full-width save. -->
+	<div
+		class={IS_DESKTOP
+			? 'mt-6 flex items-center gap-2.5 border-t border-border-soft pt-5'
+			: 'flex gap-2'}
+	>
+		<button
+			type="submit"
+			class="btn btn-primary {IS_DESKTOP ? 'px-6' : 'flex-1'}"
+			disabled={isLoading}
+		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
 		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
+		{#if trailingActions}
+			<div class="ms-auto">{@render trailingActions()}</div>
+		{/if}
 	</div>
 </form>

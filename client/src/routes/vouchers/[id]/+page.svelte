@@ -210,7 +210,7 @@
 			shareMode="readonly"
 			onStartEdit={startEdit}
 		>
-			{#snippet edit({ cancel, close })}
+			{#snippet edit({ cancel, close, deleteAction })}
 				<VoucherForm
 					bind:code={editCode}
 					bind:merchantId={editMerchantId}
@@ -227,6 +227,7 @@
 					onCancel={cancel}
 					isLoading={false}
 					submitLabel={tr('common.save')}
+					trailingActions={deleteAction}
 				/>
 			{/snippet}
 		</ResourceDetail>

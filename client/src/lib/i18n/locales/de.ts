@@ -30,6 +30,12 @@ export const de: TranslationKeys = {
 		filterVouchers: 'Gutscheine filtern',
 		filterGiftCards: 'Geschenkkarten filtern',
 		backToOverview: '← Zurück zur Übersicht',
+		backToOverviewPlain: 'Zurück zur Übersicht',
+		backToCard: 'Zurück zur Karte',
+		backToVoucher: 'Zurück zum Gutschein',
+		backToGiftCard: 'Zurück zur Geschenkkarte',
+		shareSubtitle: 'Mit anderen Savvy-Nutzern',
+		transferSubtitle: 'Vollständig abgeben',
 		optional: 'Optional',
 		required: 'Pflichtfeld',
 		saving: 'Speichere...',
@@ -238,6 +244,7 @@ export const de: TranslationKeys = {
 		hide: 'Barcodes ausblenden'
 	},
 	cards: {
+		dataSection: 'Kartendaten',
 		title: 'Kundenkarten',
 		noCards: 'Noch keine Kundenkarten vorhanden',
 		noCardsHint: 'Erstelle deine erste Kundenkarte',
@@ -357,6 +364,7 @@ export const de: TranslationKeys = {
 		reregisterError: 'Neuregistrierung fehlgeschlagen'
 	},
 	giftCards: {
+		dataSection: 'Geschenkkartendaten',
 		title: 'Geschenkkarten',
 		newGiftCard: 'Neue Geschenkkarte',
 		editGiftCard: 'Geschenkkarte bearbeiten',
@@ -542,6 +550,7 @@ export const de: TranslationKeys = {
 		}
 	},
 	vouchers: {
+		dataSection: 'Gutscheindaten',
 		title: 'Gutscheine',
 		newVoucher: 'Neuer Gutschein',
 		editVoucher: 'Gutschein bearbeiten',

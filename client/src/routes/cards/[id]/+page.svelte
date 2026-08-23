@@ -178,7 +178,7 @@
 			{isOffline}
 			onStartEdit={startEdit}
 		>
-			{#snippet edit({ cancel, close })}
+			{#snippet edit({ cancel, close, deleteAction })}
 				<CardForm
 					bind:cardNumber={editCardNumber}
 					bind:merchantId={editMerchantId}
@@ -190,6 +190,7 @@
 					onCancel={cancel}
 					isLoading={false}
 					submitLabel={tr('common.save')}
+					trailingActions={deleteAction}
 				/>
 			{/snippet}
 		</ResourceDetail>
