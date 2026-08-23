@@ -9,7 +9,6 @@
 [![Node Version](https://img.shields.io/badge/Node-18%2B-green.svg)](https://nodejs.org/)
 [![Pull Request](https://github.com/sbaerlocher/savvy/workflows/Pull%20Request/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/pull-request.yml)
 [![Weekly Security Scan](https://github.com/sbaerlocher/savvy/workflows/Weekly%20Security%20Scan/badge.svg)](https://github.com/sbaerlocher/savvy/actions/workflows/weekly-security.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/sbaerlocher/savvy)](https://goreportcard.com/report/github.com/sbaerlocher/savvy)
 [![codecov](https://codecov.io/gh/sbaerlocher/savvy/branch/main/graph/badge.svg)](https://codecov.io/gh/sbaerlocher/savvy)
 
 > Digital management system for loyalty cards, vouchers, and gift cards with sharing functionality
