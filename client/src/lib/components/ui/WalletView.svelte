@@ -106,6 +106,10 @@
 		desktopChrome?: boolean;
 		/** Title for the desktop chrome row (ignored without `desktopChrome`). */
 		chromeTitle?: string;
+		/** Put the type chip row and the toolbar actions on one line, chips left
+		 *  and actions right (mockup screen-MerchantsDesktop board 2). Merchant
+		 *  detail opts in on desktop; the wallet has no chip row at all there. */
+		inlineTypeToolbar?: boolean;
 		header?: Snippet;
 		/** Header variant for iOS select mode: the eyebrow counts the selection
 		 *  instead of the total (mockup screen-WalletIOS, Phone 3). Falls back to
@@ -135,6 +139,7 @@
 		maxWidth = true,
 		desktopChrome = false,
 		chromeTitle = '',
+		inlineTypeToolbar = false,
 		header,
 		selectHeader,
 		emptyIcon,
@@ -191,6 +196,10 @@
 	const DESKTOP_CHROME = $derived(desktopChrome && IS_DESKTOP);
 	// Opt-in is a prop, the platform is a module constant — so $derived.
 	const BARCODE_IN_TYPE_ROW = $derived(androidBarcodeInTypeRow && IS_ANDROID);
+
+	// Same shape: the merged chip + toolbar row is a desktop-only treatment the
+	// caller opts into.
+	const INLINE_TYPE_TOOLBAR = $derived(inlineTypeToolbar && IS_DESKTOP);
 
 	const detailSortOptions = $derived.by(() => {
 		const opts = [
@@ -1023,6 +1032,19 @@
 	{/if}
 {/snippet}
 
+<!-- Type chip row. Shared by the standalone row and the merged desktop row so
+     the two can never drift in which types they offer. -->
+{#snippet typeChipRow()}
+	<TypeFilterButtons
+		bind:typeFilter={filters.typeFilter}
+		cardsCount={cards.length}
+		vouchersCount={vouchers.length}
+		giftCardsCount={giftCards.length}
+		showAll={filterShowAll}
+		allowToggle={!selectMode}
+	/>
+{/snippet}
+
 <!-- One tile grid; the three resource lists render identical ResourceTiles. -->
 {#snippet tileGrid(tiles: TileModel[])}
 	{#each tiles as model (model.id)}
@@ -1243,21 +1265,14 @@
 		{/if}
 		<!-- Type filter (top placement). The desktop mockup has no chip row — the
 		     type is picked in the filter panel — so it drops out entirely there. -->
-		{#if typeFilterPlacement === 'top' && !DESKTOP_CHROME}
+		{#if typeFilterPlacement === 'top' && !DESKTOP_CHROME && !INLINE_TYPE_TOOLBAR}
 			<div
 				class="mb-4 flex items-center {BARCODE_IN_TYPE_ROW
 					? 'gap-2.5 sm:gap-0'
 					: ''} {ANDROID_SELECT_HIDDEN}"
 			>
 				<div class="min-w-0 flex-1">
-					<TypeFilterButtons
-						bind:typeFilter={filters.typeFilter}
-						cardsCount={cards.length}
-						vouchersCount={vouchers.length}
-						giftCardsCount={giftCards.length}
-						showAll={filterShowAll}
-						allowToggle={!selectMode}
-					/>
+					{@render typeChipRow()}
 				</div>
 				{#if BARCODE_IN_TYPE_ROW}
 					<!-- Square M3 icon button closing the chip row (mockup). Phone only:
@@ -1294,6 +1309,21 @@
 			{@render searchField?.()}
 		{/if}
 
+		{#if INLINE_TYPE_TOOLBAR}
+			<!-- Merged row (mockup board 2): chips left, toolbar actions right. -->
+			<div class="mb-6 flex flex-wrap items-center gap-4">
+				<div class="min-w-0 flex-1">
+					{@render typeChipRow()}
+				</div>
+				<!-- Actions only from `sm` up: below that the mobile toolbar row
+				     further down carries them, and rendering both would duplicate
+				     every control. -->
+				<div class="hidden items-center gap-3 sm:flex">
+					{@render desktopActions()}
+				</div>
+			</div>
+		{/if}
+
 		<!-- WalletToolbar: Select · Filter · Barcode-Toggle · Import. Android hides
 		     the block in select mode below `sm`, where the contextual top app bar
 		     replaces it; on desktop the actions live in the chrome row instead. -->
@@ -1307,12 +1337,15 @@
 			<div
 				class="flex flex-col sm:flex-row gap-3 mb-6 {ANDROID_SELECT_HIDDEN} {IOS
 					? 'max-sm:hidden'
-					: ''}"
+					: ''} {INLINE_TYPE_TOOLBAR ? 'sm:hidden' : ''}"
 			>
-				<!-- Action Buttons (Desktop) -->
-				<div class="hidden sm:flex gap-3">
-					{@render desktopActions()}
-				</div>
+				<!-- Action Buttons (Desktop). Suppressed where the merged chip row
+				     above already carries them, or they would render twice. -->
+				{#if !INLINE_TYPE_TOOLBAR}
+					<div class="hidden sm:flex gap-3">
+						{@render desktopActions()}
+					</div>
+				{/if}
 
 				<!-- Action Buttons (Mobile) -->
 				{#if IS_ANDROID}

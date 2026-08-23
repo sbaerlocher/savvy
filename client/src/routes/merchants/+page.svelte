@@ -27,6 +27,11 @@
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_ANDROID = platform === 'android';
 
+	// Desktop renders its own chrome (mockup screen-MerchantsDesktop): a count
+	// eyebrow above the title, a single filter icon button, and search moved into
+	// the filter side panel.
+	const IS_DESKTOP = platform === 'other';
+
 	const isAdmin = $derived($authStore.user?.is_admin || false);
 	const isOffline = $derived(!$isOnline);
 
@@ -41,6 +46,19 @@
 	const hasActiveFilters = $derived(
 		sortBy !== 'name-asc' || typeFilter !== 'all' || statusFilter !== 'all'
 	);
+
+	// Only the narrowing filters — `hasActiveFilters` also covers `sortBy`, which
+	// reorders without dropping rows and is restored from localStorage, so it
+	// would leave the eyebrow claiming "filtered" on every later visit.
+	const isNarrowed = $derived(
+		typeFilter !== 'all' || statusFilter !== 'all' || !!searchInput.trim()
+	);
+
+	// The side panel is the desktop form of the filter UI; the native layouts get
+	// the bottom sheet from the same `showFilterMenu` flag. Gating on the platform
+	// keeps the panel out of the DOM there — a CSS-only hide would leave a second
+	// copy of the search field behind.
+	const panelOpen = $derived(showFilterMenu && IS_DESKTOP);
 
 	const filteredMerchants = $derived.by(() => {
 		let result = merchants;
@@ -238,6 +256,20 @@
 		).length
 	);
 
+	// Chrome row eyebrow, mirroring the mockup boards: a plain merchant count, and
+	// "shown of total · filtered" once a filter narrows the list.
+	const visibleMerchants = $derived(
+		isAdmin ? merchants : merchants.filter((m) => getTotalItems(m) > 0)
+	);
+	const chromeEyebrow = $derived(
+		isNarrowed
+			? tr('dashboard.entriesFiltered', {
+					shown: filteredMerchants.length,
+					total: visibleMerchants.length
+				})
+			: `${visibleMerchants.length} ${tr('merchantOverview.title')}`
+	);
+
 	const listSortOptions = $derived([
 		{ value: 'name-asc', label: tr('merchantOverview.sortNameAsc') },
 		{ value: 'name-desc', label: tr('merchantOverview.sortNameDesc') },
@@ -285,6 +317,73 @@
 	</svg>
 {/snippet}
 
+<!-- Desktop chrome row action: the lone filter button beside the title (mockup
+     board 1A/1B). Search and the type/sort/status groups live in the panel it
+     opens, so this is the whole toolbar on desktop. -->
+{#snippet desktopFilterButton()}
+	<button
+		type="button"
+		onclick={(e: MouseEvent) => {
+			e.stopPropagation();
+			showFilterMenu = !showFilterMenu;
+		}}
+		class="control relative flex items-center justify-center rounded-lg border bg-white px-4 transition-colors hover:bg-surface-1 {hasActiveFilters
+			? 'border-accent text-accent-hover ring-2 ring-accent'
+			: 'border-border-field text-text-muted'}"
+		title={tr('common.filter')}
+		aria-label={tr('common.filter')}
+		aria-expanded={showFilterMenu}
+	>
+		<svg
+			class="h-5 w-5"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d={ICON_FILTER_LINES}
+			/>
+		</svg>
+		{#if hasActiveFilters}
+			<span
+				class="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-paper bg-accent"
+			></span>
+		{/if}
+	</button>
+{/snippet}
+
+<!-- Search field for the desktop filter panel (mockup board 1B). Desktop has no
+     header search — this is the only one, so the panel renders at every desktop
+     width and the bottom sheet stays closed there. -->
+{#snippet searchField()}
+	<label
+		class="mb-4.5 flex items-center gap-2.25 control rounded-md border border-border-field bg-white px-3.5"
+	>
+		<svg
+			class="h-4 w-4 shrink-0 text-text-faint"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
+		</svg>
+		<input
+			type="search"
+			data-testid="merchant-search"
+			bind:value={searchInput}
+			placeholder={tr('common.search')}
+			aria-label={tr('common.search')}
+			class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+		/>
+	</label>
+{/snippet}
+
 <!-- One count chip on a merchant card: outlined for active counts, filled-flat
      for the inactive/expired ones. Android steps the chip up to the M3 size
      from the mockup; the other platforms keep the smaller pill. -->
@@ -309,6 +408,12 @@
 		title={tr('merchantOverview.title')}
 		eyebrow={IS_ANDROID
 			? `${filteredMerchants.length} ${tr('nav.merchants')}`
+			: IS_DESKTOP
+				? chromeEyebrow
+				: undefined}
+		mobileActions={!IS_DESKTOP}
+		actions={IS_DESKTOP && merchants.length > 0
+			? desktopFilterButton
 			: undefined}
 	/>
 
@@ -348,9 +453,11 @@
 		</div>
 	{/if}
 
-	{#if merchants.length > 0}
+	{#if merchants.length > 0 && !IS_DESKTOP}
 		<!-- Search + Filter + New Button. Android replaces the phone-width row with
-		     the M3 chip above, so it starts at `sm` there. -->
+		     the M3 chip above, so it starts at `sm` there. Desktop drops the row
+		     entirely: the chrome row carries the filter button and search moved
+		     into the panel (mockup). -->
 		<div
 			class="flex flex-col sm:flex-row gap-3 mb-6 {IS_ANDROID
 				? 'max-sm:hidden'
@@ -494,7 +601,7 @@
 				{/if}
 			</div>
 		</div>
-	{:else if !isLoading && isAdmin}
+	{:else if !isLoading && isAdmin && !IS_DESKTOP}
 		<div class="inline-block mb-6 {IS_ANDROID ? 'max-sm:hidden' : ''}">
 			<a
 				href={resolve('/admin/merchants/new')}
@@ -560,13 +667,11 @@
 		</div>
 	{:else}
 		<!-- Grid with optional Side-Panel -->
-		<div
-			class="grid grid-cols-1 {showFilterMenu ? 'lg:grid-cols-3' : ''} gap-6"
-		>
+		<div class="grid grid-cols-1 {panelOpen ? 'lg:grid-cols-3' : ''} gap-6">
 			<!-- Merchant Grid -->
-			<div class={showFilterMenu ? 'lg:col-span-2' : ''}>
+			<div class={panelOpen ? 'lg:col-span-2' : ''}>
 				<div
-					class="grid grid-cols-1 sm:grid-cols-2 {showFilterMenu
+					class="grid grid-cols-1 sm:grid-cols-2 {panelOpen
 						? ''
 						: 'lg:grid-cols-3'} {IS_ANDROID ? 'max-sm:gap-3' : ''} gap-4"
 				>
@@ -577,12 +682,14 @@
 							href={resolve(`/merchants/${merchant.id}`)}
 							class="overflow-hidden group h-full flex flex-col {IS_ANDROID
 								? 'relative max-sm:rounded-m3-lg max-sm:bg-m3-card sm:rounded-lg sm:bg-white sm:shadow sm:hover:shadow-md sm:transition-shadow'
-								: 'bg-white rounded-lg shadow hover:shadow-md transition-shadow'}"
-							style={IS_ANDROID
+								: IS_DESKTOP
+									? 'relative bg-white rounded-lg shadow-card transition-shadow'
+									: 'bg-white rounded-lg shadow hover:shadow-md transition-shadow'}"
+							style={IS_ANDROID || IS_DESKTOP
 								? undefined
 								: `border-left: 6px solid ${merchant.color}`}
 						>
-							{#if IS_ANDROID}
+							{#if IS_ANDROID || IS_DESKTOP}
 								<span
 									class="absolute inset-y-0 left-0 w-1.5"
 									style="background-color: {merchant.color}"
@@ -591,13 +698,17 @@
 							<div
 								class="flex flex-col flex-1 {IS_ANDROID
 									? 'max-sm:gap-2.25 max-sm:pt-3.75 max-sm:pr-4 max-sm:pb-3.25 max-sm:pl-5 p-4'
-									: 'p-4'}"
+									: IS_DESKTOP
+										? 'pt-4.25 pr-4.5 pb-3.75 pl-5.5'
+										: 'p-4'}"
 							>
 								<!-- Merchant name -->
 								<h2
 									class="text-text truncate {IS_ANDROID
 										? 'max-sm:text-heading text-lg font-semibold'
-										: 'text-lg font-semibold'}"
+										: IS_DESKTOP
+											? 'text-heading'
+											: 'text-lg font-semibold'}"
 								>
 									{merchant.name}
 								</h2>
@@ -690,14 +801,17 @@
 				</div>
 			</div>
 
-			<!-- Filter Side-Panel (Desktop only, redesigned) -->
-			{#if showFilterMenu}
-				<div class="hidden lg:block lg:col-span-1">
+			<!-- Filter Side-Panel (desktop only). Shown at every desktop width, not
+			     `hidden lg:block`: it holds the only search field on desktop, so
+			     hiding it below `lg` would leave no way to search — the bottom sheet
+			     is gated off there. Above `lg` it takes its own grid column. -->
+			{#if panelOpen}
+				<div class="lg:col-span-1">
 					<div
-						class="bg-white rounded-xl shadow-lg sticky top-4 overflow-hidden"
+						class="bg-white rounded-xl shadow-card sticky top-4 overflow-hidden"
 					>
 						<!-- Header -->
-						<div class="px-5 py-4 bg-surface-1/80 border-b border-border-soft">
+						<div class="px-5 py-4 bg-surface-1 border-b border-border-soft">
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-2">
 									<svg
@@ -739,7 +853,7 @@
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												stroke-width="2"
-												d="M6 18L18 6M6 6l12 12"
+												d={ICON_CLOSE}
 											></path>
 										</svg>
 									</button>
@@ -748,6 +862,7 @@
 						</div>
 
 						<div class="p-5">
+							{@render searchField()}
 							<MerchantFilters
 								bind:typeFilter
 								bind:statusFilter
@@ -771,7 +886,7 @@
 
 <!-- Mobile Filter Bottom Sheet -->
 <BottomSheet
-	open={showFilterMenu}
+	open={showFilterMenu && !IS_DESKTOP}
 	onClose={() => (showFilterMenu = false)}
 	maxHeight="80vh"
 	ariaLabel={tr('common.filter')}

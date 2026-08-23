@@ -5,14 +5,27 @@ import type { Page } from '@playwright/test';
 /**
  * Fill the merchant search, opening the chrome that holds it first.
  *
- * The overview renders the field per layout: desktop and tablet keep it above
- * the grid, while Android below `sm` moves it into the filter bottom sheet
- * (mockup screen-MerchantsAndroid). Go through the layout's own control rather
- * than assuming one of the two, so the test exercises the real flow.
+ * The overview renders the field per layout: tablet keeps it above the grid,
+ * Android below `sm` moves it into the filter bottom sheet
+ * (mockup screen-MerchantsAndroid), and desktop moves it into the filter side
+ * panel (mockup screen-MerchantsDesktop). Go through the layout's own control
+ * rather than assuming one of them, so the test exercises the real flow.
  */
 async function searchMerchants(page: Page, term: string) {
 	const inline = page.getByTestId('merchant-search');
 	const filterChip = page.getByTestId('merchant-filter-chip');
+	const filterButton = page.getByRole('button', { name: /Filter/i });
+	// Desktop hides search behind the filter button that opens the side panel.
+	if (
+		!(await inline.isVisible().catch(() => false)) &&
+		!(await filterChip.isVisible().catch(() => false)) &&
+		(await filterButton.first().isVisible().catch(() => false))
+	) {
+		await filterButton.first().click();
+		await expect(inline).toBeVisible({ timeout: 10000 });
+		await inline.fill(term);
+		return;
+	}
 	// Wait for whichever control this layout renders before branching — probing
 	// visibility right after a navigation would find neither and fall through to
 	// the Android path on desktop, where there is no filter chip to click.
