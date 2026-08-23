@@ -1231,7 +1231,16 @@ export const de: TranslationKeys = {
 		viewAll: 'Alle anzeigen',
 		loadMore: 'Mehr laden',
 		loadingMore: 'Laden...',
-		settingsTitle: 'Einstellungen'
+		settingsTitle: 'Einstellungen',
+		unreadCount: '{count} ungelesen',
+		sectionNew: 'Neu',
+		sectionEarlier: 'Früher',
+		archiveHint:
+			'Gelesene Benachrichtigungen werden nach einiger Zeit automatisch archiviert.',
+		emptyTitle: 'Keine Benachrichtigungen',
+		emptyDescription:
+			'Neue Mitteilungen zu geteilten Karten, Übertragungen und Ablauf-Erinnerungen erscheinen hier. Du bist gerade auf dem neuesten Stand.',
+		settingsLink: 'Benachrichtigungs-Einstellungen'
 	},
 	batch: {
 		selectMode: 'Auswählen',

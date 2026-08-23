@@ -1233,7 +1233,16 @@ export const fr: TranslationKeys = {
 		viewAll: 'Tout afficher',
 		loadMore: 'Charger plus',
 		loadingMore: 'Chargement...',
-		settingsTitle: 'Paramètres'
+		settingsTitle: 'Paramètres',
+		unreadCount: '{count} non lues',
+		sectionNew: 'Nouveau',
+		sectionEarlier: 'Plus tôt',
+		archiveHint:
+			'Les notifications lues sont archivées automatiquement après un certain temps.',
+		emptyTitle: 'Aucune notification',
+		emptyDescription:
+			'Les nouveaux messages concernant les cartes partagées, les transferts et les rappels d’expiration apparaissent ici. Vous êtes à jour.',
+		settingsLink: 'Paramètres de notification'
 	},
 	batch: {
 		selectMode: 'Sélectionner',

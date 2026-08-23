@@ -1131,6 +1131,13 @@ export type TranslationKeys = {
 		loadMore: string;
 		loadingMore: string;
 		settingsTitle: string;
+		unreadCount: string;
+		sectionNew: string;
+		sectionEarlier: string;
+		archiveHint: string;
+		emptyTitle: string;
+		emptyDescription: string;
+		settingsLink: string;
 	};
 	batch: {
 		selectMode: string;

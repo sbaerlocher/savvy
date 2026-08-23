@@ -14,7 +14,14 @@
 	import { resourceDetailPath } from '$lib/resource/routes';
 	import { onDestroy, onMount } from 'svelte';
 	import { platform } from '$lib/utils/platform';
+	import { notificationTone } from '$lib/utils/notification-tone';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import NotificationTypeIcon from '$lib/components/NotificationTypeIcon.svelte';
+
+	// Desktop renders the mockup dropdown (tinted icon tiles, unread dot, footer
+	// link); iOS/Android keep the existing panel. `platform` is a module
+	// constant, so this is a plain const, not $derived.
+	const IS_DESKTOP = platform === 'other';
 
 	// triggerClass lets callers restyle the bell button (mobile header uses a
 	// 40px boxed variant to match the mockup); defaults to the desktop look.
@@ -90,6 +97,41 @@
 		}
 
 		return $t('notifications.newNotification');
+	}
+
+	function resourceLabel(notification: NotificationDTO): string {
+		return (
+			$t(`notifications.resourceWithArticle.${notification.resource_type}`) ||
+			$t(`common.${notification.resource_type}`) ||
+			notification.resource_type
+		);
+	}
+
+	// Desktop rows split into a title line and a merchant detail line.
+	function formatNotificationTitle(notification: NotificationDTO): string {
+		const fromUser = notification.metadata.from_user_name || 'Someone';
+
+		if (notification.type === 'share_received') {
+			return `${fromUser} ${$t('notifications.sharedWithPlain', {
+				resource: resourceLabel(notification)
+			})}`;
+		}
+		if (notification.type === 'transfer_received') {
+			return `${fromUser} ${$t('notifications.transferredToPlain', {
+				resource: resourceLabel(notification)
+			})}`;
+		}
+		return formatNotificationMessage(notification);
+	}
+
+	function formatNotificationDetail(notification: NotificationDTO): string {
+		if (
+			notification.type === 'share_received' ||
+			notification.type === 'transfer_received'
+		) {
+			return (notification.metadata.merchant_name as string) || '';
+		}
+		return '';
 	}
 
 	async function handleNotificationClick(notification: NotificationDTO) {
@@ -173,8 +215,108 @@
 	</button>
 {/if}
 
+<!-- Notification Panel — desktop (mockup board A) -->
+{#if isOpen && IS_DESKTOP}
+	<div
+		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-[392px] z-50 max-w-[90vw] overflow-hidden rounded-2xl border border-border bg-surface shadow-panel"
+	>
+		<div class="flex items-center justify-between px-[18px] pt-4 pb-3">
+			<h3
+				class="text-[length:var(--text-amount)] font-bold tracking-tight text-text"
+			>
+				{$t('notifications.title')}
+			</h3>
+			{#if unreadCount > 0}
+				<button
+					class="text-[length:var(--text-body-sm)] font-semibold text-accent-700 transition-colors hover:text-accent-800"
+					onclick={() => notificationStore.markAllAsRead()}
+				>
+					{$t('notifications.markAllAsRead')}
+				</button>
+			{/if}
+		</div>
+		<div class="h-px bg-border-soft"></div>
+
+		<div class="max-h-96 overflow-y-auto">
+			{#if isLoading}
+				<LoadingSpinner />
+			{:else if notifications.length === 0}
+				<div class="px-4 py-8 text-center text-text-subtle">
+					<p>{$t('notifications.noNotifications')}</p>
+				</div>
+			{:else}
+				{#each notifications as notification (notification.id)}
+					{@const tone = notificationTone(notification.type)}
+					{@const detail = formatNotificationDetail(notification)}
+					<button
+						type="button"
+						class="flex w-full items-start gap-[13px] border-b border-border-soft px-[18px] py-[13px] text-left transition-colors last:border-b-0 hover:bg-surface-1"
+						onclick={() => handleNotificationClick(notification)}
+					>
+						<span
+							class="flex size-[38px] flex-none items-center justify-center rounded-lg {tone.tile} {tone.ink}"
+						>
+							<NotificationTypeIcon type={notification.type} size={20} />
+						</span>
+						<span class="min-w-0 flex-1">
+							<span class="flex items-baseline gap-2">
+								<span
+									class="min-w-0 flex-1 truncate text-[length:var(--text-label)] tracking-tight {notification.is_read
+										? 'font-medium text-text-muted'
+										: 'font-semibold text-text'}"
+								>
+									{formatNotificationTitle(notification)}
+								</span>
+								<span
+									class="flex-none text-[length:var(--text-eyebrow)] whitespace-nowrap text-text-faint"
+								>
+									{formatTimeAgo(notification.created_at)}
+								</span>
+							</span>
+							{#if detail}
+								<span
+									class="mt-0.5 block truncate text-[length:var(--text-body-sm)] leading-snug text-text-muted"
+								>
+									{detail}
+								</span>
+							{/if}
+						</span>
+						<span
+							class="mt-1.5 size-[7px] flex-none rounded-full {notification.is_read
+								? 'bg-transparent'
+								: tone.dot}"
+						></span>
+					</button>
+				{/each}
+			{/if}
+		</div>
+
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href from resolve() -->
+		<a
+			href={resolve('/notifications')}
+			class="flex items-center justify-center gap-1.5 p-3.5 text-[length:var(--text-label)] font-semibold text-accent-700"
+			onclick={() => notificationStore.closePanel()}
+		>
+			{$t('notifications.viewAll')}
+			<svg
+				width="15"
+				height="15"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+			>
+				<path d="M9 6l6 6-6 6" />
+			</svg>
+		</a>
+	</div>
+{/if}
+
 <!-- Notification Panel -->
-{#if isOpen}
+{#if isOpen && !IS_DESKTOP}
 	<div
 		class="notification-panel fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 mt-2 sm:w-96 z-50 max-w-[90vw] overflow-hidden {platform ===
 		'ios'

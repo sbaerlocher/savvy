@@ -1197,7 +1197,15 @@ export const en: TranslationKeys = {
 		viewAll: 'View all',
 		loadMore: 'Load more',
 		loadingMore: 'Loading...',
-		settingsTitle: 'Settings'
+		settingsTitle: 'Settings',
+		unreadCount: '{count} unread',
+		sectionNew: 'New',
+		sectionEarlier: 'Earlier',
+		archiveHint: 'Read notifications are archived automatically after a while.',
+		emptyTitle: 'No notifications',
+		emptyDescription:
+			'New messages about shared cards, transfers and expiry reminders appear here. You are all caught up.',
+		settingsLink: 'Notification settings'
 	},
 	batch: {
 		selectMode: 'Select',
