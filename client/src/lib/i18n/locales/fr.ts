@@ -30,6 +30,12 @@ export const fr: TranslationKeys = {
 		filterVouchers: 'Filtrer les bons',
 		filterGiftCards: 'Filtrer les cartes-cadeaux',
 		backToOverview: "← Retour à l'aperçu",
+		backToOverviewPlain: "Retour à l'aperçu",
+		backToCard: 'Retour à la carte',
+		backToVoucher: 'Retour au bon',
+		backToGiftCard: 'Retour à la carte cadeau',
+		shareSubtitle: "Avec d'autres utilisateurs Savvy",
+		transferSubtitle: 'Céder entièrement',
 		optional: 'Optionnel',
 		required: 'Obligatoire',
 		saving: 'Enregistrement...',
@@ -237,6 +243,7 @@ export const fr: TranslationKeys = {
 		hide: 'Masquer les codes-barres'
 	},
 	cards: {
+		dataSection: 'Données de la carte',
 		title: 'Cartes',
 		noCards: 'Aucune carte',
 		noCardsHint: 'Créez votre première carte',
@@ -356,6 +363,7 @@ export const fr: TranslationKeys = {
 		reregisterError: 'Échec du réenregistrement'
 	},
 	giftCards: {
+		dataSection: 'Données de la carte cadeau',
 		title: 'Cartes-cadeaux',
 		newGiftCard: 'Nouvelle carte-cadeau',
 		editGiftCard: 'Modifier la carte-cadeau',
@@ -540,6 +548,7 @@ export const fr: TranslationKeys = {
 		}
 	},
 	vouchers: {
+		dataSection: 'Données du bon',
 		title: 'Bons',
 		newVoucher: 'Nouveau bon',
 		editVoucher: 'Modifier le bon',

@@ -41,8 +41,11 @@
 	let transactionToDelete: string | null = null;
 
 	// Android renders the ledger as a second M3 card stacked under the barcode
-	// card (screen-ResourceDetailAndroid, frame 3).
+	// card (screen-ResourceDetailAndroid, frame 3); desktop renders it in the
+	// right column with the gift-card gold accent and a mono balance
+	// (screen-ResourceDetailDesktop, board 3).
 	const isAndroid = platform === 'android';
+	const IS_DESKTOP = platform === 'other';
 
 	const percentageRemaining = $derived(
 		giftCard
@@ -126,10 +129,12 @@
 <div
 	class={isAndroid
 		? 'rounded-m3-lg bg-m3-card p-5'
-		: 'rounded-xl border border-border bg-white p-6'}
+		: IS_DESKTOP
+			? 'rounded-2xl border border-border bg-white p-5'
+			: 'rounded-xl border border-border bg-white p-6'}
 >
 	<!-- Balance Display -->
-	<div class={isAndroid ? 'mb-0' : 'mb-6'}>
+	<div class={isAndroid || IS_DESKTOP ? 'mb-0' : 'mb-6'}>
 		<p
 			class="{isAndroid
 				? 'text-label font-normal'
@@ -140,18 +145,34 @@
 		<p
 			class={isAndroid
 				? 'text-giftcard-ink text-screen-title font-mono font-semibold'
-				: 'text-3xl font-bold'}
-			style={isAndroid
+				: IS_DESKTOP
+					? 'text-giftcard-ink text-display font-mono font-semibold'
+					: 'text-3xl font-bold'}
+			style={isAndroid || IS_DESKTOP
 				? undefined
 				: `color: ${giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}`}
 		>
-			{giftCard.current_balance.toFixed(2)}
-			{giftCard.currency}
+			<!-- The desktop mockup leads with the currency throughout the board
+			     ("CHF 85.50", "Ausgangswert: CHF 150.00", "−CHF 14.50"); the native
+			     layouts keep the trailing form. -->
+			{#if IS_DESKTOP}
+				{giftCard.currency}
+				{giftCard.current_balance.toFixed(2)}
+			{:else}
+				{giftCard.current_balance.toFixed(2)}
+				{giftCard.currency}
+			{/if}
 		</p>
 		<!-- Progress Bar -->
-		<div class="mt-3 bg-border rounded-full {isAndroid ? 'h-2.25' : 'h-3'}">
+		<div
+			class="mt-3 overflow-hidden bg-border rounded-full {isAndroid
+				? 'h-2.25'
+				: IS_DESKTOP
+					? 'h-2.5'
+					: 'h-3'}"
+		>
 			<div
-				class="h-full rounded-full transition-all {isAndroid
+				class="h-full rounded-full transition-all {isAndroid || IS_DESKTOP
 					? 'bg-giftcard-line'
 					: percentageRemaining > 50
 						? 'bg-success-500'
@@ -161,9 +182,19 @@
 				style="width: {percentageRemaining}%"
 			></div>
 		</div>
-		<p class="text-xs text-text-subtle mt-2">
-			{tr('giftCards.balance.initial')}: {giftCard.initial_balance.toFixed(2)}
-			{giftCard.currency}
+		<p
+			class={IS_DESKTOP
+				? 'mt-2 text-body-sm text-text-subtle'
+				: 'text-xs text-text-subtle mt-2'}
+		>
+			{tr('giftCards.balance.initial')}:
+			{#if IS_DESKTOP}
+				{giftCard.currency}
+				{giftCard.initial_balance.toFixed(2)}
+			{:else}
+				{giftCard.initial_balance.toFixed(2)}
+				{giftCard.currency}
+			{/if}
 		</p>
 	</div>
 
@@ -171,13 +202,17 @@
 	<div
 		class={isAndroid
 			? 'border-border-soft mt-4.5 border-t pt-4'
-			: 'border-t pt-6'}
+			: IS_DESKTOP
+				? 'border-border-soft mt-4.5 border-t pt-4.5'
+				: 'border-t pt-6'}
 	>
 		<div
-			class="flex justify-between items-center {isAndroid ? 'mb-3.5' : 'mb-4'}"
+			class="flex justify-between items-center {isAndroid || IS_DESKTOP
+				? 'mb-3'
+				: 'mb-4'}"
 		>
 			<h3
-				class={isAndroid
+				class={isAndroid || IS_DESKTOP
 					? 'text-label text-text-ink2'
 					: 'text-sm font-medium text-text-ink2'}
 			>
@@ -190,11 +225,17 @@
 					disabled={isOffline}
 					class={isAndroid
 						? 'bg-danger-600 text-chip rounded-m3-full inline-flex items-center gap-1 px-3.25 py-1.5 whitespace-nowrap text-white disabled:opacity-50'
-						: `btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 ${
-								isOffline
-									? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
-									: ''
-							}`}
+						: IS_DESKTOP
+							? `h-7 rounded-sm border border-accent-200 bg-accent-50 px-3 text-chip text-accent-700 hover:bg-accent-100 whitespace-nowrap flex items-center gap-1.5 ${
+									isOffline
+										? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
+										: ''
+								}`
+							: `btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 ${
+									isOffline
+										? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
+										: ''
+								}`}
 				>
 					{#if isOffline}
 						<svg
@@ -327,27 +368,45 @@
 		{/if}
 
 		{#if transactions.length > 0}
-			<div class={isAndroid ? 'flex flex-col gap-2' : 'space-y-2'}>
+			<div
+				class={isAndroid || IS_DESKTOP ? 'flex flex-col gap-2' : 'space-y-2'}
+			>
 				{#each transactions as transaction (transaction.id)}
+					<!-- Both mockups tint the description --text-subtle and the date
+					     --text-faint; at 11px on --surface-1 that is 3.6:1 and 2.6:1,
+					     under the WCAG AA 4.5:1 floor for small text, so every platform
+					     uses --text-muted (~6.4:1) here. Deliberate deviation from the
+					     mockups, approved 2026-08-23. -->
 					<div
 						class="flex items-center justify-between bg-surface-1 gap-3 {isAndroid
 							? 'rounded-m3-sm px-3.25 py-2.75'
-							: 'rounded p-3'}"
+							: IS_DESKTOP
+								? 'rounded-md px-3.5 py-2.5'
+								: 'rounded p-3'}"
 					>
 						<div class="min-w-0 flex-1">
 							<div
-								class="text-danger-600 {isAndroid
-									? 'text-label font-mono'
-									: 'font-medium'}"
+								class={isAndroid
+									? 'text-danger-600 text-label font-mono'
+									: IS_DESKTOP
+										? 'text-danger-700 text-label font-mono'
+										: 'text-danger-600 font-medium'}
 							>
-								-{transaction.amount.toFixed(2)}
-								{giftCard.currency}
+								{#if IS_DESKTOP}
+									−{giftCard.currency}
+									{transaction.amount.toFixed(2)}
+								{:else}
+									-{transaction.amount.toFixed(2)}
+									{giftCard.currency}
+								{/if}
 							</div>
 							{#if transaction.description}
 								<div
-									class="text-text-subtle {isAndroid
-										? 'text-mono-sm truncate font-sans tracking-normal'
-										: 'text-sm text-text-muted'}"
+									class={isAndroid
+										? 'text-text-muted text-mono-sm truncate font-sans tracking-normal'
+										: IS_DESKTOP
+											? 'text-text-muted text-body-sm truncate'
+											: 'text-sm text-text-muted'}
 								>
 									{transaction.description}
 								</div>
@@ -355,9 +414,11 @@
 						</div>
 						<div class="flex items-center gap-3">
 							<div
-								class="text-text-faint {isAndroid
-									? 'text-mono-sm font-mono whitespace-nowrap'
-									: 'text-xs text-text-subtle'}"
+								class={isAndroid
+									? 'text-text-muted text-mono-sm font-mono whitespace-nowrap'
+									: IS_DESKTOP
+										? 'text-text-muted text-mono-sm font-mono whitespace-nowrap'
+										: 'text-xs text-text-subtle'}
 							>
 								{formatDisplayDate(transaction.transaction_date, currentLocale)}
 							</div>

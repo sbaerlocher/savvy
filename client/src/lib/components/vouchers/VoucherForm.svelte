@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { platform } from '$lib/utils/platform';
 	import { merchantsApi } from '$lib/api';
 	import { onMount } from 'svelte';
 
@@ -28,6 +30,12 @@
 		onCancel: () => void;
 		isLoading: boolean;
 		submitLabel?: string;
+		/** Trailing action rendered right-aligned in the desktop action row. */
+		trailingActions?: Snippet;
+		/** Desktop detail edit board: pair fields into rows and move the action
+		 *  row onto a divider (mockup screen-ResourceDetailDesktop). The create
+		 *  screens are not part of that mockup and keep the stacked layout. */
+		pairedLayout?: boolean;
 	}
 
 	let {
@@ -46,8 +54,14 @@
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel
+		submitLabel,
+		trailingActions,
+		pairedLayout = false
 	}: Props = $props();
+
+	// Paired rows and the divided action row are the desktop detail-edit board;
+	// they need both the desktop platform and the caller's opt-in.
+	const PAIRED = $derived(platform === 'other' && pairedLayout);
 
 	let merchants = $state<MerchantDTO[]>([]);
 
@@ -106,85 +120,131 @@
 		typeLabel={$t('vouchers.barcodeType')}
 		inputId="code"
 		placeholder={$t('vouchers.codePlaceholder')}
+		part={PAIRED ? 'value' : 'both'}
 	/>
 
-	<div>
-		<label for="description" class="label">{$t('vouchers.description')}</label>
-		<textarea
-			id="description"
-			bind:value={description}
-			rows="3"
-			class="input"
-			placeholder={$t('vouchers.descriptionPlaceholder')}></textarea>
-	</div>
-
-	<!-- Typ / Wert -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+	{#snippet descriptionField()}
 		<div>
-			<label for="type" class="label">{$t('vouchers.type')} *</label>
-			<select id="type" bind:value={type} required class="input">
-				<option value="percentage">{$t('vouchers.typePercentage')}</option>
-				<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
-				<option value="points_multiplier"
-					>{$t('vouchers.typePointsMultiplier')}</option
-				>
-				<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
-				<option value="free">{$t('vouchers.typeFree')}</option>
-			</select>
+			<label for="description" class="label">{$t('vouchers.description')}</label
+			>
+			<textarea
+				id="description"
+				bind:value={description}
+				rows="3"
+				class="input"
+				placeholder={$t('vouchers.descriptionPlaceholder')}></textarea>
 		</div>
+	{/snippet}
 
-		{#if type !== 'free'}
+	<!-- Desktop moves the description to the end of the form (mockup); the native
+	     layouts keep it right after the code. -->
+	{#if !PAIRED}
+		{@render descriptionField()}
+	{/if}
+
+	<!-- Typ / Wert — desktop pairs the barcode type with the voucher type first. -->
+	{#if PAIRED}
+		<div class="grid grid-cols-2 gap-4">
+			<BarcodeFields
+				bind:value={code}
+				bind:barcodeType
+				label={$t('vouchers.code')}
+				typeLabel={$t('vouchers.barcodeType')}
+				inputId="code"
+				part="type"
+			/>
 			<div>
-				<label for="value" class="label">{$t('vouchers.value')} *</label>
-				<div
-					class="flex gap-2 {$locale?.startsWith('en')
-						? 'flex-row-reverse'
-						: 'flex-row'}"
-				>
-					<input
-						id="value"
-						type="number"
-						step="0.01"
-						min="0"
-						required
-						bind:value
-						oninput={() => {
-							if (errors) errors = { ...errors, value: undefined };
-						}}
-						class="flex-1 input {errors?.value
-							? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
-							: ''}"
-						placeholder="10.00"
-					/>
-					{#if type === 'fixed_amount'}
-						<select
-							id="currency"
-							bind:value={currency}
-							required
-							class="w-28 input"
+				<label for="type" class="label">{$t('vouchers.type')} *</label>
+				<select id="type" bind:value={type} required class="input">
+					<option value="percentage">{$t('vouchers.typePercentage')}</option>
+					<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
+					<option value="points_multiplier"
+						>{$t('vouchers.typePointsMultiplier')}</option
+					>
+					<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
+					<option value="free">{$t('vouchers.typeFree')}</option>
+				</select>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Desktop moved the type select into the paired row above, so this grid only
+	     carries the value field there — skip it entirely for the free type, or it
+	     renders empty and still takes the form's vertical rhythm. -->
+	{#if !PAIRED || type !== 'free'}
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			{#if !PAIRED}
+				<div>
+					<label for="type" class="label">{$t('vouchers.type')} *</label>
+					<select id="type" bind:value={type} required class="input">
+						<option value="percentage">{$t('vouchers.typePercentage')}</option>
+						<option value="fixed_amount"
+							>{$t('vouchers.typeFixedAmount')}</option
 						>
-							{#each SUPPORTED_CURRENCIES as c (c)}
-								<option value={c}>{c}</option>
-							{/each}
-						</select>
+						<option value="points_multiplier"
+							>{$t('vouchers.typePointsMultiplier')}</option
+						>
+						<option value="bonus_points"
+							>{$t('vouchers.typeBonusPoints')}</option
+						>
+						<option value="free">{$t('vouchers.typeFree')}</option>
+					</select>
+				</div>
+			{/if}
+
+			{#if type !== 'free'}
+				<div>
+					<label for="value" class="label">{$t('vouchers.value')} *</label>
+					<div
+						class="flex gap-2 {$locale?.startsWith('en')
+							? 'flex-row-reverse'
+							: 'flex-row'}"
+					>
+						<input
+							id="value"
+							type="number"
+							step="0.01"
+							min="0"
+							required
+							bind:value
+							oninput={() => {
+								if (errors) errors = { ...errors, value: undefined };
+							}}
+							class="flex-1 input {errors?.value
+								? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
+								: ''}"
+							placeholder="10.00"
+						/>
+						{#if type === 'fixed_amount'}
+							<select
+								id="currency"
+								bind:value={currency}
+								required
+								class="w-28 input"
+							>
+								{#each SUPPORTED_CURRENCIES as c (c)}
+									<option value={c}>{c}</option>
+								{/each}
+							</select>
+						{/if}
+					</div>
+					{#if errors?.value}
+						<p class="text-danger-600 text-sm mt-1">{errors.value}</p>
+					{:else}
+						<p class="text-sm text-text-subtle mt-1">
+							{type === 'percentage'
+								? $t('vouchers.valueHintPercentage')
+								: type === 'points_multiplier'
+									? $t('vouchers.valueHintMultiplier')
+									: type === 'bonus_points'
+										? $t('vouchers.valueHintBonusPoints')
+										: $t('vouchers.valueHintAmount')}
+						</p>
 					{/if}
 				</div>
-				{#if errors?.value}
-					<p class="text-danger-600 text-sm mt-1">{errors.value}</p>
-				{:else}
-					<p class="text-sm text-text-subtle mt-1">
-						{type === 'percentage'
-							? $t('vouchers.valueHintPercentage')
-							: type === 'points_multiplier'
-								? $t('vouchers.valueHintMultiplier')
-								: type === 'bonus_points'
-									? $t('vouchers.valueHintBonusPoints')
-									: $t('vouchers.valueHintAmount')}
-					</p>
-				{/if}
-			</div>
-		{/if}
-	</div>
+			{/if}
+		</div>
+	{/if}
 
 	<!-- Mindesteinkauf / Verwendungsart -->
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -303,12 +363,29 @@
 		</div>
 	</div>
 
-	<div class="flex gap-2">
-		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+	{#if PAIRED}
+		{@render descriptionField()}
+	{/if}
+
+	<!-- Desktop (mockup) puts save + cancel left and the trailing action (delete)
+	     hard right on a divided row; the native layouts keep the full-width save. -->
+	<div
+		class={PAIRED
+			? 'mt-6 flex items-center gap-2.5 border-t border-border-soft pt-5'
+			: 'flex gap-2'}
+	>
+		<button
+			type="submit"
+			class="btn btn-primary {PAIRED ? 'px-6' : 'flex-1'}"
+			disabled={isLoading}
+		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
 		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
+		{#if trailingActions}
+			<div class="ms-auto">{@render trailingActions()}</div>
+		{/if}
 	</div>
 </form>

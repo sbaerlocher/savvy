@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { platform } from '$lib/utils/platform';
 	import { merchantsApi } from '$lib/api';
 	import { onMount } from 'svelte';
 	import { locale, t } from '$lib/stores/i18n';
@@ -23,6 +25,12 @@
 		onCancel: () => void;
 		isLoading: boolean;
 		submitLabel?: string;
+		/** Trailing action rendered right-aligned in the desktop action row. */
+		trailingActions?: Snippet;
+		/** Desktop detail edit board: pair fields into rows and move the action
+		 *  row onto a divider (mockup screen-ResourceDetailDesktop). The create
+		 *  screens are not part of that mockup and keep the stacked layout. */
+		pairedLayout?: boolean;
 	}
 
 	let {
@@ -37,8 +45,14 @@
 		onSubmit,
 		onCancel,
 		isLoading,
-		submitLabel
+		submitLabel,
+		trailingActions,
+		pairedLayout = false
 	}: Props = $props();
+
+	// Paired rows and the divided action row are the desktop detail-edit board;
+	// they need both the desktop platform and the caller's opt-in.
+	const PAIRED = $derived(platform === 'other' && pairedLayout);
 
 	let merchants = $state<MerchantDTO[]>([]);
 
@@ -75,7 +89,37 @@
 		typeLabel={$t('giftCards.barcodeType')}
 		inputId="cardNumber"
 		placeholder="1234567890123"
+		part={PAIRED ? 'value' : 'both'}
 	/>
+
+	{#snippet pinField()}
+		<div>
+			<label for="pin" class="label">{$t('giftCards.pin')}</label>
+			<input
+				id="pin"
+				type="text"
+				bind:value={pin}
+				class="input"
+				placeholder="1234"
+			/>
+			<p class="text-sm text-text-subtle mt-1">{$t('giftCards.pinDesc')}</p>
+		</div>
+	{/snippet}
+
+	<!-- Desktop pairs barcode type with the PIN on one row (mockup). -->
+	{#if PAIRED}
+		<div class="grid grid-cols-2 gap-4">
+			<BarcodeFields
+				bind:value={cardNumber}
+				bind:barcodeType
+				label={$t('giftCards.cardNumber')}
+				typeLabel={$t('giftCards.barcodeType')}
+				inputId="cardNumber"
+				part="type"
+			/>
+			{@render pinField()}
+		</div>
+	{/if}
 
 	<div>
 		<label for="initialBalance" class="label"
@@ -108,17 +152,9 @@
 		</p>
 	</div>
 
-	<div>
-		<label for="pin" class="label">{$t('giftCards.pin')}</label>
-		<input
-			id="pin"
-			type="text"
-			bind:value={pin}
-			class="input"
-			placeholder="1234"
-		/>
-		<p class="text-sm text-text-subtle mt-1">{$t('giftCards.pinDesc')}</p>
-	</div>
+	{#if !PAIRED}
+		{@render pinField()}
+	{/if}
 
 	<div>
 		<label for="expiresAt" class="label">{$t('giftCards.expiresAt')}</label>
@@ -143,12 +179,25 @@
 			placeholder={$t('giftCards.notesPlaceholder')}></textarea>
 	</div>
 
-	<div class="flex gap-2">
-		<button type="submit" class="flex-1 btn btn-primary" disabled={isLoading}>
+	<!-- Desktop (mockup) puts save + cancel left and the trailing action (delete)
+	     hard right on a divided row; the native layouts keep the full-width save. -->
+	<div
+		class={PAIRED
+			? 'mt-6 flex items-center gap-2.5 border-t border-border-soft pt-5'
+			: 'flex gap-2'}
+	>
+		<button
+			type="submit"
+			class="btn btn-primary {PAIRED ? 'px-6' : 'flex-1'}"
+			disabled={isLoading}
+		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
 		<button type="button" onclick={onCancel} class="btn btn-ghost"
 			>{$t('common.cancel')}</button
 		>
+		{#if trailingActions}
+			<div class="ms-auto">{@render trailingActions()}</div>
+		{/if}
 	</div>
 </form>

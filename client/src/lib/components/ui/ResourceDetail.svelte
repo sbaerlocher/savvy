@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
+	import { ICON_LOCK, ICON_TRASH } from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -46,7 +46,18 @@
 		 * Receives `cancel` (wire to the form's onCancel) and `close` (call from
 		 * the route's saveEdit success path to leave edit mode).
 		 */
-		edit: Snippet<[{ cancel: () => void; close: () => void }]>;
+		edit: Snippet<
+			[
+				{
+					cancel: () => void;
+					close: () => void;
+					/** Desktop: pass to the form's `trailingActions` so delete joins its
+					 *  action row (mockup). Undefined when the user cannot delete or on
+					 *  the native layouts, where delete stays below the form. */
+					deleteAction?: Snippet;
+				}
+			]
+		>;
 		/** Gift-card only: balance + transactions ledger. */
 		ledger?: Snippet;
 	}
@@ -69,6 +80,10 @@
 	// into bottom sheets opened from a button row under the resource card, and
 	// the overflow menu holds delete.
 	const isAndroid = platform === 'android';
+	// Desktop renders its own detail chrome (screen-ResourceDetailDesktop): a
+	// header row carrying the type icon, eyebrow, title and the edit/delete text
+	// buttons, and a two-column body.
+	const IS_DESKTOP = platform === 'other';
 	let showOverflowSheet = $state(false);
 	let showShareSheet = $state(false);
 	let showTransferSheet = $state(false);
@@ -378,7 +393,74 @@
 	});
 
 	const LOCK_PATH = ICON_LOCK;
+
+	// Desktop header (mockup): the type icon sits in a 44px tinted square left of
+	// the eyebrow + title pair. Same neutral line icons the wallet tiles use.
+	const TYPE_ICON: Record<Kind, string> = {
+		card: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+		voucher:
+			'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 010 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 010-4V7a2 2 0 00-2-2H5z',
+		gift_card:
+			'M12 8v13m0-13V6a2 2 0 112-2 2 2 0 01-2 2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
+	};
+
+	// Back link copy: view mode returns to the list, edit mode to the resource.
+	const backToResourceKey = $derived(
+		kind === 'card'
+			? 'common.backToCard'
+			: kind === 'voucher'
+				? 'common.backToVoucher'
+				: 'common.backToGiftCard'
+	);
+
+	// Section title over the desktop edit form ("Kartendaten" / …). Lives in the
+	// per-kind i18n namespace, not in CONFIG's key map.
+	const dataSectionKey = $derived(
+		kind === 'card'
+			? 'cards.dataSection'
+			: kind === 'voucher'
+				? 'vouchers.dataSection'
+				: 'giftCards.dataSection'
+	);
+
+	const canDelete = $derived(!!resource?.permissions?.can_delete);
+	const canEditResource = $derived(!!resource?.permissions?.can_edit);
+	const isOwner = $derived(!!resource?.permissions?.is_owner);
+	// Desktop only: card and voucher lose the right column entirely when viewed as
+	// a recipient, and the gift card keeps just its read-only ledger there (mockup
+	// boards C and D). The native layouts keep the column whenever there is a
+	// ledger, edit mode included.
+	const hasRightColumn = $derived(
+		IS_DESKTOP ? isOwner || (!!ledger && !isEditing) : isOwner || !!ledger
+	);
+	// The desktop edit board drops the ledger; panel order keys on this, not on
+	// the snippet merely being passed in.
+	const showLedger = $derived(!!ledger && !(IS_DESKTOP && isEditing));
 </script>
+
+{#snippet deleteAction()}
+	<button
+		type="button"
+		onclick={promptDelete}
+		disabled={isOffline}
+		class="inline-flex h-11 items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 text-label text-danger-700 transition-colors hover:bg-danger-100 disabled:cursor-not-allowed disabled:opacity-50"
+	>
+		<svg
+			class="h-4 w-4"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d={isOffline ? LOCK_PATH : ICON_TRASH}
+			/>
+		</svg>
+		{tr('common.delete')}
+	</button>
+{/snippet}
 
 {#if resource}
 	<!-- Android: M3 small top app bar in both modes — view mode carries the
@@ -407,8 +489,158 @@
 		</M3DetailAppBar>
 	{/if}
 
+	{#if IS_DESKTOP}
+		<!-- Desktop header (mockup): back link, type icon + eyebrow/title on the
+		     left, favourite/edit/delete as text buttons on the right. Edit mode
+		     swaps in its own title and drops the action buttons. -->
+		<div class="mb-6 flex items-start justify-between gap-5">
+			<div class="min-w-0">
+				<button
+					type="button"
+					onclick={isEditing ? cancelEdit : goBack}
+					class="mb-3 inline-flex items-center gap-1.5 text-label text-accent hover:text-accent-hover"
+				>
+					<svg
+						class="h-4 w-4"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M15 18l-6-6 6-6"
+						/>
+					</svg>
+					{isEditing ? tr(backToResourceKey) : tr('common.backToOverviewPlain')}
+				</button>
+				{#if isEditing}
+					<h1 class="text-title text-text">{tr(c.editTitle)}</h1>
+				{:else}
+					<div class="flex items-center gap-3">
+						<span
+							class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+							style="background: color-mix(in srgb, {accentColor} 16%, transparent); color: {accentColor}"
+						>
+							<svg
+								class="h-5.5 w-5.5"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.9"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={TYPE_ICON[kind]}
+								/>
+							</svg>
+						</span>
+						<div class="min-w-0">
+							<p
+								class="text-section-eyebrow text-text-faint {eyebrowVerbatim
+									? ''
+									: 'uppercase'}"
+							>
+								{eyebrow
+									? `${tr(`common.${kind}`)} · ${eyebrow}`
+									: tr(`common.${kind}`)}
+							</p>
+							<h1 class="text-title text-text">{pageTitle}</h1>
+						</div>
+					</div>
+				{/if}
+			</div>
+			{#if !isEditing}
+				<div class="flex shrink-0 items-center gap-2.5">
+					<button
+						type="button"
+						data-testid="favorite-button"
+						onclick={toggleFavorite}
+						disabled={isOffline || isTogglingFavorite}
+						aria-pressed={resource.is_favorite}
+						title={resource.is_favorite
+							? tr(cfg.favoriteRemove)
+							: tr(cfg.favoriteAdd)}
+						class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border-field bg-white text-accent transition-colors hover:bg-surface-1 disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						<svg
+							class="h-5 w-5"
+							viewBox="0 0 24 24"
+							fill={resource.is_favorite ? 'currentColor' : 'none'}
+							stroke="currentColor"
+							stroke-width="1.9"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
+							/>
+						</svg>
+					</button>
+					{#if canEditResource}
+						<button
+							type="button"
+							onclick={startEdit}
+							disabled={isOffline}
+							class="inline-flex h-10 items-center gap-2 rounded-lg border border-border-field bg-white px-4 text-label text-text-ink2 transition-colors hover:bg-surface-1 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							<svg
+								class="h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={isOffline
+										? LOCK_PATH
+										: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z'}
+								/>
+							</svg>
+							{tr('common.edit')}
+						</button>
+					{/if}
+					{#if canDelete}
+						<button
+							type="button"
+							onclick={promptDelete}
+							disabled={isOffline}
+							class="inline-flex h-10 items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 text-label text-danger-700 transition-colors hover:bg-danger-100 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							<svg
+								class="h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={isOffline ? LOCK_PATH : ICON_TRASH}
+								/>
+							</svg>
+							{tr('common.delete')}
+						</button>
+					{/if}
+				</div>
+			{/if}
+		</div>
+		{#if !isEditing && resource.owner && resource.owner.id !== $authStore.user?.id}
+			<p class="-mt-4 mb-6 text-body-sm text-text-faint">
+				{tr(c.sharedBy, {
+					name: resource.owner.first_name || resource.owner.email
+				})}
+			</p>
+		{/if}
+	{/if}
+
 	<!-- Page header (view mode only; the edit form keeps its own title). -->
-	{#if !isEditing && !isAndroid}
+	{#if !isEditing && !isAndroid && !IS_DESKTOP}
 		<PageHeader
 			title={pageTitle}
 			{eyebrow}
@@ -492,9 +724,18 @@
 		{/if}
 	{/if}
 
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+	<!-- Body: two columns on desktop (2fr / 1fr per mockup). A recipient without
+	     a right column (card / voucher shared with me) gets the single narrower
+	     column instead. -->
+	<div
+		class={IS_DESKTOP
+			? hasRightColumn
+				? 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[2fr_1fr]'
+				: 'max-w-3xl'
+			: 'grid grid-cols-1 lg:grid-cols-3 gap-6'}
+	>
 		<!-- Left column: resource details / edit form -->
-		<div class="lg:col-span-2">
+		<div class={IS_DESKTOP ? 'min-w-0' : 'lg:col-span-2'}>
 			{#if !isEditing}
 				<!-- View Mode -->
 				<div
@@ -599,15 +840,33 @@
 					</div>
 				{/if}
 			{:else}
-				<!-- Edit Mode: per-kind form slot + shared delete button. -->
+				<!-- Edit Mode: per-kind form slot + shared delete button. On desktop the
+				     form card carries a section title and the delete button joins the
+				     form's action row (mockup), so it is rendered by the form there. -->
 				<div
 					class={isAndroid
 						? 'rounded-m3-lg bg-m3-card overflow-hidden'
-						: 'overflow-hidden rounded-xl border border-border bg-white'}
+						: IS_DESKTOP
+							? 'overflow-hidden rounded-2xl border border-border bg-white p-7'
+							: 'overflow-hidden rounded-xl border border-border bg-white'}
 				>
-					<div class={isAndroid ? 'm3-filled-form p-4' : 'p-6'}>
-						{@render edit({ cancel: cancelEdit, close: cancelEdit })}
-						{#if resource.permissions?.can_delete && !isAndroid}
+					<div
+						class={isAndroid ? 'm3-filled-form p-4' : IS_DESKTOP ? '' : 'p-6'}
+					>
+						{#if IS_DESKTOP}
+							<h2 class="mb-5 text-subheading font-bold text-text">
+								{tr(dataSectionKey)}
+							</h2>
+						{/if}
+						{@render edit({
+							cancel: cancelEdit,
+							close: cancelEdit,
+							deleteAction:
+								IS_DESKTOP && resource.permissions?.can_delete
+									? deleteAction
+									: undefined
+						})}
+						{#if resource.permissions?.can_delete && !isAndroid && !IS_DESKTOP}
 							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
@@ -674,40 +933,56 @@
 		</div>
 
 		<!-- Right column: ledger (gift), transfer & sharing (owners) -->
-		<div class="lg:col-span-1 space-y-4">
-			{#if ledger && !isAndroid}
-				{@render ledger()}
-			{/if}
+		{#if hasRightColumn}
+			<div class={IS_DESKTOP ? 'min-w-0 space-y-4' : 'lg:col-span-1 space-y-4'}>
+				<!-- The desktop edit board drops the ledger; only sharing and transfer
+				     stay beside the form (mockup). -->
+				{#if showLedger && !isAndroid}
+					{@render ledger!()}
+				{/if}
 
-			{#if resource.permissions?.is_owner && !isAndroid}
-				<!-- Transfer Box -->
-				<TransferBox
-					{isOffline}
-					title={kind === 'gift_card' ? tr(c.transferTitle) : undefined}
-					openButtonLabel={kind === 'gift_card'
-						? `→ ${tr(c.transferTransferButton)}`
-						: tr(c.transferButton)}
-					transferButtonLabel={tr(c.transferTransferButton)}
-					warningTitle={tr(c.transferWarning)}
-					warningDetails={tr(c.transferWarningDetails)}
-					emailLabel={tr(c.transferEmailLabel)}
-					emailHint={tr(c.transferEmailHint)}
-					whatHappensLabel={tr(c.transferWhatHappens)}
-					details={transferDetails}
-					bind:email={transferEmail}
-					ontransfer={promptTransfer}
-				/>
-
-				<!-- Sharing (own state + API calls → dedicated component). -->
-				<ShareSection
-					{kind}
-					resource={resource!}
-					bind:shares
-					{isOffline}
-					{shareMode}
-				/>
-			{/if}
-		</div>
+				{#if resource.permissions?.is_owner && !isAndroid}
+					<!-- Panel order follows the mockup: without a ledger sharing leads the
+					     column, with one (gift card) transfer sits between ledger and
+					     sharing. Snippets keep both boxes defined once. -->
+					{#snippet transferBox()}
+						<TransferBox
+							{isOffline}
+							title={kind === 'gift_card' ? tr(c.transferTitle) : undefined}
+							subtitle={IS_DESKTOP ? tr('common.transferSubtitle') : undefined}
+							openButtonLabel={kind === 'gift_card'
+								? `→ ${tr(c.transferTransferButton)}`
+								: tr(c.transferButton)}
+							transferButtonLabel={tr(c.transferTransferButton)}
+							warningTitle={tr(c.transferWarning)}
+							warningDetails={tr(c.transferWarningDetails)}
+							emailLabel={tr(c.transferEmailLabel)}
+							emailHint={tr(c.transferEmailHint)}
+							whatHappensLabel={tr(c.transferWhatHappens)}
+							details={transferDetails}
+							bind:email={transferEmail}
+							ontransfer={promptTransfer}
+						/>
+					{/snippet}
+					{#snippet shareBox()}
+						<ShareSection
+							{kind}
+							resource={resource!}
+							bind:shares
+							{isOffline}
+							{shareMode}
+						/>
+					{/snippet}
+					{#if showLedger}
+						{@render transferBox()}
+						{@render shareBox()}
+					{:else}
+						{@render shareBox()}
+						{@render transferBox()}
+					{/if}
+				{/if}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Android sheets: overflow (delete), share and transfer. The share and

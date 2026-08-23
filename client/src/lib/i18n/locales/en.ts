@@ -29,6 +29,12 @@ export const en: TranslationKeys = {
 		filterVouchers: 'Filter Vouchers',
 		filterGiftCards: 'Filter Gift Cards',
 		backToOverview: '← Back to overview',
+		backToOverviewPlain: 'Back to overview',
+		backToCard: 'Back to card',
+		backToVoucher: 'Back to voucher',
+		backToGiftCard: 'Back to gift card',
+		shareSubtitle: 'With other Savvy users',
+		transferSubtitle: 'Hand over completely',
 		optional: 'Optional',
 		required: 'Required',
 		saving: 'Saving...',
@@ -232,6 +238,7 @@ export const en: TranslationKeys = {
 		hide: 'Hide barcodes'
 	},
 	cards: {
+		dataSection: 'Card data',
 		title: 'Cards',
 		noCards: 'No cards yet',
 		noCardsHint: 'Create your first card',
@@ -349,6 +356,7 @@ export const en: TranslationKeys = {
 		reregisterError: 'Re-registration failed'
 	},
 	giftCards: {
+		dataSection: 'Gift card data',
 		title: 'Gift Cards',
 		newGiftCard: 'New Gift Card',
 		editGiftCard: 'Edit Gift Card',
@@ -528,6 +536,7 @@ export const en: TranslationKeys = {
 		}
 	},
 	vouchers: {
+		dataSection: 'Voucher data',
 		title: 'Vouchers',
 		newVoucher: 'New Voucher',
 		editVoucher: 'Edit Voucher',
