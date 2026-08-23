@@ -25,6 +25,7 @@
 	// boxed row actions). iOS/Android keep the existing list. `platform` is a
 	// module constant, so this is a plain const, not $derived.
 	const IS_DESKTOP = platform === 'other';
+	const IS_ANDROID = platform === 'android';
 
 	let notifications = $state<NotificationDTO[]>([]);
 	let isLoadingNotifications = $state(true);
@@ -34,6 +35,35 @@
 
 	const unreadNotifications = $derived(notifications.filter((n) => !n.is_read));
 	const readNotifications = $derived(notifications.filter((n) => n.is_read));
+
+	// Id of the row whose overflow menu is open (Android), or null.
+	let openMenuId = $state<string | null>(null);
+
+	// Any click outside the open overflow menu dismisses it (same pattern as
+	// NotificationPanel and DesktopNav).
+	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+		if (openMenuId && !target.closest('.notif-overflow')) openMenuId = null;
+	}
+
+	// Back: return to where the user came from; fall back to the dashboard on a
+	// deep link (push notification, bookmark, PWA start URL), where history.back()
+	// would be a no-op and leave the chevron dead.
+	function goBack() {
+		if (history.length > 1) history.back();
+		else goto(resolve('/dashboard'));
+	}
+
+	// Headline for the Android list row (the mockup splits headline and detail
+	// across two lines). It names the kind of event; the detail line below
+	// carries the actor and merchant, so the two must not repeat each other.
+	function formatAndroidTitle(notification: NotificationDTO): string {
+		// $t() echoes the key back when it is missing, so compare against it
+		// rather than relying on a falsy return for unknown notification types.
+		const key = `notifications.typeTitle.${notification.type}`;
+		const title = $t(key);
+		return title === key ? $t('notifications.newNotification') : title;
+	}
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
@@ -225,6 +255,8 @@
 	<title>{tr('notifications.title')} - {tr('common.appName')}</title>
 </svelte:head>
 
+<svelte:window onclick={handleClickOutside} />
+
 {#snippet gearIcon(size: number)}
 	<svg
 		width={size}
@@ -344,6 +376,99 @@
 				{@render trashIcon()}
 			</button>
 		</div>
+	</div>
+{/snippet}
+
+<!-- Android M3 row (mockup): tonal type tile, headline plus detail line and a
+     per-row overflow menu. -->
+{#snippet androidRow(notification: NotificationDTO)}
+	{@const tone = notificationTone(notification.type)}
+	<div
+		class="relative flex items-start gap-3.5 py-3.5 pr-4 pl-5 {notification.is_read
+			? ''
+			: 'bg-accent-100'}"
+	>
+		<button
+			type="button"
+			class="flex min-w-0 flex-1 items-start gap-3.5 text-left"
+			onclick={() => handleNotificationClick(notification)}
+		>
+			<span
+				class="flex h-notif-tile w-notif-tile shrink-0 items-center justify-center rounded-m3-full {tone.tile} {tone.ink} {notification.is_read
+					? 'opacity-70'
+					: ''}"
+			>
+				<NotificationTypeIcon type={notification.type} size={21} />
+			</span>
+			<span class="min-w-0 flex-1">
+				<span class="flex items-baseline gap-2">
+					<span
+						class="min-w-0 flex-1 truncate text-body {notification.is_read
+							? 'font-medium text-text-muted'
+							: 'font-semibold text-text'}"
+					>
+						{formatAndroidTitle(notification)}
+					</span>
+					<span
+						class="shrink-0 text-eyebrow font-normal whitespace-nowrap text-text-faint"
+					>
+						{formatTimeAgo(notification.created_at)}
+					</span>
+				</span>
+				<span
+					class="mt-0.5 block text-body-sm {notification.is_read
+						? 'text-text-subtle'
+						: 'text-text-muted'}"
+				>
+					{formatNotificationMessage(notification)}
+				</span>
+			</span>
+		</button>
+
+		<!-- M3 overflow menu per row (mark as read / delete). -->
+		<button
+			type="button"
+			class="notif-overflow -mt-0.5 -mr-1.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-m3-full text-text-faint"
+			aria-label={tr('notifications.moreActions')}
+			aria-expanded={openMenuId === notification.id}
+			onclick={() =>
+				(openMenuId = openMenuId === notification.id ? null : notification.id)}
+		>
+			<svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor">
+				<circle cx="12" cy="5" r="1.8" />
+				<circle cx="12" cy="12" r="1.8" />
+				<circle cx="12" cy="19" r="1.8" />
+			</svg>
+		</button>
+
+		{#if openMenuId === notification.id}
+			<div
+				class="notif-overflow absolute top-11 right-3 z-30 min-w-44 overflow-hidden rounded-m3-md bg-m3-card py-1 shadow-m3-dialog"
+			>
+				{#if !notification.is_read}
+					<button
+						type="button"
+						class="block w-full px-4 py-2.5 text-left text-body text-text"
+						onclick={() => {
+							openMenuId = null;
+							handleMarkAsRead(notification.id);
+						}}
+					>
+						{tr('notifications.markAsRead')}
+					</button>
+				{/if}
+				<button
+					type="button"
+					class="block w-full px-4 py-2.5 text-left text-body text-danger-800"
+					onclick={() => {
+						openMenuId = null;
+						handleDelete(notification.id);
+					}}
+				>
+					{tr('notifications.delete')}
+				</button>
+			</div>
+		{/if}
 	</div>
 {/snippet}
 
@@ -476,6 +601,125 @@
 					</p>
 				{/if}
 			</div>
+		{/if}
+	</div>
+{:else if IS_ANDROID}
+	<!-- Android M3: full-bleed list, no card chrome (mockup). -->
+	<div class="-mx-4">
+		<div class="px-3">
+			<PageHeader
+				title={tr('notifications.title')}
+				mobileActions={false}
+				onBack={goBack}
+			/>
+		</div>
+
+		{#if isLoadingNotifications}
+			<LoadingSpinner />
+		{:else if notifications.length === 0}
+			<!-- Empty state: centred column with a settings shortcut. -->
+			<div
+				class="flex min-h-[60vh] flex-col items-center justify-center px-10 text-center"
+			>
+				<span
+					class="mb-5.5 flex h-22 w-22 items-center justify-center rounded-m3-full bg-m3-surface-container text-text-faint"
+				>
+					<svg
+						class="h-10 w-10"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<path
+							d="M18 8a6 6 0 00-9.3-5M5.2 8.7C5 12.5 3 15 3 15h13M13.7 21a2 2 0 01-3.4 0"
+						/>
+						<path d="M3 3l18 18" />
+					</svg>
+				</span>
+				<p class="text-heading text-text-strong">
+					{tr('notifications.emptyTitle')}
+				</p>
+				<p class="mt-2 max-w-empty-copy text-body-sm text-text-muted">
+					{tr('notifications.emptyDescription')}
+				</p>
+				<a
+					href={resolve('/notifications/settings')}
+					class="mt-5.5 inline-flex items-center gap-2 rounded-m3-full bg-accent px-5 py-3 text-label text-on-accent shadow-fab"
+				>
+					{@render gearIcon(16)}
+					{tr('notifications.settingsTitle')}
+				</a>
+			</div>
+		{:else}
+			<!-- Unread count + "mark all as read" pill, below the app bar. -->
+			<div class="flex items-center justify-between px-4.5 pb-3">
+				<p class="text-chip font-normal text-text-muted">
+					{$t('notifications.unreadCount', {
+						count: $notificationStore.unreadCount
+					})}
+				</p>
+				<!-- Either signal keeps the action reachable: the server count can be
+				     stale at 0 when the unread-count request failed while the list
+				     itself loaded unread rows. -->
+				{#if $notificationStore.unreadCount > 0 || unreadNotifications.length > 0}
+					<button
+						type="button"
+						class="rounded-m3-full bg-accent-50 px-3.5 py-2 text-chip text-accent-700"
+						onclick={handleMarkAllAsRead}
+					>
+						{tr('notifications.markAllAsRead')}
+					</button>
+				{/if}
+			</div>
+
+			{#if unreadNotifications.length > 0}
+				<p
+					class="px-5 pt-2 pb-1.5 text-section-eyebrow uppercase text-text-subtle"
+				>
+					{tr('notifications.sectionNew')}
+				</p>
+				{#each unreadNotifications as notification (notification.id)}
+					{@render androidRow(notification)}
+				{/each}
+			{/if}
+
+			{#if readNotifications.length > 0}
+				{#if unreadNotifications.length > 0}
+					<div class="mx-5 my-2 h-px bg-border-soft"></div>
+				{/if}
+				<p
+					class="px-5 pt-2 pb-1.5 text-section-eyebrow uppercase text-text-subtle"
+				>
+					{tr('notifications.sectionEarlier')}
+				</p>
+				{#each readNotifications as notification (notification.id)}
+					{@render androidRow(notification)}
+				{/each}
+			{/if}
+
+			{#if hasMore}
+				<div class="px-6 py-4 text-center">
+					<button
+						class="text-body text-accent disabled:opacity-50"
+						onclick={loadMore}
+						disabled={isLoadingMore}
+					>
+						{isLoadingMore
+							? tr('notifications.loadingMore')
+							: tr('notifications.loadMore')}
+					</button>
+				</div>
+			{/if}
+
+			<p
+				class="mt-3.5 px-6 text-center text-eyebrow font-normal text-text-faint"
+			>
+				{tr('notifications.archiveHint')}
+			</p>
 		{/if}
 	</div>
 {:else}

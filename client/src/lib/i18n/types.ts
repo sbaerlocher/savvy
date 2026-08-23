@@ -1138,6 +1138,13 @@ export type TranslationKeys = {
 		emptyTitle: string;
 		emptyDescription: string;
 		settingsLink: string;
+		typeTitle: {
+			share_received: string;
+			transfer_received: string;
+			expiry_reminder: string;
+			validity_start: string;
+		};
+		moreActions: string;
 	};
 	batch: {
 		selectMode: string;
