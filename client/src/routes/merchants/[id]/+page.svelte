@@ -20,7 +20,7 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { ICON_PENCIL, ICON_SEARCH } from '$lib/icons';
+	import { ICON_CHEVRON_LEFT, ICON_PENCIL, ICON_SEARCH } from '$lib/icons';
 	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -31,6 +31,10 @@
 	// chip, a tonal search field and a visible type chip row.
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_ANDROID = platform === 'android';
+
+	// Desktop puts a back link above the merchant name and the type chips on the
+	// toolbar row (mockup screen-MerchantsDesktop, board 2).
+	const IS_DESKTOP = platform === 'other';
 
 	const isAdmin = $derived($authStore.user?.is_admin || false);
 	const currentUserId = $derived($authStore.user?.id);
@@ -131,8 +135,9 @@
 		barcodeStorageKey="savvy_merchant_detail_show_barcodes"
 		idPrefix="detail"
 		matchMerchantName={false}
-		typeFilterPlacement={IS_ANDROID ? 'top' : 'batch-header'}
-		filterShowAll={IS_ANDROID}
+		typeFilterPlacement={IS_ANDROID || IS_DESKTOP ? 'top' : 'batch-header'}
+		filterShowAll={IS_ANDROID || IS_DESKTOP}
+		inlineTypeToolbar
 		androidBarcodeInTypeRow
 		barcodeButtonVariant="icon"
 		maxWidth={false}
@@ -167,6 +172,27 @@
 					>
 				</div>
 			{/if}
+			{#if IS_DESKTOP}
+				<!-- Back link to the merchant list (mockup board 2). -->
+				<a
+					href={resolve('/merchants')}
+					class="mb-4 inline-flex items-center gap-1.5 text-label text-accent-hover hover:text-accent-active"
+				>
+					<svg
+						class="h-4.25 w-4.25"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path d={ICON_CHEVRON_LEFT} />
+					</svg>
+					{tr('merchantOverview.title')}
+				</a>
+			{/if}
 			<div class={IS_ANDROID ? 'max-sm:mb-4 mb-8' : 'mb-8'}>
 				<div
 					class="flex items-center justify-between {IS_ANDROID
@@ -185,7 +211,9 @@
 						<h1
 							class="text-text truncate {IS_ANDROID
 								? 'max-sm:text-screen-title text-3xl font-bold'
-								: 'text-3xl font-bold'}"
+								: IS_DESKTOP
+									? 'text-screen-title'
+									: 'text-3xl font-bold'}"
 						>
 							{merchant?.name}
 						</h1>
