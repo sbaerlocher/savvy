@@ -1234,11 +1234,11 @@ export const fr: TranslationKeys = {
 		loadMore: 'Charger plus',
 		loadingMore: 'Chargement...',
 		settingsTitle: 'Paramètres',
-		unreadOfTotal: '{unread} non lues · {total} au total',
+		unreadCount: '{count} non lues',
 		sectionNew: 'Nouveau',
 		sectionEarlier: 'Plus tôt',
 		archiveHint:
-			'Les notifications lues sont archivées automatiquement après 30 jours.',
+			'Les notifications lues sont archivées automatiquement après un certain temps.',
 		emptyTitle: 'Aucune notification',
 		emptyDescription:
 			'Les nouveaux messages concernant les cartes partagées, les transferts et les rappels d’expiration apparaissent ici. Vous êtes à jour.',

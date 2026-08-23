@@ -1232,11 +1232,11 @@ export const de: TranslationKeys = {
 		loadMore: 'Mehr laden',
 		loadingMore: 'Laden...',
 		settingsTitle: 'Einstellungen',
-		unreadOfTotal: '{unread} ungelesen · {total} gesamt',
+		unreadCount: '{count} ungelesen',
 		sectionNew: 'Neu',
 		sectionEarlier: 'Früher',
 		archiveHint:
-			'Gelesene Benachrichtigungen werden nach 30 Tagen automatisch archiviert.',
+			'Gelesene Benachrichtigungen werden nach einiger Zeit automatisch archiviert.',
 		emptyTitle: 'Keine Benachrichtigungen',
 		emptyDescription:
 			'Neue Mitteilungen zu geteilten Karten, Übertragungen und Ablauf-Erinnerungen erscheinen hier. Du bist gerade auf dem neuesten Stand.',

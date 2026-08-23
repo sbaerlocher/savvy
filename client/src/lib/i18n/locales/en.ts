@@ -1198,10 +1198,10 @@ export const en: TranslationKeys = {
 		loadMore: 'Load more',
 		loadingMore: 'Loading...',
 		settingsTitle: 'Settings',
-		unreadOfTotal: '{unread} unread · {total} total',
+		unreadCount: '{count} unread',
 		sectionNew: 'New',
 		sectionEarlier: 'Earlier',
-		archiveHint: 'Read notifications are archived automatically after 30 days.',
+		archiveHint: 'Read notifications are archived automatically after a while.',
 		emptyTitle: 'No notifications',
 		emptyDescription:
 			'New messages about shared cards, transfers and expiry reminders appear here. You are all caught up.',

@@ -41,6 +41,9 @@
 			return;
 		}
 		await loadNotifications();
+		// The header count comes from the store (authoritative, server-side),
+		// not from the paginated list, so make sure it is populated here.
+		notificationStore.refreshUnreadCount();
 	});
 
 	async function loadNotifications() {
@@ -373,11 +376,11 @@
 								<path d="M3 3l18 18" />
 							</svg>
 						</span>
-						<div
+						<h1
 							class="text-[length:var(--text-heading)] font-bold tracking-tight text-text-strong"
 						>
 							{tr('notifications.emptyTitle')}
-						</div>
+						</h1>
 						<div
 							class="mt-2 max-w-[400px] text-[length:var(--text-body)] leading-relaxed text-text-muted"
 						>
@@ -401,9 +404,8 @@
 								{tr('notifications.title')}
 							</h1>
 							<p class="mt-1 text-[length:var(--text-label)] text-text-muted">
-								{tr('notifications.unreadOfTotal', {
-									unread: unreadNotifications.length,
-									total: notifications.length
+								{$t('notifications.unreadCount', {
+									count: $notificationStore.unreadCount
 								})}
 							</p>
 						</div>

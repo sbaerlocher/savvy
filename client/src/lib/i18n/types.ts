@@ -1131,7 +1131,7 @@ export type TranslationKeys = {
 		loadMore: string;
 		loadingMore: string;
 		settingsTitle: string;
-		unreadOfTotal: string;
+		unreadCount: string;
 		sectionNew: string;
 		sectionEarlier: string;
 		archiveHint: string;
