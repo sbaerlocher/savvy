@@ -40,10 +40,9 @@
 	let showDeleteTransactionModal = $state(false);
 	let transactionToDelete: string | null = null;
 
-	// Android renders the ledger as a second tonal M3 card stacked under the
-	// barcode card (screen-ResourceDetailAndroid, frame 3). `platform` is a
-	// module constant, so a plain const, not $derived.
-	const IS_ANDROID = platform === 'android';
+	// Android renders the ledger as a second M3 card stacked under the barcode
+	// card (screen-ResourceDetailAndroid, frame 3).
+	const isAndroid = platform === 'android';
 
 	const percentageRemaining = $derived(
 		giftCard
@@ -125,24 +124,24 @@
 
 <!-- Balance & Transactions Box -->
 <div
-	class={IS_ANDROID
+	class={isAndroid
 		? 'rounded-m3-lg bg-m3-card p-5'
 		: 'rounded-xl border border-border bg-white p-6'}
 >
 	<!-- Balance Display -->
-	<div class={IS_ANDROID ? 'mb-0' : 'mb-6'}>
+	<div class={isAndroid ? 'mb-0' : 'mb-6'}>
 		<p
-			class="{IS_ANDROID
+			class="{isAndroid
 				? 'text-label font-normal'
 				: 'text-sm'} text-text-ink2 mb-1"
 		>
 			{tr('giftCards.balance.current')}
 		</p>
 		<p
-			class={IS_ANDROID
+			class={isAndroid
 				? 'text-giftcard-ink text-screen-title font-mono font-semibold'
 				: 'text-3xl font-bold'}
-			style={IS_ANDROID
+			style={isAndroid
 				? undefined
 				: `color: ${giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}`}
 		>
@@ -150,9 +149,9 @@
 			{giftCard.currency}
 		</p>
 		<!-- Progress Bar -->
-		<div class="mt-3 bg-border rounded-full {IS_ANDROID ? 'h-2.25' : 'h-3'}">
+		<div class="mt-3 bg-border rounded-full {isAndroid ? 'h-2.25' : 'h-3'}">
 			<div
-				class="h-full rounded-full transition-all {IS_ANDROID
+				class="h-full rounded-full transition-all {isAndroid
 					? 'bg-giftcard-line'
 					: percentageRemaining > 50
 						? 'bg-success-500'
@@ -170,15 +169,15 @@
 
 	<!-- Transactions Section -->
 	<div
-		class={IS_ANDROID
+		class={isAndroid
 			? 'border-border-soft mt-4.5 border-t pt-4'
 			: 'border-t pt-6'}
 	>
 		<div
-			class="flex justify-between items-center {IS_ANDROID ? 'mb-3.5' : 'mb-4'}"
+			class="flex justify-between items-center {isAndroid ? 'mb-3.5' : 'mb-4'}"
 		>
 			<h3
-				class={IS_ANDROID
+				class={isAndroid
 					? 'text-label text-text-ink2'
 					: 'text-sm font-medium text-text-ink2'}
 			>
@@ -189,7 +188,7 @@
 					data-testid="add-transaction"
 					onclick={() => (showTransactionForm = true)}
 					disabled={isOffline}
-					class={IS_ANDROID
+					class={isAndroid
 						? 'bg-danger-600 text-chip rounded-m3-full inline-flex items-center gap-1 px-3.25 py-1.5 whitespace-nowrap text-white disabled:opacity-50'
 						: `btn btn-xs btn-danger whitespace-nowrap flex items-center gap-1.5 ${
 								isOffline
@@ -221,7 +220,7 @@
 
 		{#if showTransactionForm}
 			<div
-				class={IS_ANDROID
+				class={isAndroid
 					? 'border-danger-200 bg-danger-50 rounded-m3-md mb-3.5 flex flex-col gap-3 border p-3.5'
 					: 'border border-danger-200 bg-danger-50 rounded-lg p-4 space-y-4 mb-4'}
 			>
@@ -238,7 +237,7 @@
 						required
 						bind:value={transactionDate}
 						max={todayInputValue()}
-						class={IS_ANDROID
+						class={isAndroid
 							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
 							: 'input w-full text-base bg-white'}
 					/>
@@ -258,7 +257,7 @@
 						min="0.01"
 						required
 						bind:value={transactionAmount}
-						class={IS_ANDROID
+						class={isAndroid
 							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
 							: 'input bg-white'}
 						placeholder="10.00"
@@ -276,7 +275,7 @@
 						id="transactionDescription-input"
 						type="text"
 						bind:value={transactionDescription}
-						class={IS_ANDROID
+						class={isAndroid
 							? 'text-subheading rounded-m3-sm border-border-field bg-m3-card text-text w-full border px-3 py-2.5 font-normal'
 							: 'input bg-white'}
 						placeholder={tr('giftCards.transactions.descriptionPlaceholder')}
@@ -286,11 +285,11 @@
 				<!-- Android puts cancel/save right-aligned as M3 text + filled
 				     buttons; the other platforms keep the stretched pair. -->
 				<div
-					class={IS_ANDROID
+					class={isAndroid
 						? 'flex items-center justify-end gap-2'
 						: 'flex gap-2'}
 				>
-					{#if IS_ANDROID}
+					{#if isAndroid}
 						<button
 							type="button"
 							onclick={() => (showTransactionForm = false)}
@@ -328,16 +327,16 @@
 		{/if}
 
 		{#if transactions.length > 0}
-			<div class={IS_ANDROID ? 'flex flex-col gap-2' : 'space-y-2'}>
+			<div class={isAndroid ? 'flex flex-col gap-2' : 'space-y-2'}>
 				{#each transactions as transaction (transaction.id)}
 					<div
-						class="flex items-center justify-between bg-surface-1 gap-3 {IS_ANDROID
+						class="flex items-center justify-between bg-surface-1 gap-3 {isAndroid
 							? 'rounded-m3-sm px-3.25 py-2.75'
 							: 'rounded p-3'}"
 					>
 						<div class="min-w-0 flex-1">
 							<div
-								class="text-danger-600 {IS_ANDROID
+								class="text-danger-600 {isAndroid
 									? 'text-label font-mono'
 									: 'font-medium'}"
 							>
@@ -346,7 +345,7 @@
 							</div>
 							{#if transaction.description}
 								<div
-									class="text-text-subtle {IS_ANDROID
+									class="text-text-subtle {isAndroid
 										? 'text-mono-sm truncate font-sans tracking-normal'
 										: 'text-sm text-text-muted'}"
 								>
@@ -356,7 +355,7 @@
 						</div>
 						<div class="flex items-center gap-3">
 							<div
-								class="text-text-faint {IS_ANDROID
+								class="text-text-faint {isAndroid
 									? 'text-mono-sm font-mono whitespace-nowrap'
 									: 'text-xs text-text-subtle'}"
 							>
@@ -396,7 +395,7 @@
 			</div>
 		{:else}
 			<div
-				class="text-center py-8 {IS_ANDROID
+				class="text-center py-8 {isAndroid
 					? 'bg-m3-card-chip rounded-m3-sm'
 					: 'bg-surface-1 rounded'}"
 			>

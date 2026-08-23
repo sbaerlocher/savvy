@@ -50,8 +50,10 @@
 	// The shared transfer strings carry their own decorative glyphs ("✓ …",
 	// "⚠️ Achtung"). The M3 sheet draws real icons, so the glyph is stripped at
 	// render — changing the strings would alter the other platforms' copy.
+	// U+FE0F is a variation selector, so the warning sign is matched as the
+	// sequence it actually is rather than as a member of a character class.
 	const stripGlyph = (s: string) =>
-		s.replace(/^[\s\u2713\u2714\u26A0\uFE0F!]+/, '');
+		s.replace(/^(?:\s|[\u2713\u2714!]|\u26A0\uFE0F?)+/, '');
 
 	let showForm = $state(false);
 </script>

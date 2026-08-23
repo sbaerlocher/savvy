@@ -58,12 +58,20 @@ export class ResourceDetailPage extends BasePage {
 		return this.page.locator('canvas.barcode-canvas').first();
 	}
 
+	/**
+	 * The share UI: the Android bottom sheet when one is open, otherwise the
+	 * inline section the other layouts render.
+	 */
 	get shareSection(): Locator {
-		return this.page.locator('text=/Teilen|Share/i').first();
+		const sheet = this.page.locator('[role="dialog"]');
+		return sheet.or(this.page.locator('text=/Teilen|Share/i')).first();
 	}
 
 	get transferSection(): Locator {
-		return this.page.locator('text=/Besitzerwechsel|Transfer/i').first();
+		const sheet = this.page.locator('[role="dialog"]');
+		return sheet
+			.or(this.page.locator('text=/Besitzerwechsel|Transfer|Übertragen/i'))
+			.first();
 	}
 
 	async enterEditMode() {
@@ -128,15 +136,26 @@ export class ResourceDetailPage extends BasePage {
 		}
 	}
 
+	/**
+	 * Opens the share form. Android puts sharing behind a bottom sheet opened
+	 * from a button row under the resource; the other layouts disclose an inline
+	 * form via an "Add" button. Whichever control is present is used.
+	 */
+	async openShareForm() {
+		const opener = this.page
+			.locator(
+				'button:has-text("Hinzufügen"), button:has-text("Add"), button:has-text("Teilen"), button:has-text("Share")'
+			)
+			.first();
+		await opener.waitFor({ state: 'visible', timeout: 5000 });
+		await opener.click();
+	}
+
 	async addShare(
 		email: string,
 		options?: { canEdit?: boolean; canDelete?: boolean }
 	) {
-		const addShareButton = this.page
-			.locator('button:has-text("Hinzufügen"), button:has-text("Add")')
-			.first();
-		await addShareButton.waitFor({ state: 'visible', timeout: 5000 });
-		await addShareButton.click();
+		await this.openShareForm();
 
 		const emailInput = this.page.locator('input#share-email-input');
 		await emailInput.waitFor({ state: 'visible', timeout: 5000 });

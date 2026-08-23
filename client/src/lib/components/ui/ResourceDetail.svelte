@@ -67,9 +67,8 @@
 	// Android detail chrome (screen-ResourceDetailAndroid): the M3 top app bar
 	// replaces the PageHeader, sharing and transfer move from permanent cards
 	// into bottom sheets opened from a button row under the resource card, and
-	// the overflow menu holds delete. `platform` is a module constant, so a
-	// plain const, not $derived.
-	const IS_ANDROID = platform === 'android';
+	// the overflow menu holds delete.
+	const isAndroid = platform === 'android';
 	let showOverflowSheet = $state(false);
 	let showShareSheet = $state(false);
 	let showTransferSheet = $state(false);
@@ -385,7 +384,7 @@
 	<!-- Android: M3 small top app bar in both modes — view mode carries the
 	     resource title with star + overflow, edit mode swaps to a close cross
 	     and the "<kind> bearbeiten" title (mockup frames 4-6). -->
-	{#if IS_ANDROID}
+	{#if isAndroid}
 		<M3DetailAppBar
 			title={isEditing ? tr(c.editTitle) : pageTitle}
 			nav={isEditing ? 'close' : 'back'}
@@ -409,7 +408,7 @@
 	{/if}
 
 	<!-- Page header (view mode only; the edit form keeps its own title). -->
-	{#if !isEditing && !IS_ANDROID}
+	{#if !isEditing && !isAndroid}
 		<PageHeader
 			title={pageTitle}
 			{eyebrow}
@@ -446,7 +445,7 @@
 	     the trigger lives here. Uses startEdit which the route overrides through
 	     ResourceActions above — the FAB simply mirrors it. The detail route has
 	     no bottom nav (mockup), so the FAB sits on the screen edge. -->
-		{#if resource.permissions?.can_edit && IS_ANDROID}
+		{#if resource.permissions?.can_edit && isAndroid}
 			<button
 				type="button"
 				onclick={startEdit}
@@ -472,7 +471,7 @@
 		{/if}
 	{/if}
 
-	{#if IS_ANDROID && !isEditing}
+	{#if isAndroid && !isEditing}
 		<!-- Body eyebrow: the M3 top app bar carries only the title, so the kind
 		     kicker and the "geteilt von" line sit above the card (mockup). -->
 		{#if eyebrow}
@@ -495,13 +494,13 @@
 			{#if !isEditing}
 				<!-- View Mode -->
 				<div
-					class={IS_ANDROID
+					class={isAndroid
 						? 'rounded-m3-lg bg-m3-card overflow-hidden'
 						: 'overflow-hidden rounded-xl border border-border/80 bg-white'}
 					style="border-left: 3px solid color-mix(in srgb, {accentColor} 70%, transparent)"
 				>
 					<div
-						class="{IS_ANDROID ? 'p-5' : 'p-6'} {isDimmed
+						class="{isAndroid ? 'p-5' : 'p-6'} {isDimmed
 							? 'opacity-50 grayscale'
 							: ''}"
 					>
@@ -525,7 +524,7 @@
 
 						{#if notes}
 							<div
-								class="mt-3.5 bg-warning-50 border-l-4 border-warning-400 px-3.5 py-2.5 {IS_ANDROID
+								class="mt-3.5 bg-warning-50 border-l-4 border-warning-400 px-3.5 py-2.5 {isAndroid
 									? 'rounded-m3-xs'
 									: 'rounded'}"
 							>
@@ -538,7 +537,7 @@
 				<!-- Android stacks the gift-card ledger directly under the barcode
 				     card, above the action row (mockup frame 3) — the grid's right
 				     column would otherwise push it below the buttons. -->
-				{#if IS_ANDROID && ledger}
+				{#if isAndroid && ledger}
 					<div class="mt-3">
 						{@render ledger()}
 					</div>
@@ -547,7 +546,7 @@
 				<!-- Android: share / transfer sit as a button row under the card and
 				     open M3 bottom sheets (mockup frames 1-3, 7, 8). A recipient
 				     (is_owner false) gets no row at all — frame 9. -->
-				{#if IS_ANDROID && resource.permissions?.is_owner}
+				{#if isAndroid && resource.permissions?.is_owner}
 					<div class="mt-3 flex gap-2.5">
 						<button
 							type="button"
@@ -598,13 +597,13 @@
 			{:else}
 				<!-- Edit Mode: per-kind form slot + shared delete button. -->
 				<div
-					class={IS_ANDROID
+					class={isAndroid
 						? 'rounded-m3-lg bg-m3-card overflow-hidden'
 						: 'overflow-hidden rounded-xl border border-border bg-white'}
 				>
-					<div class={IS_ANDROID ? 'm3-filled-form p-4' : 'p-6'}>
+					<div class={isAndroid ? 'm3-filled-form p-4' : 'p-6'}>
 						{@render edit({ cancel: cancelEdit, close: cancelEdit })}
-						{#if resource.permissions?.can_delete && !IS_ANDROID}
+						{#if resource.permissions?.can_delete && !isAndroid}
 							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
@@ -638,7 +637,7 @@
 
 				<!-- Android: delete leaves the form card — the mockup puts it below a
 				     divider as a plain danger text button (frames 4-6). -->
-				{#if IS_ANDROID && resource.permissions?.can_delete}
+				{#if isAndroid && resource.permissions?.can_delete}
 					<div class="border-border-soft mt-5 border-t pt-3">
 						<button
 							type="button"
@@ -672,11 +671,11 @@
 
 		<!-- Right column: ledger (gift), transfer & sharing (owners) -->
 		<div class="lg:col-span-1 space-y-4">
-			{#if ledger && !IS_ANDROID}
+			{#if ledger && !isAndroid}
 				{@render ledger()}
 			{/if}
 
-			{#if resource.permissions?.is_owner && !IS_ANDROID}
+			{#if resource.permissions?.is_owner && !isAndroid}
 				<!-- Transfer Box -->
 				<TransferBox
 					{isOffline}
@@ -710,7 +709,7 @@
 	<!-- Android sheets: overflow (delete), share and transfer. The share and
 	     transfer bodies are the same components the other platforms show inline,
 	     rendered sheet-flavoured so the data flow stays identical. -->
-	{#if IS_ANDROID}
+	{#if isAndroid}
 		<M3DetailOverflowSheet
 			open={showOverflowSheet}
 			{isOffline}

@@ -55,8 +55,7 @@
 	// takes the tonal chip step against the white card, and the fullscreen view
 	// it opens is rotated (mockup screen-BarcodeFullscreen). Tapping the code
 	// itself is the only way in — the mockup shows no separate control.
-	// `platform` is a module constant, so a plain const, not $derived.
-	const IS_ANDROID = platform === 'android';
+	const isAndroid = platform === 'android';
 
 	const hasValidityInfo = $derived(validFrom || validUntil);
 	const showStatusBadge = $derived(status && status !== 'active');
@@ -210,7 +209,7 @@
 {/snippet}
 
 <div
-	class="border-t border-border text-center {IS_ANDROID
+	class="border-t border-border text-center {isAndroid
 		? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
 		: 'bg-surface-1 rounded-lg p-4'}"
 >
@@ -279,7 +278,7 @@
 		use:portal
 		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
-		class:is-rotated={IS_ANDROID}
+		class:is-rotated={isAndroid}
 		onclick={closeFullscreen}
 		role="button"
 		tabindex="0"
@@ -347,11 +346,11 @@
 			</div>
 			<!-- Android keeps the hint inside the rotated stage so it reads with
 			     the rest of it; the other platforms leave it upright below. -->
-			{#if IS_ANDROID}
+			{#if isAndroid}
 				<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 			{/if}
 		</div>
-		{#if !IS_ANDROID}
+		{#if !isAndroid}
 			<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 		{/if}
 	</div>
