@@ -27,6 +27,10 @@
 		submitLabel?: string;
 		/** Trailing action rendered right-aligned in the desktop action row. */
 		trailingActions?: Snippet;
+		/** Desktop detail edit board: pair fields into rows and move the action
+		 *  row onto a divider (mockup screen-ResourceDetailDesktop). The create
+		 *  screens are not part of that mockup and keep the stacked layout. */
+		pairedLayout?: boolean;
 	}
 
 	let {
@@ -42,11 +46,13 @@
 		onCancel,
 		isLoading,
 		submitLabel,
-		trailingActions
+		trailingActions,
+		pairedLayout = false
 	}: Props = $props();
 
-	// `platform` is a module constant, so a plain const, not $derived.
-	const IS_DESKTOP = platform === 'other';
+	// Paired rows and the divided action row are the desktop detail-edit board;
+	// they need both the desktop platform and the caller's opt-in.
+	const PAIRED = $derived(platform === 'other' && pairedLayout);
 
 	let merchants = $state<MerchantDTO[]>([]);
 
@@ -83,7 +89,7 @@
 		typeLabel={$t('giftCards.barcodeType')}
 		inputId="cardNumber"
 		placeholder="1234567890123"
-		part={IS_DESKTOP ? 'value' : 'both'}
+		part={PAIRED ? 'value' : 'both'}
 	/>
 
 	{#snippet pinField()}
@@ -101,7 +107,7 @@
 	{/snippet}
 
 	<!-- Desktop pairs barcode type with the PIN on one row (mockup). -->
-	{#if IS_DESKTOP}
+	{#if PAIRED}
 		<div class="grid grid-cols-2 gap-4">
 			<BarcodeFields
 				bind:value={cardNumber}
@@ -146,7 +152,7 @@
 		</p>
 	</div>
 
-	{#if !IS_DESKTOP}
+	{#if !PAIRED}
 		{@render pinField()}
 	{/if}
 
@@ -176,13 +182,13 @@
 	<!-- Desktop (mockup) puts save + cancel left and the trailing action (delete)
 	     hard right on a divided row; the native layouts keep the full-width save. -->
 	<div
-		class={IS_DESKTOP
+		class={PAIRED
 			? 'mt-6 flex items-center gap-2.5 border-t border-border-soft pt-5'
 			: 'flex gap-2'}
 	>
 		<button
 			type="submit"
-			class="btn btn-primary {IS_DESKTOP ? 'px-6' : 'flex-1'}"
+			class="btn btn-primary {PAIRED ? 'px-6' : 'flex-1'}"
 			disabled={isLoading}
 		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}

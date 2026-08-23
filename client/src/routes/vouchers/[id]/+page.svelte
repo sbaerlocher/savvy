@@ -228,6 +228,7 @@
 					isLoading={false}
 					submitLabel={tr('common.save')}
 					trailingActions={deleteAction}
+					pairedLayout
 				/>
 			{/snippet}
 		</ResourceDetail>

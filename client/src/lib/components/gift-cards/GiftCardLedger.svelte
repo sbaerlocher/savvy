@@ -152,8 +152,16 @@
 				? undefined
 				: `color: ${giftCard.merchant?.color || MERCHANT_DEFAULT_COLOR}`}
 		>
-			{giftCard.current_balance.toFixed(2)}
-			{giftCard.currency}
+			<!-- The desktop mockup leads with the currency throughout the board
+			     ("CHF 85.50", "Ausgangswert: CHF 150.00", "−CHF 14.50"); the native
+			     layouts keep the trailing form. -->
+			{#if IS_DESKTOP}
+				{giftCard.currency}
+				{giftCard.current_balance.toFixed(2)}
+			{:else}
+				{giftCard.current_balance.toFixed(2)}
+				{giftCard.currency}
+			{/if}
 		</p>
 		<!-- Progress Bar -->
 		<div
@@ -179,8 +187,14 @@
 				? 'mt-2 text-body-sm text-text-subtle'
 				: 'text-xs text-text-subtle mt-2'}
 		>
-			{tr('giftCards.balance.initial')}: {giftCard.initial_balance.toFixed(2)}
-			{giftCard.currency}
+			{tr('giftCards.balance.initial')}:
+			{#if IS_DESKTOP}
+				{giftCard.currency}
+				{giftCard.initial_balance.toFixed(2)}
+			{:else}
+				{giftCard.initial_balance.toFixed(2)}
+				{giftCard.currency}
+			{/if}
 		</p>
 	</div>
 
@@ -358,11 +372,11 @@
 				class={isAndroid || IS_DESKTOP ? 'flex flex-col gap-2' : 'space-y-2'}
 			>
 				{#each transactions as transaction (transaction.id)}
-					<!-- The desktop mockup tints the description --text-subtle and the
-					     date --text-faint; at this type size both fall under the WCAG
-					     AA 4.5:1 floor on --surface-1, so the desktop rows use
-					     --text-muted (~6.4:1). Deliberate deviation, approved
-					     2026-08-23. -->
+					<!-- Both mockups tint the description --text-subtle and the date
+					     --text-faint; at 11px on --surface-1 that is 3.6:1 and 2.6:1,
+					     under the WCAG AA 4.5:1 floor for small text, so every platform
+					     uses --text-muted (~6.4:1) here. Deliberate deviation from the
+					     mockups, approved 2026-08-23. -->
 					<div
 						class="flex items-center justify-between bg-surface-1 gap-3 {isAndroid
 							? 'rounded-m3-sm px-3.25 py-2.75'
@@ -378,13 +392,18 @@
 										? 'text-danger-700 text-label font-mono'
 										: 'text-danger-600 font-medium'}
 							>
-								{IS_DESKTOP ? '−' : '-'}{transaction.amount.toFixed(2)}
-								{giftCard.currency}
+								{#if IS_DESKTOP}
+									−{giftCard.currency}
+									{transaction.amount.toFixed(2)}
+								{:else}
+									-{transaction.amount.toFixed(2)}
+									{giftCard.currency}
+								{/if}
 							</div>
 							{#if transaction.description}
 								<div
 									class={isAndroid
-										? 'text-text-subtle text-mono-sm truncate font-sans tracking-normal'
+										? 'text-text-muted text-mono-sm truncate font-sans tracking-normal'
 										: IS_DESKTOP
 											? 'text-text-muted text-body-sm truncate'
 											: 'text-sm text-text-muted'}
@@ -396,7 +415,7 @@
 						<div class="flex items-center gap-3">
 							<div
 								class={isAndroid
-									? 'text-text-faint text-mono-sm font-mono whitespace-nowrap'
+									? 'text-text-muted text-mono-sm font-mono whitespace-nowrap'
 									: IS_DESKTOP
 										? 'text-text-muted text-mono-sm font-mono whitespace-nowrap'
 										: 'text-xs text-text-subtle'}
