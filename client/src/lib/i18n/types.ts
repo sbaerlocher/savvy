@@ -1097,6 +1097,11 @@ export type TranslationKeys = {
 		inSwitzerland: string;
 	};
 	notifications: {
+		ios: {
+			allRead: string;
+			swipeRead: string;
+			swipeDelete: string;
+		};
 		title: string;
 		markAllAsRead: string;
 		noNotifications: string;

@@ -1164,6 +1164,11 @@ export const en: TranslationKeys = {
 		inSwitzerland: 'in Switzerland'
 	},
 	notifications: {
+		ios: {
+			allRead: 'All read',
+			swipeRead: 'Read',
+			swipeDelete: 'Delete'
+		},
 		title: 'Notifications',
 		markAllAsRead: 'Mark all as read',
 		noNotifications: 'No notifications',
