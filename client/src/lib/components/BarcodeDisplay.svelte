@@ -8,6 +8,7 @@
 	import { logger } from '$lib/utils/logger';
 	import { is2DType } from '$lib/utils/barcode';
 	import { platform } from '$lib/utils/platform';
+	import { FullscreenState } from '$lib/utils/fullscreen-state.svelte';
 	import { portal } from '$lib/actions/portal';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -56,19 +57,26 @@
 	// it opens is rotated (mockup screen-BarcodeFullscreen). Tapping the code
 	// itself is the only way in — the mockup shows no separate control.
 	const isAndroid = platform === 'android';
+	// iOS renders the inline code inside a --surface-2 inset box and reaches
+	// fullscreen by turning the device (mockups screen-ResourceDetailIOS /
+	// screen-BarcodeFullscreen). The viewport is then already landscape, so the
+	// stage needs no extra quarter turn and the overlay mirrors orientation
+	// alone — dismissing by tap would strand the user until a double rotation.
+	const IS_IOS = platform === 'ios';
 
 	const hasValidityInfo = $derived(validFrom || validUntil);
 	const showStatusBadge = $derived(status && status !== 'active');
 	const showValidStatusBadge = $derived(status === 'valid');
 
-	// Fullscreen state
-	let isLandscape = $state(false);
-	// Explicit user-triggered fullscreen (tap/click/keyboard), independent of
-	// device orientation — works on desktop and portrait phones too.
-	let manualFullscreen = $state(false);
+	// Fullscreen state. On iOS this is driven by device orientation: turning the
+	// phone sideways shows the enlarged code, turning it back hides it again —
+	// the mockup has no tap target. Android and desktop additionally open it by
+	// tapping the code itself. The visibility rule lives in its own module so
+	// the spec exercises the same code the component runs.
+	const fullscreen = new FullscreenState();
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const showFullscreen = $derived(isLandscape || manualFullscreen);
+	const showFullscreen = $derived(fullscreen.visible);
 
 	// 2D codes (QR, PDF417, …) stay square and benefit from a much larger
 	// fullscreen size than the wide-but-short 1D barcodes.
@@ -124,25 +132,25 @@
 			windowWidth: window.innerWidth,
 			windowHeight: window.innerHeight,
 			newIsLandscape,
-			currentIsLandscape: isLandscape
+			currentIsLandscape: fullscreen.isLandscape
 		});
 
-		if (newIsLandscape !== isLandscape) {
+		// A genuine turn starts a new session, so an earlier dismissal ends —
+		// that reset lives in setOrientation().
+		if (fullscreen.setOrientation(newIsLandscape)) {
 			componentLogger.debug(
 				'Orientation changed to:',
 				newIsLandscape ? 'LANDSCAPE' : 'PORTRAIT'
 			);
-			isLandscape = newIsLandscape;
 		}
 	}
 
 	function closeFullscreen() {
-		isLandscape = false;
-		manualFullscreen = false;
+		fullscreen.close();
 	}
 
 	function openFullscreen() {
-		manualFullscreen = true;
+		fullscreen.openManually();
 	}
 
 	// Move focus to the overlay when it opens so a keyboard user can press
@@ -209,9 +217,13 @@
 {/snippet}
 
 <div
-	class="border-t border-border text-center {isAndroid
-		? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
-		: 'bg-surface-1 rounded-lg p-4'}"
+	class={IS_IOS
+		? 'relative rounded-[var(--radius-xl)] border border-border-soft bg-surface-2 px-[18px] py-[22px] text-center'
+		: `border-t border-border text-center ${
+				isAndroid
+					? 'bg-m3-card-chip rounded-m3-md relative px-4.5 py-5.5'
+					: 'bg-surface-1 rounded-lg p-4'
+			}`}
 >
 	<!-- Status Badge + Validity Period (for Vouchers) -->
 	{#if showValidStatusBadge || showStatusBadge || hasValidityInfo}
@@ -221,17 +233,21 @@
 		</div>
 	{/if}
 
-	<!-- Barcode Image (tap to enlarge for scanning) -->
+	<!-- Barcode image; rotate the device to enlarge it for scanning. -->
 	<div class="flex justify-center mb-4">
-		<button
-			type="button"
-			class="barcode-zoom-button"
-			onclick={openFullscreen}
-			aria-label={tr('dashboard.tapToEnlarge')}
-			title={tr('dashboard.tapToEnlarge')}
-		>
+		{#if IS_IOS}
 			<Barcode {value} {type} {height} />
-		</button>
+		{:else}
+			<button
+				type="button"
+				class="barcode-zoom-button"
+				onclick={openFullscreen}
+				aria-label={tr('dashboard.tapToEnlarge')}
+				title={tr('dashboard.tapToEnlarge')}
+			>
+				<Barcode {value} {type} {height} />
+			</button>
+		{/if}
 	</div>
 
 	<!-- Code/Number -->

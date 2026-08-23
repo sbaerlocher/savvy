@@ -34,7 +34,8 @@
 		/** 'editable' shows edit/delete permission checkboxes; 'readonly' (voucher). */
 		shareMode?: 'editable' | 'readonly';
 		/**
-		 * 'sheet' renders the Android M3 bottom-sheet body (mockup frame 7): the
+		 * 'sheet' renders the native bottom-sheet body (mockups
+		 * screen-ResourceDetailAndroid frame 7 / screen-ResourceDetailIOS): the
 		 * create form is always open — the sheet itself is the disclosure — and
 		 * the card chrome around it drops away.
 		 */

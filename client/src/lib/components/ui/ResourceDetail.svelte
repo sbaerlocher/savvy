@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ICON_LOCK, ICON_TRASH } from '$lib/icons';
+	import { ICON_LOCK, ICON_TRANSFER, ICON_TRASH } from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -18,6 +18,7 @@
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ShareSection from '$lib/components/resource/ShareSection.svelte';
 	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
+	import { portal } from '$lib/actions/portal';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import M3DetailAppBar from '$lib/components/ui/M3DetailAppBar.svelte';
@@ -84,9 +85,27 @@
 	// header row carrying the type icon, eyebrow, title and the edit/delete text
 	// buttons, and a two-column body.
 	const IS_DESKTOP = platform === 'other';
+	// iOS puts the same secondary actions behind its own chrome (mockup
+	// screen-ResourceDetailIOS): share and transfer are sheets too, the •••
+	// glyph opens a context menu, delete confirms through an action sheet.
+	const IS_IOS = platform === 'ios';
 	let showOverflowSheet = $state(false);
 	let showShareSheet = $state(false);
 	let showTransferSheet = $state(false);
+	let showMoreMenu = $state(false);
+	let moreMenuEl = $state<HTMLDivElement>();
+
+	function onMoreMenuKeydown(event: KeyboardEvent) {
+		if (!showMoreMenu || event.key !== 'Escape') return;
+		event.preventDefault();
+		showMoreMenu = false;
+	}
+
+	// Move focus into the menu when it opens, so Escape reaches the handler and
+	// the tab order does not walk the page behind the scrim.
+	$effect(() => {
+		if (showMoreMenu) moreMenuEl?.focus();
+	});
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -128,14 +147,16 @@
 	const merchantName = $derived(resource?.merchant?.name);
 	const accentColor = $derived(resource?.merchant?.color || cfg.accentFallback);
 
-	// Header eyebrow: card → program; voucher → single/multi-use label; gift → none.
+	// Header eyebrow: card → program; voucher → single/multi-use label; gift →
+	// nothing on Android/desktop. Every iOS detail frame carries a type kicker
+	// above the title (mockup: "Geschenkkarte"), so gift cards get one there.
 	const eyebrow = $derived.by(() => {
 		if (asCard) return asCard.program || undefined;
 		if (asVoucher)
 			return asVoucher.usage_limit_type === 'single_use'
 				? tr('vouchers.singleUseOnly')
 				: tr('vouchers.multipleUse');
-		return undefined;
+		return IS_IOS ? tr('common.gift_card') : undefined;
 	});
 	// The card program is whatever the user typed, so it must not get the
 	// native uppercase kicker treatment; the voucher label is translated copy.
@@ -233,6 +254,31 @@
 				return { class: '', text: '' };
 		}
 	}
+
+	// iOS detail cards are solid grouped-inset cards (mockup: bg-surface,
+	// --radius-inset, 3px accent edge, no surrounding border and no glass).
+	// Gift cards carry the gold giftcard edge instead of the merchant accent.
+	const viewCardClass = $derived(
+		isAndroid
+			? 'rounded-m3-lg bg-m3-card overflow-hidden'
+			: IS_IOS
+				? 'relative overflow-hidden rounded-[var(--radius-inset)] bg-surface'
+				: 'overflow-hidden rounded-xl border border-border/80 bg-white'
+	);
+	const viewCardStyle = $derived(
+		IS_IOS && kind === 'gift_card'
+			? 'border-left: 3px solid var(--color-giftcard-edge)'
+			: `border-left: 3px solid color-mix(in srgb, ${accentColor} 70%, transparent)`
+	);
+	const editCardClass = $derived(
+		isAndroid
+			? 'rounded-m3-lg bg-m3-card overflow-hidden'
+			: IS_DESKTOP
+				? 'overflow-hidden rounded-2xl border border-border bg-white p-7'
+				: IS_IOS
+					? 'overflow-hidden rounded-[var(--radius-inset)] bg-surface'
+					: 'overflow-hidden rounded-xl border border-border bg-white'
+	);
 
 	const statusBadge = $derived(
 		isDimmed && status ? getStatusBadge(status) : undefined
@@ -338,7 +384,15 @@
 	}
 
 	function promptDelete() {
+		showMoreMenu = false;
 		showDeleteModal = true;
+	}
+
+	// iOS routes transfer through its own sheet; the other platforms keep the
+	// inline TransferBox in the right-hand column.
+	function openTransferSheet() {
+		showMoreMenu = false;
+		showTransferSheet = true;
 	}
 
 	async function confirmDelete() {
@@ -354,6 +408,9 @@
 	}
 
 	function promptTransfer() {
+		// The sheet stays open: the confirm modal takes the elevated layer above
+		// it, so cancelling returns the user to the filled form instead of a bare
+		// detail page.
 		showTransferModal = true;
 	}
 
@@ -461,6 +518,8 @@
 		{tr('common.delete')}
 	</button>
 {/snippet}
+
+<svelte:window onkeydown={onMoreMenuKeydown} />
 
 {#if resource}
 	<!-- Android: M3 small top app bar in both modes — view mode carries the
@@ -655,10 +714,14 @@
 					isFavorite={resource!.is_favorite}
 					{isTogglingFavorite}
 					canEdit={resource!.permissions?.can_edit}
+					canShare={IS_IOS && !!resource!.permissions?.is_owner}
+					hasMore={IS_IOS && !!resource!.permissions?.is_owner}
 					favoriteTitleAdd={tr(cfg.favoriteAdd)}
 					favoriteTitleRemove={tr(cfg.favoriteRemove)}
 					ontoggleFavorite={toggleFavorite}
 					onstartEdit={startEdit}
+					onshare={() => (showShareSheet = true)}
+					onmore={() => (showMoreMenu = true)}
 				/>
 			{/snippet}
 		</PageHeader>
@@ -738,14 +801,9 @@
 		<div class={IS_DESKTOP ? 'min-w-0' : 'lg:col-span-2'}>
 			{#if !isEditing}
 				<!-- View Mode -->
-				<div
-					class={isAndroid
-						? 'rounded-m3-lg bg-m3-card overflow-hidden'
-						: 'overflow-hidden rounded-xl border border-border/80 bg-white'}
-					style="border-left: 3px solid color-mix(in srgb, {accentColor} 70%, transparent)"
-				>
+				<div class={viewCardClass} style={viewCardStyle}>
 					<div
-						class="{isAndroid ? 'p-5' : 'p-6'} {isDimmed
+						class="{isAndroid || IS_IOS ? 'p-5' : 'p-6'} {isDimmed
 							? 'opacity-50 grayscale'
 							: ''}"
 					>
@@ -842,16 +900,17 @@
 			{:else}
 				<!-- Edit Mode: per-kind form slot + shared delete button. On desktop the
 				     form card carries a section title and the delete button joins the
-				     form's action row (mockup), so it is rendered by the form there. -->
-				<div
-					class={isAndroid
-						? 'rounded-m3-lg bg-m3-card overflow-hidden'
-						: IS_DESKTOP
-							? 'overflow-hidden rounded-2xl border border-border bg-white p-7'
-							: 'overflow-hidden rounded-xl border border-border bg-white'}
-				>
+				     form's action row (mockup), so it is rendered by the form there;
+				     iOS puts it in its own grouped-inset card below. -->
+				<div class={editCardClass}>
 					<div
-						class={isAndroid ? 'm3-filled-form p-4' : IS_DESKTOP ? '' : 'p-6'}
+						class={isAndroid
+							? 'm3-filled-form p-4'
+							: IS_DESKTOP
+								? ''
+								: IS_IOS
+									? 'p-[18px]'
+									: 'p-6'}
 					>
 						{#if IS_DESKTOP}
 							<h2 class="mb-5 text-subheading font-bold text-text">
@@ -866,7 +925,7 @@
 									? deleteAction
 									: undefined
 						})}
-						{#if resource.permissions?.can_delete && !isAndroid && !IS_DESKTOP}
+						{#if resource.permissions?.can_delete && !isAndroid && !IS_DESKTOP && !IS_IOS}
 							<div class="pt-4 mt-4 border-t border-border">
 								<button
 									type="button"
@@ -897,6 +956,22 @@
 						{/if}
 					</div>
 				</div>
+
+				<!-- iOS: delete becomes its own grouped-inset card (mockup). -->
+				{#if IS_IOS && resource.permissions?.can_delete}
+					<div
+						class="mt-3 overflow-hidden rounded-[var(--radius-inset)] bg-surface"
+					>
+						<button
+							type="button"
+							onclick={promptDelete}
+							disabled={isOffline}
+							class="flex min-h-11 w-full items-center justify-center px-4 text-[17px] text-danger-600 disabled:opacity-40"
+						>
+							{tr(c.deleteButton)}
+						</button>
+					</div>
+				{/if}
 
 				<!-- Android: delete leaves the form card — the mockup puts it below a
 				     divider as a plain danger text button (frames 4-6). -->
@@ -941,7 +1016,7 @@
 					{@render ledger!()}
 				{/if}
 
-				{#if resource.permissions?.is_owner && !isAndroid}
+				{#if resource.permissions?.is_owner && !isAndroid && !IS_IOS}
 					<!-- Panel order follows the mockup: without a ledger sharing leads the
 					     column, with one (gift card) transfer sits between ledger and
 					     sharing. Snippets keep both boxes defined once. -->
@@ -1060,6 +1135,152 @@
 		onconfirm={confirmDelete}
 		oncancel={() => (showDeleteModal = false)}
 	/>
+
+	{#if IS_IOS && resource.permissions?.is_owner}
+		<!-- ••• context menu: transfer + delete behind a glass popover. The
+		     overlay is portalled to <body> so an ancestor backdrop-filter (the
+		     glass chrome) cannot trap the position:fixed layer. -->
+		{#if showMoreMenu}
+			<!-- Escape closes and focus moves into the menu, matching Modal and
+			     BottomSheet: without it a keyboard or VoiceOver user is left
+			     tabbing the page behind the scrim. -->
+			<div use:portal class="fixed inset-0 z-[70]">
+				<div
+					class="absolute inset-0 bg-[var(--color-glass-scrim)] backdrop-blur-[3px]"
+					onclick={() => (showMoreMenu = false)}
+					role="presentation"
+				></div>
+				<div
+					bind:this={moreMenuEl}
+					class="liquid-glass-menu absolute right-3.5 top-[116px] w-[252px] overflow-hidden rounded-[var(--radius-xl)] focus:outline-none"
+					role="menu"
+					tabindex="-1"
+					aria-label={tr('common.moreActions')}
+				>
+					<button
+						type="button"
+						role="menuitem"
+						onclick={openTransferSheet}
+						disabled={isOffline}
+						class="flex min-h-[46px] w-full items-center justify-between gap-3 px-4 text-[17px] text-text disabled:opacity-40"
+					>
+						<span>{tr('common.transferOwnership')}</span>
+						<svg
+							class="h-[19px] w-[19px] flex-none"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.9"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d={ICON_TRANSFER} />
+						</svg>
+					</button>
+					<div class="h-px bg-[var(--color-glass-edge)]"></div>
+					<button
+						type="button"
+						role="menuitem"
+						onclick={promptDelete}
+						disabled={isOffline}
+						class="flex min-h-[46px] w-full items-center justify-between gap-3 px-4 text-[17px] text-danger-600 disabled:opacity-40"
+					>
+						<span>{tr('common.delete')}</span>
+						<svg
+							class="h-[18px] w-[18px] flex-none"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.9"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d={ICON_TRASH} />
+						</svg>
+					</button>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Share sheet (iOS): the same ShareSection, presented as a sheet. -->
+		<BottomSheet
+			open={showShareSheet}
+			onClose={() => (showShareSheet = false)}
+			maxHeight="88%"
+			ariaLabel={tr(c.shareTitle)}
+		>
+			<!-- Sheet header: cancel · title · confirm (mockup). The confirm side
+			     is handled by ShareSection's own add flow, so the right slot
+			     stays empty rather than duplicating a second submit. -->
+			<div
+				class="flex items-center justify-between border-b border-border-soft px-[18px] pb-3 pt-1.5"
+			>
+				<button
+					type="button"
+					onclick={() => (showShareSheet = false)}
+					class="flex-1 text-left text-[17px] text-accent"
+				>
+					{tr('common.cancel')}
+				</button>
+				<span class="text-[17px] font-semibold text-text"
+					>{tr(c.shareTitle)}</span
+				>
+				<span class="flex-1"></span>
+			</div>
+			<div class="px-[18px] pb-6 pt-4">
+				<ShareSection
+					{kind}
+					resource={resource!}
+					bind:shares
+					{isOffline}
+					{shareMode}
+					variant="sheet"
+				/>
+			</div>
+		</BottomSheet>
+
+		<!-- Transfer sheet (iOS). -->
+		<BottomSheet
+			open={showTransferSheet}
+			onClose={() => (showTransferSheet = false)}
+			maxHeight="88%"
+			ariaLabel={tr(c.transferTitle)}
+		>
+			<!-- Transfer sheet header in the transfer palette (mockup). -->
+			<div
+				class="flex items-center justify-between border-b border-border-soft px-[18px] pb-3 pt-1.5"
+			>
+				<button
+					type="button"
+					onclick={() => (showTransferSheet = false)}
+					class="flex-1 text-left text-[17px] text-accent"
+				>
+					{tr('common.cancel')}
+				</button>
+				<span class="text-[17px] font-semibold text-transfer-900"
+					>{tr(c.transferTitle)}</span
+				>
+				<span class="flex-1"></span>
+			</div>
+			<div class="px-[18px] pb-6 pt-4">
+				<TransferBox
+					variant="sheet"
+					{isOffline}
+					title={tr(c.transferTitle)}
+					openButtonLabel={tr(c.transferTransferButton)}
+					transferButtonLabel={tr(c.transferTransferButton)}
+					warningTitle={tr(c.transferWarning)}
+					warningDetails={tr(c.transferWarningDetails)}
+					emailLabel={tr(c.transferEmailLabel)}
+					emailHint={tr(c.transferEmailHint)}
+					whatHappensLabel={tr(c.transferWhatHappens)}
+					details={transferDetails}
+					bind:email={transferEmail}
+					ontransfer={promptTransfer}
+				/>
+			</div>
+		</BottomSheet>
+	{/if}
 
 	<ConfirmModal
 		isOpen={showTransferModal}

@@ -112,6 +112,7 @@ export type TranslationKeys = {
 		alreadySharedWith: string;
 		transfer: string;
 		share: string;
+		moreActions: string;
 		export: string;
 		add: string;
 		manage: string;

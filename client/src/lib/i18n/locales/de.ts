@@ -127,6 +127,7 @@ export const de: TranslationKeys = {
 		alreadySharedWith: 'Bereits geteilt mit',
 		transfer: 'Übertragen',
 		share: 'Teilen',
+		moreActions: 'Weitere Aktionen',
 		export: 'Exportieren',
 		add: 'Hinzufügen',
 		manage: 'Verwalten',
