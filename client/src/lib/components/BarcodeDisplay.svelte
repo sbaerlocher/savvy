@@ -8,6 +8,7 @@
 	import { logger } from '$lib/utils/logger';
 	import { is2DType } from '$lib/utils/barcode';
 	import { platform } from '$lib/utils/platform';
+	import { FullscreenState } from '$lib/utils/fullscreen-state.svelte';
 	import { portal } from '$lib/actions/portal';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -70,22 +71,12 @@
 	// Fullscreen state. On iOS this is driven by device orientation: turning the
 	// phone sideways shows the enlarged code, turning it back hides it again —
 	// the mockup has no tap target. Android and desktop additionally open it by
-	// tapping the code itself.
-	//
-	// Dismissing sets `dismissed` rather than clearing `isLandscape`: the latter
-	// would contradict the real orientation, so the overlay would stay hidden
-	// until the device was turned twice, and could pop back up on an incidental
-	// resize. The flag resets whenever the orientation actually flips, so a tap
-	// only suppresses the current landscape session — which also keeps a device
-	// that is already landscape on load (an iPad) dismissable.
-	let isLandscape = $state(false);
-	let manualFullscreen = $state(false);
-	let dismissed = $state(false);
+	// tapping the code itself. The visibility rule lives in its own module so
+	// the spec exercises the same code the component runs.
+	const fullscreen = new FullscreenState();
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const showFullscreen = $derived(
-		(isLandscape && !dismissed) || manualFullscreen
-	);
+	const showFullscreen = $derived(fullscreen.visible);
 
 	// 2D codes (QR, PDF417, …) stay square and benefit from a much larger
 	// fullscreen size than the wide-but-short 1D barcodes.
@@ -141,27 +132,25 @@
 			windowWidth: window.innerWidth,
 			windowHeight: window.innerHeight,
 			newIsLandscape,
-			currentIsLandscape: isLandscape
+			currentIsLandscape: fullscreen.isLandscape
 		});
 
-		if (newIsLandscape !== isLandscape) {
+		// A genuine turn starts a new session, so an earlier dismissal ends —
+		// that reset lives in setOrientation().
+		if (fullscreen.setOrientation(newIsLandscape)) {
 			componentLogger.debug(
 				'Orientation changed to:',
 				newIsLandscape ? 'LANDSCAPE' : 'PORTRAIT'
 			);
-			isLandscape = newIsLandscape;
-			// A genuine turn starts a new session, so an earlier dismissal ends.
-			dismissed = false;
 		}
 	}
 
 	function closeFullscreen() {
-		dismissed = true;
-		manualFullscreen = false;
+		fullscreen.close();
 	}
 
 	function openFullscreen() {
-		manualFullscreen = true;
+		fullscreen.openManually();
 	}
 
 	// Move focus to the overlay when it opens so a keyboard user can press
