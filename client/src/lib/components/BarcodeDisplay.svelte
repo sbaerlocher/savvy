@@ -67,15 +67,25 @@
 	const showStatusBadge = $derived(status && status !== 'active');
 	const showValidStatusBadge = $derived(status === 'valid');
 
-	// Fullscreen state. On iOS this is driven purely by device orientation:
-	// turning the phone sideways shows the enlarged code, turning it back hides
-	// it again — the mockup has no tap target. Android and desktop additionally
-	// open it by tapping the code itself.
+	// Fullscreen state. On iOS this is driven by device orientation: turning the
+	// phone sideways shows the enlarged code, turning it back hides it again —
+	// the mockup has no tap target. Android and desktop additionally open it by
+	// tapping the code itself.
+	//
+	// Dismissing sets `dismissed` rather than clearing `isLandscape`: the latter
+	// would contradict the real orientation, so the overlay would stay hidden
+	// until the device was turned twice, and could pop back up on an incidental
+	// resize. The flag resets whenever the orientation actually flips, so a tap
+	// only suppresses the current landscape session — which also keeps a device
+	// that is already landscape on load (an iPad) dismissable.
 	let isLandscape = $state(false);
 	let manualFullscreen = $state(false);
+	let dismissed = $state(false);
 	let resizeTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const showFullscreen = $derived(isLandscape || manualFullscreen);
+	const showFullscreen = $derived(
+		(isLandscape && !dismissed) || manualFullscreen
+	);
 
 	// 2D codes (QR, PDF417, …) stay square and benefit from a much larger
 	// fullscreen size than the wide-but-short 1D barcodes.
@@ -140,11 +150,13 @@
 				newIsLandscape ? 'LANDSCAPE' : 'PORTRAIT'
 			);
 			isLandscape = newIsLandscape;
+			// A genuine turn starts a new session, so an earlier dismissal ends.
+			dismissed = false;
 		}
 	}
 
 	function closeFullscreen() {
-		isLandscape = false;
+		dismissed = true;
 		manualFullscreen = false;
 	}
 
@@ -289,18 +301,15 @@
 	<!-- Portalled to <body>: a backdrop-filter ancestor (the iOS glass surfaces)
 	     establishes a containing block for position:fixed and would otherwise
 	     trap this overlay inside the card. -->
-	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
 		use:portal
 		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
 		class:is-rotated={isAndroid}
-		onclick={IS_IOS ? undefined : closeFullscreen}
-		role={IS_IOS ? undefined : 'button'}
-		tabindex={IS_IOS ? -1 : 0}
-		onkeydown={IS_IOS
-			? undefined
-			: (e) => e.key === 'Escape' && closeFullscreen()}
+		onclick={closeFullscreen}
+		role="button"
+		tabindex="0"
+		onkeydown={(e) => e.key === 'Escape' && closeFullscreen()}
 	>
 		<div class="barcode-content-wrapper">
 			<!-- Status Badge + Validity (above barcode) -->
@@ -368,9 +377,7 @@
 				<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 			{/if}
 		</div>
-		{#if IS_IOS}
-			<p class="barcode-close-hint">{tr('dashboard.rotateToClose')}</p>
-		{:else if !isAndroid}
+		{#if !isAndroid}
 			<p class="barcode-close-hint">{tr('dashboard.tapToClose')}</p>
 		{/if}
 	</div>

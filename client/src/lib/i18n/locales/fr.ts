@@ -222,8 +222,7 @@ export const fr: TranslationKeys = {
 		showBarcode: 'Afficher le code-barres',
 		barcodeHint: 'Tournez votre appareil en mode paysage pour une vue agrandie',
 		tapToClose: 'Appuyez pour fermer',
-		tapToEnlarge: 'Appuyez pour agrandir',
-		rotateToClose: 'Tournez pour fermer'
+		tapToEnlarge: 'Appuyez pour agrandir'
 	},
 	tile: {
 		expired: 'Expiré',

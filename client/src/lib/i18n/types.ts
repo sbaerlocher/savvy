@@ -206,7 +206,6 @@ export type TranslationKeys = {
 		barcodeHint: string;
 		tapToClose: string;
 		tapToEnlarge: string;
-		rotateToClose: string;
 	};
 	tile: {
 		expired: string;

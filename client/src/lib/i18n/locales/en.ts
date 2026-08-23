@@ -217,8 +217,7 @@ export const en: TranslationKeys = {
 		showBarcode: 'Show barcode',
 		barcodeHint: 'Rotate your device to landscape for a larger view',
 		tapToClose: 'Tap to close',
-		tapToEnlarge: 'Tap to enlarge',
-		rotateToClose: 'Rotate back to close'
+		tapToEnlarge: 'Tap to enlarge'
 	},
 	tile: {
 		expired: 'Expired',

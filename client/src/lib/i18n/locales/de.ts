@@ -223,8 +223,7 @@ export const de: TranslationKeys = {
 		showBarcode: 'Barcode anzeigen',
 		barcodeHint: 'Drehe dein Gerät ins Querformat für eine größere Ansicht',
 		tapToClose: 'Tippen zum Schließen',
-		tapToEnlarge: 'Tippen zum Vergrößern',
-		rotateToClose: 'Gerät zurückdrehen zum Schließen'
+		tapToEnlarge: 'Tippen zum Vergrößern'
 	},
 	tile: {
 		expired: 'Abgelaufen',
