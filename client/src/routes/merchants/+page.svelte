@@ -302,14 +302,14 @@
 {/snippet}
 
 <div class="px-4 pb-20 md:pb-4">
-	<!-- Header. Android carries the count as an eyebrow and keeps the mobile
-	     header actions (search + bell); the other platforms keep the bare title. -->
+	<!-- Header. Android carries the count as an eyebrow (mockup); the mobile
+	     header actions stay on their default for every platform — on iOS that row
+	     is the only create entry point on this screen. -->
 	<PageHeader
 		title={tr('merchantOverview.title')}
 		eyebrow={IS_ANDROID
 			? `${filteredMerchants.length} ${tr('nav.merchants')}`
 			: undefined}
-		mobileActions={IS_ANDROID}
 	/>
 
 	{#if IS_ANDROID}

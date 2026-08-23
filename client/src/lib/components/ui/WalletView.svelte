@@ -1244,7 +1244,11 @@
 		<!-- Type filter (top placement). The desktop mockup has no chip row — the
 		     type is picked in the filter panel — so it drops out entirely there. -->
 		{#if typeFilterPlacement === 'top' && !DESKTOP_CHROME}
-			<div class="mb-4 flex items-center gap-2.5 {ANDROID_SELECT_HIDDEN}">
+			<div
+				class="mb-4 flex items-center {BARCODE_IN_TYPE_ROW
+					? 'gap-2.5 sm:gap-0'
+					: ''} {ANDROID_SELECT_HIDDEN}"
+			>
 				<div class="min-w-0 flex-1">
 					<TypeFilterButtons
 						bind:typeFilter={filters.typeFilter}
@@ -1256,7 +1260,9 @@
 					/>
 				</div>
 				{#if BARCODE_IN_TYPE_ROW}
-					<!-- Square M3 icon button closing the chip row (mockup). -->
+					<!-- Square M3 icon button closing the chip row (mockup). Phone only:
+					     from `sm` up the desktop action row renders its own barcode
+					     toggle, and two controls for one state would collide. -->
 					<button
 						type="button"
 						onclick={toggleBarcodes}
@@ -1264,7 +1270,7 @@
 						aria-label={showBarcodes
 							? tr('barcodeToggle.hide')
 							: tr('barcodeToggle.show')}
-						class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-m3-sm transition-colors {showBarcodes
+						class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-m3-sm transition-colors sm:hidden {showBarcodes
 							? 'bg-m3-secondary-container text-m3-on-secondary-container'
 							: 'border border-border-chip text-text-muted'}"
 					>
