@@ -39,6 +39,9 @@
 		/** Drop the in-panel reset button. Set by call sites whose own chrome
 		 *  already carries a reset action (the Android wallet filter sheet). */
 		hideReset?: boolean;
+		/** Label the type chip row like the other groups. The Android merchants
+		 *  sheet does (mockup); the wallet sheet leaves the row unlabelled. */
+		showTypeLabel?: boolean;
 	}
 
 	let {
@@ -62,7 +65,8 @@
 		showExpiringFilter = true,
 		showAll = true,
 		allowTypeToggle = true,
-		hideReset = false
+		hideReset = false,
+		showTypeLabel = false
 	}: Props = $props();
 
 	const isIos = platform === 'ios';
@@ -85,6 +89,14 @@
 <div class={isAndroid ? 'space-y-4.5' : isIos ? 'space-y-3' : ''}>
 	<!-- Type Filter -->
 	<div class="{isAndroid ? '' : 'pb-4'} {groupClass} {isIos ? 'pt-4' : ''}">
+		{#if showTypeLabel}
+			<!-- The other groups get their label from FilterGroup; the chip row has
+			     none of its own. The merchants sheet labels it (mockup
+			     screen-MerchantsAndroid), the wallet sheet does not. -->
+			<div class="text-eyebrow text-text-subtle mb-2.5 uppercase">
+				{tr('merchantOverview.detail.typeFilter')}
+			</div>
+		{/if}
 		<TypeFilterButtons
 			bind:typeFilter
 			{cardsCount}

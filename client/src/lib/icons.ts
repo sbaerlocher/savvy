@@ -45,6 +45,13 @@ export const ICON_CHECK = 'M5 12.5l4.5 4.5L19 7';
 /** Three stacked lines — M3 "select all" / overflow glyph. */
 export const ICON_LINES = 'M4 6h16M4 12h16M4 18h16';
 
+/** Three tapered lines — M3 filter glyph (Android merchants mockup). Distinct
+ *  from ICON_FUNNEL, which the non-Android chrome uses. */
+export const ICON_FILTER_LINES = 'M4 5h16M7 12h10M10 19h4';
+
+/** Pencil over a baseline (edit). */
+export const ICON_PENCIL = 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z';
+
 /** Download arrow into a tray (export). */
 export const ICON_EXPORT =
 	'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 16V4m0 12l-4-4m4 4l4-4';

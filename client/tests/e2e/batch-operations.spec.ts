@@ -313,7 +313,9 @@ test.describe('Batch Operations', () => {
 		await cardsListPage.filterButton.click();
 		const cardsChip = page.getByTestId('type-chip-cards').first();
 		await expect(cardsChip).toBeVisible({ timeout: 10000 });
-		const activeClass = await cardsChip.getAttribute('class');
-		expect(activeClass).toContain('bg-accent');
+		// Assert the selected state, not the fill: the platforms paint an active
+		// chip differently (solid accent on desktop and iOS, the tonal M3
+		// secondary container on Android), so the class would only hold on one.
+		await expect(cardsChip).toHaveAttribute('aria-pressed', 'true');
 	});
 });

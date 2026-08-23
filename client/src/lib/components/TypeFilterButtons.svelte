@@ -54,7 +54,12 @@
 	const entries = $derived(
 		(
 			[
-				{ key: 'all', label: 'common.all', show: showAll },
+				{
+					key: 'all',
+					label: 'common.all',
+					show: showAll,
+					count: cardsCount + vouchersCount + giftCardsCount
+				},
 				{
 					key: 'cards',
 					label: 'merchantOverview.filterCards',
@@ -92,7 +97,13 @@
 	// Android M3: inactive chips are outlined/transparent everywhere this row
 	// renders (the tonal filter sheet and the wallet header), so the chip takes
 	// the surface behind it instead of stamping a white block over it.
-	const active = 'bg-accent text-white border border-accent';
+	// Android M3 selects a filter chip with the tonal secondary container, not a
+	// solid accent fill (mockup screen-MerchantsAndroid) — same treatment the
+	// wallet toolbar chips already use. Other platforms keep the solid pill.
+	const active =
+		platform === 'android'
+			? 'bg-m3-secondary-container text-m3-on-secondary-container border border-transparent'
+			: 'bg-accent text-white border border-accent';
 	const inactive =
 		platform === 'android'
 			? 'bg-transparent text-text-muted border border-border-chip hover:bg-surface-1'
@@ -107,11 +118,13 @@
 				}`
 	);
 	// Count sits inside the chip on Android only; it is what makes the row
-	// readable without an "All" chip. With the "All" chip present the row would
-	// read "All | Cards 4 | …" — the one chip that has no count of its own — so
-	// the counts drop there. On an active (filled) chip the count inherits the
-	// chip ink, on an outlined one it steps down to the faint tone.
-	const SHOW_COUNT = $derived(platform === 'android' && !showAll);
+	// readable without an "All" chip. Where the "All" chip is present it carries
+	// the total, so the row still reads consistently ("All 7 | Cards 3 | …",
+	// mockup screen-MerchantsAndroid board 2) — but only in the pill row: the
+	// filter sheet draws its chips without counts (mockup screen-WalletAndroid).
+	// On an active (tonal) chip the count inherits the chip ink, on an outlined
+	// one it steps down to the faint tone.
+	const SHOW_COUNT = $derived(platform === 'android' && variant === 'pill');
 	const countClass = (isActive: boolean) => (isActive ? '' : 'text-text-faint');
 </script>
 

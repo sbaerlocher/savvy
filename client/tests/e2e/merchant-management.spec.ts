@@ -1,5 +1,36 @@
 import { uniqueMerchantName } from './fixtures/test-data';
 import { expect, test } from './fixtures/test-fixtures';
+import type { Page } from '@playwright/test';
+
+/**
+ * Fill the merchant search, opening the chrome that holds it first.
+ *
+ * The overview renders the field per layout: desktop and tablet keep it above
+ * the grid, while Android below `sm` moves it into the filter bottom sheet
+ * (mockup screen-MerchantsAndroid). Go through the layout's own control rather
+ * than assuming one of the two, so the test exercises the real flow.
+ */
+async function searchMerchants(page: Page, term: string) {
+	const inline = page.getByTestId('merchant-search');
+	const filterChip = page.getByTestId('merchant-filter-chip');
+	// Wait for whichever control this layout renders before branching — probing
+	// visibility right after a navigation would find neither and fall through to
+	// the Android path on desktop, where there is no filter chip to click.
+	await expect(inline.or(filterChip).first()).toBeVisible({ timeout: 10000 });
+	if (await inline.isVisible()) {
+		await inline.fill(term);
+		return;
+	}
+	await filterChip.click();
+	const sheetField = page.getByTestId('merchant-search-sheet');
+	await expect(sheetField).toBeVisible({ timeout: 5000 });
+	await sheetField.fill(term);
+	await page
+		.getByRole('button', { name: /Done|Fertig|Terminé/i })
+		.filter({ visible: true })
+		.first()
+		.click();
+}
 
 test.describe('Merchant Management', () => {
 	test.describe('Public Merchant Overview', () => {
@@ -28,8 +59,7 @@ test.describe('Merchant Management', () => {
 			const merchantCards = page.locator('a[href^="/merchants/"]');
 			await expect(merchantCards.first()).toBeVisible({ timeout: 10000 });
 
-			const searchInput = page.getByTestId('merchant-search');
-			await searchInput.fill('Migros');
+			await searchMerchants(page, 'Migros');
 
 			// Wait for client-side filter
 			await page.waitForFunction(() => true, null, { timeout: 600 });
@@ -47,8 +77,7 @@ test.describe('Merchant Management', () => {
 			const merchantCards = page.locator('a[href^="/merchants/"]');
 			await expect(merchantCards.first()).toBeVisible({ timeout: 10000 });
 
-			const searchInput = page.getByTestId('merchant-search');
-			await searchInput.fill('NonExistentMerchantXYZ12345');
+			await searchMerchants(page, 'NonExistentMerchantXYZ12345');
 
 			await page.waitForFunction(() => true, null, { timeout: 600 });
 
@@ -104,9 +133,7 @@ test.describe('Merchant Management', () => {
 
 			// Verify merchant appears in the public list
 			await page.goto('/merchants');
-			const searchInput = page.getByTestId('merchant-search');
-			await expect(searchInput).toBeVisible({ timeout: 5000 });
-			await searchInput.fill(merchantName);
+			await searchMerchants(page, merchantName);
 
 			await page.waitForFunction(() => true, null, { timeout: 600 });
 

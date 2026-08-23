@@ -1141,6 +1141,7 @@ export const en: TranslationKeys = {
 			noItems: 'No items',
 			noItemsHint: 'No cards, vouchers, or gift cards found for this merchant.',
 			editMerchant: 'Edit',
+			typeFilter: 'Type',
 			statusFilter: 'Status',
 			statusAll: 'All statuses',
 			statusExpired: 'Expired',
