@@ -1413,6 +1413,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringVoucher.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(7),
+				"days_left":     float64(7),
+				"merchant_name": expiringVoucher.MerchantName,
 				"resource_name": "GALAXUS-EXPIRING",
 				"expires_at":    time.Now().AddDate(0, 0, 3).Format(time.RFC3339),
 			},
@@ -1427,6 +1429,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringVoucher.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(3),
+				"days_left":     float64(3),
+				"merchant_name": expiringVoucher.MerchantName,
 				"resource_name": "GALAXUS-EXPIRING",
 				"expires_at":    time.Now().AddDate(0, 0, 3).Format(time.RFC3339),
 			},
@@ -1441,6 +1445,8 @@ func createNotifications(users []models.User) {
 			ResourceID:   expiringGC.ID,
 			Metadata: models.NotificationMetadata{
 				"days_before":   float64(7),
+				"days_left":     float64(7),
+				"merchant_name": expiringGC.MerchantName,
 				"resource_name": "ID-EXPIRING-SOON",
 				"expires_at":    time.Now().AddDate(0, 0, 5).Format(time.RFC3339),
 			},
@@ -1455,8 +1461,9 @@ func createNotifications(users []models.User) {
 			ResourceType: "voucher",
 			ResourceID:   tomorrowVoucher.ID,
 			Metadata: models.NotificationMetadata{
-				"valid_from": time.Now().AddDate(0, 0, 1).Format(time.RFC3339),
-				"code":       "HM-TOMORROW",
+				"merchant_name": tomorrowVoucher.MerchantName,
+				"valid_from":    time.Now().AddDate(0, 0, 1).Format(time.RFC3339),
+				"code":          "HM-TOMORROW",
 			},
 			IsRead:    false,
 			CreatedAt: now.Add(-30 * time.Minute),
