@@ -56,9 +56,11 @@
 	// it opens is rotated (mockup screen-BarcodeFullscreen). Tapping the code
 	// itself is the only way in — the mockup shows no separate control.
 	const isAndroid = platform === 'android';
-	// iOS renders the inline code inside a --surface-2 inset box and reaches the
-	// same rotated fullscreen by turning the device (mockups
-	// screen-ResourceDetailIOS / screen-BarcodeFullscreen).
+	// iOS renders the inline code inside a --surface-2 inset box and reaches
+	// fullscreen by turning the device (mockups screen-ResourceDetailIOS /
+	// screen-BarcodeFullscreen). The viewport is then already landscape, so the
+	// stage needs no extra quarter turn and the overlay mirrors orientation
+	// alone — dismissing by tap would strand the user until a double rotation.
 	const IS_IOS = platform === 'ios';
 
 	const hasValidityInfo = $derived(validFrom || validUntil);
@@ -287,15 +289,18 @@
 	<!-- Portalled to <body>: a backdrop-filter ancestor (the iOS glass surfaces)
 	     establishes a containing block for position:fixed and would otherwise
 	     trap this overlay inside the card. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
 		use:portal
 		bind:this={overlayEl}
 		class="barcode-fullscreen-overlay"
-		class:is-rotated={isAndroid || IS_IOS}
-		onclick={closeFullscreen}
-		role="button"
-		tabindex="0"
-		onkeydown={(e) => e.key === 'Escape' && closeFullscreen()}
+		class:is-rotated={isAndroid}
+		onclick={IS_IOS ? undefined : closeFullscreen}
+		role={IS_IOS ? undefined : 'button'}
+		tabindex={IS_IOS ? -1 : 0}
+		onkeydown={IS_IOS
+			? undefined
+			: (e) => e.key === 'Escape' && closeFullscreen()}
 	>
 		<div class="barcode-content-wrapper">
 			<!-- Status Badge + Validity (above barcode) -->

@@ -93,6 +93,19 @@
 	let showShareSheet = $state(false);
 	let showTransferSheet = $state(false);
 	let showMoreMenu = $state(false);
+	let moreMenuEl = $state<HTMLDivElement>();
+
+	function onMoreMenuKeydown(event: KeyboardEvent) {
+		if (!showMoreMenu || event.key !== 'Escape') return;
+		event.preventDefault();
+		showMoreMenu = false;
+	}
+
+	// Move focus into the menu when it opens, so Escape reaches the handler and
+	// the tab order does not walk the page behind the scrim.
+	$effect(() => {
+		if (showMoreMenu) moreMenuEl?.focus();
+	});
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -395,7 +408,9 @@
 	}
 
 	function promptTransfer() {
-		showTransferSheet = false;
+		// The sheet stays open: the confirm modal takes the elevated layer above
+		// it, so cancelling returns the user to the filled form instead of a bare
+		// detail page.
 		showTransferModal = true;
 	}
 
@@ -503,6 +518,8 @@
 		{tr('common.delete')}
 	</button>
 {/snippet}
+
+<svelte:window onkeydown={onMoreMenuKeydown} />
 
 {#if resource}
 	<!-- Android: M3 small top app bar in both modes — view mode carries the
@@ -987,9 +1004,6 @@
 						</button>
 					</div>
 				{/if}
-				||||||| parent of 963c24f (feat(client): render the resource detail screens
-				from the iOS mockup) ======= >>>>>>> 963c24f (feat(client): render the resource
-				detail screens from the iOS mockup)
 			{/if}
 		</div>
 
@@ -1127,6 +1141,9 @@
 		     overlay is portalled to <body> so an ancestor backdrop-filter (the
 		     glass chrome) cannot trap the position:fixed layer. -->
 		{#if showMoreMenu}
+			<!-- Escape closes and focus moves into the menu, matching Modal and
+			     BottomSheet: without it a keyboard or VoiceOver user is left
+			     tabbing the page behind the scrim. -->
 			<div use:portal class="fixed inset-0 z-[70]">
 				<div
 					class="absolute inset-0 bg-[var(--color-glass-scrim)] backdrop-blur-[3px]"
@@ -1134,8 +1151,10 @@
 					role="presentation"
 				></div>
 				<div
-					class="liquid-glass-menu absolute right-3.5 top-[116px] w-[252px] overflow-hidden rounded-[var(--radius-xl)]"
+					bind:this={moreMenuEl}
+					class="liquid-glass-menu absolute right-3.5 top-[116px] w-[252px] overflow-hidden rounded-[var(--radius-xl)] focus:outline-none"
 					role="menu"
+					tabindex="-1"
 					aria-label={tr('common.moreActions')}
 				>
 					<button

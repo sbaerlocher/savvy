@@ -222,9 +222,9 @@ export const de: TranslationKeys = {
 		getStarted: 'Erste Karte hinzufügen',
 		showBarcode: 'Barcode anzeigen',
 		barcodeHint: 'Drehe dein Gerät ins Querformat für eine größere Ansicht',
-		tapToClose: 'Tippen zum Schliessen',
-		tapToEnlarge: 'Tippen zum Vergrössern',
-		rotateToClose: 'Gerät zurückdrehen zum Schliessen'
+		tapToClose: 'Tippen zum Schließen',
+		tapToEnlarge: 'Tippen zum Vergrößern',
+		rotateToClose: 'Gerät zurückdrehen zum Schließen'
 	},
 	tile: {
 		expired: 'Abgelaufen',
