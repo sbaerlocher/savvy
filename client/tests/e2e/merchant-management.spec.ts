@@ -12,11 +12,16 @@ import type { Page } from '@playwright/test';
  */
 async function searchMerchants(page: Page, term: string) {
 	const inline = page.getByTestId('merchant-search');
+	const filterChip = page.getByTestId('merchant-filter-chip');
+	// Wait for whichever control this layout renders before branching — probing
+	// visibility right after a navigation would find neither and fall through to
+	// the Android path on desktop, where there is no filter chip to click.
+	await expect(inline.or(filterChip).first()).toBeVisible({ timeout: 10000 });
 	if (await inline.isVisible()) {
 		await inline.fill(term);
 		return;
 	}
-	await page.getByTestId('merchant-filter-chip').click();
+	await filterChip.click();
 	const sheetField = page.getByTestId('merchant-search-sheet');
 	await expect(sheetField).toBeVisible({ timeout: 5000 });
 	await sheetField.fill(term);
