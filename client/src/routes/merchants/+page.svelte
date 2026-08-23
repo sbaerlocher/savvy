@@ -438,12 +438,14 @@
 			: undefined}
 	/>
 
-	{#if IOS}
+	{#if IOS && merchants.length > 0}
 		<!-- iOS phone chrome: a right-aligned glass Filter pill. Search, type,
 		     status and sort all live inside the filter sheet (mockup). Admins get
 		     an extra "+" pill — the header glyph opens the global TypeChoiceDialog,
 		     which creates resources, not merchants, so this is the only route to
-		     /admin/merchants/new on a phone. -->
+		     /admin/merchants/new on a phone. An empty list has nothing to filter,
+		     so the row drops out there and the empty branch carries the "+" alone;
+		     without the guard both rows would draw the same glyph twice. -->
 		<div class="mb-3.5 flex items-center justify-end gap-2 sm:hidden">
 			{#if isAdmin}
 				{@render iosAdminAddPill()}
@@ -721,7 +723,7 @@
 			{:else if filteredMerchants.length === 0 && (searchInput || hasActiveFilters)}
 				<!-- No results with filters -->
 				<div class={EMPTY_CARD_CLASS}>
-					{#if IS_ANDROID}
+					{#if IS_ANDROID || IOS}
 						{@render emptyIcon()}
 					{/if}
 					<p class={EMPTY_TITLE_CLASS}>{tr('search.no_results')}</p>
@@ -732,14 +734,14 @@
 			{:else if filteredMerchants.length === 0}
 				<!-- Empty State -->
 				<div class={EMPTY_CARD_CLASS}>
-					{#if IS_ANDROID}
+					{#if IS_ANDROID || IOS}
 						{@render emptyIcon()}
 					{/if}
 					<p class={EMPTY_TITLE_CLASS}>
 						{tr('merchantOverview.noMerchants')}
 					</p>
 					<p
-						class="text-text-faint text-sm {IS_ANDROID
+						class="text-text-faint text-sm {IS_ANDROID || IOS
 							? 'max-sm:mt-0 max-sm:max-w-62.5 mt-1'
 							: 'mt-1'}"
 					>
