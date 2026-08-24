@@ -277,8 +277,11 @@
 		: IOS
 			? 'max-sm:liquid-glass-card max-sm:rounded-[var(--radius-inset)] max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2.5 max-sm:px-6.5 max-sm:py-11 bg-surface-1 rounded-lg p-12 text-center'
 			: 'bg-surface-1 rounded-lg p-12 text-center';
-	const EMPTY_TITLE_CLASS =
-		IS_ANDROID || IOS
+	// The two native arms differ in one place: the iOS mockup sets the phone title
+	// in full ink, Android keeps it muted — so they cannot share one string.
+	const EMPTY_TITLE_CLASS = IS_ANDROID
+		? 'text-text-muted max-sm:mb-0 max-sm:mt-1.5 max-sm:text-subheading text-lg mb-4'
+		: IOS
 			? 'text-text-muted max-sm:mb-0 max-sm:mt-1.5 max-sm:text-subheading max-sm:text-text text-lg mb-4'
 			: 'text-text-muted text-lg mb-4';
 
