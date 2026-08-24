@@ -97,6 +97,11 @@
 		 *  as a square icon button at the end of the type-chip row (mockup
 		 *  screen-MerchantsAndroid, board 2). The wallet keeps the labelled chip. */
 		androidBarcodeInTypeRow?: boolean;
+		/** iOS phone toolbar shape. 'wallet' is the three-control row (select ·
+		 *  filter · barcode). 'detail' is the merchant-detail row: the type pills
+		 *  with their counts on their own row, with barcode, filter and select as
+		 *  round buttons below (mockup screen-MerchantsIOS, Board 2). */
+		iosToolbarVariant?: 'wallet' | 'detail';
 		filterShowAll?: boolean;
 		maxWidth?: boolean;
 		/** Desktop mockup chrome: one row above the grid carrying count + title on
@@ -135,6 +140,7 @@
 		typeFilterPlacement = 'top',
 		barcodeButtonVariant = 'label',
 		androidBarcodeInTypeRow = false,
+		iosToolbarVariant = 'wallet',
 		filterShowAll = false,
 		maxWidth = true,
 		desktopChrome = false,
@@ -196,6 +202,10 @@
 	const DESKTOP_CHROME = $derived(desktopChrome && IS_DESKTOP);
 	// Opt-in is a prop, the platform is a module constant — so $derived.
 	const BARCODE_IN_TYPE_ROW = $derived(androidBarcodeInTypeRow && IS_ANDROID);
+	// The iOS merchant-detail chrome: its own toolbar shape and empty state.
+	// Gated on the prop so the iOS wallet, which shares this component, is
+	// untouched.
+	const IOS_DETAIL = $derived(IOS && iosToolbarVariant === 'detail');
 
 	// Same shape: the merged chip + toolbar row is a desktop-only treatment the
 	// caller opts into.
@@ -834,6 +844,92 @@
      one 40px row. Select and filter are icon-only (label lives in aria-label /
      title); the barcode toggle keeps its label and fills with the accent when
      on. -->
+{#snippet iosDetailToolbar()}
+	<!-- iOS merchant-detail toolbar (mockup screen-MerchantsIOS, Board 2): the
+	     type pills with their counts, then the round controls. The mockup draws
+	     only the barcode toggle, but the filter sheet still carries status, owner,
+	     expiry, favourites and sort, and batch mode has no other phone entry
+	     point — so both keep a button, on their own row so the pills stay
+	     readable when a merchant carries all three types. -->
+	<div class="mb-3 sm:hidden">
+		<div class="scrollbar-none -mx-screen overflow-x-auto px-screen">
+			<TypeFilterButtons
+				bind:typeFilter={filters.typeFilter}
+				cardsCount={cards.length}
+				vouchersCount={vouchers.length}
+				giftCardsCount={giftCards.length}
+				showAll
+				allowToggle={false}
+				variant="count-pill"
+			/>
+		</div>
+		<div class="mt-2 flex items-center justify-end gap-2">
+			{@render iosDetailButton(
+				toggleBarcodes,
+				showBarcodes,
+				tr('barcodeToggle.label'),
+				iosBarcodeIcon
+			)}
+			{@render iosDetailButton(
+				() => (showFilterMenu = !showFilterMenu),
+				hasActiveFilters,
+				tr('common.filter'),
+				iosFunnelIcon
+			)}
+			{@render iosDetailButton(
+				toggleSelectMode,
+				selectMode,
+				tr('batch.selectMode'),
+				iosSelectIcon,
+				isOffline
+			)}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet iosBarcodeIcon()}
+	<path stroke-linecap="round" stroke-linejoin="round" d={ICON_BARCODE_BARS} />
+{/snippet}
+
+{#snippet iosFunnelIcon()}
+	<path stroke-linecap="round" stroke-linejoin="round" d={ICON_FUNNEL_SOLID} />
+{/snippet}
+
+{#snippet iosSelectIcon()}
+	<rect x="4" y="4" width="16" height="16" rx="3" />
+	<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SELECT_BOX} />
+{/snippet}
+
+{#snippet iosDetailButton(
+	onclick: () => void,
+	active: boolean,
+	label: string,
+	icon: Snippet,
+	disabled = false
+)}
+	<button
+		type="button"
+		{onclick}
+		{disabled}
+		aria-pressed={active}
+		aria-label={label}
+		title={label}
+		class="inline-flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 {active
+			? 'bg-accent text-on-accent'
+			: 'liquid-glass-card text-text-muted'}"
+	>
+		<svg
+			class="h-4.25 w-4.25"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.9"
+			viewBox="0 0 24 24"
+		>
+			{@render icon()}
+		</svg>
+	</button>
+{/snippet}
+
 {#snippet iosToolbar()}
 	<div class="mb-3 flex gap-2 sm:hidden">
 		<button
@@ -1235,23 +1331,30 @@
 
 	{#if totalItems === 0}
 		<!-- Android draws the empty state as a flat M3 card with the glyph above
-		     the copy (mockup screen-MerchantsAndroid); the other platforms keep the
-		     plain panel. -->
+		     the copy (mockup screen-MerchantsAndroid), the iOS merchant detail as
+		     a glass grouped-inset card (mockup screen-MerchantsIOS, Board 2);
+		     every other screen keeps the plain panel, the iOS wallet included. -->
 		<div
-			class="bg-surface-1 rounded-lg p-12 text-center {IS_ANDROID
+			class="text-center {IOS_DETAIL
+				? 'liquid-glass-card mt-2 flex flex-col items-center gap-2.5 rounded-[var(--radius-inset)] px-6.5 py-11 max-sm:mx-0 sm:mt-0 sm:block sm:rounded-lg sm:p-12'
+				: 'bg-surface-1 rounded-lg p-12'} {IS_ANDROID
 				? 'max-sm:flex max-sm:flex-col max-sm:items-center max-sm:gap-2 max-sm:rounded-m3-lg max-sm:bg-m3-card max-sm:px-6.5 max-sm:py-11.5'
 				: ''}"
 		>
 			{@render emptyIcon?.()}
 			<p
-				class="text-text-muted text-lg mb-4 {IS_ANDROID
+				class="text-text-muted {IOS_DETAIL
+					? 'mt-1 text-subheading text-text sm:mb-4 sm:text-lg sm:text-text-muted'
+					: 'text-lg mb-4'} {IS_ANDROID
 					? 'max-sm:mt-1.5 max-sm:mb-0 max-sm:text-subheading'
 					: ''}"
 			>
 				{tr('merchantOverview.detail.noItems')}
 			</p>
 			<p
-				class="text-text-faint text-sm {IS_ANDROID ? 'max-sm:max-w-62.5' : ''}"
+				class="{IOS_DETAIL
+					? 'max-w-62.5 text-body text-text-muted sm:max-w-none sm:text-sm sm:text-text-faint'
+					: 'text-text-faint text-sm'} {IS_ANDROID ? 'max-sm:max-w-62.5' : ''}"
 			>
 				{tr('merchantOverview.detail.noItemsHint')}
 			</p>
@@ -1328,7 +1431,11 @@
 		     the block in select mode below `sm`, where the contextual top app bar
 		     replaces it; on desktop the actions live in the chrome row instead. -->
 		{#if IOS}
-			{@render iosToolbar()}
+			{#if iosToolbarVariant === 'detail'}
+				{@render iosDetailToolbar()}
+			{:else}
+				{@render iosToolbar()}
+			{/if}
 		{/if}
 		{#if !DESKTOP_CHROME}
 			<!-- iOS carries its own phone toolbar above, so this one starts at `sm`

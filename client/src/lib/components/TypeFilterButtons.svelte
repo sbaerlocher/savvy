@@ -15,8 +15,15 @@
 		 *  toggles back to all — keeps the row narrow on mobile. */
 		showAll?: boolean;
 		/** 'pill' (default, rounded-full) for the main list header; 'chip'
-		 *  (compact rounded-lg) inside the filter menu to match FilterGroup. */
-		variant?: 'pill' | 'chip';
+		 *  (compact rounded-lg) inside the filter menu to match FilterGroup;
+		 *  'count-pill' the iOS merchant-detail row — pills carrying their count,
+		 *  including the "All" one (mockup screen-MerchantsIOS, Board 2). */
+		variant?: 'pill' | 'chip' | 'count-pill';
+		/** Spell the "All" chip out as "All types". Set by call sites that caption
+		 *  the row with their own "Type" heading, where a bare "All" would read as
+		 *  "all of everything" (the iOS flat filter sheet). Uncaptioned rows keep
+		 *  the short label. */
+		longAllLabel?: boolean;
 	}
 
 	let {
@@ -26,7 +33,8 @@
 		giftCardsCount,
 		allowToggle = true,
 		showAll = true,
-		variant = 'pill'
+		variant = 'pill',
+		longAllLabel = false
 	}: Props = $props();
 
 	// iOS renders the wallet's type filter as a UIKit segmented control: equal
@@ -38,6 +46,8 @@
 	// 'pill' variant switches — the 'chip' variant inside the filter sheet stays
 	// a chip row on every platform.
 	const segmented = $derived(platform === 'ios' && variant === 'pill');
+	// The iOS detail row keeps its counts, and its "All" pill counts everything.
+	const countPill = $derived(variant === 'count-pill');
 
 	function handleClick(type: 'all' | 'cards' | 'vouchers' | 'gift-cards') {
 		if (type === 'all') {
@@ -56,7 +66,7 @@
 			[
 				{
 					key: 'all',
-					label: 'common.all',
+					label: longAllLabel ? 'merchantOverview.filterAll' : 'common.all',
 					show: showAll,
 					count: cardsCount + vouchersCount + giftCardsCount
 				},
@@ -113,19 +123,32 @@
 	const base = $derived(
 		platform === 'android'
 			? `inline-flex items-center gap-1.5 rounded-m3-sm px-3.5 py-2 text-label transition-colors whitespace-nowrap`
-			: `inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
-					variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'
-				}`
+			: countPill
+				? 'inline-flex h-8.5 items-center gap-1.25 rounded-full px-3.25 text-label transition-colors whitespace-nowrap'
+				: `inline-flex items-center py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+						variant === 'chip' ? 'rounded-lg px-3' : 'rounded-full px-4'
+					}`
 	);
 	// Count sits inside the chip on Android only; it is what makes the row
 	// readable without an "All" chip. Where the "All" chip is present it carries
 	// the total, so the row still reads consistently ("All 7 | Cards 3 | …",
 	// mockup screen-MerchantsAndroid board 2) — but only in the pill row: the
 	// filter sheet draws its chips without counts (mockup screen-WalletAndroid).
+	// The iOS detail row carries them too (mockup screen-MerchantsIOS board 2).
 	// On an active (tonal) chip the count inherits the chip ink, on an outlined
 	// one it steps down to the faint tone.
-	const SHOW_COUNT = $derived(platform === 'android' && variant === 'pill');
-	const countClass = (isActive: boolean) => (isActive ? '' : 'text-text-faint');
+	const SHOW_COUNT = $derived(
+		countPill || (platform === 'android' && variant === 'pill')
+	);
+	// The active count-pill dims its count rather than dropping it (mockup).
+	const countClass = (isActive: boolean) =>
+		isActive ? (countPill ? 'opacity-75' : '') : 'text-text-faint';
+	// The iOS detail row sits on glass: inactive pills are glass, the active one
+	// is a flat accent fill with no border (mockup).
+	const inactiveClass = $derived(
+		countPill ? 'liquid-glass-card text-text-muted' : inactive
+	);
+	const activeClass = $derived(countPill ? 'bg-accent text-on-accent' : active);
 </script>
 
 {#if segmented}
@@ -149,9 +172,11 @@
 	<div
 		class="flex gap-2 {variant === 'chip'
 			? 'flex-wrap'
-			: platform === 'android'
+			: countPill
 				? 'scrollbar-none overflow-x-auto'
-				: 'overflow-x-auto pb-1'}"
+				: platform === 'android'
+					? 'scrollbar-none overflow-x-auto'
+					: 'overflow-x-auto pb-1'}"
 	>
 		{#each entries as entry (entry.key)}
 			<button
@@ -159,7 +184,7 @@
 				data-testid="type-chip-{entry.key}"
 				onclick={() => handleClick(entry.key)}
 				aria-pressed={typeFilter === entry.key}
-				class="{base} {typeFilter === entry.key ? active : inactive}"
+				class="{base} {typeFilter === entry.key ? activeClass : inactiveClass}"
 			>
 				{tr(entry.label)}
 				{#if SHOW_COUNT && entry.count !== undefined}

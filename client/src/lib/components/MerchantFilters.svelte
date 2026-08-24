@@ -40,8 +40,14 @@
 		 *  already carries a reset action (the Android wallet filter sheet). */
 		hideReset?: boolean;
 		/** Label the type chip row like the other groups. The Android merchants
-		 *  sheet does (mockup); the wallet sheet leaves the row unlabelled. */
+		 *  sheet does (mockup); the wallet sheet leaves the row unlabelled. The
+		 *  iOS flat sheet turns it on implicitly, see iosFlatGroups. */
 		showTypeLabel?: boolean;
+		/** iOS only: render each group with its own uppercase caption and lay the
+		 *  options out flat — status as a chip row, sort as a checkmark list, all
+		 *  expanded at once (mockup screen-MerchantsIOS). The default is the
+		 *  wallet's accordion, where one row expands at a time. */
+		iosFlatGroups?: boolean;
 	}
 
 	let {
@@ -66,7 +72,8 @@
 		showAll = true,
 		allowTypeToggle = true,
 		hideReset = false,
-		showTypeLabel = false
+		showTypeLabel = false,
+		iosFlatGroups = false
 	}: Props = $props();
 
 	const isIos = platform === 'ios';
@@ -75,9 +82,14 @@
 	// the glass sheet. Android: groups sit flat on the tonal sheet itself, only
 	// separated by their uppercase label (wallet mockup). Desktop keeps the
 	// hairline-divided flat layout.
-	const groupClass = isIos
-		? 'liquid-glass-card rounded-[var(--radius-inset)] px-4'
-		: '';
+	// The flat variant only exists on iOS; elsewhere the prop is inert. A prop,
+	// so $derived — unlike `platform`, which is a module constant.
+	const iosFlat = $derived(isIos && iosFlatGroups);
+	const groupClass = $derived(
+		isIos
+			? `liquid-glass-card rounded-[var(--radius-inset)] px-4${iosFlat ? ' py-3.5' : ''}`
+			: ''
+	);
 	const dividerClass =
 		isIos || isAndroid ? 'hidden' : 'border-t border-border-soft';
 
@@ -87,13 +99,22 @@
 </script>
 
 <div class={isAndroid ? 'space-y-4.5' : isIos ? 'space-y-3' : ''}>
-	<!-- Type Filter -->
-	<div class="{isAndroid ? '' : 'pb-4'} {groupClass} {isIos ? 'pt-4' : ''}">
-		{#if showTypeLabel}
+	<!-- Type Filter. The iOS flat sheet captions it like every other group. -->
+	<div
+		class="{isAndroid ? '' : 'pb-4'} {groupClass} {isIos && !iosFlat
+			? 'pt-4'
+			: ''}"
+	>
+		{#if showTypeLabel || iosFlat}
 			<!-- The other groups get their label from FilterGroup; the chip row has
-			     none of its own. The merchants sheet labels it (mockup
-			     screen-MerchantsAndroid), the wallet sheet does not. -->
-			<div class="text-eyebrow text-text-subtle mb-2.5 uppercase">
+			     none of its own. The merchants sheets label it (mockups
+			     screen-MerchantsAndroid, screen-MerchantsIOS), the wallet sheet
+			     does not. -->
+			<div
+				class="{isIos
+					? 'text-section-eyebrow'
+					: 'text-eyebrow'} text-text-subtle mb-2.5 uppercase"
+			>
 				{tr('merchantOverview.detail.typeFilter')}
 			</div>
 		{/if}
@@ -105,6 +126,7 @@
 			{showAll}
 			allowToggle={allowTypeToggle}
 			variant="chip"
+			longAllLabel={iosFlat}
 		/>
 	</div>
 
@@ -166,32 +188,20 @@
 	{/if}
 	<div class={dividerClass}></div>
 
-	<!-- Sort — iOS shows the options expanded with checkmarks (mockup). -->
-	<div class={groupClass}>
-		<FilterGroup
-			label={tr('merchantOverview.sortBy')}
-			bind:value={sortBy}
-			options={sortOptions}
-			idPrefix="{idPrefix}-sort"
-			groupKey="sort"
-			bind:openGroup
-		/>
-	</div>
-
-	<!-- Status Filter -->
-	{#if showStatusFilter}
+	<!-- Status and Sort. The iOS flat sheet puts Status first (mockup
+	     screen-MerchantsIOS); the accordion call sites — the desktop panel and the
+	     Android tonal sheet — keep their established Sort-then-Status order, which
+	     this iOS-scoped change has no mandate to reshuffle. -->
+	{#if iosFlat}
+		{@render statusGroup()}
 		<div class={dividerClass}></div>
-
-		<div class={groupClass}>
-			<FilterGroup
-				label={tr('merchantOverview.detail.statusFilter')}
-				bind:value={statusFilter}
-				options={statusOptions}
-				idPrefix="{idPrefix}-status"
-				groupKey="status"
-				bind:openGroup
-			/>
-		</div>
+		{@render sortGroup()}
+	{:else}
+		{@render sortGroup()}
+		{#if showStatusFilter}
+			<div class={dividerClass}></div>
+			{@render statusGroup()}
+		{/if}
 	{/if}
 
 	<!-- Owner Filter (detail page only) -->
@@ -242,3 +252,37 @@
 		</div>
 	{/if}
 </div>
+
+{#snippet sortGroup()}
+	<!-- Sort — iOS shows the options expanded with checkmarks (mockup). -->
+	<div class={groupClass}>
+		<FilterGroup
+			label={tr('merchantOverview.sortBy')}
+			bind:value={sortBy}
+			options={sortOptions}
+			idPrefix="{idPrefix}-sort"
+			groupKey="sort"
+			flat={iosFlat}
+			bind:openGroup
+		/>
+	</div>
+{/snippet}
+
+{#snippet statusGroup()}
+	<!-- Status Filter. The flat iOS groups lay it out as a chip row (mockup
+	     screen-MerchantsIOS); the accordion keeps the checkmark list. -->
+	{#if showStatusFilter}
+		<div class={groupClass}>
+			<FilterGroup
+				label={tr('merchantOverview.detail.statusFilter')}
+				bind:value={statusFilter}
+				options={statusOptions}
+				idPrefix="{idPrefix}-status"
+				groupKey="status"
+				flat={iosFlat}
+				variant={iosFlat ? 'chips' : 'list'}
+				bind:openGroup
+			/>
+		</div>
+	{/if}
+{/snippet}

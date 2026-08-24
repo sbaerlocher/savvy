@@ -20,7 +20,12 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { ICON_CHEVRON_LEFT, ICON_PENCIL, ICON_SEARCH } from '$lib/icons';
+	import {
+		ICON_CHEVRON_LEFT,
+		ICON_PENCIL,
+		ICON_SEARCH,
+		ICON_STOREFRONT
+	} from '$lib/icons';
 	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -31,6 +36,10 @@
 	// chip, a tonal search field and a visible type chip row.
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_ANDROID = platform === 'android';
+	// iOS draws the same three parts as its own chrome (mockup
+	// screen-MerchantsIOS, board 2): a back row above the title, a glass edit
+	// pill beside it and a glass search field.
+	const IOS = platform === 'ios';
 
 	// Desktop puts a back link above the merchant name and the type chips on the
 	// toolbar row (mockup screen-MerchantsDesktop, board 2).
@@ -69,7 +78,9 @@
 		'btn btn-xs btn-gray whitespace-nowrap flex items-center gap-1.5';
 	const EDIT_ACTION_CLASS = IS_ANDROID
 		? `max-sm:inline-flex max-sm:h-8 max-sm:shrink-0 max-sm:items-center max-sm:gap-1.25 max-sm:rounded-m3-full max-sm:border-none max-sm:bg-m3-card max-sm:px-3.5 max-sm:text-label max-sm:text-text-ink2 ${EDIT_BUTTON}`
-		: EDIT_BUTTON;
+		: IOS
+			? `max-sm:liquid-glass-card max-sm:inline-flex max-sm:shrink-0 max-sm:items-center max-sm:gap-1.25 max-sm:rounded-full max-sm:px-3 max-sm:py-1.75 max-sm:text-label max-sm:text-accent-700 ${EDIT_BUTTON}`
+			: EDIT_BUTTON;
 
 	const merchantId = $derived(get(page).params.id ?? '');
 
@@ -139,12 +150,37 @@
 		filterShowAll={IS_ANDROID || IS_DESKTOP}
 		inlineTypeToolbar
 		androidBarcodeInTypeRow
+		iosToolbarVariant={IOS ? 'detail' : 'wallet'}
 		barcodeButtonVariant="icon"
 		maxWidth={false}
 	>
 		{#snippet header()}
-			<!-- Header. Android puts a back row above the merchant name and carries
-			     the edit action as a tonal M3 chip (mockup). -->
+			<!-- Header. Both native platforms put a back row above the merchant name
+			     and carry the edit action as their own chip: a tonal M3 one on
+			     Android, a glass pill on iOS (mockups). -->
+			{#if IOS}
+				<!-- iOS back row: the platform's own edge swipe covers the gesture,
+				     this is the visible affordance. -->
+				<a
+					href={resolve('/merchants')}
+					class="mb-3 -ml-0.5 inline-flex items-center gap-1.5 text-accent-700 transition-opacity active:opacity-60 sm:hidden"
+				>
+					<svg
+						class="h-4.75 w-4.75"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+					>
+						<path d={ICON_CHEVRON_LEFT} />
+					</svg>
+					<span class="text-[length:var(--text-code)] font-medium"
+						>{tr('merchantOverview.title')}</span
+					>
+				</a>
+			{/if}
 			{#if IS_ANDROID}
 				<div
 					class="-mx-4 mb-1 flex items-center gap-1.5 py-2 pr-2 pl-3 sm:hidden"
@@ -193,14 +229,18 @@
 					{tr('merchantOverview.title')}
 				</a>
 			{/if}
-			<div class={IS_ANDROID ? 'max-sm:mb-4 mb-8' : 'mb-8'}>
+			<div
+				class="mb-8 {IS_ANDROID ? 'max-sm:mb-4' : ''} {IOS
+					? 'max-sm:mb-3.5'
+					: ''}"
+			>
 				<div
-					class="flex items-center justify-between {IS_ANDROID
+					class="flex items-center justify-between {IS_ANDROID || IOS
 						? 'max-sm:gap-3'
 						: ''}"
 				>
 					<div
-						class="flex min-w-0 items-center gap-3 {IS_ANDROID
+						class="flex min-w-0 items-center gap-3 {IS_ANDROID || IOS
 							? 'max-sm:flex-1'
 							: ''}"
 					>
@@ -209,11 +249,11 @@
 							style="background-color: {merchant?.color}"
 						></div>
 						<h1
-							class="text-text truncate {IS_ANDROID
-								? 'max-sm:text-screen-title text-3xl font-bold'
-								: IS_DESKTOP
-									? 'text-screen-title'
-									: 'text-3xl font-bold'}"
+							class="text-text truncate {IS_DESKTOP
+								? 'text-screen-title'
+								: 'text-3xl font-bold'} {IS_ANDROID || IOS
+								? 'max-sm:text-screen-title'
+								: ''}"
 						>
 							{merchant?.name}
 						</h1>
@@ -223,7 +263,7 @@
 							href={resolve(`/admin/merchants/${merchant.id}/edit`)}
 							class={EDIT_ACTION_CLASS}
 						>
-							{#if IS_ANDROID}
+							{#if IS_ANDROID || IOS}
 								<svg
 									class="hidden h-3.25 w-3.25 shrink-0 max-sm:block"
 									fill="none"
@@ -248,6 +288,8 @@
 			<svg
 				class="w-16 h-16 mx-auto text-text-placeholder mb-4 {IS_ANDROID
 					? 'max-sm:mx-0 max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5'
+					: ''} {IOS
+					? 'max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5 max-sm:text-text-faint'
 					: ''}"
 				fill="none"
 				stroke="currentColor"
@@ -257,14 +299,40 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					stroke-width="1.5"
-					d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+					d={ICON_STOREFRONT}
 				/>
 			</svg>
 		{/snippet}
 
 		{#snippet searchField()}
-			<!-- Merchant detail: always-visible plain search input. Android draws it
-			     as the tonal M3 field from the mockup instead. -->
+			<!-- Merchant detail: always-visible plain search input. The native
+			     platforms draw their own field from the mockups instead — tonal M3
+			     on Android, glass on iOS. -->
+			{#if IOS}
+				<label
+					class="liquid-glass-card mb-2.5 flex h-10 items-center gap-2 rounded-[var(--radius-lg)] px-3.25 sm:hidden"
+				>
+					<svg
+						class="h-4 w-4 shrink-0 text-text-faint"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path d={ICON_SEARCH} />
+					</svg>
+					<input
+						type="search"
+						bind:value={filters.searchInput}
+						placeholder={tr('common.search')}
+						aria-label={tr('common.search')}
+						class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+					/>
+				</label>
+			{/if}
 			{#if IS_ANDROID}
 				<div
 					class="mb-3 flex h-11 items-center gap-2 rounded-m3-md bg-m3-card px-3.5 sm:hidden"
@@ -290,7 +358,7 @@
 					/>
 				</div>
 			{/if}
-			<div class={IS_ANDROID ? 'mb-6 max-sm:hidden' : 'mb-6'}>
+			<div class="mb-6 {IS_ANDROID || IOS ? 'max-sm:hidden' : ''}">
 				<input
 					type="search"
 					bind:value={filters.searchInput}
