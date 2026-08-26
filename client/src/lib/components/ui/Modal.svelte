@@ -2,7 +2,7 @@
 	import { platform } from '$lib/utils/platform';
 	import type { Snippet } from 'svelte';
 
-	// Reusable modal shell: backdrop (iOS blur vs Android opacity), mobile
+	// Reusable modal shell: backdrop (iOS blur, Android opacity, desktop scrim), mobile
 	// bottom-sheet / desktop-centered positioning, Escape + backdrop-click close.
 	// Content (icon/title/buttons/etc.) is supplied via the children snippet.
 	//
@@ -29,7 +29,8 @@
 		onclose?: () => void;
 		layer?: keyof typeof LAYERS;
 		mobileLayout?: 'sheet' | 'center';
-		// 'platform' = iOS blur vs Android opacity (ConfirmModal/ImportDialog);
+		// 'platform' = iOS blur, Android opacity, desktop --scrim
+		// (ConfirmModal/ImportDialog);
 		// 'glass' = always iOS-style blur on both platforms (TypeChoiceDialog).
 		backdrop?: 'platform' | 'glass';
 		// Pass whichever the caller uses: labelledby (id ref) or label (literal).
@@ -69,7 +70,9 @@
 			? 'bg-black/40 backdrop-blur-sm'
 			: platform === 'ios'
 				? 'bg-black/40 backdrop-blur-sm'
-				: 'bg-black bg-opacity-50'
+				: platform === 'android'
+					? 'bg-black/50'
+					: 'bg-scrim'
 	);
 </script>
 
