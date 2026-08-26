@@ -20,6 +20,7 @@
 		onclose = () => {},
 		layer = 'default' as keyof typeof LAYERS,
 		mobileLayout = 'sheet' as 'sheet' | 'center',
+		clearBottomNav = true,
 		backdrop = 'platform' as 'platform' | 'glass',
 		labelledby,
 		label,
@@ -29,7 +30,10 @@
 		onclose?: () => void;
 		layer?: keyof typeof LAYERS;
 		mobileLayout?: 'sheet' | 'center';
-		// 'platform' = iOS blur, Android opacity, desktop --scrim
+		// mobileLayout 'center' only: keep the pb-40 mobile bottom-nav clearance
+		// (default) or centre the panel exactly (M3 dialog).
+		clearBottomNav?: boolean;
+		// 'platform' = iOS blur, Android and desktop --scrim
 		// (ConfirmModal/ImportDialog);
 		// 'glass' = always iOS-style blur on both platforms (TypeChoiceDialog).
 		backdrop?: 'platform' | 'glass';
@@ -58,21 +62,27 @@
 	// 'sheet' hugs the safe area so the sheet meets the screen edge; 'center'
 	// insets the panel (p-4) and clears the mobile bottom nav (pb-40),
 	// collapsing to a plain p-4 on desktop — this reproduces ImportDialog's
-	// original outer padding byte-for-byte.
+	// original outer padding byte-for-byte. clearBottomNav={false} drops the
+	// pb-40 lift for a caller that wants the panel truly centred (the M3 import
+	// dialog): the panel already stacks above the bottom nav (z-80 vs z-50), so
+	// the clearance only pushed it off centre.
 	const padClass = $derived(
 		mobileLayout === 'sheet'
 			? 'pb-[env(safe-area-inset-bottom)] sm:p-4'
-			: 'p-4 pb-40 sm:pb-4'
+			: clearBottomNav
+				? 'p-4 pb-40 sm:pb-4'
+				: 'p-4'
 	);
 	// Full literal class strings so the Tailwind JIT scanner sees them.
+	// Android and desktop share bg-scrim: --color-scrim is the M3 dialog/sheet
+	// scrim the Android mockup asks for, and the desktop mockup lands on the
+	// same value.
 	const backdropClass = $derived(
 		backdrop === 'glass'
 			? 'bg-black/40 backdrop-blur-sm'
 			: platform === 'ios'
 				? 'bg-black/40 backdrop-blur-sm'
-				: platform === 'android'
-					? 'bg-black/50'
-					: 'bg-scrim'
+				: 'bg-scrim'
 	);
 </script>
 
