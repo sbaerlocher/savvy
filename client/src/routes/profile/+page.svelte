@@ -15,6 +15,8 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import SettingsTabs from '$lib/components/settings/SettingsTabs.svelte';
+	import DesktopProfileTab from '$lib/components/settings/DesktopProfileTab.svelte';
 
 	const pageLogger = logger.child('ProfilePage');
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -25,6 +27,10 @@
 	// the two-column card layout. `platform` is a module constant, so this is a
 	// plain const, not $derived.
 	const IS_IOS = platform === 'ios';
+	// Desktop merges profile, security and notification preferences into one
+	// tabbed settings page (screen-SettingsDesktop); the routes stay in place
+	// and each renders the shell with its own tab preselected.
+	const IS_DESKTOP = platform === 'other';
 
 	let profile = $state<ProfileDTO | null>(null);
 	let isLoadingProfile = $state(true);
@@ -95,6 +101,72 @@
 			<LoadingSpinner />
 		{:else if profile}
 			<IOSSettingsScreen {profile} onProfileUpdated={handleProfileUpdated} />
+		{/if}
+	</div>
+{:else if IS_DESKTOP}
+	<div class="px-4 max-w-7xl mx-auto">
+		<div class="mb-5">
+			<div class="text-label font-normal text-text-subtle">
+				{$t('settings.sections.account')}
+			</div>
+			<h1 class="mt-0.5 text-title text-text">{$t('settings.title')}</h1>
+		</div>
+		<SettingsTabs active="profile" />
+
+		{#if isLoadingProfile}
+			<LoadingSpinner />
+		{:else if profile}
+			<DesktopProfileTab {profile} onProfileUpdated={handleProfileUpdated} />
+
+			<!-- Service worker recovery. /profile is the only entry point in the
+			     app, so the desktop tab has to carry it too. -->
+			{#if swSupported}
+				<div class="mt-5 rounded-xl border border-border bg-white p-6">
+					<h3 class="mb-1.5 text-heading font-semibold text-text">
+						{$t('pwa.reregisterTitle')}
+					</h3>
+					<p class="mb-4 max-w-lg text-body text-text-muted">
+						{$t('pwa.reregisterDesc')}
+					</p>
+					<button
+						type="button"
+						onclick={handleReregister}
+						disabled={isReregistering}
+						class="btn btn-ghost"
+					>
+						{isReregistering
+							? $t('pwa.reregistering')
+							: $t('pwa.reregisterButton')}
+					</button>
+				</div>
+			{/if}
+
+			<!-- Sign out. Same `sm:hidden` guard as the mobile branch: DesktopNav
+			     is `hidden sm:block`, so below `sm` a desktop-platform browser has
+			     no nav bar and would otherwise have no way to sign out. -->
+			<div class="mt-5 sm:hidden">
+				<button
+					type="button"
+					onclick={handleLogout}
+					class="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-danger-600 transition-colors hover:bg-surface-1"
+				>
+					<svg
+						class="h-5 w-5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+						/>
+					</svg>
+					{$t('nav.logout')}
+				</button>
+			</div>
 		{/if}
 	</div>
 {:else}

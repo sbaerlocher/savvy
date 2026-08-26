@@ -8,9 +8,15 @@
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import SettingsTabs from '$lib/components/settings/SettingsTabs.svelte';
+
+	// `platform` is a module constant, so a plain const, not $derived. Desktop
+	// renders this route as the notifications tab of the merged settings page.
+	const IS_DESKTOP = platform === 'other';
 
 	const pageLogger = logger.child('NotificationSettingsPage');
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -46,13 +52,32 @@
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<PageHeader title={tr('settings.notifications.title')} />
+	{#if IS_DESKTOP}
+		<div class="mb-5">
+			<div class="text-label font-normal text-text-subtle">
+				{$t('settings.sections.account')}
+			</div>
+			<h1 class="mt-0.5 text-title text-text">{$t('settings.title')}</h1>
+		</div>
+		<SettingsTabs active="notifications" />
+	{:else}
+		<PageHeader title={tr('settings.notifications.title')} />
+	{/if}
 
 	{#if isLoadingProfile}
 		<LoadingSpinner />
 	{:else if profile}
-		<div class="w-full lg:max-w-2xl">
-			<NotificationsSection {profile} onProfileUpdated={handleProfileUpdated} />
+		<div class="w-full {IS_DESKTOP ? 'lg:max-w-160' : 'lg:max-w-2xl'}">
+			<NotificationsSection
+				{profile}
+				onProfileUpdated={handleProfileUpdated}
+				showTitle={!IS_DESKTOP}
+			/>
+			{#if IS_DESKTOP}
+				<p class="mt-3 pl-0.5 text-body-sm text-text-faint">
+					{$t('settings.notifications.ios.subcategoryHint')}
+				</p>
+			{/if}
 		</div>
 	{/if}
 </div>

@@ -24,9 +24,17 @@
 		 *  it; the standalone /notifications/settings route already has a page
 		 *  header with the same title. */
 		sectionHeader?: boolean;
+		/** The desktop settings page already names the section through its tab,
+		 *  so it renders the card without the redundant heading. */
+		showTitle?: boolean;
 	}
 
-	let { profile, onProfileUpdated, sectionHeader = false }: Props = $props();
+	let {
+		profile,
+		onProfileUpdated,
+		sectionHeader = false,
+		showTitle = true
+	}: Props = $props();
 
 	// iOS renders the grouped-inset channel groups from screen-SettingsIOS:
 	// one group per channel, subcategories on a recessed sub-surface that is
@@ -439,9 +447,11 @@
 	<div>
 		<div class="overflow-hidden rounded-xl border border-border bg-white">
 			<div class="p-6">
-				<h3 class="text-lg font-semibold text-text mb-4">
-					{tr('settings.notifications.title')}
-				</h3>
+				{#if showTitle}
+					<h3 class="text-lg font-semibold text-text mb-4">
+						{tr('settings.notifications.title')}
+					</h3>
+				{/if}
 
 				<!-- Push Notifications Channel -->
 				<ToggleSwitch

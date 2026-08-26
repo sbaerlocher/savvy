@@ -14,9 +14,16 @@
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import SettingsTabs from '$lib/components/settings/SettingsTabs.svelte';
+	import DesktopSessionList from '$lib/components/settings/DesktopSessionList.svelte';
+
+	// `platform` is a module constant, so a plain const, not $derived. Desktop
+	// renders this route as the security tab of the merged settings page.
+	const IS_DESKTOP = platform === 'other';
 
 	const pageLogger = logger.child('SecurityPage');
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -171,14 +178,28 @@
 </svelte:head>
 
 <div class="px-4 max-w-7xl mx-auto">
-	<PageHeader title={tr('nav.security')} />
+	{#if IS_DESKTOP}
+		<div class="mb-5">
+			<div class="text-label font-normal text-text-subtle">
+				{$t('settings.sections.account')}
+			</div>
+			<h1 class="mt-0.5 text-title text-text">{$t('settings.title')}</h1>
+		</div>
+		<SettingsTabs active="security" />
+	{:else}
+		<PageHeader title={tr('nav.security')} />
+	{/if}
 
 	{#if isLoadingProfile}
 		<LoadingSpinner />
 	{:else if profile}
-		<div class="flex flex-col lg:flex-row gap-6 items-start">
+		<div class="flex flex-col items-start gap-6 lg:flex-row">
 			<!-- Password + 2FA (on mobile: first, on desktop: left side) -->
-			<div class="w-full lg:w-2/3 space-y-6">
+			<div
+				class="w-full space-y-6 {IS_DESKTOP
+					? 'lg:min-w-0 lg:flex-1'
+					: 'lg:w-2/3'}"
+			>
 				<!-- Password Change -->
 				{#if profile.auth_provider === 'local'}
 					<div class="overflow-hidden rounded-xl border border-border bg-white">
@@ -314,121 +335,132 @@
 			</div>
 
 			<!-- Active Sessions (on mobile: second, on desktop: right side) -->
-			<div class="w-full lg:w-1/3">
-				<div
-					class="overflow-hidden rounded-xl border border-border bg-white p-6"
-				>
-					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-semibold text-text">
-							{tr('settings.sessions.title')}
-						</h3>
-						{#if sessions.length > 1}
-							<button
-								type="button"
-								onclick={handleRevokeOthers}
-								disabled={isRevokingOthers}
-								class="text-xs text-accent hover:text-accent-hover font-medium disabled:opacity-50"
-							>
-								{#if isRevokingOthers}
-									...
-								{:else}
-									{tr('settings.sessions.revokeOthers')}
-								{/if}
-							</button>
+			<div class="w-full {IS_DESKTOP ? 'lg:w-95 lg:flex-none' : 'lg:w-1/3'}">
+				{#if IS_DESKTOP}
+					<DesktopSessionList
+						{sessions}
+						isLoading={isLoadingSessions}
+						{revokingSessionId}
+						{isRevokingOthers}
+						onRevoke={handleRevokeSession}
+						onRevokeOthers={handleRevokeOthers}
+					/>
+				{:else}
+					<div
+						class="overflow-hidden rounded-xl border border-border bg-white p-6"
+					>
+						<div class="flex items-center justify-between mb-4">
+							<h3 class="text-lg font-semibold text-text">
+								{tr('settings.sessions.title')}
+							</h3>
+							{#if sessions.length > 1}
+								<button
+									type="button"
+									onclick={handleRevokeOthers}
+									disabled={isRevokingOthers}
+									class="text-xs text-accent hover:text-accent-hover font-medium disabled:opacity-50"
+								>
+									{#if isRevokingOthers}
+										...
+									{:else}
+										{tr('settings.sessions.revokeOthers')}
+									{/if}
+								</button>
+							{/if}
+						</div>
+
+						{#if isLoadingSessions}
+							<div class="flex justify-center py-4">
+								<span class="relative inline-flex h-4 w-4"
+									><span
+										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
+									></span><span
+										class="relative inline-flex rounded-full h-4 w-4 bg-accent"
+									></span></span
+								>
+							</div>
+						{:else if sessions.length === 0}
+							<p class="text-sm text-text-subtle">
+								{tr('settings.sessions.noOtherSessions')}
+							</p>
+						{:else}
+							<div class="space-y-3">
+								{#each sessions as session (session.id)}
+									<div
+										class="flex items-start justify-between gap-3 p-3 rounded-lg {session.is_current
+											? 'bg-accent-50 border border-accent-200'
+											: 'bg-surface-1'}"
+									>
+										<div class="flex-1 min-w-0">
+											<div class="flex items-center gap-2 flex-wrap">
+												<span class="text-sm font-medium text-text">
+													{session.browser_info ||
+														tr('settings.sessions.unknownBrowser')}
+												</span>
+												<span class="text-xs text-text-subtle">
+													{session.device_info ||
+														tr('settings.sessions.unknownDevice')}
+												</span>
+												{#if session.is_current}
+													<span
+														class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800"
+													>
+														{tr('settings.sessions.current')}
+													</span>
+												{/if}
+											</div>
+											<div
+												class="mt-1 flex items-center gap-3 text-xs text-text-subtle"
+											>
+												{#if session.ip_address}
+													<span>{session.ip_address}</span>
+												{/if}
+												<span
+													>{tr('settings.sessions.lastActive')}:
+													{formatRelativeTime(session.last_active_at)}</span
+												>
+											</div>
+										</div>
+										{#if !session.is_current}
+											<button
+												type="button"
+												onclick={() => handleRevokeSession(session.id)}
+												disabled={revokingSessionId === session.id}
+												class="flex-shrink-0 p-1.5 text-text-faint hover:text-danger-500 transition-colors disabled:opacity-50"
+												title={tr('settings.sessions.revoke')}
+												aria-label={tr('settings.sessions.revoke')}
+											>
+												{#if revokingSessionId === session.id}
+													<span class="relative inline-flex h-3 w-3"
+														><span
+															class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
+														></span><span
+															class="relative inline-flex rounded-full h-3 w-3 bg-accent"
+														></span></span
+													>
+												{:else}
+													<svg
+														class="w-4 h-4"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															stroke-linecap="round"
+															stroke-linejoin="round"
+															stroke-width="2"
+															d="M6 18L18 6M6 6l12 12"
+														/>
+													</svg>
+												{/if}
+											</button>
+										{/if}
+									</div>
+								{/each}
+							</div>
 						{/if}
 					</div>
-
-					{#if isLoadingSessions}
-						<div class="flex justify-center py-4">
-							<span class="relative inline-flex h-4 w-4"
-								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-								></span><span
-									class="relative inline-flex rounded-full h-4 w-4 bg-accent"
-								></span></span
-							>
-						</div>
-					{:else if sessions.length === 0}
-						<p class="text-sm text-text-subtle">
-							{tr('settings.sessions.noOtherSessions')}
-						</p>
-					{:else}
-						<div class="space-y-3">
-							{#each sessions as session (session.id)}
-								<div
-									class="flex items-start justify-between gap-3 p-3 rounded-lg {session.is_current
-										? 'bg-accent-50 border border-accent-200'
-										: 'bg-surface-1'}"
-								>
-									<div class="flex-1 min-w-0">
-										<div class="flex items-center gap-2 flex-wrap">
-											<span class="text-sm font-medium text-text">
-												{session.browser_info ||
-													tr('settings.sessions.unknownBrowser')}
-											</span>
-											<span class="text-xs text-text-subtle">
-												{session.device_info ||
-													tr('settings.sessions.unknownDevice')}
-											</span>
-											{#if session.is_current}
-												<span
-													class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800"
-												>
-													{tr('settings.sessions.current')}
-												</span>
-											{/if}
-										</div>
-										<div
-											class="mt-1 flex items-center gap-3 text-xs text-text-subtle"
-										>
-											{#if session.ip_address}
-												<span>{session.ip_address}</span>
-											{/if}
-											<span
-												>{tr('settings.sessions.lastActive')}:
-												{formatRelativeTime(session.last_active_at)}</span
-											>
-										</div>
-									</div>
-									{#if !session.is_current}
-										<button
-											type="button"
-											onclick={() => handleRevokeSession(session.id)}
-											disabled={revokingSessionId === session.id}
-											class="flex-shrink-0 p-1.5 text-text-faint hover:text-danger-500 transition-colors disabled:opacity-50"
-											title={tr('settings.sessions.revoke')}
-											aria-label={tr('settings.sessions.revoke')}
-										>
-											{#if revokingSessionId === session.id}
-												<span class="relative inline-flex h-3 w-3"
-													><span
-														class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
-													></span><span
-														class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-													></span></span
-												>
-											{:else}
-												<svg
-													class="w-4 h-4"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M6 18L18 6M6 6l12 12"
-													/>
-												</svg>
-											{/if}
-										</button>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

@@ -8,10 +8,16 @@ export class ProfilePage extends BasePage {
 	}
 
 	// --- Page heading ---
+	// Desktop renders the merged settings page ("Einstellungen") with a profile
+	// tab; iOS and Android keep the standalone "Mein Profil" screen. Both
+	// headings are valid depending on the platform the test runs as.
 	get heading(): Locator {
 		return this.page
 			.locator('h1, h2')
-			.filter({ hasText: /Mein Profil|My Profile|Mon profil/i })
+			.filter({
+				hasText:
+					/Mein Profil|My Profile|Mon profil|Einstellungen|Settings|Paramètres/i
+			})
 			.first();
 	}
 
