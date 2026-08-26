@@ -16,9 +16,16 @@
 		// users with existing 2FA still see status + disable/rotate, but no new
 		// setup is offered. Defaults to true.
 		enrollmentEnabled?: boolean;
+		/** Fired whenever the 2FA state actually changes, so a parent showing its
+		 *  own switch can keep it in sync. */
+		onStatusChange?: (enabled: boolean) => void;
 	}
 
-	let { authProvider, enrollmentEnabled = true }: Props = $props();
+	let {
+		authProvider,
+		enrollmentEnabled = true,
+		onStatusChange
+	}: Props = $props();
 
 	// State
 	let isEnabled = $state(false);
@@ -86,6 +93,7 @@
 		try {
 			await authApi.verify2FASetup(setupCode.trim());
 			isEnabled = true;
+			onStatusChange?.(true);
 			showSetup = false;
 			showBackupCodes = true;
 			toastStore.success(tr('settings.twoFactor.enableSuccess'));
@@ -104,6 +112,7 @@
 		try {
 			await authApi.disable2FA(disableCode.trim());
 			isEnabled = false;
+			onStatusChange?.(false);
 			showDisable = false;
 			disableCode = '';
 			toastStore.success(tr('settings.twoFactor.disableSuccess'));

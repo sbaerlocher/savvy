@@ -63,7 +63,13 @@
 		}
 	}
 
-	function openNameEditor() {
+	// Toggles like the password row. Re-seeding on every tap would silently
+	// discard what the user just typed when they tap the row again to collapse.
+	function toggleNameEditor() {
+		if (isEditingName) {
+			isEditingName = false;
+			return;
+		}
 		firstName = profile.first_name || '';
 		lastName = profile.last_name || '';
 		isEditingName = true;
@@ -179,7 +185,7 @@
 	avatar={initials}
 	title={tr('settings.profile.name')}
 	subtitle={fullName || profile.email}
-	onclick={profile.auth_provider === 'local' ? openNameEditor : undefined}
+	onclick={profile.auth_provider === 'local' ? toggleNameEditor : undefined}
 >
 	{#snippet trailing()}
 		{#if profile.auth_provider === 'local'}

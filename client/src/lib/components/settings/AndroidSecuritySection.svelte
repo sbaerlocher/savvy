@@ -30,6 +30,13 @@
 	const ICON_PHONE_SPEAKER = 'M11 18h2';
 	const ICON_LAPTOP = 'M3 4h18v12H3z';
 	const ICON_LAPTOP_BASE = 'M8 20h8M12 16v4';
+
+	// The backend already resolves the real device (parseDeviceInfo yields
+	// "iPhone" / "iPad" / "Android Phone" / "Windows" / "macOS" …), so the glyph
+	// keys off that, not off is_current — is_current only drives tint and badge.
+	function isHandheld(deviceInfo: string): boolean {
+		return /iphone|ipad|android|mobile|tablet|phone/i.test(deviceInfo || '');
+	}
 	const ICON_CHEVRON_RIGHT = 'M9 5l7 7-7 7';
 	const ICON_X = 'M6 6l12 12M18 6L6 18';
 
@@ -310,6 +317,7 @@
 		<TwoFactorSettings
 			authProvider={profile.auth_provider || 'local'}
 			enrollmentEnabled={$configStore.two_factor_enabled}
+			onStatusChange={(enabled) => (twoFactorEnabled = enabled)}
 		/>
 	</div>
 {/if}
@@ -339,7 +347,7 @@
 				stroke-linejoin="round"
 				aria-hidden="true"
 			>
-				{#if session.is_current}
+				{#if isHandheld(session.device_info)}
 					<path d={ICON_PHONE} />
 					<path d={ICON_PHONE_SPEAKER} />
 				{:else}

@@ -60,6 +60,14 @@
 		}
 	});
 
+	// Guarded, like notifications/+page.svelte and ResourceDetail.svelte: on a
+	// deep link (bookmark, PWA start URL) there is no history entry to go back
+	// to, and a bare history.back() would leave the chevron dead.
+	function goBack() {
+		if (history.length > 1) history.back();
+		else goto(resolve('/dashboard'));
+	}
+
 	function handleProfileUpdated(updatedProfile: ProfileDTO) {
 		profile = updatedProfile;
 		authStore.checkAuth();
@@ -79,7 +87,7 @@
 		<div class="flex items-center gap-2 p-2 pb-3.5">
 			<button
 				type="button"
-				onclick={() => history.back()}
+				onclick={goBack}
 				aria-label={tr('common.back')}
 				class="flex h-11.5 w-11.5 shrink-0 items-center justify-center rounded-m3-full text-text-ink2 transition-colors active:bg-ground-active"
 			>
