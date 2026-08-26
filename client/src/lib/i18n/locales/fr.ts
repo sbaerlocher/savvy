@@ -1356,6 +1356,8 @@ export const fr: TranslationKeys = {
 			stop_failed: "Échec de l'arrêt de l'imitation"
 		},
 		users: {
+			countSummary: '{total} comptes · {admins} admins',
+			searchPlaceholder: 'Rechercher e-mail ou nom…',
 			title: 'Utilisateurs',
 			subtitle: 'Gestion des utilisateurs et attribution des rôles',
 			loadError: 'Échec du chargement des utilisateurs',
@@ -1463,6 +1465,9 @@ export const fr: TranslationKeys = {
 			restoreError: 'Échec de la restauration de la ressource'
 		},
 		systemHealth: {
+			subtitle: 'Statut des services · vérification en direct',
+			autoRefreshInterval: 'Actualisation auto · {s} s',
+			updatedAgo: 'Actualisé {ago}',
 			service: 'Service',
 			details: 'Détails',
 			statusLabel: 'Statut',

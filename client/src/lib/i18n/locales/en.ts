@@ -1318,6 +1318,8 @@ export const en: TranslationKeys = {
 			stop_failed: 'Failed to stop impersonation'
 		},
 		users: {
+			countSummary: '{total} accounts · {admins} admins',
+			searchPlaceholder: 'Search email or name…',
 			title: 'Users',
 			subtitle: 'User management and role assignment',
 			loadError: 'Failed to load users',
@@ -1418,6 +1420,9 @@ export const en: TranslationKeys = {
 			restoreError: 'Failed to restore resource'
 		},
 		systemHealth: {
+			subtitle: 'Service status · live check',
+			autoRefreshInterval: 'Auto-refresh · {s}s',
+			updatedAgo: 'Updated {ago}',
 			service: 'Service',
 			details: 'Details',
 			statusLabel: 'Status',

@@ -1245,6 +1245,8 @@ export type TranslationKeys = {
 			stop_failed: string;
 		};
 		users: {
+			countSummary: string;
+			searchPlaceholder: string;
 			title: string;
 			subtitle: string;
 			loadError: string;
@@ -1345,6 +1347,9 @@ export type TranslationKeys = {
 			restoreError: string;
 		};
 		systemHealth: {
+			subtitle: string;
+			autoRefreshInterval: string;
+			updatedAgo: string;
 			service: string;
 			details: string;
 			statusLabel: string;

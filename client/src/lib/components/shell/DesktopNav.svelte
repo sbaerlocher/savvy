@@ -270,12 +270,12 @@
 									e.stopPropagation();
 									showAdminMenu = !showAdminMenu;
 								}}
-								class="inline-flex text-purple-600 hover:text-purple-700 p-2 rounded-md hover:bg-purple-50 transition-colors"
+								class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-sm bg-purple-50 text-purple-600 transition-colors hover:text-purple-700"
 								title={$t('nav.admin')}
 								aria-expanded={showAdminMenu}
 							>
 								<svg
-									class="w-6 h-6"
+									class="h-5.5 w-5.5"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -293,21 +293,21 @@
 								<div
 									role="menu"
 									tabindex="-1"
-									class="absolute right-0 mt-2 w-56 rounded-lg py-2 z-50 {platform ===
+									class="absolute right-0 z-50 mt-2 w-64 rounded-xl py-2 {platform ===
 									'ios'
 										? 'liquid-glass-menu'
-										: 'bg-white border border-border shadow-xl'}"
+										: 'border border-border bg-surface shadow-panel'}"
 									onclick={(e) => e.stopPropagation()}
 									onkeydown={(e) => {
 										if (e.key === 'Escape') showAdminMenu = false;
 									}}
 								>
 									<div
-										class="px-4 py-3 text-sm border-b {platform === 'ios'
+										class="border-b px-4 py-2.5 {platform === 'ios'
 											? 'border-white/30'
-											: 'border-border'}"
+											: 'border-border-soft'}"
 									>
-										<div class="font-semibold text-purple-700">
+										<div class="text-label font-bold text-purple-600">
 											{$t('nav.admin')}
 										</div>
 									</div>
@@ -315,10 +315,10 @@
 									<a
 										href={resolve('/admin/users')}
 										onclick={() => (showAdminMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
+										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
 									>
 										<svg
-											class="w-5 h-5 mr-3"
+											class="h-4.75 w-4.75 text-text-muted"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -336,10 +336,10 @@
 									<a
 										href={resolve('/admin/merchants')}
 										onclick={() => (showAdminMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
+										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
 									>
 										<svg
-											class="w-5 h-5 mr-3"
+											class="h-4.75 w-4.75 text-text-muted"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -357,10 +357,10 @@
 									<a
 										href={resolve('/admin/audit-log')}
 										onclick={() => (showAdminMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
+										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
 									>
 										<svg
-											class="w-5 h-5 mr-3"
+											class="h-4.75 w-4.75 text-text-muted"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -378,10 +378,10 @@
 									<a
 										href={resolve('/admin/system-health')}
 										onclick={() => (showAdminMenu = false)}
-										class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
+										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
 									>
 										<svg
-											class="w-5 h-5 mr-3"
+											class="h-4.75 w-4.75 text-text-muted"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -400,10 +400,10 @@
 										<a
 											href={resolve('/admin/email-templates')}
 											onclick={() => (showAdminMenu = false)}
-											class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
+											class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
 										>
 											<svg
-												class="w-5 h-5 mr-3"
+												class="h-4.75 w-4.75 text-text-muted"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24"
