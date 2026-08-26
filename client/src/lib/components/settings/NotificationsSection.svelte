@@ -2,6 +2,7 @@
 	import type { ProfileDTO } from '$lib/api';
 	import { profileApi } from '$lib/api';
 	import ToggleSwitch from './ToggleSwitch.svelte';
+	import M3SettingsRow from './M3SettingsRow.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
 	import { pushStore } from '$lib/stores/push';
@@ -19,15 +20,26 @@
 	interface Props {
 		profile: ProfileDTO;
 		onProfileUpdated: (profile: ProfileDTO) => void;
+		/** Render the Android section header. The combined settings screen sets
+		 *  it; the standalone /notifications/settings route already has a page
+		 *  header with the same title. */
+		sectionHeader?: boolean;
 	}
 
-	let { profile, onProfileUpdated }: Props = $props();
+	let { profile, onProfileUpdated, sectionHeader = false }: Props = $props();
 
 	// iOS renders the grouped-inset channel groups from screen-SettingsIOS:
 	// one group per channel, subcategories on a recessed sub-surface that is
 	// only present while the channel is on. `platform` is a module constant,
 	// so this is a plain const, not $derived.
 	const IS_IOS = platform === 'ios';
+	const IS_ANDROID = platform === 'android';
+
+	// Mockup glyph paths (screen-SettingsAndroid).
+	const ICON_BELL_BODY = 'M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9';
+	const ICON_BELL_CLAPPER = 'M13.5 21a1.7 1.7 0 01-3 0';
+	const ICON_ENVELOPE_BOX = 'M3 5h18v14H3z';
+	const ICON_ENVELOPE_FLAP = 'M3 7l9 6 9-6';
 
 	type PreferenceKey =
 		| 'push_notifications_enabled'
@@ -183,7 +195,117 @@
 	}
 </script>
 
-{#if IS_IOS}
+{#if IS_ANDROID}
+	{#if sectionHeader}
+		<h2 class="text-label px-6 pt-1.5 pb-2 text-accent">
+			{tr('settings.sections.notifications')}
+		</h2>
+	{/if}
+
+	<M3SettingsRow
+		icon="{ICON_BELL_BODY} {ICON_BELL_CLAPPER}"
+		title={tr('settings.notifications.androidPush')}
+		subtitle={tr('settings.notifications.androidPushDesc')}
+	>
+		{#snippet trailing()}
+			<ToggleSwitch
+				bare
+				checked={preferences.push_notifications_enabled}
+				label={tr('settings.notifications.pushNotifications')}
+				isSaving={savingKeys.has('push_notifications_enabled')}
+				onToggle={() => handleToggle('push_notifications_enabled')}
+			/>
+		{/snippet}
+	</M3SettingsRow>
+
+	{#if $pushStore.permission === 'denied' && preferences.push_notifications_enabled}
+		<p class="px-6 pb-1 text-body-sm text-danger-500">
+			{tr('settings.pushNotifications.permissionDenied')}
+		</p>
+	{/if}
+
+	{#if preferences.push_notifications_enabled}
+		<div
+			data-testid="push-subcategories"
+			class="mx-6 mb-1 border-l-2 border-accent-100 pl-4"
+		>
+			<div class="flex items-center gap-3 px-2 py-2.5">
+				<span class="flex-1 text-body text-text-ink2">
+					{tr('settings.notifications.androidReminders')}
+				</span>
+				<ToggleSwitch
+					bare
+					checked={preferences.push_reminders_enabled}
+					label={tr('settings.notifications.pushReminders')}
+					isSaving={savingKeys.has('push_reminders_enabled')}
+					onToggle={() => handleToggle('push_reminders_enabled')}
+				/>
+			</div>
+			<div class="flex items-center gap-3 px-2 py-2.5">
+				<span class="flex-1 text-body text-text-ink2">
+					{tr('settings.notifications.androidSharing')}
+				</span>
+				<ToggleSwitch
+					bare
+					checked={preferences.push_sharing_enabled}
+					label={tr('settings.notifications.pushSharing')}
+					isSaving={savingKeys.has('push_sharing_enabled')}
+					onToggle={() => handleToggle('push_sharing_enabled')}
+				/>
+			</div>
+		</div>
+	{/if}
+
+	<M3SettingsRow
+		icon="{ICON_ENVELOPE_BOX} {ICON_ENVELOPE_FLAP}"
+		title={tr('settings.notifications.androidEmail')}
+		subtitle={tr('settings.notifications.androidEmailDesc', {
+			email: profile.email
+		})}
+	>
+		{#snippet trailing()}
+			<ToggleSwitch
+				bare
+				checked={preferences.email_notifications_enabled}
+				label={tr('settings.notifications.emailNotifications')}
+				isSaving={savingKeys.has('email_notifications_enabled')}
+				onToggle={() => handleToggle('email_notifications_enabled')}
+			/>
+		{/snippet}
+	</M3SettingsRow>
+
+	{#if preferences.email_notifications_enabled}
+		<div
+			data-testid="email-subcategories"
+			class="mx-6 mb-1 border-l-2 border-accent-100 pl-4"
+		>
+			<div class="flex items-center gap-3 px-2 py-2.5">
+				<span class="flex-1 text-body text-text-ink2">
+					{tr('settings.notifications.androidReminders')}
+				</span>
+				<ToggleSwitch
+					bare
+					checked={preferences.email_reminders_enabled}
+					label={tr('settings.notifications.emailReminders')}
+					isSaving={savingKeys.has('email_reminders_enabled')}
+					onToggle={() => handleToggle('email_reminders_enabled')}
+				/>
+			</div>
+			<div class="flex items-center gap-3 px-2 py-2.5">
+				<span class="flex-1 text-body text-text-ink2">
+					{tr('settings.notifications.androidSharing')}
+				</span>
+				<ToggleSwitch
+					bare
+					checked={preferences.email_sharing_enabled}
+					label={tr('settings.notifications.emailSharing')}
+					isSaving={savingKeys.has('email_sharing_enabled')}
+					onToggle={() => handleToggle('email_sharing_enabled')}
+				/>
+			</div>
+		</div>
+	{/if}
+{:else if IS_IOS}
 	<!-- Grouped-inset channel groups (screen-SettingsIOS). The subcategory
 	     block sits on the recessed sub-surface and is only rendered while its
 	     channel is on, exactly as the mockup's nested state shows. -->

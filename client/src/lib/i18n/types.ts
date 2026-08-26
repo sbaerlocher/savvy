@@ -883,6 +883,7 @@ export type TranslationKeys = {
 		password: {
 			title: string;
 			currentPassword: string;
+			androidSubtitle: string;
 			newPassword: string;
 			confirmPassword: string;
 			changeButton: string;
@@ -897,6 +898,7 @@ export type TranslationKeys = {
 		account: {
 			title: string;
 			memberSince: string;
+			memberSinceValue: string;
 			authProvider: string;
 			providerLocal: string;
 			providerOAuth: string;
@@ -910,6 +912,7 @@ export type TranslationKeys = {
 			title: string;
 			description: string;
 			button: string;
+			androidSubtitle: string;
 			downloading: string;
 			success: string;
 			error: string;
@@ -947,6 +950,7 @@ export type TranslationKeys = {
 		twoFactor: {
 			title: string;
 			description: string;
+			androidSubtitle: string;
 			enabled: string;
 			disabled: string;
 			enableButton: string;
@@ -990,6 +994,7 @@ export type TranslationKeys = {
 		sessions: {
 			title: string;
 			current: string;
+			androidCurrent: string;
 			lastActive: string;
 			revoke: string;
 			revokeOthers: string;
@@ -1005,6 +1010,12 @@ export type TranslationKeys = {
 		notifications: {
 			title: string;
 			pushNotifications: string;
+			androidPush: string;
+			androidPushDesc: string;
+			androidEmail: string;
+			androidEmailDesc: string;
+			androidReminders: string;
+			androidSharing: string;
 			pushNotificationsDesc: string;
 			pushReminders: string;
 			pushRemindersDesc: string;
@@ -1025,6 +1036,7 @@ export type TranslationKeys = {
 		dangerZone: {
 			title: string;
 			deleteAccount: string;
+			androidSubtitle: string;
 			deleteDescription: string;
 			deleteButton: string;
 			deleting: string;

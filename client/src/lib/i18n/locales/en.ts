@@ -931,6 +931,7 @@ export const en: TranslationKeys = {
 		},
 		password: {
 			title: 'Change Password',
+			androidSubtitle: 'Sign in with email and password',
 			currentPassword: 'Current Password',
 			newPassword: 'New Password',
 			confirmPassword: 'Confirm Password',
@@ -946,6 +947,7 @@ export const en: TranslationKeys = {
 		},
 		account: {
 			title: 'Account',
+			memberSinceValue: 'Member since {date}',
 			memberSince: 'Member since',
 			authProvider: 'Authentication',
 			providerLocal: 'Email & Password',
@@ -958,6 +960,7 @@ export const en: TranslationKeys = {
 		},
 		export: {
 			title: 'Data Export',
+			androidSubtitle: 'All your data as an archive',
 			description: 'Download all your data as a JSON file.',
 			button: 'Export data',
 			downloading: 'Downloading...',
@@ -997,6 +1000,7 @@ export const en: TranslationKeys = {
 		},
 		twoFactor: {
 			title: 'Two-Factor Authentication',
+			androidSubtitle: 'Authenticator app',
 			description:
 				'Add an extra layer of security to your account with an authenticator app.',
 			enabled: 'Two-factor authentication is enabled.',
@@ -1037,6 +1041,7 @@ export const en: TranslationKeys = {
 		},
 		sessions: {
 			title: 'Active Sessions',
+			androidCurrent: 'This device',
 			current: 'Current session',
 			lastActive: 'Last active',
 			revoke: 'Sign out',
@@ -1063,6 +1068,12 @@ export const en: TranslationKeys = {
 		},
 		notifications: {
 			title: 'Notifications',
+			androidPush: 'Push',
+			androidPushDesc: 'On this device',
+			androidEmail: 'Email',
+			androidEmailDesc: 'To {email}',
+			androidReminders: 'Reminders',
+			androidSharing: 'Sharing',
 			pushNotifications: 'Push notifications',
 			pushNotificationsDesc: 'Receive push notifications in your browser.',
 			pushReminders: 'Expiry & validity start',
@@ -1087,6 +1098,7 @@ export const en: TranslationKeys = {
 		},
 		dangerZone: {
 			title: 'Danger Zone',
+			androidSubtitle: 'Irreversible · GDPR Art. 17',
 			deleteAccount: 'Delete Account',
 			deleteDescription:
 				'Your account and all associated data will be permanently deleted. This action cannot be undone.',

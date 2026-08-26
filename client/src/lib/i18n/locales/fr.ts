@@ -959,6 +959,7 @@ export const fr: TranslationKeys = {
 		},
 		password: {
 			title: 'Changer le mot de passe',
+			androidSubtitle: 'Connexion par e-mail et mot de passe',
 			currentPassword: 'Mot de passe actuel',
 			newPassword: 'Nouveau mot de passe',
 			confirmPassword: 'Confirmer le mot de passe',
@@ -975,6 +976,7 @@ export const fr: TranslationKeys = {
 		},
 		account: {
 			title: 'Compte',
+			memberSinceValue: 'Membre depuis {date}',
 			memberSince: 'Membre depuis',
 			authProvider: 'Authentification',
 			providerLocal: 'E-mail et mot de passe',
@@ -987,6 +989,7 @@ export const fr: TranslationKeys = {
 		},
 		export: {
 			title: 'Export des données',
+			androidSubtitle: 'Toutes tes données sous forme d’archive',
 			description: 'Téléchargez toutes vos données sous forme de fichier JSON.',
 			button: 'Exporter les données',
 			downloading: 'Téléchargement...',
@@ -1026,6 +1029,7 @@ export const fr: TranslationKeys = {
 		},
 		twoFactor: {
 			title: 'Authentification à deux facteurs',
+			androidSubtitle: 'Application d’authentification',
 			description:
 				"Ajoutez une couche de sécurité supplémentaire à votre compte avec une application d'authentification.",
 			enabled: "L'authentification à deux facteurs est activée.",
@@ -1068,6 +1072,7 @@ export const fr: TranslationKeys = {
 		},
 		sessions: {
 			title: 'Sessions actives',
+			androidCurrent: 'Cet appareil',
 			current: 'Session actuelle',
 			lastActive: 'Dernière activité',
 			revoke: 'Déconnecter',
@@ -1095,6 +1100,12 @@ export const fr: TranslationKeys = {
 		},
 		notifications: {
 			title: 'Notifications',
+			androidPush: 'Push',
+			androidPushDesc: 'Sur cet appareil',
+			androidEmail: 'E-mail',
+			androidEmailDesc: 'À {email}',
+			androidReminders: 'Rappels',
+			androidSharing: 'Partage',
 			pushNotifications: 'Notifications push',
 			pushNotificationsDesc:
 				'Recevoir des notifications push dans votre navigateur.',
@@ -1121,6 +1132,7 @@ export const fr: TranslationKeys = {
 		},
 		dangerZone: {
 			title: 'Zone de danger',
+			androidSubtitle: 'Irréversible · RGPD art. 17',
 			deleteAccount: 'Supprimer le compte',
 			deleteDescription:
 				'Votre compte et toutes les données associées seront définitivement supprimés. Cette action est irréversible.',
