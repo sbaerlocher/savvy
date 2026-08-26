@@ -19,6 +19,40 @@
 			.replace(/database error/g, tr('settings.import.errorDatabase'));
 	}
 
+	// Desktop renders the ImportDesktop mockup: --surface panel on --radius-modal
+	// with --shadow-modal, mockup type steps mapped onto the nearest global token
+	// (13.5px -> --text-body / --text-label, 26px -> --text-title, 20px ->
+	// --text-heading) and taller token-radius buttons. The iOS and Android arms
+	// keep their current sizing, so every delta below is platform-gated.
+	const isDesktop = platform === 'other';
+	const descClass = isDesktop ? 'text-body' : 'text-sm';
+	const copyClass = isDesktop ? 'text-body' : 'text-sm';
+	const helperClass = isDesktop ? 'text-body-sm' : 'text-xs';
+	const promptClass = isDesktop
+		? 'text-body font-semibold'
+		: 'text-sm font-medium';
+	const copyGapClass = isDesktop ? 'mb-0.75' : 'mb-1';
+	const helperGapClass = isDesktop ? 'mb-3.5' : 'mb-3';
+	const hintGapClass = isDesktop ? 'gap-3.5' : 'gap-4';
+	const radioRowPadClass = isDesktop ? 'p-3.25' : 'p-3';
+	const radioClass = isDesktop ? 'size-4.5 accent-accent-600' : '';
+	const tileLabelClass = isDesktop ? 'text-xs mt-0.75' : 'text-xs';
+	const errorListClass = isDesktop ? 'space-y-1.25' : 'space-y-1';
+	const errorItemClass = isDesktop ? 'text-xs leading-snug' : 'text-xs';
+	const importingPadClass = isDesktop ? 'py-5' : 'py-8';
+	const bodyPadClass = isDesktop ? 'py-5' : 'py-4';
+	const tilePadClass = isDesktop ? 'p-3.5' : 'p-3';
+	const previewValueClass = isDesktop ? 'text-title' : 'text-2xl font-bold';
+	const resultValueClass = isDesktop ? 'text-heading' : 'text-lg font-bold';
+	const footerGapClass = isDesktop ? 'gap-2.5' : 'gap-3';
+	const ctaClass = isDesktop
+		? 'text-label h-10 rounded-lg shadow-accent'
+		: 'text-sm';
+	const footerGhostClass = isDesktop ? 'text-label h-11 rounded-lg' : '';
+	const footerPrimaryClass = isDesktop
+		? 'text-label h-11 rounded-lg shadow-accent'
+		: '';
+
 	type Step = 'select' | 'csv-type' | 'preview' | 'importing' | 'result';
 	type CSVType = 'cards' | 'vouchers' | 'gift-cards';
 
@@ -187,7 +221,7 @@
 			? 'liquid-glass-surface rounded-2xl'
 			: platform === 'android'
 				? 'bg-m3-surface-container rounded-m3-xl shadow-m3-dialog'
-				: 'bg-white rounded-xl shadow-2xl'}"
+				: 'bg-surface rounded-modal shadow-modal'}"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => e.stopPropagation()}
 		role="document"
@@ -197,13 +231,13 @@
 			<h3 id="import-dialog-title" class="text-lg font-semibold text-text">
 				{tr('settings.import.title')}
 			</h3>
-			<p class="mt-1 text-sm text-text-subtle">
+			<p class="mt-1 {descClass} text-text-subtle">
 				{tr('settings.import.description')}
 			</p>
 		</div>
 
 		<!-- Body -->
-		<div class="px-6 py-4">
+		<div class="px-6 {bodyPadClass}">
 			{#if step === 'select'}
 				<!-- File Selection -->
 				<div
@@ -216,7 +250,9 @@
 					role="region"
 				>
 					<svg
-						class="mx-auto w-12 h-12 text-text-faint mb-3"
+						class="mx-auto w-12 h-12 mb-3 {isDesktop && isDragging
+							? 'text-accent'
+							: 'text-text-faint'}"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -228,16 +264,16 @@
 							d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 						/>
 					</svg>
-					<p class="text-sm text-text-muted mb-1">
+					<p class="{copyClass} text-text-muted {copyGapClass}">
 						{tr('settings.import.dragDrop')}
 					</p>
-					<p class="text-xs text-text-faint mb-3">
+					<p class="{helperClass} text-text-faint {helperGapClass}">
 						{tr('settings.import.orClickToSelect')}
 					</p>
 					<button
 						type="button"
 						onclick={() => fileInput?.click()}
-						class="btn btn-primary text-sm"
+						class="btn btn-primary {ctaClass}"
 					>
 						{tr('settings.import.selectFile')}
 					</button>
@@ -248,7 +284,9 @@
 						onchange={handleFileSelect}
 						class="hidden"
 					/>
-					<div class="mt-4 flex justify-center gap-4 text-xs text-text-faint">
+					<div
+						class="mt-4 flex justify-center {hintGapClass} {helperClass} text-text-faint"
+					>
 						<span>{tr('settings.import.jsonFormat')}</span>
 						<span>|</span>
 						<span>{tr('settings.import.csvFormat')}</span>
@@ -257,13 +295,13 @@
 			{:else if step === 'csv-type'}
 				<!-- CSV Resource Type Selection -->
 				<div class="space-y-4">
-					<p class="text-sm font-medium text-text-ink2">
+					<p class="{promptClass} text-text-ink2">
 						{tr('settings.import.csvResourceType')}
 					</p>
 					<div class="space-y-2">
 						{#each [{ value: 'cards' as CSVType, label: tr('settings.import.csvCards') }, { value: 'vouchers' as CSVType, label: tr('settings.import.csvVouchers') }, { value: 'gift-cards' as CSVType, label: tr('settings.import.csvGiftCards') }] as option (option.value)}
 							<label
-								class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors {csvType ===
+								class="flex items-center gap-3 {radioRowPadClass} rounded-lg border cursor-pointer transition-colors {csvType ===
 								option.value
 									? 'border-accent bg-accent-50'
 									: 'border-border hover:border-border-field'}"
@@ -274,9 +312,9 @@
 									value={option.value}
 									checked={csvType === option.value}
 									onchange={() => (csvType = option.value)}
-									class="text-accent focus:ring-accent"
+									class="text-accent focus:ring-accent {radioClass}"
 								/>
-								<span class="text-sm text-text-ink2">{option.label}</span>
+								<span class="{copyClass} text-text-ink2">{option.label}</span>
 							</label>
 						{/each}
 					</div>
@@ -289,37 +327,39 @@
 			{:else if step === 'preview'}
 				<!-- JSON Preview -->
 				<div class="space-y-4">
-					<h4 class="text-sm font-medium text-text-ink2">
+					<h4 class="{promptClass} text-text-ink2">
 						{tr('settings.import.preview')}
 					</h4>
 					{#if preview}
 						<div class="grid grid-cols-3 gap-3">
 							{#if preview.cards > 0}
-								<div class="bg-accent-50 rounded-lg p-3 text-center">
-									<div class="text-2xl font-bold text-accent">
+								<div class="bg-accent-50 rounded-lg {tilePadClass} text-center">
+									<div class="{previewValueClass} text-accent">
 										{preview.cards}
 									</div>
-									<div class="text-xs text-accent">
+									<div class="{tileLabelClass} text-accent">
 										{tr('settings.import.previewCards')}
 									</div>
 								</div>
 							{/if}
 							{#if preview.vouchers > 0}
-								<div class="bg-success-50 rounded-lg p-3 text-center">
-									<div class="text-2xl font-bold text-success-600">
+								<div
+									class="bg-success-50 rounded-lg {tilePadClass} text-center"
+								>
+									<div class="{previewValueClass} text-success-600">
 										{preview.vouchers}
 									</div>
-									<div class="text-xs text-success-500">
+									<div class="{tileLabelClass} text-success-500">
 										{tr('settings.import.previewVouchers')}
 									</div>
 								</div>
 							{/if}
 							{#if preview.gift_cards > 0}
-								<div class="bg-purple-50 rounded-lg p-3 text-center">
-									<div class="text-2xl font-bold text-purple-600">
+								<div class="bg-purple-50 rounded-lg {tilePadClass} text-center">
+									<div class="{previewValueClass} text-purple-600">
 										{preview.gift_cards}
 									</div>
-									<div class="text-xs text-purple-500">
+									<div class="{tileLabelClass} text-purple-500">
 										{tr('settings.import.previewGiftCards')}
 									</div>
 								</div>
@@ -334,7 +374,7 @@
 				</div>
 			{:else if step === 'importing'}
 				<!-- Importing Progress -->
-				<div class="flex flex-col items-center py-8">
+				<div class="flex flex-col items-center {importingPadClass}">
 					<span class="relative inline-flex h-6 w-6 mb-4"
 						><span
 							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
@@ -342,7 +382,7 @@
 							class="relative inline-flex rounded-full h-6 w-6 bg-accent"
 						></span></span
 					>
-					<p class="text-sm text-text-muted">
+					<p class="{copyClass} text-text-muted">
 						{tr('settings.import.importing')}
 					</p>
 				</div>
@@ -352,44 +392,44 @@
 					<div class="space-y-4">
 						<div class="grid grid-cols-2 gap-3">
 							{#if result.cards_imported > 0}
-								<div class="bg-accent-50 rounded-lg p-3">
-									<div class="text-lg font-bold text-accent">
+								<div class="bg-accent-50 rounded-lg {tilePadClass}">
+									<div class="{resultValueClass} text-accent">
 										{result.cards_imported}
 									</div>
-									<div class="text-xs text-accent">
+									<div class="{tileLabelClass} text-accent">
 										{tr('settings.import.previewCards')}
 										{tr('settings.import.imported').toLowerCase()}
 									</div>
 								</div>
 							{/if}
 							{#if result.vouchers_imported > 0}
-								<div class="bg-success-50 rounded-lg p-3">
-									<div class="text-lg font-bold text-success-600">
+								<div class="bg-success-50 rounded-lg {tilePadClass}">
+									<div class="{resultValueClass} text-success-600">
 										{result.vouchers_imported}
 									</div>
-									<div class="text-xs text-success-500">
+									<div class="{tileLabelClass} text-success-500">
 										{tr('settings.import.previewVouchers')}
 										{tr('settings.import.imported').toLowerCase()}
 									</div>
 								</div>
 							{/if}
 							{#if result.gift_cards_imported > 0}
-								<div class="bg-purple-50 rounded-lg p-3">
-									<div class="text-lg font-bold text-purple-600">
+								<div class="bg-purple-50 rounded-lg {tilePadClass}">
+									<div class="{resultValueClass} text-purple-600">
 										{result.gift_cards_imported}
 									</div>
-									<div class="text-xs text-purple-500">
+									<div class="{tileLabelClass} text-purple-500">
 										{tr('settings.import.previewGiftCards')}
 										{tr('settings.import.imported').toLowerCase()}
 									</div>
 								</div>
 							{/if}
 							{#if result.skipped > 0}
-								<div class="bg-warning-50 rounded-lg p-3">
-									<div class="text-lg font-bold text-warning-600">
+								<div class="bg-warning-50 rounded-lg {tilePadClass}">
+									<div class="{resultValueClass} text-warning-600">
 										{result.skipped}
 									</div>
-									<div class="text-xs text-warning-500">
+									<div class="{tileLabelClass} text-warning-500">
 										{tr('settings.import.skipped')}
 									</div>
 								</div>
@@ -397,13 +437,13 @@
 						</div>
 
 						{#if result.errors && result.errors.length > 0}
-							<div class="border border-danger-200 rounded-lg p-3">
-								<h4 class="text-sm font-medium text-danger-700 mb-2">
+							<div class="border border-danger-200 rounded-lg {tilePadClass}">
+								<h4 class="{promptClass} text-danger-700 mb-2">
 									{tr('settings.import.errors')}
 								</h4>
-								<ul class="space-y-1 max-h-32 overflow-y-auto">
+								<ul class="{errorListClass} max-h-32 overflow-y-auto">
 									{#each result.errors as error (`${error.row ?? ''}-${error.field ?? ''}-${error.message}`)}
-										<li class="text-xs text-danger-600">
+										<li class="{errorItemClass} text-danger-600">
 											{#if error.row}{tr('settings.import.row', {
 													row: error.row
 												})}:
@@ -420,24 +460,44 @@
 
 		<!-- Footer -->
 		<div
-			class="px-6 pb-6 flex justify-end gap-3 border-t border-border-soft pt-4"
+			class="px-6 pb-6 flex justify-end {footerGapClass} border-t border-border-soft pt-4"
 		>
 			{#if step === 'select' || step === 'result'}
-				<button type="button" onclick={handleClose} class="btn btn-ghost">
+				<button
+					type="button"
+					onclick={handleClose}
+					class="btn btn-ghost {footerGhostClass}"
+				>
 					{tr('settings.import.close')}
 				</button>
 			{:else if step === 'csv-type'}
-				<button type="button" onclick={reset} class="btn btn-ghost">
+				<button
+					type="button"
+					onclick={reset}
+					class="btn btn-ghost {footerGhostClass}"
+				>
 					{tr('common.back')}
 				</button>
-				<button type="button" onclick={startImport} class="btn btn-primary">
+				<button
+					type="button"
+					onclick={startImport}
+					class="btn btn-primary {footerPrimaryClass}"
+				>
 					{tr('settings.import.button')}
 				</button>
 			{:else if step === 'preview'}
-				<button type="button" onclick={reset} class="btn btn-ghost">
+				<button
+					type="button"
+					onclick={reset}
+					class="btn btn-ghost {footerGhostClass}"
+				>
 					{tr('common.back')}
 				</button>
-				<button type="button" onclick={startImport} class="btn btn-primary">
+				<button
+					type="button"
+					onclick={startImport}
+					class="btn btn-primary {footerPrimaryClass}"
+				>
 					{tr('settings.import.button')}
 				</button>
 			{/if}
