@@ -700,12 +700,10 @@
 			</div>
 		</div>
 
-		<!-- Grid with optional Side-Panel -->
-		<div
-			class="grid grid-cols-1 {showFilterMenu ? 'lg:grid-cols-4' : ''} gap-6"
-		>
-			<!-- Users Table (3/4 when filter is open on desktop) -->
-			<div class={showFilterMenu ? 'lg:col-span-3' : ''}>
+		<!-- Filters live in the bottom sheet on the native platforms, so no
+		     column is reserved for a side panel here. -->
+		<div class="grid grid-cols-1 gap-6">
+			<div>
 				{#if isLoading}
 					<LoadingSpinner />
 				{:else if filteredUsers.length === 0}
@@ -933,6 +931,7 @@
 		onClose={() => (showFilterMenu = false)}
 		maxHeight="80vh"
 		ariaLabel={$t('common.filter')}
+		allowWide={!DESKTOP}
 	>
 		<div class="p-6">
 			<div class="flex items-center justify-between mb-4">
