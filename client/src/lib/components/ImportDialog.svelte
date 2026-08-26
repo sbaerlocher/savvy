@@ -22,29 +22,69 @@
 	// Desktop renders the ImportDesktop mockup: --surface panel on --radius-modal
 	// with --shadow-modal, mockup type steps mapped onto the nearest global token
 	// (13.5px -> --text-body / --text-label, 26px -> --text-title, 20px ->
-	// --text-heading) and taller token-radius buttons. The iOS and Android arms
-	// keep their current sizing, so every delta below is platform-gated.
+	// --text-heading) and taller token-radius buttons. Android renders the
+	// ImportAndroid mockup: a tonal M3 high-container panel on the M3 shape
+	// scale, pill actions and a text button. The iOS arm keeps its current
+	// sizing, so every delta below is platform-gated. Both flags are module
+	// constants because the platform is fixed for the session.
 	const isDesktop = platform === 'other';
-	const descClass = isDesktop ? 'text-body' : 'text-sm';
+	const isAndroid = platform === 'android';
+	const descClass = isDesktop
+		? 'text-body'
+		: isAndroid
+			? 'text-label font-normal'
+			: 'text-sm';
 	const copyClass = isDesktop ? 'text-body' : 'text-sm';
 	const helperClass = isDesktop ? 'text-body-sm' : 'text-xs';
 	const promptClass = isDesktop
 		? 'text-body font-semibold'
 		: 'text-sm font-medium';
+	const titleClass = isAndroid
+		? 'text-heading font-semibold'
+		: 'text-lg font-semibold';
+	const descGapClass = isAndroid ? 'mt-1.25' : 'mt-1';
 	const copyGapClass = isDesktop ? 'mb-0.75' : 'mb-1';
 	const helperGapClass = isDesktop ? 'mb-3.5' : 'mb-3';
-	const hintGapClass = isDesktop ? 'gap-3.5' : 'gap-4';
+	const hintGapClass = isDesktop ? 'gap-3.5' : isAndroid ? 'gap-2.5' : 'gap-4';
+	const dropZoneClass = isAndroid
+		? 'rounded-m3-md px-4.5 py-6.5'
+		: 'rounded-lg p-8';
 	const radioRowPadClass = isDesktop ? 'p-3.25' : 'p-3';
+	const radioRowRadiusClass = isAndroid ? 'rounded-m3-md' : 'rounded-lg';
 	const radioClass = isDesktop ? 'size-4.5 accent-accent-600' : '';
+	const androidRadioClass = (selected: boolean) =>
+		`rounded-m3-full h-4.5 w-4.5 flex-none appearance-none border-2 bg-clip-content p-0.75 ${
+			selected ? 'border-accent-600 bg-accent-600' : 'border-border-field'
+		}`;
 	const tileLabelClass = isDesktop ? 'text-xs mt-0.75' : 'text-xs';
 	const errorListClass = isDesktop ? 'space-y-1.25' : 'space-y-1';
 	const errorItemClass = isDesktop ? 'text-xs leading-snug' : 'text-xs';
-	const importingPadClass = isDesktop ? 'py-5' : 'py-8';
-	const bodyPadClass = isDesktop ? 'py-5' : 'py-4';
+	const importingPadClass = isDesktop ? 'py-5' : isAndroid ? 'py-8.5' : 'py-8';
+	const bodyPadClass = isDesktop ? 'py-5' : isAndroid ? 'py-4.5' : 'py-4';
 	const tilePadClass = isDesktop ? 'p-3.5' : 'p-3';
+	// The preview tiles sit three to a row, so Android trims the horizontal
+	// padding the mockup gives them to keep the widest label on one line.
+	const previewTilePadClass = isDesktop
+		? 'p-3.5'
+		: isAndroid
+			? 'px-1 py-3'
+			: 'p-3';
+	const tileRadiusClass = isAndroid ? 'rounded-m3-md' : 'rounded-lg';
+	const tileGapClass = isAndroid ? 'gap-2.5' : 'gap-3';
 	const previewValueClass = isDesktop ? 'text-title' : 'text-2xl font-bold';
 	const resultValueClass = isDesktop ? 'text-heading' : 'text-lg font-bold';
-	const footerGapClass = isDesktop ? 'gap-2.5' : 'gap-3';
+	const footerGapClass = isDesktop
+		? 'gap-2.5'
+		: isAndroid
+			? 'gap-1.5'
+			: 'gap-3';
+	const footerPadClass = isAndroid ? 'px-5 pt-3.5 pb-5' : 'px-6 pb-6 pt-4';
+	// M3 dialog actions: a text button and a filled pill, matching the
+	// convention already used by the gift-card ledger sheet on Android.
+	const androidGhostClass =
+		'text-label text-accent-700 rounded-m3-full inline-flex h-10 items-center px-3.5';
+	const androidPrimaryClass =
+		'bg-accent-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center px-5';
 	const ctaClass = isDesktop
 		? 'text-label h-10 rounded-lg shadow-accent'
 		: 'text-sm';
@@ -52,6 +92,12 @@
 	const footerPrimaryClass = isDesktop
 		? 'text-label h-11 rounded-lg shadow-accent'
 		: '';
+	const ghostButtonClass = isAndroid
+		? androidGhostClass
+		: `btn btn-ghost ${footerGhostClass}`;
+	const primaryButtonClass = isAndroid
+		? androidPrimaryClass
+		: `btn btn-primary ${footerPrimaryClass}`;
 
 	type Step = 'select' | 'csv-type' | 'preview' | 'importing' | 'result';
 	type CSVType = 'cards' | 'vouchers' | 'gift-cards';
@@ -212,26 +258,27 @@
 	onclose={handleClose}
 	layer="elevated"
 	mobileLayout="center"
+	clearBottomNav={!isAndroid}
 	labelledby="import-dialog-title"
 >
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="pointer-events-auto max-w-lg w-full max-h-[90vh] overflow-y-auto {platform ===
+		class="pointer-events-auto w-full max-h-[90vh] overflow-y-auto {platform ===
 		'ios'
-			? 'liquid-glass-surface rounded-2xl'
-			: platform === 'android'
-				? 'bg-m3-surface-container rounded-m3-xl shadow-m3-dialog'
-				: 'bg-surface rounded-modal shadow-modal'}"
+			? 'liquid-glass-surface rounded-2xl max-w-lg'
+			: isAndroid
+				? 'bg-m3-surface-container-high rounded-m3-xl shadow-m3-dialog max-w-sm'
+				: 'bg-surface rounded-modal shadow-modal max-w-lg'}"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={(e) => e.stopPropagation()}
 		role="document"
 	>
 		<!-- Header -->
 		<div class="px-6 pt-6 pb-4 border-b border-border-soft">
-			<h3 id="import-dialog-title" class="text-lg font-semibold text-text">
+			<h3 id="import-dialog-title" class="{titleClass} text-text">
 				{tr('settings.import.title')}
 			</h3>
-			<p class="mt-1 {descClass} text-text-subtle">
+			<p class="{descGapClass} {descClass} text-text-subtle">
 				{tr('settings.import.description')}
 			</p>
 		</div>
@@ -241,7 +288,7 @@
 			{#if step === 'select'}
 				<!-- File Selection -->
 				<div
-					class="border-2 border-dashed rounded-lg p-8 text-center transition-colors {isDragging
+					class="border-2 border-dashed {dropZoneClass} text-center transition-colors {isDragging
 						? 'border-accent bg-accent-50'
 						: 'border-border-field hover:border-text-faint'}"
 					ondragover={handleDragOver}
@@ -273,7 +320,9 @@
 					<button
 						type="button"
 						onclick={() => fileInput?.click()}
-						class="btn btn-primary {ctaClass}"
+						class={isAndroid
+							? androidPrimaryClass
+							: `btn btn-primary ${ctaClass}`}
 					>
 						{tr('settings.import.selectFile')}
 					</button>
@@ -301,7 +350,7 @@
 					<div class="space-y-2">
 						{#each [{ value: 'cards' as CSVType, label: tr('settings.import.csvCards') }, { value: 'vouchers' as CSVType, label: tr('settings.import.csvVouchers') }, { value: 'gift-cards' as CSVType, label: tr('settings.import.csvGiftCards') }] as option (option.value)}
 							<label
-								class="flex items-center gap-3 {radioRowPadClass} rounded-lg border cursor-pointer transition-colors {csvType ===
+								class="flex items-center gap-3 {radioRowPadClass} {radioRowRadiusClass} border cursor-pointer transition-colors {csvType ===
 								option.value
 									? 'border-accent bg-accent-50'
 									: 'border-border hover:border-border-field'}"
@@ -312,7 +361,9 @@
 									value={option.value}
 									checked={csvType === option.value}
 									onchange={() => (csvType = option.value)}
-									class="text-accent focus:ring-accent {radioClass}"
+									class={isAndroid
+										? androidRadioClass(csvType === option.value)
+										: `text-accent focus:ring-accent ${radioClass}`}
 								/>
 								<span class="{copyClass} text-text-ink2">{option.label}</span>
 							</label>
@@ -331,9 +382,11 @@
 						{tr('settings.import.preview')}
 					</h4>
 					{#if preview}
-						<div class="grid grid-cols-3 gap-3">
+						<div class="grid grid-cols-3 {tileGapClass}">
 							{#if preview.cards > 0}
-								<div class="bg-accent-50 rounded-lg {tilePadClass} text-center">
+								<div
+									class="bg-accent-50 {tileRadiusClass} {previewTilePadClass} text-center"
+								>
 									<div class="{previewValueClass} text-accent">
 										{preview.cards}
 									</div>
@@ -344,7 +397,7 @@
 							{/if}
 							{#if preview.vouchers > 0}
 								<div
-									class="bg-success-50 rounded-lg {tilePadClass} text-center"
+									class="bg-success-50 {tileRadiusClass} {previewTilePadClass} text-center"
 								>
 									<div class="{previewValueClass} text-success-600">
 										{preview.vouchers}
@@ -355,7 +408,9 @@
 								</div>
 							{/if}
 							{#if preview.gift_cards > 0}
-								<div class="bg-purple-50 rounded-lg {tilePadClass} text-center">
+								<div
+									class="bg-purple-50 {tileRadiusClass} {previewTilePadClass} text-center"
+								>
 									<div class="{previewValueClass} text-purple-600">
 										{preview.gift_cards}
 									</div>
@@ -390,9 +445,9 @@
 				<!-- Import Result -->
 				{#if result}
 					<div class="space-y-4">
-						<div class="grid grid-cols-2 gap-3">
+						<div class="grid grid-cols-2 {tileGapClass}">
 							{#if result.cards_imported > 0}
-								<div class="bg-accent-50 rounded-lg {tilePadClass}">
+								<div class="bg-accent-50 {tileRadiusClass} {tilePadClass}">
 									<div class="{resultValueClass} text-accent">
 										{result.cards_imported}
 									</div>
@@ -403,7 +458,7 @@
 								</div>
 							{/if}
 							{#if result.vouchers_imported > 0}
-								<div class="bg-success-50 rounded-lg {tilePadClass}">
+								<div class="bg-success-50 {tileRadiusClass} {tilePadClass}">
 									<div class="{resultValueClass} text-success-600">
 										{result.vouchers_imported}
 									</div>
@@ -414,7 +469,7 @@
 								</div>
 							{/if}
 							{#if result.gift_cards_imported > 0}
-								<div class="bg-purple-50 rounded-lg {tilePadClass}">
+								<div class="bg-purple-50 {tileRadiusClass} {tilePadClass}">
 									<div class="{resultValueClass} text-purple-600">
 										{result.gift_cards_imported}
 									</div>
@@ -425,7 +480,7 @@
 								</div>
 							{/if}
 							{#if result.skipped > 0}
-								<div class="bg-warning-50 rounded-lg {tilePadClass}">
+								<div class="bg-warning-50 {tileRadiusClass} {tilePadClass}">
 									<div class="{resultValueClass} text-warning-600">
 										{result.skipped}
 									</div>
@@ -437,7 +492,9 @@
 						</div>
 
 						{#if result.errors && result.errors.length > 0}
-							<div class="border border-danger-200 rounded-lg {tilePadClass}">
+							<div
+								class="border border-danger-200 {tileRadiusClass} {tilePadClass}"
+							>
 								<h4 class="{promptClass} text-danger-700 mb-2">
 									{tr('settings.import.errors')}
 								</h4>
@@ -460,44 +517,24 @@
 
 		<!-- Footer -->
 		<div
-			class="px-6 pb-6 flex justify-end {footerGapClass} border-t border-border-soft pt-4"
+			class="{footerPadClass} flex justify-end {footerGapClass} border-t border-border-soft"
 		>
 			{#if step === 'select' || step === 'result'}
-				<button
-					type="button"
-					onclick={handleClose}
-					class="btn btn-ghost {footerGhostClass}"
-				>
+				<button type="button" onclick={handleClose} class={ghostButtonClass}>
 					{tr('settings.import.close')}
 				</button>
 			{:else if step === 'csv-type'}
-				<button
-					type="button"
-					onclick={reset}
-					class="btn btn-ghost {footerGhostClass}"
-				>
+				<button type="button" onclick={reset} class={ghostButtonClass}>
 					{tr('common.back')}
 				</button>
-				<button
-					type="button"
-					onclick={startImport}
-					class="btn btn-primary {footerPrimaryClass}"
-				>
+				<button type="button" onclick={startImport} class={primaryButtonClass}>
 					{tr('settings.import.button')}
 				</button>
 			{:else if step === 'preview'}
-				<button
-					type="button"
-					onclick={reset}
-					class="btn btn-ghost {footerGhostClass}"
-				>
+				<button type="button" onclick={reset} class={ghostButtonClass}>
 					{tr('common.back')}
 				</button>
-				<button
-					type="button"
-					onclick={startImport}
-					class="btn btn-primary {footerPrimaryClass}"
-				>
+				<button type="button" onclick={startImport} class={primaryButtonClass}>
 					{tr('settings.import.button')}
 				</button>
 			{/if}
