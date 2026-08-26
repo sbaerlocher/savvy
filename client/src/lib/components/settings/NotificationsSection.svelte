@@ -7,6 +7,7 @@
 	import { pushStore } from '$lib/stores/push';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
 	import { onMount, onDestroy } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { get } from 'svelte/store';
@@ -21,6 +22,12 @@
 	}
 
 	let { profile, onProfileUpdated }: Props = $props();
+
+	// iOS renders the grouped-inset channel groups from screen-SettingsIOS:
+	// one group per channel, subcategories on a recessed sub-surface that is
+	// only present while the channel is on. `platform` is a module constant,
+	// so this is a plain const, not $derived.
+	const IS_IOS = platform === 'ios';
 
 	type PreferenceKey =
 		| 'push_notifications_enabled'
@@ -176,84 +183,216 @@
 	}
 </script>
 
-<div>
-	<div class="overflow-hidden rounded-xl border border-border bg-white">
-		<div class="p-6">
-			<h3 class="text-lg font-semibold text-text mb-4">
-				{tr('settings.notifications.title')}
-			</h3>
+{#if IS_IOS}
+	<!-- Grouped-inset channel groups (screen-SettingsIOS). The subcategory
+	     block sits on the recessed sub-surface and is only rendered while its
+	     channel is on, exactly as the mockup's nested state shows. -->
+	<p class="px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle">
+		{tr('settings.notifications.title')}
+	</p>
 
-			<!-- Push Notifications Channel -->
+	<div class="mb-3.5 overflow-hidden rounded-inset bg-surface">
+		<div class="flex items-center gap-3 px-4 py-3.5">
+			<span class="flex-1">
+				<span
+					class="block text-[length:var(--text-code)] font-normal text-text"
+				>
+					{tr('settings.notifications.pushNotifications')}
+				</span>
+				<span class="mt-0.25 block text-body-sm text-text-subtle">
+					{tr('settings.notifications.pushNotificationsDesc')}
+				</span>
+			</span>
 			<ToggleSwitch
+				bare
 				checked={preferences.push_notifications_enabled}
 				label={tr('settings.notifications.pushNotifications')}
-				description={tr('settings.notifications.pushNotificationsDesc')}
 				isSaving={savingKeys.has('push_notifications_enabled')}
 				onToggle={() => handleToggle('push_notifications_enabled')}
 			/>
+		</div>
 
-			{#if $pushStore.permission === 'denied' && preferences.push_notifications_enabled}
-				<p class="text-xs text-danger-500 mt-2">
-					{tr('settings.pushNotifications.permissionDenied')}
-				</p>
-			{/if}
+		{#if $pushStore.permission === 'denied' && preferences.push_notifications_enabled}
+			<p class="px-4 pb-3 text-body-sm text-danger-500">
+				{tr('settings.pushNotifications.permissionDenied')}
+			</p>
+		{/if}
 
-			<!-- Push subcategories -->
-			{#if preferences.push_notifications_enabled}
+		{#if preferences.push_notifications_enabled}
+			<div
+				data-testid="push-subcategories"
+				class="border-t border-border-soft bg-surface-2"
+			>
 				<div
-					data-testid="push-subcategories"
-					class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
+					class="flex items-center gap-3 border-b border-border-soft py-3 pl-7.5 pr-4"
 				>
+					<span class="flex-1 text-body text-text-ink2">
+						{tr('settings.notifications.pushReminders')}
+					</span>
 					<ToggleSwitch
+						bare
 						checked={preferences.push_reminders_enabled}
 						label={tr('settings.notifications.pushReminders')}
-						description={tr('settings.notifications.pushRemindersDesc')}
 						isSaving={savingKeys.has('push_reminders_enabled')}
 						onToggle={() => handleToggle('push_reminders_enabled')}
 					/>
+				</div>
+				<div class="flex items-center gap-3 py-3 pl-7.5 pr-4">
+					<span class="flex-1 text-body text-text-ink2">
+						{tr('settings.notifications.pushSharing')}
+					</span>
 					<ToggleSwitch
+						bare
 						checked={preferences.push_sharing_enabled}
 						label={tr('settings.notifications.pushSharing')}
-						description={tr('settings.notifications.pushSharingDesc')}
 						isSaving={savingKeys.has('push_sharing_enabled')}
 						onToggle={() => handleToggle('push_sharing_enabled')}
 					/>
 				</div>
-			{/if}
-
-			<!-- Email Notifications Channel -->
-			<div class="mt-4 pt-4 border-t border-border-soft">
-				<ToggleSwitch
-					checked={preferences.email_notifications_enabled}
-					label={tr('settings.notifications.emailNotifications')}
-					description={tr('settings.notifications.emailNotificationsDesc')}
-					isSaving={savingKeys.has('email_notifications_enabled')}
-					onToggle={() => handleToggle('email_notifications_enabled')}
-				/>
 			</div>
+		{/if}
+	</div>
 
-			<!-- Email subcategories -->
-			{#if preferences.email_notifications_enabled}
-				<div
-					data-testid="email-subcategories"
-					class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
+	<div class="mb-2 overflow-hidden rounded-inset bg-surface">
+		<div class="flex items-center gap-3 px-4 py-3.5">
+			<span class="flex-1">
+				<span
+					class="block text-[length:var(--text-code)] font-normal text-text"
 				>
+					{tr('settings.notifications.emailNotifications')}
+				</span>
+				<!-- Mockup shows the real target address on this subtitle. -->
+				<span class="mt-0.25 block text-body-sm text-text-subtle">
+					{profile.email}
+				</span>
+			</span>
+			<ToggleSwitch
+				bare
+				checked={preferences.email_notifications_enabled}
+				label={tr('settings.notifications.emailNotifications')}
+				isSaving={savingKeys.has('email_notifications_enabled')}
+				onToggle={() => handleToggle('email_notifications_enabled')}
+			/>
+		</div>
+
+		{#if preferences.email_notifications_enabled}
+			<div
+				data-testid="email-subcategories"
+				class="border-t border-border-soft bg-surface-2"
+			>
+				<div
+					class="flex items-center gap-3 border-b border-border-soft py-3 pl-7.5 pr-4"
+				>
+					<span class="flex-1 text-body text-text-ink2">
+						{tr('settings.notifications.emailReminders')}
+					</span>
 					<ToggleSwitch
+						bare
 						checked={preferences.email_reminders_enabled}
 						label={tr('settings.notifications.emailReminders')}
-						description={tr('settings.notifications.emailRemindersDesc')}
 						isSaving={savingKeys.has('email_reminders_enabled')}
 						onToggle={() => handleToggle('email_reminders_enabled')}
 					/>
+				</div>
+				<div class="flex items-center gap-3 py-3 pl-7.5 pr-4">
+					<span class="flex-1 text-body text-text-ink2">
+						{tr('settings.notifications.emailSharing')}
+					</span>
 					<ToggleSwitch
+						bare
 						checked={preferences.email_sharing_enabled}
 						label={tr('settings.notifications.emailSharing')}
-						description={tr('settings.notifications.emailSharingDesc')}
 						isSaving={savingKeys.has('email_sharing_enabled')}
 						onToggle={() => handleToggle('email_sharing_enabled')}
 					/>
 				</div>
-			{/if}
+			</div>
+		{/if}
+	</div>
+
+	<p class="px-1.5 text-body-sm text-text-faint">
+		{tr('settings.notifications.ios.subcategoryHint')}
+	</p>
+{:else}
+	<div>
+		<div class="overflow-hidden rounded-xl border border-border bg-white">
+			<div class="p-6">
+				<h3 class="text-lg font-semibold text-text mb-4">
+					{tr('settings.notifications.title')}
+				</h3>
+
+				<!-- Push Notifications Channel -->
+				<ToggleSwitch
+					checked={preferences.push_notifications_enabled}
+					label={tr('settings.notifications.pushNotifications')}
+					description={tr('settings.notifications.pushNotificationsDesc')}
+					isSaving={savingKeys.has('push_notifications_enabled')}
+					onToggle={() => handleToggle('push_notifications_enabled')}
+				/>
+
+				{#if $pushStore.permission === 'denied' && preferences.push_notifications_enabled}
+					<p class="text-xs text-danger-500 mt-2">
+						{tr('settings.pushNotifications.permissionDenied')}
+					</p>
+				{/if}
+
+				<!-- Push subcategories -->
+				{#if preferences.push_notifications_enabled}
+					<div
+						data-testid="push-subcategories"
+						class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
+					>
+						<ToggleSwitch
+							checked={preferences.push_reminders_enabled}
+							label={tr('settings.notifications.pushReminders')}
+							description={tr('settings.notifications.pushRemindersDesc')}
+							isSaving={savingKeys.has('push_reminders_enabled')}
+							onToggle={() => handleToggle('push_reminders_enabled')}
+						/>
+						<ToggleSwitch
+							checked={preferences.push_sharing_enabled}
+							label={tr('settings.notifications.pushSharing')}
+							description={tr('settings.notifications.pushSharingDesc')}
+							isSaving={savingKeys.has('push_sharing_enabled')}
+							onToggle={() => handleToggle('push_sharing_enabled')}
+						/>
+					</div>
+				{/if}
+
+				<!-- Email Notifications Channel -->
+				<div class="mt-4 pt-4 border-t border-border-soft">
+					<ToggleSwitch
+						checked={preferences.email_notifications_enabled}
+						label={tr('settings.notifications.emailNotifications')}
+						description={tr('settings.notifications.emailNotificationsDesc')}
+						isSaving={savingKeys.has('email_notifications_enabled')}
+						onToggle={() => handleToggle('email_notifications_enabled')}
+					/>
+				</div>
+
+				<!-- Email subcategories -->
+				{#if preferences.email_notifications_enabled}
+					<div
+						data-testid="email-subcategories"
+						class="ml-4 mt-3 pl-4 border-l-2 border-border-soft space-y-3"
+					>
+						<ToggleSwitch
+							checked={preferences.email_reminders_enabled}
+							label={tr('settings.notifications.emailReminders')}
+							description={tr('settings.notifications.emailRemindersDesc')}
+							isSaving={savingKeys.has('email_reminders_enabled')}
+							onToggle={() => handleToggle('email_reminders_enabled')}
+						/>
+						<ToggleSwitch
+							checked={preferences.email_sharing_enabled}
+							label={tr('settings.notifications.emailSharing')}
+							description={tr('settings.notifications.emailSharingDesc')}
+							isSaving={savingKeys.has('email_sharing_enabled')}
+							onToggle={() => handleToggle('email_sharing_enabled')}
+						/>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
-</div>
+{/if}

@@ -933,6 +933,7 @@ export const de: TranslationKeys = {
 		},
 		profile: {
 			title: 'Profil',
+			name: 'Name',
 			firstName: 'Vorname',
 			lastName: 'Nachname',
 			email: 'E-Mail-Adresse',
@@ -1109,7 +1110,11 @@ export const de: TranslationKeys = {
 			emailSharingDesc:
 				'E-Mail, wenn jemand etwas mit dir teilt oder überträgt.',
 			saved: 'Einstellung gespeichert.',
-			error: 'Fehler beim Speichern.'
+			error: 'Fehler beim Speichern.',
+			ios: {
+				subcategoryHint:
+					'Unterkategorien erscheinen nur, wenn der Kanal aktiv ist.'
+			}
 		},
 		dangerZone: {
 			title: 'Gefahrenzone',
