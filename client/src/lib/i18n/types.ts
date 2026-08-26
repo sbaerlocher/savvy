@@ -97,6 +97,8 @@ export type TranslationKeys = {
 		done: string;
 		sort: string;
 		resetFilters: string;
+		reset: string;
+		apply: string;
 		results: string;
 		showResults: string;
 		shareResultAll: string;

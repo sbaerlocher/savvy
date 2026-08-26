@@ -168,6 +168,11 @@
 	// const, not $derived.
 	const DESKTOP = platform === 'other';
 
+	// Android renders the M3 chrome from its mockup (screen-AdminAndroid, frame
+	// "System-Health · Karten"): top app bar with back and refresh, a status
+	// banner, the auto-refresh line and one tonal card per service.
+	const IS_ANDROID = platform === 'android';
+
 	const ICON_DB =
 		'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4';
 	const ICON_MAIL =
@@ -808,6 +813,284 @@
 				{/each}
 			</div>
 		{/if}
+	{:else if IS_ANDROID}
+		<!-- M3 top app bar: back chevron, title, purple refresh action (mockup). -->
+		<PageHeader
+			title={$t('nav.adminSystemHealth')}
+			mobileActions={false}
+			onBack={goBack}
+		>
+			{#snippet actions()}
+				<button
+					type="button"
+					onclick={loadHealthStatus}
+					disabled={isLoading}
+					aria-label={$t('admin.systemHealth.refreshNow')}
+					class="text-purple-600 hover:bg-purple-50 rounded-m3-full inline-flex h-11 w-11 items-center justify-center transition-colors disabled:opacity-50"
+				>
+					<svg
+						class="h-5.5 w-5.5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path d={ICON_REFRESH_CIRCLE} />
+					</svg>
+				</button>
+			{/snippet}
+		</PageHeader>
+
+		{#if health && health.status !== 'ready'}
+			<!-- Status banner. Degraded is the warning tone, a failed database is
+			     the danger one. -->
+			{@const isDegraded = health.status === 'degraded'}
+			<div
+				class="rounded-m3-lg mb-2.5 flex items-center gap-3 border px-3.75 py-3.25 {isDegraded
+					? 'bg-warning-50 border-warning-200'
+					: 'bg-danger-50 border-danger-200'}"
+			>
+				<svg
+					class="h-6 w-6 shrink-0 {isDegraded
+						? 'text-warning-600'
+						: 'text-danger-600'}"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M12 9v4M12 17h.01"
+					/>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"
+					/>
+				</svg>
+				<div class="flex-1">
+					<div
+						class="text-subheading {isDegraded
+							? 'text-warning-800'
+							: 'text-danger-800'}"
+					>
+						{isDegraded
+							? $t('admin.systemHealth.degraded')
+							: $t('admin.systemHealth.notReady')}
+					</div>
+					<div
+						class="text-body-sm mt-px {isDegraded
+							? 'text-warning-700'
+							: 'text-danger-700'}"
+					>
+						{isDegraded
+							? $t('admin.systemHealth.degradedSubtitle', { n: failingCount })
+							: $t('admin.systemHealth.notReadySubtitle')}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Auto-refresh line: toggle on the left, last-check stamp on the right. -->
+		<div class="flex items-center justify-between px-1 pt-0.5 pb-3.5">
+			<button
+				type="button"
+				onclick={toggleAutoRefresh}
+				class="text-body-sm text-text-muted inline-flex items-center gap-1.75"
+			>
+				<svg
+					class="h-3.75 w-3.75 {autoRefresh
+						? 'text-accent'
+						: 'text-text-faint'}"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+					/>
+				</svg>
+				{autoRefresh
+					? $t('admin.systemHealth.autoRefreshInterval').replace(
+							'{s}',
+							(REFRESH_INTERVAL / 1000).toString()
+						)
+					: $t('admin.systemHealth.paused')}
+			</button>
+			<span class="text-mono-sm text-text-faint font-mono"
+				>{getTimeAgo(lastRefresh)}</span
+			>
+		</div>
+
+		<!-- One tonal card per service, expanding into detail plus test action. -->
+		<div class="flex flex-col gap-2.5">
+			{#if isLoading && !health}
+				<LoadingSpinner />
+			{:else if !health}
+				<!-- The load failed: `services` is empty, so without this the screen
+				     would sit blank behind a toast that fades. -->
+				<div
+					class="rounded-m3-lg bg-danger-50 border-danger-200 flex items-center gap-3 border px-3.75 py-3.25"
+				>
+					<svg
+						class="text-danger-600 h-6 w-6 shrink-0"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					<span class="text-label text-danger-800 font-normal"
+						>{$t('admin.systemHealth.loadErrorRetry')}</span
+					>
+				</div>
+			{:else}
+				{#each serviceRows as service (service.key)}
+					{@const check = service.check}
+					{@const expanded = expandedService === service.key}
+					{@const ok = check.enabled && check.status === 'healthy'}
+					{@const detail = service.detail}
+					<div
+						class="rounded-m3-lg bg-m3-card border-border overflow-hidden border"
+					>
+						<button
+							type="button"
+							onclick={() => toggleService(service.key)}
+							aria-expanded={expanded}
+							class="hover:bg-ground-active flex w-full items-center gap-3.5 px-4 py-3.25 text-left transition-colors"
+						>
+							<span
+								class="bg-tile-tint rounded-m3-full flex h-10 w-10 shrink-0 items-center justify-center {getStatusColor(
+									check
+								)}"
+							>
+								<svg
+									class="h-4.75 w-4.75"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d={service.icon}
+									/>
+								</svg>
+							</span>
+							<!-- The screen's two nested px-4 wrappers leave 32px less width than
+							     the mockup's phone frame, so the longest service name and the
+							     "Nicht konfiguriert" pill cannot both keep their natural width.
+							     The name is given the floor and the pill truncates instead. -->
+							<span class="min-w-0 grow basis-auto overflow-hidden">
+								<span class="text-subheading text-text block truncate"
+									>{service.name}</span
+								>
+								<span class="text-body-sm text-text-muted mt-px block truncate">
+									{check.enabled
+										? $t('admin.systemHealth.serviceEnabled')
+										: $t('admin.systemHealth.serviceDisabled')}
+								</span>
+							</span>
+							<span
+								class="rounded-m3-full text-eyebrow inline-flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-0.75 font-semibold whitespace-nowrap {check.enabled
+									? ok
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
+									: 'bg-border-soft text-text-strong'}"
+							>
+								<span
+									class="h-1.5 w-1.5 shrink-0 rounded-full {check.enabled
+										? ok
+											? 'bg-success'
+											: 'bg-danger-600'
+										: 'bg-text-faint'}"
+								></span>
+								<span class="truncate">{getStatusLabel(check.status)}</span>
+							</span>
+							<svg
+								class="text-text-subtle h-4 w-4 shrink-0 transition-transform {expanded
+									? 'rotate-180'
+									: ''}"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={ICON_CHEVRON_DOWN}
+								/>
+							</svg>
+						</button>
+
+						{#if expanded}
+							<div class="bg-surface-1 px-4 pt-0.5 pb-4">
+								<div class="border-accent-100 border-l-2 pt-3 pl-3.5">
+									{#if detail}
+										<div
+											class="text-label leading-normal font-normal {check.status ===
+											'unhealthy'
+												? 'text-danger-600'
+												: 'text-text-muted'}"
+										>
+											{detail}
+										</div>
+									{/if}
+									{#if service.test && check.enabled}
+										<button
+											type="button"
+											onclick={service.test === 'email'
+												? sendTestEmail
+												: sendTestPush}
+											disabled={service.test === 'email'
+												? isSendingEmail
+												: isSendingPush}
+											class="border-border-field bg-m3-card text-text rounded-m3-full text-body-sm mt-3 inline-flex h-9.5 items-center gap-1.75 border px-3.75 font-semibold disabled:opacity-50"
+										>
+											{#if (service.test === 'email' && isSendingEmail) || (service.test === 'push' && isSendingPush)}
+												{$t('admin.systemHealth.testing')}
+											{:else}
+												<svg
+													class="h-3.75 w-3.75"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													viewBox="0 0 24 24"
+												>
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														d={ICON_SEND}
+													/>
+												</svg>
+												{service.test === 'email'
+													? $t('admin.systemHealth.sendTestEmail')
+													: $t('admin.systemHealth.sendTestPush')}
+											{/if}
+										</button>
+									{/if}
+								</div>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			{/if}
+		</div>
 	{:else}
 		<!-- Header -->
 		<div class="mb-8">

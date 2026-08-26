@@ -8,7 +8,15 @@ export class AdminPage extends BasePage {
 	}
 
 	get heading(): Locator {
-		return this.page.locator('h1').filter({ hasText: /Users|Benutzer/i });
+		// Android renders its own M3 top app bar and hides the desktop `h1` with
+		// `max-sm:hidden`, so both headings are in the DOM at once. A hidden node
+		// still counts for strict mode — filter on visibility, same as
+		// `searchInput` below.
+		return this.page
+			.locator('h1')
+			.filter({ hasText: /Users|Benutzer/i })
+			.filter({ visible: true })
+			.first();
 	}
 
 	get usersSection(): Locator {
@@ -31,10 +39,14 @@ export class AdminPage extends BasePage {
 	}
 
 	get tableRows(): Locator {
-		// The users list is a <table> on the native platforms but a CSS grid on
-		// desktop (mockup screen-AdminDesktop), so the rows there are tagged
-		// instead of being <tr>. Audit log is still a plain table.
-		return this.page.locator('[data-testid="admin-user-row"], tbody tr');
+		// The users list is a <table> on iOS but a CSS grid on desktop (mockup
+		// screen-AdminDesktop) and one card per user on Android, so those rows are
+		// tagged instead of being <tr>. Audit log is still a plain table. Android
+		// keeps the table markup in the DOM behind `max-sm:hidden`, so filter on
+		// visibility to match only what the current viewport renders.
+		return this.page
+			.locator('[data-testid="admin-user-row"], tbody tr')
+			.filter({ visible: true });
 	}
 
 	async goto(section: 'users' | 'audit-log' = 'users') {
