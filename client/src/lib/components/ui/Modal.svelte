@@ -71,7 +71,7 @@
 			: platform === 'ios'
 				? 'bg-black/40 backdrop-blur-sm'
 				: platform === 'android'
-					? 'bg-black bg-opacity-50'
+					? 'bg-black/50'
 					: 'bg-scrim'
 	);
 </script>
