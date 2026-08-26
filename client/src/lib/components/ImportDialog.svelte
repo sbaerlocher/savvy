@@ -64,11 +64,7 @@
 	const errorListClass = isDesktop ? 'space-y-1.25' : 'space-y-1';
 	const errorItemClass = isDesktop ? 'text-xs leading-snug' : 'text-xs';
 	const importingPadClass = isDesktop ? 'py-5' : isAndroid ? 'py-8.5' : 'py-8';
-	const bodyPadClass = isDesktop
-		? 'py-5'
-		: isAndroid || isIOS
-			? 'py-4.5'
-			: 'py-4';
+	const bodyPadClass = isDesktop ? 'py-5' : 'py-4.5';
 	const tilePadClass = isDesktop ? 'p-3.5' : 'p-3';
 	// The preview tiles sit three to a row, so Android trims the horizontal
 	// padding the mockup gives them to keep the widest label on one line.
@@ -78,22 +74,15 @@
 			? 'px-1 py-3'
 			: 'p-3';
 	const tileRadiusClass = isAndroid ? 'rounded-m3-md' : 'rounded-lg';
-	const tileGapClass = isAndroid || isIOS ? 'gap-2.5' : 'gap-3';
+	const tileGapClass = isDesktop ? 'gap-3' : 'gap-2.5';
 	const previewValueClass = isDesktop
 		? 'text-title'
 		: `text-2xl font-bold${isIOS ? ' leading-tight' : ''}`;
 	const resultValueClass = isDesktop
 		? 'text-heading'
 		: `text-lg font-bold${isIOS ? ' leading-tight' : ''}`;
-	const footerGapClass = isDesktop
-		? 'gap-2.5'
-		: isAndroid
-			? 'gap-1.5'
-			: isIOS
-				? 'gap-2.5'
-				: 'gap-3';
-	const footerPadClass =
-		isAndroid || isIOS ? 'px-5 pt-3.5 pb-5' : 'px-6 pb-6 pt-4';
+	const footerGapClass = isAndroid ? 'gap-1.5' : 'gap-2.5';
+	const footerPadClass = isDesktop ? 'px-6 pb-6 pt-4' : 'px-5 pt-3.5 pb-5';
 	// M3 dialog actions: a text button and a filled pill, matching the
 	// convention already used by the gift-card ledger sheet on Android.
 	const androidGhostClass =
@@ -130,9 +119,6 @@
 		: isAndroid
 			? androidPrimaryClass
 			: `btn btn-primary ${footerPrimaryClass}`;
-	// The select-step CTA sits inside the drop zone, not the footer, so off iOS it
-	// keeps plain .btn-primary sizing from ctaClass.
-	const ctaButtonClass = isIOS ? iosPrimaryClass : 'btn btn-primary';
 
 	type Step = 'select' | 'csv-type' | 'preview' | 'importing' | 'result';
 	type CSVType = 'cards' | 'vouchers' | 'gift-cards';
@@ -298,8 +284,7 @@
 >
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="pointer-events-auto w-full max-h-[90vh] overflow-y-auto {platform ===
-		'ios'
+		class="pointer-events-auto w-full max-h-[90vh] overflow-y-auto {isIOS
 			? 'liquid-glass-surface rounded-[var(--radius-modal)] shadow-[var(--shadow-modal)] max-w-lg'
 			: isAndroid
 				? 'bg-m3-surface-container-high rounded-m3-xl shadow-m3-dialog max-w-sm'
@@ -358,7 +343,7 @@
 						class={isAndroid
 							? androidPrimaryClass
 							: isIOS
-								? ctaButtonClass
+								? iosPrimaryClass
 								: `btn btn-primary ${ctaClass}`}
 					>
 						{tr('settings.import.selectFile')}
