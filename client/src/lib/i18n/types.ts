@@ -860,6 +860,7 @@ export type TranslationKeys = {
 		};
 		profile: {
 			title: string;
+			name: string;
 			firstName: string;
 			lastName: string;
 			email: string;
@@ -1017,6 +1018,9 @@ export type TranslationKeys = {
 			emailSharingDesc: string;
 			saved: string;
 			error: string;
+			ios: {
+				subcategoryHint: string;
+			};
 		};
 		dangerZone: {
 			title: string;

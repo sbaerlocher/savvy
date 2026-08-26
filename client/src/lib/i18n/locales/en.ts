@@ -908,6 +908,7 @@ export const en: TranslationKeys = {
 		},
 		profile: {
 			title: 'Profile',
+			name: 'Name',
 			firstName: 'First Name',
 			lastName: 'Last Name',
 			email: 'Email Address',
@@ -1079,7 +1080,10 @@ export const en: TranslationKeys = {
 			emailSharingDesc:
 				'Email when someone shares or transfers something to you.',
 			saved: 'Setting saved.',
-			error: 'Failed to save setting.'
+			error: 'Failed to save setting.',
+			ios: {
+				subcategoryHint: 'Subcategories only appear while the channel is on.'
+			}
 		},
 		dangerZone: {
 			title: 'Danger Zone',

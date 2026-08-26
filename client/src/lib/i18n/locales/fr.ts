@@ -936,6 +936,7 @@ export const fr: TranslationKeys = {
 		},
 		profile: {
 			title: 'Profil',
+			name: 'Nom',
 			firstName: 'Prénom',
 			lastName: 'Nom',
 			email: 'Adresse e-mail',
@@ -1112,7 +1113,11 @@ export const fr: TranslationKeys = {
 			emailSharingDesc:
 				"E-mail lorsque quelqu'un partage ou transfère quelque chose avec vous.",
 			saved: 'Paramètre enregistré.',
-			error: "Erreur lors de l'enregistrement."
+			error: "Erreur lors de l'enregistrement.",
+			ios: {
+				subcategoryHint:
+					"Les sous-catégories n'apparaissent que si le canal est actif."
+			}
 		},
 		dangerZone: {
 			title: 'Zone de danger',
