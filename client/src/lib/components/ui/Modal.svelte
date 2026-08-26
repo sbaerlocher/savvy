@@ -65,14 +65,15 @@
 			: 'p-4 pb-40 sm:pb-4'
 	);
 	// Full literal class strings so the Tailwind JIT scanner sees them.
+	// Android and desktop share bg-scrim: --color-scrim is the M3 dialog/sheet
+	// scrim the Android mockup asks for, and the desktop mockup lands on the
+	// same value.
 	const backdropClass = $derived(
 		backdrop === 'glass'
 			? 'bg-black/40 backdrop-blur-sm'
 			: platform === 'ios'
 				? 'bg-black/40 backdrop-blur-sm'
-				: platform === 'android'
-					? 'bg-black/50'
-					: 'bg-scrim'
+				: 'bg-scrim'
 	);
 </script>
 
