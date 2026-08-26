@@ -320,7 +320,10 @@
 							{#each filteredUsers as user (user.id)}
 								{@const isOAuth = user.auth_provider === 'oauth'}
 								{@const expanded = expandedUserId === user.id}
-								<div class="border-b border-border-soft">
+								<div
+									data-testid="admin-user-row"
+									class="border-b border-border-soft"
+								>
 									<button
 										type="button"
 										onclick={() => toggleExpandUser(user.id)}
@@ -741,6 +744,7 @@
 									{#each filteredUsers as user (user.id)}
 										{@const isOAuth = user.auth_provider === 'oauth'}
 										<tr
+											data-testid="admin-user-row"
 											class="hover:bg-surface-1 transition-colors md:cursor-default cursor-pointer"
 											onclick={() => {
 												if (window.innerWidth < 768) toggleExpandUser(user.id);

@@ -419,6 +419,7 @@
 
 					{#each serviceRows as row (row.key)}
 						<div
+							data-testid="health-service-row"
 							class="grid grid-cols-[1.4fr_2.4fr_1.4fr_1fr] items-center border-b border-border-soft px-7.5 py-3.75 transition-colors hover:bg-surface-1"
 						>
 							<span class="flex items-center gap-3">
