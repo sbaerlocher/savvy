@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { authStore } from '$lib/stores/auth';
 	import { isOnline } from '$lib/stores/offline';
@@ -8,9 +9,17 @@
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
-	import { ICON_FILTER_LINES, ICON_SEARCH } from '$lib/icons';
+	import {
+		ICON_CHECK,
+		ICON_CHEVRON_DOWN,
+		ICON_CHEVRON_RIGHT,
+		ICON_FILTER_LINES,
+		ICON_PLUS,
+		ICON_SEARCH
+	} from '$lib/icons';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import type { AdminUserDTO } from '$lib/types/api';
 
 	const pageLogger = logger.child('AdminPage');
@@ -25,12 +34,38 @@
 	let providerFilter = $state('all');
 	let showFilterMenu = $state(false);
 	let expandedUserId = $state<string | null>(null);
+	// iOS sort disclosure row (mockup); the other platforms use a <select>.
+	let sortExpanded = $state(false);
 	let localLoginEnabled = $state(true);
 
 	// Desktop renders the mockup's single elevated panel with a six-column table;
 	// the native platforms keep the compact list. `platform` is a module
 	// constant, so a plain const, not $derived.
 	const DESKTOP = platform === 'other';
+
+	// iOS renders its own chrome for this screen (mockup screen-AdminIOS, frames
+	// "Benutzer-Liste" and "Filter"): glass search pill, grouped-inset accordion
+	// rows and a segmented-control filter sheet instead of the table + selects.
+	const IOS = platform === 'ios';
+
+	// iOS filter sheet options (mockup): role and provider as segmented controls,
+	// sort as a disclosure row. Same values the selects below bind to.
+	const roleSegments = $derived([
+		{ value: 'all', label: $t('common.all') },
+		{ value: 'user', label: $t('admin.users.roleUser') },
+		{ value: 'admin', label: $t('admin.users.roleAdmin') }
+	]);
+	const providerSegments = $derived([
+		{ value: 'all', label: $t('common.all') },
+		{ value: 'local', label: $t('admin.users.providerLocal') },
+		{ value: 'oauth', label: $t('admin.users.providerOAuth') }
+	]);
+	const sortOptions = $derived([
+		{ value: 'email-asc', label: $t('admin.users.sortEmailAsc') },
+		{ value: 'email-desc', label: $t('admin.users.sortEmailDesc') },
+		{ value: 'newest', label: $t('admin.users.sortNewest') },
+		{ value: 'oldest', label: $t('admin.users.sortOldest') }
+	]);
 
 	const isOffline = $derived(!$isOnline);
 	const adminCount = $derived(users.filter((u) => u.role === 'admin').length);
@@ -175,6 +210,20 @@
 			const message = err instanceof Error ? err.message : '';
 			toastStore.error(message || $t('admin.impersonate_info.failed'));
 		}
+	}
+
+	// Direct hits (bookmark, PWA start URL) have no history to go back to; the
+	// chevron would be dead. Same guard as the other iOS screens.
+	function goBack() {
+		if (history.length > 1) {
+			history.back();
+			return;
+		}
+		goto(resolve('/profile'));
+	}
+
+	function fullName(user: AdminUserDTO): string {
+		return [user.first_name, user.last_name].filter(Boolean).join(' ');
 	}
 
 	function toggleExpandUser(userId: string) {
@@ -588,6 +637,240 @@
 				</div>
 			{/if}
 		</div>
+	{:else if IOS}
+		<!-- iOS: back chevron, "N Konten" eyebrow and the purple create glyph
+		     (mockup). -->
+		<PageHeader
+			title={$t('admin.users.title')}
+			eyebrow={$t('admin.users.accountsCount', {
+				n: filteredUsers.length
+			})}
+			mobileActions={false}
+			onBack={goBack}
+		>
+			{#snippet actions()}
+				{#if localLoginEnabled}
+					<a
+						href={resolve('/admin/users/new')}
+						aria-label={$t('admin.users.createUser')}
+						class="liquid-glass-surface inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-600 transition-colors active:text-purple-700 {isOffline
+							? 'pointer-events-none opacity-50'
+							: ''}"
+					>
+						<svg
+							class="h-6.25 w-6.25"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.1"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+						>
+							<path d={ICON_PLUS} />
+						</svg>
+					</a>
+				{/if}
+			{/snippet}
+		</PageHeader>
+
+		<!-- Glass search pill + filter button carrying the active-filter dot. -->
+		<div class="mb-3.5 flex gap-2.25">
+			<label
+				class="liquid-glass-surface flex h-10.5 flex-1 items-center gap-2.25 rounded-xl px-3.5"
+			>
+				<svg
+					class="h-4.25 w-4.25 shrink-0 text-text-subtle"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path d={ICON_SEARCH} />
+				</svg>
+				<input
+					type="search"
+					bind:value={search}
+					placeholder={$t('common.search')}
+					aria-label={$t('common.search')}
+					class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+				/>
+			</label>
+			<button
+				type="button"
+				onclick={(e: MouseEvent) => {
+					e.stopPropagation();
+					showFilterMenu = !showFilterMenu;
+				}}
+				aria-label={$t('common.filter')}
+				aria-expanded={showFilterMenu}
+				class="liquid-glass-surface relative flex h-10.5 w-10.5 shrink-0 items-center justify-center rounded-xl text-text-muted"
+			>
+				<svg
+					class="h-4.5 w-4.5"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path d={ICON_FILTER_LINES} />
+				</svg>
+				{#if hasActiveFilters}
+					<span
+						class="absolute top-2.25 right-2.25 h-1.75 w-1.75 rounded-full border-2 border-surface bg-accent-600"
+					></span>
+				{/if}
+			</button>
+		</div>
+
+		{#if isLoading}
+			<LoadingSpinner />
+		{:else if filteredUsers.length === 0}
+			<div class="text-center py-12 text-text-subtle">
+				{$t('admin.users.noUsers')}
+			</div>
+		{:else}
+			<!-- iOS: each row is its own grouped-inset card that expands in place
+			     (mockup screen-AdminIOS, frame "Benutzer-Liste"). -->
+			<div class="flex flex-col gap-2.5">
+				{#each filteredUsers as user (user.id)}
+					{@const isOAuth = user.auth_provider === 'oauth'}
+					{@const isExpanded = expandedUserId === user.id}
+					<div
+						data-testid="admin-user-row"
+						class="overflow-hidden rounded-[var(--radius-inset)] bg-surface"
+					>
+						<button
+							type="button"
+							onclick={() => toggleExpandUser(user.id)}
+							aria-expanded={isExpanded}
+							class="flex w-full items-center gap-3 px-3.75 py-3.25 text-left transition-colors active:bg-surface-1"
+						>
+							<span
+								class="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-full bg-accent-50 text-body-sm font-semibold text-accent-800"
+							>
+								{initials(user)}
+							</span>
+							<span class="min-w-0 flex-1">
+								<span class="block truncate text-body font-semibold text-text"
+									>{user.email}</span
+								>
+								<span class="mt-px block text-chip font-normal text-text-subtle"
+									>{fullName(user)}</span
+								>
+							</span>
+							<span
+								class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-eyebrow whitespace-nowrap {user.role ===
+								'admin'
+									? 'bg-danger-100 text-danger-800'
+									: 'bg-border-soft text-text-strong'}"
+							>
+								{user.role === 'admin'
+									? $t('admin.users.roleAdmin')
+									: $t('admin.users.roleUser')}
+							</span>
+							<svg
+								class="h-4 w-4 shrink-0 text-text-faint transition-transform {isExpanded
+									? 'rotate-180'
+									: ''}"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
+								<path d={ICON_CHEVRON_DOWN} />
+							</svg>
+						</button>
+
+						{#if isExpanded}
+							<div
+								class="border-t border-border-soft bg-surface-2 px-3.75 py-3.5"
+							>
+								<div class="mb-3.5 grid grid-cols-2 gap-x-3.5 gap-y-3">
+									<div>
+										<div class="mb-0.75 text-tag text-text-faint uppercase">
+											{$t('admin.users.userId')}
+										</div>
+										<div class="font-mono text-chip font-normal text-text">
+											{user.id}
+										</div>
+									</div>
+									<div>
+										<div class="mb-0.75 text-tag text-text-faint uppercase">
+											{$t('admin.users.provider')}
+										</div>
+										<div class="text-label font-normal text-text">
+											{isOAuth
+												? $t('admin.users.providerOAuth')
+												: $t('admin.users.providerLocal')}
+										</div>
+									</div>
+									<div class="col-span-2">
+										<div class="mb-0.75 text-tag text-text-faint uppercase">
+											{$t('admin.users.createdAt')}
+										</div>
+										<div class="text-label font-normal text-text">
+											{new Date(user.created_at).toLocaleDateString()}
+										</div>
+									</div>
+								</div>
+
+								<div class="flex flex-wrap gap-2">
+									{#if isOAuth}
+										<span
+											aria-disabled="true"
+											class="inline-flex h-9 cursor-not-allowed items-center rounded-full bg-accent-600 px-4 text-chip text-on-accent opacity-45"
+										>
+											{$t('common.edit')}
+										</span>
+									{:else}
+										<a
+											href={resolve(`/admin/users/${user.id}/edit`)}
+											class="inline-flex h-9 items-center rounded-full bg-accent-600 px-4 text-chip text-on-accent"
+										>
+											{$t('common.edit')}
+										</a>
+									{/if}
+									<button
+										type="button"
+										onclick={() => toggleRole(user.id, user.role)}
+										disabled={isOffline ||
+											user.id === currentUser?.id ||
+											isOAuth}
+										class="inline-flex h-9 items-center rounded-full border border-border-field bg-surface px-4 text-chip text-text disabled:opacity-45"
+									>
+										{$t('admin.users.changeRole')}
+									</button>
+									<button
+										type="button"
+										onclick={() => handleImpersonate(user.id, user.email)}
+										disabled={isOffline || user.id === currentUser?.id}
+										class="inline-flex h-9 items-center rounded-full border border-border-field bg-surface px-4 text-chip text-text disabled:opacity-45"
+									>
+										{$t('admin.impersonate_user')}
+									</button>
+								</div>
+
+								{#if isOAuth}
+									<div class="mt-2.5 text-chip font-normal text-warning-700">
+										{$t('admin.users.oauthRoleManaged')}
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{:else}
 		<!-- Header -->
 		<div class="mb-8">
@@ -929,113 +1212,276 @@
 	<BottomSheet
 		open={showFilterMenu}
 		onClose={() => (showFilterMenu = false)}
-		maxHeight="80vh"
+		maxHeight={IOS ? '88%' : '80vh'}
 		ariaLabel={$t('common.filter')}
 		allowWide={!DESKTOP}
 	>
-		<div class="p-6">
-			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-semibold text-text">
-					{$t('common.filter')}
-				</h3>
-				<button
-					type="button"
-					onclick={() => (showFilterMenu = false)}
-					class="text-text-faint hover:text-text-muted transition-colors"
-					aria-label={$t('common.close')}
+		{#if IOS}
+			<!-- iOS: segmented controls for role/provider and a disclosure row for
+			     sort, with a "Done" text action in the header (mockup
+			     screen-AdminIOS, frame "Filter"). -->
+			<div class="flex flex-col">
+				<div
+					class="flex items-center justify-between border-b border-border-soft px-5 pt-1.5 pb-3"
 				>
-					<svg
-						class="w-6 h-6"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						></path>
-					</svg>
-				</button>
-			</div>
-
-			<div class="space-y-4">
-				<div>
-					<label
-						for="roleFilterMobile"
-						class="block text-sm font-medium text-text-ink2 mb-2"
-					>
-						{$t('admin.users.role')}
-					</label>
-					<select
-						id="roleFilterMobile"
-						bind:value={roleFilter}
-						class="input bg-white"
-					>
-						<option value="all">{$t('admin.users.allRoles')}</option>
-						<option value="user">{$t('admin.users.roleUser')}</option>
-						<option value="admin">{$t('admin.users.roleAdmin')}</option>
-					</select>
-				</div>
-
-				<div>
-					<label
-						for="providerFilterMobile"
-						class="block text-sm font-medium text-text-ink2 mb-2"
-					>
-						{$t('admin.users.provider')}
-					</label>
-					<select
-						id="providerFilterMobile"
-						bind:value={providerFilter}
-						class="input bg-white"
-					>
-						<option value="all">{$t('admin.users.allProviders')}</option>
-						<option value="local">{$t('admin.users.providerLocal')}</option>
-						<option value="oauth">{$t('admin.users.providerOAuth')}</option>
-					</select>
-				</div>
-
-				<div>
-					<label
-						for="sortByMobile"
-						class="block text-sm font-medium text-text-ink2 mb-2"
-					>
-						{$t('common.sort')}
-					</label>
-					<select id="sortByMobile" bind:value={sortBy} class="input bg-white">
-						<option value="email-asc">{$t('admin.users.sortEmailAsc')}</option>
-						<option value="email-desc">{$t('admin.users.sortEmailDesc')}</option
-						>
-						<option value="newest">{$t('admin.users.sortNewest')}</option>
-						<option value="oldest">{$t('admin.users.sortOldest')}</option>
-					</select>
-				</div>
-
-				{#if hasActiveFilters}
+					<span class="text-heading text-text">{$t('common.filter')}</span>
 					<button
 						type="button"
-						onclick={() => {
-							search = '';
-							sortBy = 'email-asc';
-							roleFilter = 'all';
-							providerFilter = 'all';
-						}}
-						class="w-full btn btn-ghost"
+						onclick={() => (showFilterMenu = false)}
+						class="text-[length:var(--text-code)] font-semibold text-accent-700 transition-opacity active:opacity-60"
 					>
-						{$t('common.resetFilters')}
+						{$t('common.done')}
 					</button>
-				{/if}
+				</div>
 
-				<button
-					type="button"
-					onclick={() => (showFilterMenu = false)}
-					class="w-full btn btn-primary"
-				>
-					{$t('common.done')}
-				</button>
+				<div class="px-5 pt-4 pb-7">
+					<div class="mb-2.25 text-tag text-text-subtle uppercase">
+						{$t('admin.users.role')}
+					</div>
+					<div
+						class="mb-4.5 flex rounded-md bg-tile-tint p-0.5"
+						role="radiogroup"
+						aria-label={$t('admin.users.role')}
+					>
+						{#each roleSegments as seg (seg.value)}
+							{@const selected = roleFilter === seg.value}
+							<button
+								type="button"
+								role="radio"
+								aria-checked={selected}
+								onclick={() => (roleFilter = seg.value)}
+								class="flex-1 rounded-sm py-1.75 text-center text-label {selected
+									? 'bg-surface text-text-strong'
+									: 'font-medium text-text-ink2'}"
+							>
+								{seg.label}
+							</button>
+						{/each}
+					</div>
+
+					<div class="mb-2.25 text-tag text-text-subtle uppercase">
+						{$t('admin.users.provider')}
+					</div>
+					<div
+						class="mb-4.5 flex rounded-md bg-tile-tint p-0.5"
+						role="radiogroup"
+						aria-label={$t('admin.users.provider')}
+					>
+						{#each providerSegments as seg (seg.value)}
+							{@const selected = providerFilter === seg.value}
+							<button
+								type="button"
+								role="radio"
+								aria-checked={selected}
+								onclick={() => (providerFilter = seg.value)}
+								class="flex-1 rounded-sm py-1.75 text-center text-label {selected
+									? 'bg-surface text-text-strong'
+									: 'font-medium text-text-ink2'}"
+							>
+								{seg.label}
+							</button>
+						{/each}
+					</div>
+
+					<div class="mb-2.25 text-tag text-text-subtle uppercase">
+						{$t('common.sort')}
+					</div>
+					<button
+						type="button"
+						onclick={() => (sortExpanded = !sortExpanded)}
+						aria-expanded={sortExpanded}
+						class="flex h-12 w-full items-center justify-between rounded-xl border border-border bg-surface px-4 text-left"
+					>
+						<span class="text-[length:var(--text-code)] font-normal text-text">
+							{sortOptions.find((o) => o.value === sortBy)?.label ?? ''}
+						</span>
+						<svg
+							class="h-3.5 w-2 shrink-0 text-text-faint transition-transform {sortExpanded
+								? 'rotate-90'
+								: ''}"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							viewBox="0 0 8 14"
+							aria-hidden="true"
+						>
+							<path d={ICON_CHEVRON_RIGHT} />
+						</svg>
+					</button>
+
+					{#if sortExpanded}
+						<div
+							role="radiogroup"
+							aria-label={$t('common.sort')}
+							class="mt-1.5 overflow-hidden rounded-xl border border-border bg-surface"
+						>
+							{#each sortOptions as opt, i (opt.value)}
+								{@const selected = sortBy === opt.value}
+								<button
+									type="button"
+									role="radio"
+									aria-checked={selected}
+									onclick={() => {
+										sortBy = opt.value;
+										sortExpanded = false;
+									}}
+									class="flex w-full items-center justify-between px-4 py-2.75 text-left text-[length:var(--text-code)] font-normal {selected
+										? 'text-text'
+										: 'text-text-muted'} {i < sortOptions.length - 1
+										? 'border-b border-border-soft'
+										: ''}"
+								>
+									{opt.label}
+									{#if selected}
+										<svg
+											class="h-4 w-4 shrink-0 text-accent"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2.4"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											viewBox="0 0 24 24"
+											aria-hidden="true"
+										>
+											<path d={ICON_CHECK} />
+										</svg>
+									{/if}
+								</button>
+							{/each}
+						</div>
+					{/if}
+
+					{#if hasActiveFilters}
+						<div class="flex justify-center pt-4.5 pb-0.5">
+							<button
+								type="button"
+								onclick={() => {
+									search = '';
+									sortBy = 'email-asc';
+									roleFilter = 'all';
+									providerFilter = 'all';
+								}}
+								class="text-[length:var(--text-label)] font-medium text-text-muted"
+							>
+								{$t('common.resetFilters')}
+							</button>
+						</div>
+					{/if}
+				</div>
 			</div>
-		</div>
+		{:else}
+			<div class="p-6">
+				<div class="flex items-center justify-between mb-4">
+					<h3 class="text-lg font-semibold text-text">
+						{$t('common.filter')}
+					</h3>
+					<button
+						type="button"
+						onclick={() => (showFilterMenu = false)}
+						class="text-text-faint hover:text-text-muted transition-colors"
+						aria-label={$t('common.close')}
+					>
+						<svg
+							class="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							></path>
+						</svg>
+					</button>
+				</div>
+
+				<div class="space-y-4">
+					<div>
+						<label
+							for="roleFilterMobile"
+							class="block text-sm font-medium text-text-ink2 mb-2"
+						>
+							{$t('admin.users.role')}
+						</label>
+						<select
+							id="roleFilterMobile"
+							bind:value={roleFilter}
+							class="input bg-white"
+						>
+							<option value="all">{$t('admin.users.allRoles')}</option>
+							<option value="user">{$t('admin.users.roleUser')}</option>
+							<option value="admin">{$t('admin.users.roleAdmin')}</option>
+						</select>
+					</div>
+
+					<div>
+						<label
+							for="providerFilterMobile"
+							class="block text-sm font-medium text-text-ink2 mb-2"
+						>
+							{$t('admin.users.provider')}
+						</label>
+						<select
+							id="providerFilterMobile"
+							bind:value={providerFilter}
+							class="input bg-white"
+						>
+							<option value="all">{$t('admin.users.allProviders')}</option>
+							<option value="local">{$t('admin.users.providerLocal')}</option>
+							<option value="oauth">{$t('admin.users.providerOAuth')}</option>
+						</select>
+					</div>
+
+					<div>
+						<label
+							for="sortByMobile"
+							class="block text-sm font-medium text-text-ink2 mb-2"
+						>
+							{$t('common.sort')}
+						</label>
+						<select
+							id="sortByMobile"
+							bind:value={sortBy}
+							class="input bg-white"
+						>
+							<option value="email-asc">{$t('admin.users.sortEmailAsc')}</option
+							>
+							<option value="email-desc"
+								>{$t('admin.users.sortEmailDesc')}</option
+							>
+							<option value="newest">{$t('admin.users.sortNewest')}</option>
+							<option value="oldest">{$t('admin.users.sortOldest')}</option>
+						</select>
+					</div>
+
+					{#if hasActiveFilters}
+						<button
+							type="button"
+							onclick={() => {
+								search = '';
+								sortBy = 'email-asc';
+								roleFilter = 'all';
+								providerFilter = 'all';
+							}}
+							class="w-full btn btn-ghost"
+						>
+							{$t('common.resetFilters')}
+						</button>
+					{/if}
+
+					<button
+						type="button"
+						onclick={() => (showFilterMenu = false)}
+						class="w-full btn btn-primary"
+					>
+						{$t('common.done')}
+					</button>
+				</div>
+			</div>
+		{/if}
 	</BottomSheet>
 </div>

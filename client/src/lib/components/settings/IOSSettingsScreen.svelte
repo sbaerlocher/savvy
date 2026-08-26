@@ -9,9 +9,10 @@
 		type ProfileDTO,
 		type SessionDTO
 	} from '$lib/api';
-	import { ICON_CHEVRON_LEFT } from '$lib/icons';
+	import { ICON_CHEVRON_LEFT, ICON_SHIELD } from '$lib/icons';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
+	import AdminHubSection from './AdminHubSection.svelte';
 	import NotificationsSection from './NotificationsSection.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
@@ -43,6 +44,13 @@
 	}
 
 	const isLocalAuth = $derived(profile.auth_provider === 'local');
+	// Admin entry points live here on iOS (mockup screen-AdminIOS): the bottom
+	// nav has no admin tab and DesktopNav's admin dropdown is `hidden sm:block`,
+	// so without this section a phone has no way into admin at all. Hidden while
+	// impersonating, like the desktop dropdown.
+	const showAdminHub = $derived(
+		$authStore.user?.is_admin === true && !$authStore.user?.is_impersonating
+	);
 	const displayName = $derived(
 		[profile.first_name, profile.last_name].filter(Boolean).join(' ').trim()
 	);
@@ -420,14 +428,36 @@
 				<path d={ICON_CHEVRON_LEFT} />
 			</svg>
 		</button>
-		<div class="min-w-0">
+		<div class="min-w-0 flex-1">
 			<p class="text-eyebrow uppercase text-text-subtle">
-				{displayName || profile.email}
+				{displayName || profile.email}{showAdminHub
+					? ` · ${tr('admin.users.roleAdmin')}`
+					: ''}
 			</p>
 			<h1 class="mt-0.5 text-screen-title text-text">
 				{tr('settings.title')}
 			</h1>
 		</div>
+		{#if showAdminHub}
+			<!-- The shield marks the elevated session (mockup screen-AdminIOS). -->
+			<span
+				class="liquid-glass-surface mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-600"
+				title={tr('nav.admin')}
+			>
+				<svg
+					class="h-5.25 w-5.25"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.1"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+				>
+					<path d={ICON_SHIELD} />
+				</svg>
+			</span>
+		{/if}
 	</div>
 
 	<!-- ============ PROFILE ============ -->
@@ -671,6 +701,13 @@
 	<p class="px-1.5 pb-6 text-body-sm text-text-faint">
 		{tr('settings.dangerZone.deleteDescription')}
 	</p>
+
+	{#if showAdminHub}
+		<!-- ============ ADMINISTRATION ============ -->
+		<div class="pb-6">
+			<AdminHubSection />
+		</div>
+	{/if}
 
 	<!-- ============ SECURITY ============ -->
 	<p class="px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle">

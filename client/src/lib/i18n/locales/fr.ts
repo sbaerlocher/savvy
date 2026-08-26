@@ -1353,6 +1353,13 @@ export const fr: TranslationKeys = {
 		toDashboard: 'Aller au tableau de bord'
 	},
 	admin: {
+		hub: {
+			adminsOnly: 'Admins uniquement',
+			usersSub: 'Rôles · Imiter · Créer',
+			merchantsSub: 'Gérer les commerçants',
+			auditLogSub: 'Historique suppression & restauration',
+			systemHealthSub: 'BD · SMTP · OAuth · Push · 2FA'
+		},
 		title: 'Zone Admin',
 		impersonate_user: "Imiter l'utilisateur",
 		stop_impersonating: 'Arrêter',
@@ -1371,6 +1378,7 @@ export const fr: TranslationKeys = {
 			countSummary: '{total} comptes · {admins} admins',
 			searchPlaceholder: 'Rechercher e-mail ou nom…',
 			title: 'Utilisateurs',
+			accountsCount: '{n} comptes',
 			subtitle: 'Gestion des utilisateurs et attribution des rôles',
 			loadError: 'Échec du chargement des utilisateurs',
 			noUsers: 'Aucun utilisateur trouvé',
@@ -1523,6 +1531,13 @@ export const fr: TranslationKeys = {
 			loadError: "Impossible de charger l'état du système. Veuillez réessayer.",
 			loadErrorRetry:
 				"Impossible de charger l'état du système. Veuillez réessayer.",
+			servicesCount: '{n} services',
+			serviceEnabled: 'Activé',
+			serviceDisabled: 'Désactivé',
+			autoRefreshEvery: 'Actualisation auto · toutes les 30 s',
+			degradedSubtitle: '{n} service(s) signalent une erreur',
+			readySubtitle: 'Tous les services fonctionnent',
+			notReadySubtitle: 'Base de données injoignable',
 			secondsAgo: 'il y a {n}s',
 			minutesAgo: 'il y a {n}m',
 			hoursAgo: 'il y a {n}h'
