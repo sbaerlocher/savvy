@@ -89,13 +89,9 @@
 		'text-label text-accent-700 rounded-m3-full inline-flex h-10 items-center px-3.5';
 	const androidPrimaryClass =
 		'bg-accent-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center px-5';
-	const ctaClass = isDesktop
-		? 'text-label h-10 rounded-lg shadow-accent'
-		: 'text-sm';
-	const footerGhostClass = isDesktop ? 'text-label h-11 rounded-lg' : '';
-	const footerPrimaryClass = isDesktop
-		? 'text-label h-11 rounded-lg shadow-accent'
-		: '';
+	const ctaClass = 'text-label h-10 rounded-lg shadow-accent';
+	const footerGhostClass = 'text-label h-11 rounded-lg';
+	const footerPrimaryClass = 'text-label h-11 rounded-lg shadow-accent';
 	const headerPadClass = isIOS ? 'px-5 pt-5.5 pb-3.5' : 'px-6 pt-6 pb-4';
 	const bodyPadXClass = isIOS ? 'px-5' : 'px-6';
 	// 44pt hit target with --radius-lg corners, per the mockup. Kept local to the
@@ -285,7 +281,7 @@
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
 		class="pointer-events-auto w-full max-h-[90vh] overflow-y-auto {isIOS
-			? 'liquid-glass-surface rounded-[var(--radius-modal)] shadow-[var(--shadow-modal)] max-w-lg'
+			? 'liquid-glass-surface rounded-[var(--radius-modal)] max-w-lg'
 			: isAndroid
 				? 'bg-m3-surface-container-high rounded-m3-xl shadow-m3-dialog max-w-sm'
 				: 'bg-surface rounded-modal shadow-modal max-w-lg'}"
