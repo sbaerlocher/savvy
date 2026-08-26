@@ -29,6 +29,10 @@
 	// constants because the platform is fixed for the session.
 	const isDesktop = platform === 'other';
 	const isAndroid = platform === 'android';
+	// iOS renders the ImportIOS mockup as a Liquid Glass sheet: wider corner
+	// radius, modal shadow, tighter chrome padding and 44pt controls. Module-level
+	// const, not $derived — `platform` is resolved once at module load.
+	const isIOS = platform === 'ios';
 	const descClass = isDesktop
 		? 'text-body'
 		: isAndroid
@@ -51,7 +55,7 @@
 		: 'rounded-lg p-8';
 	const radioRowPadClass = isDesktop ? 'p-3.25' : 'p-3';
 	const radioRowRadiusClass = isAndroid ? 'rounded-m3-md' : 'rounded-lg';
-	const radioClass = isDesktop ? 'size-4.5 accent-accent-600' : '';
+	const radioClass = isDesktop ? 'size-4.5' : '';
 	const androidRadioClass = (selected: boolean) =>
 		`rounded-m3-full h-4.5 w-4.5 flex-none appearance-none border-2 bg-clip-content p-0.75 ${
 			selected ? 'border-accent-600 bg-accent-600' : 'border-border-field'
@@ -60,7 +64,11 @@
 	const errorListClass = isDesktop ? 'space-y-1.25' : 'space-y-1';
 	const errorItemClass = isDesktop ? 'text-xs leading-snug' : 'text-xs';
 	const importingPadClass = isDesktop ? 'py-5' : isAndroid ? 'py-8.5' : 'py-8';
-	const bodyPadClass = isDesktop ? 'py-5' : isAndroid ? 'py-4.5' : 'py-4';
+	const bodyPadClass = isDesktop
+		? 'py-5'
+		: isAndroid || isIOS
+			? 'py-4.5'
+			: 'py-4';
 	const tilePadClass = isDesktop ? 'p-3.5' : 'p-3';
 	// The preview tiles sit three to a row, so Android trims the horizontal
 	// padding the mockup gives them to keep the widest label on one line.
@@ -70,15 +78,22 @@
 			? 'px-1 py-3'
 			: 'p-3';
 	const tileRadiusClass = isAndroid ? 'rounded-m3-md' : 'rounded-lg';
-	const tileGapClass = isAndroid ? 'gap-2.5' : 'gap-3';
-	const previewValueClass = isDesktop ? 'text-title' : 'text-2xl font-bold';
-	const resultValueClass = isDesktop ? 'text-heading' : 'text-lg font-bold';
+	const tileGapClass = isAndroid || isIOS ? 'gap-2.5' : 'gap-3';
+	const previewValueClass = isDesktop
+		? 'text-title'
+		: `text-2xl font-bold${isIOS ? ' leading-tight' : ''}`;
+	const resultValueClass = isDesktop
+		? 'text-heading'
+		: `text-lg font-bold${isIOS ? ' leading-tight' : ''}`;
 	const footerGapClass = isDesktop
 		? 'gap-2.5'
 		: isAndroid
 			? 'gap-1.5'
-			: 'gap-3';
-	const footerPadClass = isAndroid ? 'px-5 pt-3.5 pb-5' : 'px-6 pb-6 pt-4';
+			: isIOS
+				? 'gap-2.5'
+				: 'gap-3';
+	const footerPadClass =
+		isAndroid || isIOS ? 'px-5 pt-3.5 pb-5' : 'px-6 pb-6 pt-4';
 	// M3 dialog actions: a text button and a filled pill, matching the
 	// convention already used by the gift-card ledger sheet on Android.
 	const androidGhostClass =
@@ -92,12 +107,32 @@
 	const footerPrimaryClass = isDesktop
 		? 'text-label h-11 rounded-lg shadow-accent'
 		: '';
-	const ghostButtonClass = isAndroid
-		? androidGhostClass
-		: `btn btn-ghost ${footerGhostClass}`;
-	const primaryButtonClass = isAndroid
-		? androidPrimaryClass
-		: `btn btn-primary ${footerPrimaryClass}`;
+	const headerPadClass = isIOS ? 'px-5 pt-5.5 pb-3.5' : 'px-6 pt-6 pb-4';
+	const bodyPadXClass = isIOS ? 'px-5' : 'px-6';
+	// 44pt hit target with --radius-lg corners, per the mockup. Kept local to the
+	// import sheet: the global .btn is unchanged, so every other screen keeps its
+	// current button shape. The focus ring and disabled states come from
+	// .btn/.btn-primary/.btn-ghost, which the iOS arm replaces wholesale — so they
+	// are restated here.
+	const iosBtnBase =
+		'inline-flex h-11 items-center justify-center rounded-[var(--radius-lg)] px-4.5 text-sm font-semibold transition-colors focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+	const iosPrimaryClass = `${iosBtnBase} bg-accent text-on-accent shadow-[var(--shadow-accent)] hover:bg-accent-hover focus:ring-accent`;
+	// Ghost stays transparent on glass, hovering to a translucent tint — an opaque
+	// fill would cancel the backdrop blur underneath.
+	const iosGhostClass = `${iosBtnBase} border border-border-field bg-transparent text-text-muted hover:bg-[var(--color-glass-hollow)] focus:ring-text-faint`;
+	const ghostButtonClass = isIOS
+		? iosGhostClass
+		: isAndroid
+			? androidGhostClass
+			: `btn btn-ghost ${footerGhostClass}`;
+	const primaryButtonClass = isIOS
+		? iosPrimaryClass
+		: isAndroid
+			? androidPrimaryClass
+			: `btn btn-primary ${footerPrimaryClass}`;
+	// The select-step CTA sits inside the drop zone, not the footer, so off iOS it
+	// keeps plain .btn-primary sizing from ctaClass.
+	const ctaButtonClass = isIOS ? iosPrimaryClass : 'btn btn-primary';
 
 	type Step = 'select' | 'csv-type' | 'preview' | 'importing' | 'result';
 	type CSVType = 'cards' | 'vouchers' | 'gift-cards';
@@ -265,7 +300,7 @@
 	<div
 		class="pointer-events-auto w-full max-h-[90vh] overflow-y-auto {platform ===
 		'ios'
-			? 'liquid-glass-surface rounded-2xl max-w-lg'
+			? 'liquid-glass-surface rounded-[var(--radius-modal)] shadow-[var(--shadow-modal)] max-w-lg'
 			: isAndroid
 				? 'bg-m3-surface-container-high rounded-m3-xl shadow-m3-dialog max-w-sm'
 				: 'bg-surface rounded-modal shadow-modal max-w-lg'}"
@@ -274,7 +309,7 @@
 		role="document"
 	>
 		<!-- Header -->
-		<div class="px-6 pt-6 pb-4 border-b border-border-soft">
+		<div class="{headerPadClass} border-b border-border-soft">
 			<h3 id="import-dialog-title" class="{titleClass} text-text">
 				{tr('settings.import.title')}
 			</h3>
@@ -284,7 +319,7 @@
 		</div>
 
 		<!-- Body -->
-		<div class="px-6 {bodyPadClass}">
+		<div class="{bodyPadXClass} {bodyPadClass}">
 			{#if step === 'select'}
 				<!-- File Selection -->
 				<div
@@ -322,7 +357,9 @@
 						onclick={() => fileInput?.click()}
 						class={isAndroid
 							? androidPrimaryClass
-							: `btn btn-primary ${ctaClass}`}
+							: isIOS
+								? ctaButtonClass
+								: `btn btn-primary ${ctaClass}`}
 					>
 						{tr('settings.import.selectFile')}
 					</button>
@@ -363,7 +400,7 @@
 									onchange={() => (csvType = option.value)}
 									class={isAndroid
 										? androidRadioClass(csvType === option.value)
-										: `text-accent focus:ring-accent ${radioClass}`}
+										: `text-accent focus:ring-accent accent-accent-600 ${radioClass}`}
 								/>
 								<span class="{copyClass} text-text-ink2">{option.label}</span>
 							</label>
