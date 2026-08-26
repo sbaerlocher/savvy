@@ -956,6 +956,7 @@ export const de: TranslationKeys = {
 		},
 		password: {
 			title: 'Passwort ändern',
+			androidSubtitle: 'Anmeldung mit E-Mail und Passwort',
 			currentPassword: 'Aktuelles Passwort',
 			newPassword: 'Neues Passwort',
 			confirmPassword: 'Passwort bestätigen',
@@ -971,6 +972,7 @@ export const de: TranslationKeys = {
 		},
 		account: {
 			title: 'Konto',
+			memberSinceValue: 'Mitglied seit {date}',
 			memberSince: 'Mitglied seit',
 			authProvider: 'Anmeldeart',
 			providerLocal: 'E-Mail & Passwort',
@@ -983,6 +985,7 @@ export const de: TranslationKeys = {
 		},
 		export: {
 			title: 'Daten-Export',
+			androidSubtitle: 'Alle deine Daten als Archiv',
 			description: 'Laden Sie alle Ihre Daten als JSON-Datei herunter.',
 			button: 'Daten exportieren',
 			downloading: 'Wird heruntergeladen...',
@@ -1022,6 +1025,7 @@ export const de: TranslationKeys = {
 		},
 		twoFactor: {
 			title: 'Zwei-Faktor-Authentifizierung',
+			androidSubtitle: 'Authenticator-App',
 			description:
 				'Fügen Sie Ihrem Konto eine zusätzliche Sicherheitsebene mit einer Authenticator-App hinzu.',
 			enabled: 'Zwei-Faktor-Authentifizierung ist aktiviert.',
@@ -1066,6 +1070,7 @@ export const de: TranslationKeys = {
 		},
 		sessions: {
 			title: 'Aktive Sitzungen',
+			androidCurrent: 'Dieses Gerät',
 			current: 'Aktuelle Sitzung',
 			lastActive: 'Zuletzt aktiv',
 			revoke: 'Abmelden',
@@ -1094,6 +1099,12 @@ export const de: TranslationKeys = {
 		},
 		notifications: {
 			title: 'Benachrichtigungen',
+			androidPush: 'Push',
+			androidPushDesc: 'Auf diesem Gerät',
+			androidEmail: 'E-Mail',
+			androidEmailDesc: 'An {email}',
+			androidReminders: 'Erinnerungen',
+			androidSharing: 'Teilen',
 			pushNotifications: 'Push-Benachrichtigungen',
 			pushNotificationsDesc: 'Push-Benachrichtigungen im Browser erhalten.',
 			pushReminders: 'Ablauf & Gültigkeitsbeginn',
@@ -1117,6 +1128,7 @@ export const de: TranslationKeys = {
 			}
 		},
 		dangerZone: {
+			androidSubtitle: 'Unwiderruflich · DSGVO Art. 17',
 			title: 'Gefahrenzone',
 			deleteAccount: 'Konto löschen',
 			deleteDescription:
