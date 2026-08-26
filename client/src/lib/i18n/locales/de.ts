@@ -1355,6 +1355,8 @@ export const de: TranslationKeys = {
 			stop_failed: 'Fehler beim Beenden der Benutzer-Imitation'
 		},
 		users: {
+			countSummary: '{total} Konten · {admins} Admins',
+			searchPlaceholder: 'E-Mail oder Name suchen…',
 			title: 'Benutzer',
 			subtitle: 'Benutzerverwaltung und Rollenzuweisung',
 			loadError: 'Fehler beim Laden der Benutzer',
@@ -1457,6 +1459,9 @@ export const de: TranslationKeys = {
 			restoreError: 'Fehler beim Wiederherstellen der Ressource'
 		},
 		systemHealth: {
+			subtitle: 'Service-Status · Live-Prüfung',
+			autoRefreshInterval: 'Auto-Refresh · {s}s',
+			updatedAgo: 'Aktualisiert {ago}',
 			service: 'Dienst',
 			details: 'Details',
 			statusLabel: 'Status',

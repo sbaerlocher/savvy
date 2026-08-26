@@ -31,7 +31,10 @@ export class AdminPage extends BasePage {
 	}
 
 	get tableRows(): Locator {
-		return this.page.locator('tbody tr');
+		// The users list is a <table> on the native platforms but a CSS grid on
+		// desktop (mockup screen-AdminDesktop), so the rows there are tagged
+		// instead of being <tr>. Audit log is still a plain table.
+		return this.page.locator('[data-testid="admin-user-row"], tbody tr');
 	}
 
 	async goto(section: 'users' | 'audit-log' = 'users') {

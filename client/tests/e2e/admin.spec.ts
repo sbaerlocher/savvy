@@ -137,13 +137,13 @@ test.describe('Admin Panel', () => {
 		await healthApiResponse;
 		await adminPage.waitForPageReady();
 
-		// The service list has two layouts: a `hidden md:block` <table> on desktop
-		// and a `md:hidden` card list below `md` (system-health/+page.svelte:321 vs
-		// :693). Pixel 5 is 393px, so a `table`-scoped locator resolves to the
+		// The service list has three layouts: the tagged grid rows on desktop, a
+		// `hidden md:block` <table> and a `md:hidden` card list on the native
+		// platforms. Pixel 5 is 393px, so a `table`-scoped locator resolves to the
 		// display:none copy there and never becomes visible. Assert on the row
-		// itself instead — it exists in both layouts and carries the same content.
+		// itself instead — it exists in every layout and carries the same content.
 		const dbRow = page
-			.locator('tr, button')
+			.locator('[data-testid="health-service-row"], tr, button')
 			.filter({ hasText: /Database|Datenbank/i })
 			.filter({ visible: true })
 			.first();
