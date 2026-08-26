@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
+		authApi,
 		exportApi,
 		profileApi,
 		sessionsApi,
@@ -17,6 +18,7 @@
 	import { languageStore, t, type Language } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
+	import { pwaStore } from '$lib/stores/pwa';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
@@ -167,7 +169,15 @@
 		}
 	}
 
+	// A tap (no horizontal travel) on an open row closes it again, so the
+	// destructive action does not stay exposed while the user scrolls on.
+	function handleTouchEnd() {
+		if (touchAxis === 'none') swipedSessionId = null;
+	}
+
 	onMount(async () => {
+		swSupported = 'serviceWorker' in navigator;
+
 		try {
 			const response = await sessionsApi.list();
 			sessions = response.sessions || [];
@@ -329,6 +339,44 @@
 		}
 	}
 
+	// ---- Email verification -------------------------------------------------
+	let isSendingVerification = $state(false);
+
+	async function handleSendVerification() {
+		isSendingVerification = true;
+		try {
+			await authApi.requestVerification();
+			toastStore.success(tr('settings.emailVerification.sent'));
+		} catch {
+			toastStore.error(tr('settings.emailVerification.sentError'));
+		} finally {
+			isSendingVerification = false;
+		}
+	}
+
+	// ---- Service worker -----------------------------------------------------
+	// iOS is where a wedged service worker bites hardest, so the recovery action
+	// the other platforms have must exist here too.
+	let swSupported = $state(false);
+	let isReregistering = $state(false);
+
+	async function handleReregister() {
+		isReregistering = true;
+		try {
+			const registered = await pwaStore.reregisterServiceWorker();
+			if (registered) {
+				toastStore.success(tr('pwa.reregisterSuccess'));
+			} else {
+				toastStore.error(tr('pwa.reregisterError'));
+			}
+		} catch (error) {
+			pageLogger.error('Service Worker re-registration failed', { error });
+			toastStore.error(tr('pwa.reregisterError'));
+		} finally {
+			isReregistering = false;
+		}
+	}
+
 	// ---- Language + sign out ------------------------------------------------
 	const languages: { code: Language; name: string }[] = [
 		{ code: 'de', name: 'Deutsch' },
@@ -394,8 +442,19 @@
 			aria-expanded={expanded === 'name'}
 			class="flex w-full items-center justify-between gap-3 border-b border-border-soft px-4 py-3.5 text-left disabled:cursor-not-allowed"
 		>
-			<span class="text-[length:var(--text-code)] font-normal text-text">
-				{tr('settings.profile.name')}
+			<span class="min-w-0">
+				<span
+					class="block text-[length:var(--text-code)] font-normal text-text"
+				>
+					{tr('settings.profile.name')}
+				</span>
+				<!-- The row is inert for OAuth accounts; say why instead of just
+				     swallowing the tap. -->
+				{#if !isLocalAuth}
+					<span class="mt-0.25 block text-body-sm text-text-subtle">
+						{tr('settings.profile.oauthNote')}
+					</span>
+				{/if}
 			</span>
 			<span class="flex min-w-0 items-center gap-2">
 				<span
@@ -504,6 +563,24 @@
 				{/if}
 			</span>
 		</div>
+
+		<!-- Without this the only way to verify is a link inside the mail the
+		     user cannot request, so an unverified address would stay unverified
+		     forever and never receive reminder or sharing mail. -->
+		{#if !profile.email_verified && $configStore.smtp_enabled}
+			<button
+				type="button"
+				onclick={handleSendVerification}
+				disabled={isSendingVerification}
+				class="flex w-full items-center justify-between gap-3 border-t border-border-soft px-4 py-3.5 text-left"
+			>
+				<span class="text-[length:var(--text-code)] font-normal text-accent">
+					{isSendingVerification
+						? tr('settings.emailVerification.sending')
+						: tr('settings.emailVerification.verifyButton')}
+				</span>
+			</button>
+		{/if}
 	</div>
 	<p class="px-1.5 pb-3.5 text-body-sm text-text-faint">
 		{tr('settings.account.memberSince')}
@@ -824,10 +901,15 @@
 			{#each sessions as session, i (session.id)}
 				<div class="relative overflow-hidden">
 					{#if !session.is_current}
+						<!-- Concealed behind the row until swiped, so it leaves the tab
+						     order while hidden; keyboard and screen-reader users revoke
+						     via "Alle anderen abmelden" above. -->
 						<button
 							type="button"
 							onclick={() => handleRevokeSession(session.id)}
 							disabled={revokingSessionId === session.id}
+							tabindex={swipedSessionId === session.id ? 0 : -1}
+							aria-hidden={swipedSessionId !== session.id}
 							class="absolute inset-y-0 right-0 flex w-24 items-center justify-center bg-danger-600 text-label font-semibold text-on-accent"
 						>
 							{tr('settings.sessions.revoke')}
@@ -839,7 +921,9 @@
 							? '-translate-x-24'
 							: 'translate-x-0'}"
 						ontouchstart={handleTouchStart}
-						ontouchmove={(e) => handleTouchMove(e, session.id)}
+						ontouchmove={(e) =>
+							session.is_current ? undefined : handleTouchMove(e, session.id)}
+						ontouchend={handleTouchEnd}
 						role="group"
 						aria-label={session.device_info ||
 							tr('settings.sessions.unknownDevice')}
@@ -955,6 +1039,30 @@
 			</button>
 		{/each}
 	</div>
+
+	{#if swSupported}
+		<div class="mt-6 overflow-hidden rounded-inset bg-surface">
+			<button
+				type="button"
+				onclick={handleReregister}
+				disabled={isReregistering}
+				class="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+			>
+				<span class="min-w-0">
+					<span
+						class="block text-[length:var(--text-code)] font-normal text-text"
+					>
+						{isReregistering
+							? tr('pwa.reregistering')
+							: tr('pwa.reregisterButton')}
+					</span>
+					<span class="mt-0.25 block text-body-sm text-text-subtle">
+						{tr('pwa.reregisterDesc')}
+					</span>
+				</span>
+			</button>
+		</div>
+	{/if}
 
 	<div class="mt-6 overflow-hidden rounded-inset bg-surface">
 		<button
