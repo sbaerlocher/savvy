@@ -172,40 +172,39 @@ test.describe('Batch Operations', () => {
 			await cardsListPage.selectOwnedItemByIndex(i);
 		}
 
+		// All four batch-bar variants (desktop panel, iOS, Android, fallback)
+		// live in the DOM at once and are gated by breakpoint, so match the
+		// visible one — `.first()` would resolve to a hidden variant. Matching
+		// by test id rather than label: the Android bar says "Besitzerwechsel",
+		// which shares no substring with the other platforms' label.
 		const batchTransferBtn = page
-			.locator(
-				'button:has-text("übertragen"), button:has-text("Transfer"), [data-testid="batch-transfer"]'
-			)
+			.locator('[data-testid="batch-transfer"]:visible')
 			.first();
-		if (
-			!(await batchTransferBtn.isVisible({ timeout: 3000 }).catch(() => false))
-		) {
-			test.skip();
-			return;
-		}
+		await expect(batchTransferBtn).toBeVisible({ timeout: 3000 });
 
 		await batchTransferBtn.click();
 
-		const emailInput = page.locator('input[type="email"]').first();
-		if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await emailInput.fill('thomas.schmidt@example.com');
+		const emailInput = page.locator('input[type="email"]:visible').first();
+		await expect(emailInput).toBeVisible({ timeout: 3000 });
+		await emailInput.fill('thomas.schmidt@example.com');
 
-			const confirmButton = page
-				.locator('[role="dialog"]')
-				.locator('button:has-text("übertragen"), button:has-text("Transfer")')
-				.first();
-			if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-				const transferResponse = page.waitForResponse(
-					(resp) =>
-						resp.url().includes('/batch/transfer') &&
-						resp.request().method() === 'POST' &&
-						resp.status() < 400,
-					{ timeout: 10000 }
-				);
-				await confirmButton.click();
-				await transferResponse;
-			}
-		}
+		// Same reason as above: the confirm label differs per platform
+		// ("Jetzt übertragen" on iOS/desktop, "Übergeben" on the Android M3
+		// dialog), so match the test id.
+		const confirmButton = page
+			.locator('[role="dialog"]')
+			.locator('[data-testid="batch-transfer-confirm"]')
+			.first();
+		await expect(confirmButton).toBeVisible({ timeout: 3000 });
+		const transferResponse = page.waitForResponse(
+			(resp) =>
+				resp.url().includes('/batch/transfer') &&
+				resp.request().method() === 'POST' &&
+				resp.status() < 400,
+			{ timeout: 10000 }
+		);
+		await confirmButton.click();
+		await transferResponse;
 	});
 
 	test('should batch export cards', async ({

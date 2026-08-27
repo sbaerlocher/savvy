@@ -66,10 +66,12 @@
 	d: string,
 	onclick: () => void,
 	disabled: boolean,
-	danger: boolean
+	danger: boolean,
+	testId?: string
 )}
 	<button
 		type="button"
+		data-testid={testId}
 		{onclick}
 		{disabled}
 		class="flex flex-col items-center gap-1 rounded-m3-sm px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 {danger
@@ -241,6 +243,7 @@
 				<!-- Transfer -->
 				<button
 					type="button"
+					data-testid="batch-transfer"
 					onclick={onTransfer}
 					disabled={disableShareTransfer}
 					class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-ink2 bg-surface-1 border border-border rounded-lg hover:bg-transfer-50 hover:border-transfer-200 hover:text-transfer-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-1 disabled:hover:border-border disabled:hover:text-text-ink2"
@@ -383,6 +386,7 @@
 			</button>
 			<button
 				type="button"
+				data-testid="batch-transfer"
 				onclick={onTransfer}
 				disabled={disableShareTransfer}
 				aria-label={tr('common.transferOwnership')}
@@ -477,12 +481,15 @@
 				disableShareTransfer,
 				false
 			)}
+			<!-- The Android label ("Besitzerwechsel") shares no substring with the
+			     iOS/desktop one, so the E2E lookup needs a stable hook here. -->
 			{@render androidAction(
 				tr('common.transferOwnership'),
 				ICON_TRANSFER,
 				onTransfer,
 				disableShareTransfer,
-				false
+				false,
+				'batch-transfer'
 			)}
 			{@render androidAction(
 				tr('common.export'),
@@ -616,6 +623,7 @@
 
 			<button
 				type="button"
+				data-testid="batch-transfer"
 				onclick={onTransfer}
 				disabled={disableShareTransfer}
 				class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-text-muted hover:bg-transfer-50 hover:text-transfer-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
