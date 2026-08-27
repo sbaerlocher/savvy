@@ -1315,6 +1315,13 @@ export const en: TranslationKeys = {
 		toDashboard: 'Go to Dashboard'
 	},
 	admin: {
+		hub: {
+			adminsOnly: 'Admins only',
+			usersSub: 'Roles · Impersonate · Create',
+			merchantsSub: 'Manage merchants',
+			auditLogSub: 'Delete & restore history',
+			systemHealthSub: 'DB · SMTP · OAuth · Push · 2FA'
+		},
 		title: 'Admin Area',
 		impersonate_user: 'Impersonate User',
 		stop_impersonating: 'Stop',
@@ -1333,6 +1340,7 @@ export const en: TranslationKeys = {
 			countSummary: '{total} accounts · {admins} admins',
 			searchPlaceholder: 'Search email or name…',
 			title: 'Users',
+			accountsCount: '{n} accounts',
 			subtitle: 'User management and role assignment',
 			loadError: 'Failed to load users',
 			noUsers: 'No users found',
@@ -1474,6 +1482,13 @@ export const en: TranslationKeys = {
 			notReadyDesc: 'Database connection failed – System cannot serve traffic',
 			loadError: 'Failed to load system health status. Please try again.',
 			loadErrorRetry: 'Failed to load system health status. Please try again.',
+			servicesCount: '{n} services',
+			serviceEnabled: 'Enabled',
+			serviceDisabled: 'Disabled',
+			autoRefreshEvery: 'Auto-refresh · every 30 sec.',
+			degradedSubtitle: '{n} service(s) reporting an error',
+			readySubtitle: 'All services running',
+			notReadySubtitle: 'Database unreachable',
 			secondsAgo: '{n}s ago',
 			minutesAgo: '{n}m ago',
 			hoursAgo: '{n}h ago'

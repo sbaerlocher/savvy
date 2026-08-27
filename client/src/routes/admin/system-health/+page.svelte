@@ -1,14 +1,30 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import { adminApi } from '$lib/api';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import { platform } from '$lib/utils/platform';
-	import { ICON_WARNING } from '$lib/icons';
+	import {
+		ICON_CHECK_CIRCLE,
+		ICON_CHEVRON_DOWN,
+		ICON_REFRESH,
+		ICON_REFRESH_CIRCLE,
+		ICON_WARNING,
+		ICON_X_CIRCLE
+	} from '$lib/icons';
 
 	const pageLogger = logger.child('SystemHealthPage');
+
+	// iOS renders its own chrome for this screen (mockup screen-AdminIOS, frame
+	// "System-Health"): a status banner plus one grouped-inset accordion card per
+	// service, each carrying its own test action. `platform` is a module
+	// constant, so a plain const.
+	const IOS = platform === 'ios';
 
 	type HealthStatus = 'ready' | 'degraded' | 'not_ready';
 
@@ -234,6 +250,21 @@
 				}))
 			: []
 	);
+
+	const failingCount = $derived(
+		serviceRows.filter((s) => s.check.enabled && s.check.status === 'unhealthy')
+			.length
+	);
+
+	// Direct hits (bookmark, alerting mail) have no history to go back to; the
+	// chevron would be dead. Same guard as the other iOS screens.
+	function goBack() {
+		if (history.length > 1) {
+			history.back();
+			return;
+		}
+		goto(resolve('/profile'));
+	}
 
 	// Status badge tone — same three-way split the card list uses.
 	function badgeTone(check: CheckResult): string {
@@ -524,6 +555,259 @@
 				</div>
 			{/if}
 		</div>
+	{:else if IOS}
+		<!-- iOS: back chevron, "N Dienste" eyebrow and the purple re-check glyph
+			     (mockup). -->
+		<PageHeader
+			title={$t('nav.adminSystemHealth')}
+			eyebrow={health
+				? $t('admin.systemHealth.servicesCount', { n: serviceRows.length })
+				: undefined}
+			mobileActions={false}
+			onBack={goBack}
+		>
+			{#snippet actions()}
+				<button
+					type="button"
+					onclick={loadHealthStatus}
+					disabled={isLoading}
+					aria-label={$t('admin.systemHealth.refreshNow')}
+					class="liquid-glass-surface inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-600 transition-colors active:text-purple-700 disabled:opacity-50"
+				>
+					<svg
+						class="h-5.5 w-5.5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.1"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path d={ICON_REFRESH_CIRCLE} />
+					</svg>
+				</button>
+			{/snippet}
+		</PageHeader>
+
+		{#if isLoading && !health}
+			<LoadingSpinner />
+		{:else if health}
+			<!-- iOS: overall-status banner, auto-refresh line and one grouped-inset
+				     accordion card per service (mockup screen-AdminIOS, frame
+				     "System-Health"). -->
+			{@const banner =
+				health.status === 'ready'
+					? {
+							glyph: ICON_CHECK_CIRCLE,
+							tint: 'border-success-200 bg-success-50',
+							icon: 'text-success-600',
+							title: 'text-success-800',
+							sub: 'text-success-700',
+							titleKey: 'admin.systemHealth.ready',
+							subtitle: $t('admin.systemHealth.readySubtitle')
+						}
+					: health.status === 'degraded'
+						? {
+								glyph: ICON_WARNING,
+								tint: 'border-warning-200 bg-warning-50',
+								icon: 'text-warning-600',
+								title: 'text-warning-800',
+								sub: 'text-warning-700',
+								titleKey: 'admin.systemHealth.degraded',
+								subtitle: $t('admin.systemHealth.degradedSubtitle', {
+									n: failingCount
+								})
+							}
+						: {
+								glyph: ICON_X_CIRCLE,
+								tint: 'border-danger-200 bg-danger-50',
+								icon: 'text-danger-600',
+								title: 'text-danger-800',
+								sub: 'text-danger-700',
+								titleKey: 'admin.systemHealth.notReady',
+								subtitle: $t('admin.systemHealth.notReadySubtitle')
+							}}
+			<div
+				class="mb-2.5 flex items-center gap-2.75 rounded-2xl border px-3.5 py-3 {banner.tint}"
+			>
+				<svg
+					class="h-5.5 w-5.5 shrink-0 {banner.icon}"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path d={banner.glyph} />
+				</svg>
+				<div class="flex-1">
+					<div class="text-body font-bold {banner.title}">
+						{$t(banner.titleKey)}
+					</div>
+					<div class="mt-px text-chip font-normal {banner.sub}">
+						{banner.subtitle}
+					</div>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-between px-0.5 pb-3.5">
+				<button
+					type="button"
+					onclick={toggleAutoRefresh}
+					class="inline-flex items-center gap-1.5 text-chip font-normal text-text-subtle"
+				>
+					<svg
+						class="h-3.5 w-3.5 {autoRefresh
+							? 'text-accent-600'
+							: 'text-text-faint'}"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path d={ICON_REFRESH} />
+					</svg>
+					{autoRefresh
+						? $t('admin.systemHealth.autoRefreshEvery')
+						: $t('admin.systemHealth.paused')}
+				</button>
+				<span class="font-mono text-mono-sm text-text-faint"
+					>{getTimeAgo(lastRefresh)}</span
+				>
+			</div>
+
+			<div class="flex flex-col gap-2.5">
+				{#each serviceRows as service (service.key)}
+					{@const check = service.check}
+					{@const isExpanded = expandedService === service.key}
+					{@const isHealthy = check.enabled && check.status === 'healthy'}
+					<div class="overflow-hidden rounded-[var(--radius-inset)] bg-surface">
+						<button
+							type="button"
+							onclick={() => toggleService(service.key)}
+							aria-expanded={isExpanded}
+							class="flex w-full items-center gap-3 px-3.75 py-3.25 text-left transition-colors active:bg-surface-1"
+						>
+							<span
+								class="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-lg border border-border-soft bg-surface-2 {getStatusColor(
+									check
+								)}"
+							>
+								<svg
+									class="h-4.25 w-4.25"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path d={service.icon} />
+								</svg>
+							</span>
+							<span class="min-w-0 flex-1">
+								<span class="block truncate text-subheading text-text"
+									>{service.name}</span
+								>
+								<span
+									class="mt-px block text-chip font-normal text-text-subtle"
+								>
+									{check.enabled
+										? $t('admin.systemHealth.serviceEnabled')
+										: $t('admin.systemHealth.serviceDisabled')}
+								</span>
+							</span>
+							<span
+								class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.75 text-eyebrow whitespace-nowrap {check.enabled
+									? isHealthy
+										? 'bg-success-100 text-success-800'
+										: 'bg-danger-100 text-danger-800'
+									: 'bg-border-soft text-text-strong'}"
+							>
+								<span
+									class="h-1.5 w-1.5 rounded-full {check.enabled
+										? isHealthy
+											? 'bg-success'
+											: 'bg-danger-600'
+										: 'bg-text-faint'}"
+								></span>
+								{getStatusLabel(check.status)}
+							</span>
+							<svg
+								class="h-4 w-4 shrink-0 text-text-faint transition-transform {isExpanded
+									? 'rotate-180'
+									: ''}"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
+								<path d={ICON_CHEVRON_DOWN} />
+							</svg>
+						</button>
+
+						{#if isExpanded}
+							<div
+								class="border-t border-border-soft bg-surface-2 px-3.75 py-3.25"
+							>
+								<!-- serviceDetail leaves healthy SMTP/VAPID blank (the desktop
+								     table shows an empty cell there); the card needs a line.
+								     Per-service wording — readyDesc is the overall-status
+								     legend and would contradict a degraded banner. -->
+								<div
+									class="text-label leading-[1.5] font-normal {check.status ===
+									'unhealthy'
+										? 'text-danger-600'
+										: 'text-text-muted'}"
+								>
+									{service.detail || $t('admin.systemHealth.healthy')}
+								</div>
+								{#if service.test && check.enabled}
+									{@const sending =
+										service.test === 'email' ? isSendingEmail : isSendingPush}
+									<button
+										type="button"
+										onclick={service.test === 'email'
+											? sendTestEmail
+											: sendTestPush}
+										disabled={sending}
+										class="mt-3 inline-flex h-9.5 items-center gap-1.75 rounded-full border border-border-field bg-surface px-3.75 text-chip text-text disabled:opacity-50"
+									>
+										<svg
+											class="h-3.75 w-3.75"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											viewBox="0 0 24 24"
+											aria-hidden="true"
+										>
+											<path d={ICON_SEND} />
+										</svg>
+										{sending
+											? $t('admin.systemHealth.testing')
+											: service.test === 'email'
+												? $t('admin.systemHealth.sendTestEmail')
+												: $t('admin.systemHealth.sendTestPush')}
+									</button>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{:else}
 		<!-- Header -->
 		<div class="mb-8">

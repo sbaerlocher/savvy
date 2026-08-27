@@ -1352,6 +1352,13 @@ export const de: TranslationKeys = {
 		toDashboard: 'Zum Dashboard'
 	},
 	admin: {
+		hub: {
+			adminsOnly: 'Nur für Admins',
+			usersSub: 'Rollen · Imitieren · Anlegen',
+			merchantsSub: 'Anbieter verwalten',
+			auditLogSub: 'Lösch- & Restore-Verlauf',
+			systemHealthSub: 'DB · SMTP · OAuth · Push · 2FA'
+		},
 		title: 'Admin-Bereich',
 		impersonate_user: 'Als Benutzer agieren',
 		stop_impersonating: 'Beenden',
@@ -1370,6 +1377,7 @@ export const de: TranslationKeys = {
 			countSummary: '{total} Konten · {admins} Admins',
 			searchPlaceholder: 'E-Mail oder Name suchen…',
 			title: 'Benutzer',
+			accountsCount: '{n} Konten',
 			subtitle: 'Benutzerverwaltung und Rollenzuweisung',
 			loadError: 'Fehler beim Laden der Benutzer',
 			noUsers: 'Keine Benutzer gefunden',
@@ -1517,6 +1525,13 @@ export const de: TranslationKeys = {
 				'Systemstatus konnte nicht geladen werden. Bitte erneut versuchen.',
 			loadErrorRetry:
 				'Systemstatus konnte nicht geladen werden. Bitte erneut versuchen.',
+			servicesCount: '{n} Dienste',
+			serviceEnabled: 'Aktiviert',
+			serviceDisabled: 'Deaktiviert',
+			autoRefreshEvery: 'Auto-Refresh · alle 30 Sek.',
+			degradedSubtitle: '{n} Dienst(e) melden einen Fehler',
+			readySubtitle: 'Alle Dienste laufen',
+			notReadySubtitle: 'Datenbank nicht erreichbar',
 			secondsAgo: 'vor {n}s',
 			minutesAgo: 'vor {n}m',
 			hoursAgo: 'vor {n}h'

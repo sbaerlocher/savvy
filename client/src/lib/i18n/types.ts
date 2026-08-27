@@ -1244,6 +1244,13 @@ export type TranslationKeys = {
 		toDashboard: string;
 	};
 	admin: {
+		hub: {
+			adminsOnly: string;
+			usersSub: string;
+			merchantsSub: string;
+			auditLogSub: string;
+			systemHealthSub: string;
+		};
 		title: string;
 		impersonate_user: string;
 		stop_impersonating: string;
@@ -1260,6 +1267,7 @@ export type TranslationKeys = {
 			countSummary: string;
 			searchPlaceholder: string;
 			title: string;
+			accountsCount: string;
 			subtitle: string;
 			loadError: string;
 			noUsers: string;
@@ -1400,6 +1408,13 @@ export type TranslationKeys = {
 			notReadyDesc: string;
 			loadError: string;
 			loadErrorRetry: string;
+			servicesCount: string;
+			serviceEnabled: string;
+			serviceDisabled: string;
+			autoRefreshEvery: string;
+			degradedSubtitle: string;
+			readySubtitle: string;
+			notReadySubtitle: string;
 			secondsAgo: string;
 			minutesAgo: string;
 			hoursAgo: string;
