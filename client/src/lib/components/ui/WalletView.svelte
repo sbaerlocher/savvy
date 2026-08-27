@@ -501,9 +501,12 @@
 	const selectionHasGiftCards = $derived(
 		filteredGiftCards.some((g) => selectedIds.has(g.id))
 	);
+	const selectionHasVouchers = $derived(
+		filteredVouchers.some((v) => selectedIds.has(v.id))
+	);
 	const selectionOnlyVouchers = $derived(
 		selectedIds.size > 0 &&
-			filteredVouchers.some((v) => selectedIds.has(v.id)) &&
+			selectionHasVouchers &&
 			!filteredCards.some((c) => selectedIds.has(c.id)) &&
 			!selectionHasGiftCards
 	);
@@ -1192,6 +1195,7 @@
 	onCancel={() => (showBatchModal = false)}
 	hidePermissions={selectionOnlyVouchers}
 	showTransactionPermission={selectionHasGiftCards}
+	mixedWithVouchers={selectionHasVouchers && !selectionOnlyVouchers}
 />
 
 <ImportDialog

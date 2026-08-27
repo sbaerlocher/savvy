@@ -21,7 +21,7 @@
 		layer = 'default' as keyof typeof LAYERS,
 		mobileLayout = 'sheet' as 'sheet' | 'center',
 		clearBottomNav = true,
-		backdrop = 'platform' as 'platform' | 'glass',
+		backdrop = 'platform' as 'platform' | 'glass' | 'ios-scrim',
 		labelledby,
 		label,
 		children
@@ -35,8 +35,10 @@
 		clearBottomNav?: boolean;
 		// 'platform' = iOS blur, Android and desktop --scrim
 		// (ConfirmModal/ImportDialog);
-		// 'glass' = always iOS-style blur on both platforms (TypeChoiceDialog).
-		backdrop?: 'platform' | 'glass';
+		// 'glass' = always iOS-style blur on both platforms (TypeChoiceDialog);
+		// 'ios-scrim' = the iOS mockup's own dim (--color-glass-scrim + 3px blur)
+		// on iOS, platform behaviour elsewhere (BatchConfirmModal).
+		backdrop?: 'platform' | 'glass' | 'ios-scrim';
 		// Pass whichever the caller uses: labelledby (id ref) or label (literal).
 		labelledby?: string;
 		label?: string;
@@ -78,11 +80,13 @@
 	// scrim the Android mockup asks for, and the desktop mockup lands on the
 	// same value.
 	const backdropClass = $derived(
-		backdrop === 'glass'
-			? 'bg-black/40 backdrop-blur-sm'
-			: platform === 'ios'
+		backdrop === 'ios-scrim' && platform === 'ios'
+			? 'bg-[var(--color-glass-scrim)] backdrop-blur-[3px]'
+			: backdrop === 'glass'
 				? 'bg-black/40 backdrop-blur-sm'
-				: 'bg-scrim'
+				: platform === 'ios'
+					? 'bg-black/40 backdrop-blur-sm'
+					: 'bg-scrim'
 	);
 </script>
 

@@ -16,6 +16,14 @@
 		inputId?: string;
 		disabled?: boolean;
 		required?: boolean;
+		/**
+		 * iOS mockup field chrome (48px tall, --radius-xl corners, 14px value
+		 * text) instead of the shared `.input`. Opt-in per call site so the
+		 * Android/desktop forms this component is also used in stay untouched;
+		 * a call site that passes it should already be gated on
+		 * `platform === 'ios'`.
+		 */
+		iosField?: boolean;
 	}
 
 	let {
@@ -26,7 +34,8 @@
 		hint,
 		inputId = 'email-autocomplete',
 		disabled = false,
-		required = true
+		required = true,
+		iosField = false
 	}: Props = $props();
 
 	function addEmail(email: string) {
@@ -151,9 +160,14 @@
 </script>
 
 <div class="relative">
-	<label for={inputId} class="block text-sm font-medium text-text-ink2 mb-1">
+	<label
+		for={inputId}
+		class={iosField
+			? 'mb-1.75 block text-body-sm font-semibold text-text-ink2'
+			: 'block text-sm font-medium text-text-ink2 mb-1'}
+	>
 		{label}{#if required}
-			*{/if}
+			<span class={iosField ? 'text-danger-600' : ''}>*</span>{/if}
 	</label>
 	{#if multiple && values.length > 0}
 		<div class="flex flex-wrap gap-1 mb-2">
@@ -175,6 +189,9 @@
 			{/each}
 		</div>
 	{/if}
+	<!-- iosField keeps `.input`'s literal 16px value size on purpose: the mockup
+	     draws 14px, but that is exactly the size iOS Safari zooms the page for on
+	     focus. The platform constraint wins over the mockup value here. -->
 	<input
 		id={inputId}
 		type="email"
@@ -196,14 +213,18 @@
 		data-1p-ignore
 		data-lpignore="true"
 		{disabled}
-		class="input bg-white"
+		class={iosField
+			? 'input h-12 rounded-xl bg-white px-3.5'
+			: 'input bg-white'}
 	/>
 
 	{#if showSuggestions && suggestedUsers.length > 0}
 		<div
 			id="{inputId}-listbox"
 			role="listbox"
-			class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
+			class="absolute z-10 w-full bg-white border border-border-field max-h-48 overflow-y-auto {iosField
+				? 'mt-1.5 rounded-xl shadow-panel'
+				: 'mt-1 rounded-md shadow-lg'}"
 		>
 			{#each suggestedUsers as user, index (user.id)}
 				<button
@@ -227,6 +248,12 @@
 	{/if}
 
 	{#if hint}
-		<p class="text-xs text-text-subtle mt-1">{hint}</p>
+		<p
+			class="text-text-subtle {iosField
+				? 'mt-1.75 text-eyebrow font-normal tracking-normal normal-case'
+				: 'text-xs mt-1'}"
+		>
+			{hint}
+		</p>
 	{/if}
 </div>
