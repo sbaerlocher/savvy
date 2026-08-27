@@ -388,3 +388,69 @@
 	box-shadow: none;
 	order: -1;
 }
+
+/* Android batch dialog (screen-BatchShareAndroid) uses M3 *outlined* fields
+   and square M3 checkboxes, where the resource-detail forms above use filled
+   ones. EmailAutocomplete and SharePermissions are shared with iOS/desktop and
+   keep their .input/checkbox markup — this scoped override restyles them where
+   the Android batch dialog wraps them, so neither shared component gains a
+   platform branch. The mockup's 10px field radius has no token; the M3 shape
+   scale's --radius-m3-md is the nearest step Android already uses elsewhere. */
+.m3-outlined-form input.input {
+	height: 3.25rem;
+	border-radius: var(--radius-m3-md);
+	border: 1px solid var(--color-border-field);
+	background-color: var(--color-surface-2);
+	font-size: var(--text-body);
+}
+
+.m3-outlined-form input.input:focus {
+	border-color: var(--color-accent-600);
+	box-shadow: 0 0 0 1px var(--color-accent-600);
+	outline: none;
+}
+
+/* Field label only — the permission rows below are labels too, and a bare
+   `label` selector would give each of them the field label's bottom margin
+   on top of the row stack's own gap. The field label is the one bound to an
+   input by id; the permission rows wrap their checkbox instead. */
+.m3-outlined-form label[for] {
+	font-size: var(--text-body-sm);
+	font-weight: 600;
+	color: var(--color-text-ink2);
+	margin-bottom: 0.4375rem;
+}
+
+/* M3 checkbox: 20px square on the M3 shape scale, 2px outline, accent fill
+   when checked. accent-color paints the native control, so the checked fill
+   and its check mark need no custom markup. */
+.m3-outlined-form input[type='checkbox'] {
+	appearance: none;
+	width: 1.25rem;
+	height: 1.25rem;
+	flex: none;
+	margin-top: 0.0625rem;
+	border: 2px solid var(--color-border-field);
+	border-radius: var(--radius-m3-xs);
+	background-color: var(--color-surface);
+}
+
+.m3-outlined-form input[type='checkbox']:checked {
+	border-color: var(--color-accent-600);
+	background-color: var(--color-accent-600);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E");
+	background-size: 0.8125rem;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+/* Permission rows: the mockup spaces box and copy wider than the shared
+   markup's ml-2, and stacks the rows with a single gap. */
+.m3-outlined-form .m3-permissions > label {
+	gap: 0.6875rem;
+	align-items: flex-start;
+}
+
+.m3-outlined-form .m3-permissions > label > div {
+	margin-left: 0;
+}

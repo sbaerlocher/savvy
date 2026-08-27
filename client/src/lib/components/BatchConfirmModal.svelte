@@ -3,6 +3,7 @@
 		ICON_INFO_CIRCLE,
 		ICON_LOCK,
 		ICON_SPINNER,
+		ICON_TRANSFER,
 		ICON_WARNING
 	} from '$lib/icons';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -23,6 +24,21 @@
 	// --text-label at normal weight). Android keeps its current sizing, so
 	// every delta below is platform-gated.
 	const isDesktop = platform === 'other';
+	// Android renders the BatchShareAndroid mockup: centred M3 extra-large
+	// dialogs on the tonal container, pill actions with a text button for the
+	// dismissive one, and a danger box on the transfer arm.
+	const isAndroid = platform === 'android';
+
+	// M3 dialog actions: a text button for the dismissive action, a filled pill
+	// for the confirming one — same convention as the Android import dialog.
+	const androidTextButtonClass =
+		'text-label text-text-muted rounded-m3-full inline-flex h-10 items-center justify-center px-4 disabled:opacity-50';
+	const androidDangerTextClass =
+		'text-label text-danger-700 rounded-m3-full inline-flex h-10 items-center justify-center px-4 disabled:opacity-50';
+	const androidAccentFillClass =
+		'bg-accent-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center justify-center px-5.5 disabled:opacity-50 disabled:cursor-not-allowed';
+	const androidTransferFillClass =
+		'bg-transfer-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center justify-center px-5.5 disabled:opacity-50 disabled:cursor-not-allowed';
 
 	type BatchAction = 'delete' | 'share' | 'transfer';
 
@@ -140,6 +156,28 @@
 	</div>
 {/snippet}
 
+<!-- Android read-only voucher note: same M3 warning box whether it replaces the
+     permission rows (vouchers only) or runs beside them (mixed selection). -->
+{#snippet androidVoucherNote(extraClass: string)}
+	<div
+		class="flex items-start gap-2 rounded-m3-sm border border-warning-200 bg-warning-50 px-3 py-2.75 {extraClass}"
+	>
+		<svg
+			class="mt-0.25 h-3.75 w-3.75 flex-none text-warning-700"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_LOCK} />
+		</svg>
+		<p class="text-chip font-normal text-warning-800">
+			{tr('batch.readOnlyShare')}
+		</p>
+	</div>
+{/snippet}
+
 <!-- Sheet chrome shared by the iOS share and transfer flows: grabber plus a
      nav bar carrying Cancel on the left and the confirm action on the right
      (mockup screen-BatchShareIOS). -->
@@ -207,8 +245,8 @@
 	open={isOpen}
 	onclose={onCancel}
 	layer="elevated"
-	mobileLayout={iosAlert ? 'center' : 'sheet'}
-	clearBottomNav={!iosAlert}
+	mobileLayout={iosAlert || isAndroid ? 'center' : 'sheet'}
+	clearBottomNav={!(iosAlert || isAndroid)}
 	backdrop={isIOS ? 'ios-scrim' : 'platform'}
 	labelledby="batch-modal-title"
 >
@@ -450,14 +488,278 @@
 				</div>
 			{/if}
 		</div>
+	{:else if isAndroid}
+		<!-- Android M3 dialog: extra-large tonal container, centred rather than a
+		     sheet, with a text button for the dismissive action and a filled pill
+		     for the confirming one (mockup screen-BatchShareAndroid). -->
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+		<div
+			class="m3-outlined-form bg-m3-surface-container pointer-events-auto max-h-[90vh] w-full overflow-y-auto rounded-m3-xl p-5.5 shadow-m3-dialog sm:max-w-md"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="document"
+		>
+			{#if action === 'delete'}
+				<h3
+					id="batch-modal-title"
+					class="mb-2 text-heading font-semibold text-text"
+				>
+					{tr('batch.confirmDeleteTitle')}
+				</h3>
+				<p class="mb-6 text-body-sm text-text-muted">
+					{tr('batch.confirmDeleteMessage', { count })}
+				</p>
+				{#if overBatchLimit}
+					{@render limitNotice('mb-6')}
+				{/if}
+				<div class="flex justify-end gap-1.5">
+					<button
+						type="button"
+						onclick={onCancel}
+						disabled={isLoading}
+						class={androidTextButtonClass}
+					>
+						{tr('common.cancel')}
+					</button>
+					<button
+						type="button"
+						onclick={handleConfirm}
+						disabled={isLoading || overBatchLimit}
+						class={androidDangerTextClass}
+					>
+						{#if isLoading}
+							<span class="inline-flex items-center gap-2">
+								<svg
+									class="h-4 w-4 animate-spin"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
+									></path>
+								</svg>
+								{tr('common.loading')}
+							</span>
+						{:else}
+							{tr('common.delete')}
+						{/if}
+					</button>
+				</div>
+			{:else if action === 'share'}
+				<div class="mb-1 flex items-center justify-between gap-2">
+					<h3
+						id="batch-modal-title"
+						class="text-heading font-semibold text-text"
+					>
+						{tr('batch.confirmShareTitle')}
+					</h3>
+					<!-- The largest type group, not the total: each group goes out as
+					     its own request and the cap applies per request. -->
+					<span
+						class="flex-none rounded-m3-full border px-2.25 py-0.75 text-eyebrow font-normal tracking-normal normal-case tabular-nums {overBatchLimit
+							? 'border-danger-200 bg-danger-50 text-danger-800'
+							: 'border-border bg-surface-2 text-text-subtle'}"
+					>
+						{groupCount} / {BATCH_MAX_ITEMS}
+					</span>
+				</div>
+				<p class="mb-4 text-label font-normal text-text-muted">
+					{tr('batch.confirmShareMessage', { count })}
+				</p>
+
+				{#if overBatchLimit}
+					{@render limitNotice('mb-4')}
+				{/if}
+
+				<EmailAutocomplete
+					bind:value={email}
+					label={tr('batch.email')}
+					hint={tr('giftCards.sharing.userMustBeRegistered')}
+					inputId="batch-email"
+					disabled={isLoading}
+				/>
+
+				{#if hidePermissions}
+					{@render androidVoucherNote('mt-4 mb-5')}
+				{:else}
+					<p
+						class="mt-4 mb-2.75 text-tag font-bold uppercase tracking-[0.09em] text-text-subtle"
+					>
+						{tr('batch.permissions')}
+					</p>
+					<SharePermissions
+						class="m3-permissions"
+						bind:canEdit
+						bind:canDelete
+						bind:canEditTransactions
+						showEditTransactions={showTransactionPermission}
+						labelEdit={tr('cards.sharing.canEdit')}
+						labelEditDesc={tr('cards.sharing.canEditDesc')}
+						labelDelete={tr('cards.sharing.canDelete')}
+						labelDeleteDesc={tr('cards.sharing.canDeleteDesc')}
+						labelEditTransactions={showTransactionPermission
+							? tr('giftCards.sharing.canManageTransactions')
+							: undefined}
+						labelEditTransactionsDesc={showTransactionPermission
+							? tr('giftCards.sharing.canManageTransactionsDesc')
+							: undefined}
+					/>
+					{#if mixedWithVouchers}
+						{@render androidVoucherNote('mt-4 mb-5')}
+					{/if}
+				{/if}
+
+				<div
+					class="flex justify-end gap-1.5 {hidePermissions || mixedWithVouchers
+						? ''
+						: 'mt-5'}"
+				>
+					<button
+						type="button"
+						onclick={onCancel}
+						disabled={isLoading}
+						class={androidTextButtonClass}
+					>
+						{tr('common.cancel')}
+					</button>
+					<button
+						type="button"
+						onclick={handleConfirm}
+						disabled={confirmDisabled}
+						class={androidAccentFillClass}
+					>
+						{#if isLoading}
+							<span class="inline-flex items-center gap-2">
+								<svg
+									class="h-4 w-4 animate-spin"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
+									></path>
+								</svg>
+								{tr('common.loading')}
+							</span>
+						{:else}
+							{tr('giftCards.sharing.shareNow')}
+						{/if}
+					</button>
+				</div>
+			{:else}
+				<div class="mb-3 flex items-center gap-2.25">
+					<svg
+						class="h-5.5 w-5.5 flex-none text-transfer-600"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d={ICON_TRANSFER}
+						/>
+					</svg>
+					<h3
+						id="batch-modal-title"
+						class="text-heading font-semibold text-transfer-900"
+					>
+						{tr('giftCards.transfer.title')}
+					</h3>
+				</div>
+				<p class="mb-3.5 text-label font-normal text-text-muted">
+					{tr('batch.confirmTransferMessage', { count })}
+				</p>
+
+				{#if overBatchLimit}
+					{@render limitNotice('mb-4')}
+				{/if}
+
+				<!-- The gift-card wording, not `cards.transfer.warning`: that one
+				     carries a ⚠️ emoji the M3 box has no icon slot for. -->
+				<div
+					class="mb-4 rounded-m3-md border border-danger-200 bg-danger-50 px-3.25 py-3"
+				>
+					<p class="mb-1 text-chip text-danger-800">
+						{tr('giftCards.transfer.warning')}
+					</p>
+					<p class="text-chip font-normal text-danger-800">
+						{tr('giftCards.transfer.warningDetails')}
+					</p>
+				</div>
+
+				<EmailAutocomplete
+					bind:value={email}
+					label={tr('giftCards.transfer.newOwnerEmail')}
+					hint={tr('giftCards.sharing.userMustBeRegistered')}
+					inputId="batch-transfer-email"
+					disabled={isLoading}
+				/>
+
+				<div class="mt-4.5 flex justify-end gap-1.5">
+					<button
+						type="button"
+						onclick={onCancel}
+						disabled={isLoading}
+						class={androidTextButtonClass}
+					>
+						{tr('common.cancel')}
+					</button>
+					<button
+						type="button"
+						data-testid="batch-transfer-confirm"
+						onclick={handleConfirm}
+						disabled={confirmDisabled}
+						class={androidTransferFillClass}
+					>
+						{#if isLoading}
+							<span class="inline-flex items-center gap-2">
+								<svg
+									class="h-4 w-4 animate-spin"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path class="opacity-75" fill="currentColor" d={ICON_SPINNER}
+									></path>
+								</svg>
+								{tr('common.loading')}
+							</span>
+						{:else}
+							{tr('giftCards.transfer.transferButton')}
+						{/if}
+					</button>
+				</div>
+			{/if}
+		</div>
 	{:else}
 		<!-- ponytail: overflow-y-auto clips the email-autocomplete dropdown to the sheet on very short viewports (keyboard open). Acceptable — the email input sits near the top so it fits in practice; move the suggestion list to a portal if a real cutoff shows up. -->
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
-			class="pointer-events-auto w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 {platform ===
-			'android'
-				? 'bg-m3-surface-container rounded-t-[var(--radius-m3-xl)] sm:rounded-[var(--radius-m3-xl)] shadow-m3-dialog'
-				: desktopChrome}"
+			class="pointer-events-auto w-full sm:max-w-md max-h-[90vh] overflow-y-auto p-6 {desktopChrome}"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="document"
@@ -813,6 +1115,7 @@
 					<div class="flex gap-2">
 						<button
 							type="button"
+							data-testid="batch-transfer-confirm"
 							onclick={handleConfirm}
 							disabled={confirmDisabled}
 							class="btn btn-transfer flex-1 disabled:opacity-50 disabled:cursor-not-allowed"

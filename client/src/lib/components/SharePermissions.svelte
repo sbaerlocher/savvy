@@ -19,9 +19,16 @@
 		 * passes it should already be gated on `platform === 'ios'`.
 		 */
 		iosBoxes?: boolean;
+		/**
+		 * Extra classes on the native row stack — lets a caller retune the
+		 * spacing without this component learning about platforms. Ignored by
+		 * the iOS arm, which draws its own rows.
+		 */
+		class?: string;
 	}
 
 	let {
+		class: className = '',
 		canEdit = $bindable(false),
 		canDelete = $bindable(false),
 		canEditTransactions = $bindable(false),
@@ -98,7 +105,7 @@
 		{/if}
 	</div>
 {:else}
-	<div class="space-y-2">
+	<div class="space-y-2 {className}">
 		<label class="flex items-start">
 			<input
 				type="checkbox"
