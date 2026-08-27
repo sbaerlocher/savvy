@@ -13,11 +13,13 @@
 		ICON_CHECK,
 		ICON_CHEVRON_DOWN,
 		ICON_CHEVRON_RIGHT,
+		ICON_CLOSE,
 		ICON_FILTER_LINES,
 		ICON_PLUS,
 		ICON_SEARCH
 	} from '$lib/icons';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
+	import FilterGroup from '$lib/components/ui/FilterGroup.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import type { AdminUserDTO } from '$lib/types/api';
@@ -48,6 +50,15 @@
 	// rows and a segmented-control filter sheet instead of the table + selects.
 	const IOS = platform === 'ios';
 
+	// Android renders the M3 chrome from its mockup (screen-AdminAndroid, frames
+	// "Benutzer-Liste" and "Filter · BottomSheet"): a top app bar with back and a
+	// create action, tonal cards as an accordion, and chip filters in the sheet.
+	const IS_ANDROID = platform === 'android';
+
+	// Android sort picker: its own sheet, opened from the outlined field in the
+	// filter sheet (the mockup has no inline disclosure there).
+	let sortSheetOpen = $state(false);
+
 	// iOS filter sheet options (mockup): role and provider as segmented controls,
 	// sort as a disclosure row. Same values the selects below bind to.
 	const roleSegments = $derived([
@@ -66,6 +77,9 @@
 		{ value: 'newest', label: $t('admin.users.sortNewest') },
 		{ value: 'oldest', label: $t('admin.users.sortOldest') }
 	]);
+	const sortLabel = $derived(
+		sortOptions.find((o) => o.value === sortBy)?.label ?? ''
+	);
 
 	const isOffline = $derived(!$isOnline);
 	const adminCount = $derived(users.filter((u) => u.role === 'admin').length);
@@ -228,6 +242,13 @@
 
 	function toggleExpandUser(userId: string) {
 		expandedUserId = expandedUserId === userId ? null : userId;
+	}
+
+	function resetFilters() {
+		search = '';
+		sortBy = 'email-asc';
+		roleFilter = 'all';
+		providerFilter = 'all';
 	}
 
 	$effect(() => {
@@ -871,6 +892,239 @@
 				{/each}
 			</div>
 		{/if}
+	{:else if IS_ANDROID}
+		<!-- M3 top app bar: back chevron, title, purple create action (mockup). -->
+		<PageHeader
+			title={$t('admin.users.title')}
+			mobileActions={false}
+			onBack={goBack}
+		>
+			{#snippet actions()}
+				{#if localLoginEnabled}
+					<a
+						href={resolve('/admin/users/new')}
+						aria-label={$t('admin.users.createUser')}
+						class="text-purple-600 hover:bg-purple-50 rounded-m3-full inline-flex h-11 w-11 items-center justify-center transition-colors {isOffline
+							? 'pointer-events-none opacity-50'
+							: ''}"
+					>
+						<svg
+							class="h-5.5 w-5.5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+						>
+							<path d={ICON_PLUS} />
+						</svg>
+					</a>
+				{/if}
+			{/snippet}
+		</PageHeader>
+
+		<!-- Docked search pill plus the round filter button carrying the active
+		     dot; "create" moved to the app bar above. -->
+		<div class="mb-3.5 flex gap-2">
+			<div
+				class="bg-m3-surface-container-high rounded-m3-full flex h-11.5 flex-1 items-center gap-2.5 px-4"
+			>
+				<svg
+					class="text-text-muted h-4.5 w-4.5 shrink-0"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_SEARCH}
+					/>
+				</svg>
+				<input
+					type="search"
+					bind:value={search}
+					placeholder={$t('common.search')}
+					aria-label={$t('common.search')}
+					class="text-body text-text placeholder:text-text-subtle min-w-0 flex-1 bg-transparent focus:outline-none"
+				/>
+			</div>
+			<button
+				type="button"
+				onclick={() => (showFilterMenu = true)}
+				aria-label={$t('common.filter')}
+				aria-expanded={showFilterMenu}
+				class="bg-m3-surface-container-high text-text-ink2 rounded-m3-full relative inline-flex h-11.5 w-11.5 shrink-0 items-center justify-center"
+			>
+				<svg
+					class="h-4.75 w-4.75"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d={ICON_FILTER_LINES}
+					/>
+				</svg>
+				{#if hasActiveFilters}
+					<span
+						class="bg-accent border-m3-surface-container-high absolute top-2.5 right-2.75 h-1.75 w-1.75 rounded-m3-sm border-[1.5px]"
+					></span>
+				{/if}
+			</button>
+		</div>
+
+		<!-- One tonal card per user, expanding into the detail block. -->
+		<div class="flex flex-col gap-2.5">
+			{#if isLoading}
+				<LoadingSpinner />
+			{:else if filteredUsers.length === 0}
+				<div class="text-text-subtle py-12 text-center">
+					{$t('admin.users.noUsers')}
+				</div>
+			{:else}
+				{#each filteredUsers as user (user.id)}
+					{@const isOAuth = user.auth_provider === 'oauth'}
+					{@const expanded = expandedUserId === user.id}
+					<div
+						data-testid="admin-user-row"
+						class="rounded-m3-lg bg-m3-card border-border overflow-hidden border"
+					>
+						<button
+							type="button"
+							onclick={() => toggleExpandUser(user.id)}
+							aria-expanded={expanded}
+							class="hover:bg-ground-active flex w-full items-center gap-3.5 px-4 py-3.25 text-left transition-colors"
+						>
+							<span
+								class="bg-accent-100 text-accent-850 rounded-m3-full text-body flex h-10 w-10 shrink-0 items-center justify-center font-semibold"
+							>
+								{initials(user)}
+							</span>
+							<span class="min-w-0 flex-1">
+								<span class="text-body text-text block truncate font-semibold"
+									>{user.email}</span
+								>
+								<span class="text-body-sm text-text-muted mt-px block truncate"
+									>{fullName(user)}</span
+								>
+							</span>
+							<span
+								class="rounded-m3-full text-eyebrow inline-flex shrink-0 items-center px-2.5 py-0.5 font-semibold whitespace-nowrap {user.role ===
+								'admin'
+									? 'bg-danger-100 text-danger-800'
+									: 'bg-border-soft text-text-strong'}"
+							>
+								{user.role === 'admin'
+									? $t('admin.users.roleAdmin')
+									: $t('admin.users.roleUser')}
+							</span>
+							<svg
+								class="text-text-subtle h-4 w-4 shrink-0 transition-transform {expanded
+									? 'rotate-180'
+									: ''}"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={ICON_CHEVRON_DOWN}
+								/>
+							</svg>
+						</button>
+
+						{#if expanded}
+							<div class="bg-surface-1 px-4 pt-0.5 pb-4">
+								<div class="border-accent-100 border-l-2 pt-3 pl-3.5">
+									<div class="mb-3.5 grid grid-cols-2 gap-x-3.5 gap-y-3">
+										<div>
+											<div class="text-tag text-text-faint mb-0.75 uppercase">
+												{$t('admin.users.userId')}
+											</div>
+											<div class="font-mono text-body-sm text-text truncate">
+												{user.id}
+											</div>
+										</div>
+										<div>
+											<div class="text-tag text-text-faint mb-0.75 uppercase">
+												{$t('admin.users.provider')}
+											</div>
+											<div class="text-label text-text font-normal">
+												{isOAuth
+													? $t('admin.users.providerOAuth')
+													: $t('admin.users.providerLocal')}
+											</div>
+										</div>
+										<div class="col-span-2">
+											<div class="text-tag text-text-faint mb-0.75 uppercase">
+												{$t('admin.users.createdAt')}
+											</div>
+											<div class="text-label text-text font-normal">
+												{new Date(user.created_at).toLocaleDateString()}
+											</div>
+										</div>
+									</div>
+
+									<div class="flex flex-wrap gap-2">
+										{#if isOAuth}
+											<button
+												type="button"
+												disabled
+												title={$t('admin.users.oauthUserCannotEdit')}
+												class="bg-accent text-on-accent rounded-m3-full text-body-sm inline-flex h-9 cursor-not-allowed items-center px-4 font-semibold opacity-45"
+											>
+												{$t('common.edit')}
+											</button>
+										{:else}
+											<a
+												href={resolve(`/admin/users/${user.id}/edit`)}
+												class="bg-accent text-on-accent rounded-m3-full text-body-sm inline-flex h-9 items-center px-4 font-semibold"
+											>
+												{$t('common.edit')}
+											</a>
+										{/if}
+										<button
+											type="button"
+											onclick={() => toggleRole(user.id, user.role)}
+											disabled={isOffline ||
+												user.id === currentUser?.id ||
+												isOAuth}
+											title={isOAuth ? $t('admin.users.oauthRoleManaged') : ''}
+											class="border-border-field bg-m3-card text-text rounded-m3-full text-body-sm inline-flex h-9 items-center border px-4 font-semibold disabled:opacity-45"
+										>
+											{$t('admin.users.changeRole')}
+										</button>
+										<button
+											type="button"
+											onclick={() => handleImpersonate(user.id, user.email)}
+											disabled={isOffline || user.id === currentUser?.id}
+											class="border-border-field bg-m3-card text-text rounded-m3-full text-body-sm inline-flex h-9 items-center border px-4 font-semibold disabled:opacity-45"
+										>
+											{$t('admin.impersonate_user')}
+										</button>
+									</div>
+
+									{#if isOAuth}
+										<div class="text-warning-700 text-body-sm mt-2.5">
+											{$t('admin.users.oauthRoleManaged')}
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/if}
+					</div>
+				{/each}
+			{/if}
+		</div>
 	{:else}
 		<!-- Header -->
 		<div class="mb-8">
@@ -1215,6 +1469,7 @@
 		maxHeight={IOS ? '88%' : '80vh'}
 		ariaLabel={$t('common.filter')}
 		allowWide={!DESKTOP}
+		tonalAndroid
 	>
 		{#if IOS}
 			<!-- iOS: segmented controls for role/provider and a disclosure row for
@@ -1371,6 +1626,91 @@
 					{/if}
 				</div>
 			</div>
+		{:else if IS_ANDROID}
+			<!-- Android M3 filter sheet (mockup screen-AdminAndroid, frame
+			     "Filter · BottomSheet"): chip rows for role and provider, sort as an
+			     outlined field opening its own picker, reset + apply in the footer. -->
+			<div class="px-5.5 pt-1 pb-2">
+				<div class="mb-5 flex items-center justify-between">
+					<h3 class="text-heading text-text">{$t('common.filter')}</h3>
+					<button
+						type="button"
+						onclick={() => (showFilterMenu = false)}
+						aria-label={$t('common.close')}
+						class="text-text-subtle hover:text-text-muted flex transition-colors"
+					>
+						<svg
+							class="h-5.5 w-5.5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" d={ICON_CLOSE} />
+						</svg>
+					</button>
+				</div>
+
+				<div class="mb-5">
+					<FilterGroup
+						label={$t('admin.users.role')}
+						bind:value={roleFilter}
+						options={roleSegments}
+						idPrefix="admin-role"
+						plainLabel
+					/>
+				</div>
+				<div class="mb-5">
+					<FilterGroup
+						label={$t('admin.users.provider')}
+						bind:value={providerFilter}
+						options={providerSegments}
+						idPrefix="admin-provider"
+						plainLabel
+					/>
+				</div>
+
+				<div class="text-label text-text-ink2 mb-2.5 block">
+					{$t('common.sort')}
+				</div>
+				<button
+					type="button"
+					onclick={() => (sortSheetOpen = true)}
+					class="border-border-field rounded-m3-lg mb-6 flex h-13 w-full items-center justify-between border px-4"
+				>
+					<span class="text-body text-text">{sortLabel}</span>
+					<svg
+						class="text-text-subtle h-5 w-5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M19 9l-7 7-7-7"
+						/>
+					</svg>
+				</button>
+
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={resetFilters}
+						class="text-accent rounded-m3-full text-label inline-flex h-10.5 items-center px-5"
+					>
+						{$t('common.reset')}
+					</button>
+					<button
+						type="button"
+						onclick={() => (showFilterMenu = false)}
+						class="bg-accent text-on-accent rounded-m3-full text-label inline-flex h-10.5 items-center px-6"
+					>
+						{$t('common.apply')}
+					</button>
+				</div>
+			</div>
 		{:else}
 			<div class="p-6">
 				<div class="flex items-center justify-between mb-4">
@@ -1483,5 +1823,50 @@
 				</div>
 			</div>
 		{/if}
+	</BottomSheet>
+
+	<!-- Sort picker, opened from the field above. -->
+	<BottomSheet
+		open={sortSheetOpen}
+		onClose={() => (sortSheetOpen = false)}
+		maxHeight="60vh"
+		ariaLabel={$t('common.sort')}
+		tonalAndroid
+	>
+		<div class="px-5.5 pt-1 pb-2">
+			<h3 class="text-heading text-text mb-4">{$t('common.sort')}</h3>
+			{#each sortOptions as option (option.value)}
+				<button
+					type="button"
+					onclick={() => {
+						sortBy = option.value;
+						sortSheetOpen = false;
+					}}
+					class="flex w-full items-center gap-3 py-2.5 text-left text-body {sortBy ===
+					option.value
+						? 'text-text'
+						: 'text-text-muted'}"
+				>
+					<span class="flex h-4 w-4 shrink-0 items-center justify-center">
+						{#if sortBy === option.value}
+							<svg
+								class="text-accent h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.4"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d={ICON_CHECK}
+								/>
+							</svg>
+						{/if}
+					</span>
+					{option.label}
+				</button>
+			{/each}
+		</div>
 	</BottomSheet>
 </div>

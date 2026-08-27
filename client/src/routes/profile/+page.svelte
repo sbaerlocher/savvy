@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { profileApi, type ProfileDTO } from '$lib/api';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import AdminHubSection from '$lib/components/settings/AdminHubSection.svelte';
 	import IOSSettingsScreen from '$lib/components/settings/IOSSettingsScreen.svelte';
 	import ProfileSection from '$lib/components/settings/ProfileSection.svelte';
 	import SecuritySection from '$lib/components/settings/SecuritySection.svelte';
@@ -36,6 +37,14 @@
 	let isLoadingProfile = $state(true);
 	let isReregistering = $state(false);
 	let swSupported = $state(false);
+
+	// The Android mockup puts the admin entry on the profile screen; the other
+	// platforms keep it in the desktop nav's admin dropdown. `platform` is a
+	// module constant, so a plain const.
+	const IS_ANDROID = platform === 'android';
+	const showAdminHub = $derived(
+		IS_ANDROID && ($authStore.user?.is_admin ?? false)
+	);
 
 	// The only other logout lives in DesktopNav's user menu, which is
 	// `hidden sm:block` — so below `sm` there was no way to sign out at all.
@@ -176,6 +185,14 @@
 		{#if isLoadingProfile}
 			<LoadingSpinner />
 		{:else if profile}
+			{#if showAdminHub}
+				<!-- Admin entry (mockup screen-AdminAndroid, frame 1). Android only and
+				     only for admins; the hub links stay the existing /admin sub-routes. -->
+				<div class="mb-6 sm:hidden">
+					<AdminHubSection {profile} />
+				</div>
+			{/if}
+
 			<div class="flex flex-col lg:flex-row gap-6 items-start">
 				<div class="w-full lg:w-2/3">
 					<ProfileSection {profile} onProfileUpdated={handleProfileUpdated} />

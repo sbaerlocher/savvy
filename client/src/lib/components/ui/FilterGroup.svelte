@@ -19,7 +19,8 @@
 		groupKey = idPrefix,
 		openGroup = $bindable(''),
 		flat = false,
-		variant = 'list'
+		variant = 'list',
+		plainLabel = false
 	}: {
 		label: string;
 		value: string;
@@ -38,6 +39,10 @@
 		/** iOS flat groups only: 'list' keeps the checkmark rows, 'chips' lays the
 		 *  options out as a wrapping pill row. */
 		variant?: 'list' | 'chips';
+		/** Android/desktop: set the caption in mixed case at the label step
+		 *  instead of the uppercase eyebrow. The admin filter sheet does (mockup
+		 *  screen-AdminAndroid); the wallet and merchant sheets keep the kicker. */
+		plainLabel?: boolean;
 	} = $props();
 
 	const groupId = $derived(`${idPrefix}-group`);
@@ -240,9 +245,11 @@
 	<div class={platform === 'android' ? '' : 'py-4'}>
 		<span
 			id={groupId}
-			class="block uppercase text-text-subtle {platform === 'android'
-				? 'mb-2.5 text-eyebrow'
-				: 'mb-2 text-xs font-medium tracking-wider'}"
+			class="block {plainLabel
+				? 'mb-2.5 text-label text-text-ink2'
+				: platform === 'android'
+					? 'mb-2.5 text-eyebrow uppercase text-text-subtle'
+					: 'mb-2 text-xs font-medium uppercase tracking-wider text-text-subtle'}"
 		>
 			{label}
 		</span>
