@@ -635,7 +635,9 @@
 								? tr('giftCards.sharing.canManageTransactionsDesc')
 								: undefined}
 						/>
-						{#if mixedWithVouchers}
+						<!-- Desktop shows this notice outside the accent inset instead
+						     (mockup board 2), so keep the inline one off there. -->
+						{#if mixedWithVouchers && !isDesktop}
 							<!-- The permissions above do not reach the vouchers in the
 							     selection — the backend shares those read-only. -->
 							<div
