@@ -67,6 +67,9 @@
 	onclick: () => void,
 	disabled: boolean,
 	danger: boolean,
+	// All four bar variants sit in the DOM behind breakpoint gates, so an E2E
+	// lookup needs a hook that picks the visible one; the labels differ between
+	// the desktop panel and the three bars.
 	testId?: string
 )}
 	<button
@@ -481,8 +484,6 @@
 				disableShareTransfer,
 				false
 			)}
-			<!-- The Android label ("Besitzerwechsel") shares no substring with the
-			     iOS/desktop one, so the E2E lookup needs a stable hook here. -->
 			{@render androidAction(
 				tr('common.transferOwnership'),
 				ICON_TRANSFER,

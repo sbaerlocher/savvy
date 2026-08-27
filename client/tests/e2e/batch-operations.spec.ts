@@ -174,9 +174,9 @@ test.describe('Batch Operations', () => {
 
 		// All four batch-bar variants (desktop panel, iOS, Android, fallback)
 		// live in the DOM at once and are gated by breakpoint, so match the
-		// visible one — `.first()` would resolve to a hidden variant. Matching
-		// by test id rather than label: the Android bar says "Besitzerwechsel",
-		// which shares no substring with the other platforms' label.
+		// visible one — `.first()` used to resolve to the hidden desktop-panel
+		// button. The label is no help either: the panel says "Ausgewählte
+		// übertragen" while the three bars say "Besitzerwechsel".
 		const batchTransferBtn = page
 			.locator('[data-testid="batch-transfer"]:visible')
 			.first();
@@ -188,9 +188,9 @@ test.describe('Batch Operations', () => {
 		await expect(emailInput).toBeVisible({ timeout: 3000 });
 		await emailInput.fill('thomas.schmidt@example.com');
 
-		// Same reason as above: the confirm label differs per platform
-		// ("Jetzt übertragen" on iOS/desktop, "Übergeben" on the Android M3
-		// dialog), so match the test id.
+		// Test id again, not the label: the dialog is one of three platform
+		// arms, and a label match here had stopped working on every project
+		// once they converged on "Übergeben".
 		const confirmButton = page
 			.locator('[role="dialog"]')
 			.locator('[data-testid="batch-transfer-confirm"]')

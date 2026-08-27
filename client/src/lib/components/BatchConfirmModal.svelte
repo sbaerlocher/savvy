@@ -18,15 +18,13 @@
 
 	// Module-level constant, so this is a plain boolean, not reactive state.
 	const isIOS = platform === 'ios';
-	// Desktop renders the BatchShareDesktop mockup: a --surface panel on
-	// --radius-3xl with --shadow-panel and a --border hairline, mockup type
-	// steps mapped onto the nearest global token (17px -> text-lg, 13px ->
-	// --text-label at normal weight). Android keeps its current sizing, so
-	// every delta below is platform-gated.
-	const isDesktop = platform === 'other';
 	// Android renders the BatchShareAndroid mockup: centred M3 extra-large
 	// dialogs on the tonal container, pill actions with a text button for the
-	// dismissive one, and a danger box on the transfer arm.
+	// dismissive one, and a danger box on the transfer arm. iOS and Android
+	// each have their own arm below, so the final branch is desktop by
+	// construction and needs no flag of its own — it renders the
+	// BatchShareDesktop mockup: a --surface panel on --radius-3xl with
+	// --shadow-panel and a --border hairline.
 	const isAndroid = platform === 'android';
 
 	// M3 dialog actions: a text button for the dismissive action, a filled pill
@@ -785,9 +783,7 @@
 					<div class="flex-1">
 						<h3
 							id="batch-modal-title"
-							class="text-lg font-semibold {isDesktop
-								? 'text-danger-800'
-								: 'text-danger-600'}"
+							class="text-lg font-semibold text-danger-800"
 						>
 							{tr('batch.confirmDeleteTitle')}
 						</h3>
@@ -796,7 +792,7 @@
 				<p
 					class="text-text-muted {overBatchLimit
 						? 'mb-4'
-						: 'mb-6'} ml-9 {isDesktop ? 'text-label font-normal' : ''}"
+						: 'mb-6'} ml-9 text-label font-normal"
 				>
 					{tr('batch.confirmDeleteMessage', { count })}
 				</p>
@@ -808,9 +804,7 @@
 						type="button"
 						onclick={onCancel}
 						disabled={isLoading}
-						class="border border-border-field hover:bg-surface-1 transition-colors text-text-ink2 {isDesktop
-							? 'text-label h-11 rounded-lg px-4.5'
-							: 'px-4 py-2 rounded-md'}"
+						class="text-label h-11 rounded-lg border border-border-field px-4.5 text-text-ink2 transition-colors hover:bg-surface-1"
 					>
 						{tr('common.cancel')}
 					</button>
@@ -818,9 +812,7 @@
 						type="button"
 						onclick={handleConfirm}
 						disabled={isLoading || overBatchLimit}
-						class="text-on-accent bg-danger-600 hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed {isDesktop
-							? 'text-label h-11 rounded-lg px-4.5'
-							: 'px-4 py-2 rounded-md'}"
+						class="text-label text-on-accent h-11 rounded-lg bg-danger-600 px-4.5 transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{#if isLoading}
 							<span class="inline-flex items-center gap-2">
@@ -853,23 +845,17 @@
 					<h3 id="batch-modal-title" class="text-lg font-semibold text-text">
 						{tr('batch.confirmShareTitle')}
 					</h3>
-					{#if isDesktop}
-						<!-- The largest type group, not the total: each group goes out as
-						     its own request and the cap applies per request. -->
-						<span
-							class="flex-none rounded-full border px-2.5 py-0.75 text-eyebrow font-normal tracking-normal normal-case tabular-nums {overBatchLimit
-								? 'border-danger-200 bg-danger-50 text-danger-800'
-								: 'border-border bg-surface-1 text-text-subtle'}"
-						>
-							{groupCount} / {BATCH_MAX_ITEMS}
-						</span>
-					{/if}
+					<!-- The largest type group, not the total: each group goes out as
+					     its own request and the cap applies per request. -->
+					<span
+						class="flex-none rounded-full border px-2.5 py-0.75 text-eyebrow font-normal tracking-normal normal-case tabular-nums {overBatchLimit
+							? 'border-danger-200 bg-danger-50 text-danger-800'
+							: 'border-border bg-surface-1 text-text-subtle'}"
+					>
+						{groupCount} / {BATCH_MAX_ITEMS}
+					</span>
 				</div>
-				<p
-					class="text-text-muted mb-4 {isDesktop
-						? 'text-label font-normal'
-						: 'text-sm'}"
-				>
+				<p class="text-label mb-4 font-normal text-text-muted">
 					{tr('batch.confirmShareMessage', { count })}
 				</p>
 
@@ -889,38 +875,14 @@
 						disabled={isLoading}
 					/>
 
-					<!-- Permissions -->
-					{#if hidePermissions}
-						{#if !isDesktop}
-							<div
-								class="flex items-start gap-2 bg-surface-1 border border-border rounded-lg p-3"
-							>
-								<svg
-									class="w-4 h-4 text-text-subtle mt-0.5 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d={ICON_INFO_CIRCLE}
-									></path>
-								</svg>
-								<p class="text-sm text-text-muted">
-									{tr('batch.readOnlyShare')}
-								</p>
-							</div>
-						{/if}
-					{:else}
-						{#if isDesktop}
-							<p
-								class="text-eyebrow font-bold uppercase tracking-[0.09em] text-text-subtle"
-							>
-								{tr('batch.permissions')}
-							</p>
-						{/if}
+					<!-- Permissions. A vouchers-only selection has none — its read-only
+					     note renders outside the accent inset below. -->
+					{#if !hidePermissions}
+						<p
+							class="text-eyebrow font-bold uppercase tracking-[0.09em] text-text-subtle"
+						>
+							{tr('batch.permissions')}
+						</p>
 						<SharePermissions
 							bind:canEdit
 							bind:canDelete
@@ -937,33 +899,6 @@
 								? tr('giftCards.sharing.canManageTransactionsDesc')
 								: undefined}
 						/>
-						<!-- Desktop shows this notice outside the accent inset instead
-						     (mockup board 2), so keep the inline one off there. -->
-						{#if mixedWithVouchers && !isDesktop}
-							<!-- The permissions above do not reach the vouchers in the
-							     selection — the backend shares those read-only. -->
-							<div
-								class="flex items-start gap-2 bg-warning-50 border border-warning-200 rounded-lg p-3"
-							>
-								<svg
-									class="w-4 h-4 text-warning-700 mt-0.5 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									viewBox="0 0 24 24"
-									aria-hidden="true"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										d={ICON_LOCK}
-									/>
-								</svg>
-								<p class="text-sm text-warning-800">
-									{tr('batch.readOnlyShare')}
-								</p>
-							</div>
-						{/if}
 					{/if}
 
 					<!-- Action Buttons -->
@@ -1014,7 +949,7 @@
 
 				<!-- Vouchers in the selection are always shared read-only. The desktop
 				     mockup puts this outside the accent inset, under the actions. -->
-				{#if isDesktop && (mixedWithVouchers || hidePermissions)}
+				{#if mixedWithVouchers || hidePermissions}
 					<div
 						class="mt-3.5 flex items-start gap-2.25 rounded-md border border-warning-200 bg-warning-50 px-3.25 py-2.75"
 					>
@@ -1045,11 +980,7 @@
 				>
 					{tr('batch.confirmTransferTitle')}
 				</h3>
-				<p
-					class="text-text-muted mb-4 {isDesktop
-						? 'text-label font-normal'
-						: 'text-sm'}"
-				>
+				<p class="text-label mb-4 font-normal text-text-muted">
 					{tr('batch.confirmTransferMessage', { count })}
 				</p>
 
@@ -1061,55 +992,27 @@
 					class="border border-transfer-200 bg-transfer-50 rounded-lg p-4 space-y-4"
 				>
 					<!-- Warning Banner -->
-					{#if isDesktop}
-						<div
-							class="bg-danger-50 border border-danger-200 rounded-md px-3.25 py-3"
-						>
-							<!-- The gift-card wording, not `cards.transfer.warning`: that
-							     one carries a warning emoji the mockup does not show. -->
-							<p class="text-body-sm font-bold text-danger-800 mb-1">
-								{tr('giftCards.transfer.warning')}
-							</p>
-							<p class="text-body-sm text-danger-800">
-								{tr('giftCards.transfer.warningDetails')}
-							</p>
-						</div>
-					{:else}
-						<div class="bg-warning-50 border border-warning-200 rounded-lg p-3">
-							<p class="text-sm font-medium text-warning-800">
-								<strong>{tr('cards.transfer.warning')}</strong>
-							</p>
-							<p class="text-xs text-warning-700 mt-1">
-								{tr('giftCards.transfer.warningDetails')}
-							</p>
-						</div>
-					{/if}
+					<div
+						class="bg-danger-50 border border-danger-200 rounded-md px-3.25 py-3"
+					>
+						<!-- The gift-card wording, not `cards.transfer.warning`: that
+						     one carries a warning emoji the mockup does not show. -->
+						<p class="text-body-sm font-bold text-danger-800 mb-1">
+							{tr('giftCards.transfer.warning')}
+						</p>
+						<p class="text-body-sm text-danger-800">
+							{tr('giftCards.transfer.warningDetails')}
+						</p>
+					</div>
 
 					<!-- Email with Autocomplete -->
 					<EmailAutocomplete
 						bind:value={email}
-						label={isDesktop
-							? tr('giftCards.transfer.newOwnerEmail')
-							: tr('cards.transfer.newOwnerEmail')}
+						label={tr('giftCards.transfer.newOwnerEmail')}
 						hint={tr('giftCards.sharing.userMustBeRegistered')}
 						inputId="batch-transfer-email"
 						disabled={isLoading}
 					/>
-
-					<!-- What Happens -->
-					{#if !isDesktop}
-						<div>
-							<p class="text-sm font-medium text-text-ink2 mb-2">
-								{tr('cards.transfer.whatHappens')}
-							</p>
-							<ul class="text-xs text-text-muted space-y-1">
-								<li>{tr('cards.transfer.newOwnerGetsRights')}</li>
-								<li>{tr('cards.transfer.allSharesDeleted')}</li>
-								<li>{tr('cards.transfer.youLoseAccess')}</li>
-								<li>{tr('cards.transfer.transferLogged')}</li>
-							</ul>
-						</div>
-					{/if}
 
 					<!-- Action Buttons -->
 					<div class="flex gap-2">
@@ -1144,9 +1047,7 @@
 									{tr('common.loading')}
 								</span>
 							{:else}
-								{isDesktop
-									? tr('giftCards.transfer.transferButton')
-									: tr('cards.transfer.transferButton')}
+								{tr('giftCards.transfer.transferButton')}
 							{/if}
 						</button>
 						<button
