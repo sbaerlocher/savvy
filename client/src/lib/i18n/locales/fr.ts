@@ -1324,6 +1324,8 @@ export const fr: TranslationKeys = {
 		sharedItemsWarning:
 			'{count} éléments partagés sélectionnés – seuls vos propres éléments peuvent être modifiés, partagés ou transférés.',
 		readOnlyShare: 'Les bons sont toujours partagés en lecture seule.',
+		tooManyItems:
+			'Au maximum {max} éléments par type peuvent être traités à la fois. Veuillez réduire la sélection.',
 		exportSelected: 'Exporter la sélection',
 		exportSuccess: '{count} éléments exportés',
 		exportError: "Échec de l'exportation",

@@ -24,6 +24,12 @@
 		 * `platform === 'ios'`.
 		 */
 		iosField?: boolean;
+		/**
+		 * Open the suggestion list above the input instead of below it. For a
+		 * field that sits at the bottom of a scrolling container, where a list
+		 * rendered downwards would be clipped off the container's edge.
+		 */
+		dropUp?: boolean;
 	}
 
 	let {
@@ -35,7 +41,8 @@
 		inputId = 'email-autocomplete',
 		disabled = false,
 		required = true,
-		iosField = false
+		iosField = false,
+		dropUp = false
 	}: Props = $props();
 
 	function addEmail(email: string) {
@@ -189,63 +196,73 @@
 			{/each}
 		</div>
 	{/if}
-	<!-- iosField keeps `.input`'s literal 16px value size on purpose: the mockup
-	     draws 14px, but that is exactly the size iOS Safari zooms the page for on
-	     focus. The platform constraint wins over the mockup value here. -->
-	<input
-		id={inputId}
-		type="email"
-		{value}
-		role="combobox"
-		aria-expanded={showSuggestions}
-		aria-controls="{inputId}-listbox"
-		aria-activedescendant={highlightedIndex >= 0
-			? `${inputId}-option-${highlightedIndex}`
-			: undefined}
-		oninput={onInput}
-		onfocus={onFocus}
-		onblur={onBlur}
-		onkeydown={onKeydown}
-		required={required && !multiple}
-		name="share-recipient"
-		placeholder={$t('giftCards.sharing.emailPlaceholder')}
-		autocomplete="new-password"
-		data-1p-ignore
-		data-lpignore="true"
-		{disabled}
-		class={iosField
-			? 'input h-12 rounded-xl bg-white px-3.5'
-			: 'input bg-white'}
-	/>
+	<!-- Own positioning context so a dropUp list anchors to the input's top edge
+	     rather than the whole field block's (which includes the hint below). -->
+	<div class="relative">
+		<!-- iosField keeps `.input`'s literal 16px value size on purpose: the mockup
+		     draws 14px, but that is exactly the size iOS Safari zooms the page for on
+		     focus. The platform constraint wins over the mockup value here. -->
+		<input
+			id={inputId}
+			type="email"
+			{value}
+			role="combobox"
+			aria-expanded={showSuggestions}
+			aria-controls="{inputId}-listbox"
+			aria-activedescendant={highlightedIndex >= 0
+				? `${inputId}-option-${highlightedIndex}`
+				: undefined}
+			oninput={onInput}
+			onfocus={onFocus}
+			onblur={onBlur}
+			onkeydown={onKeydown}
+			required={required && !multiple}
+			name="share-recipient"
+			placeholder={$t('giftCards.sharing.emailPlaceholder')}
+			autocomplete="new-password"
+			data-1p-ignore
+			data-lpignore="true"
+			{disabled}
+			class={iosField
+				? 'input h-12 rounded-xl bg-white px-3.5'
+				: 'input bg-white'}
+		/>
 
-	{#if showSuggestions && suggestedUsers.length > 0}
-		<div
-			id="{inputId}-listbox"
-			role="listbox"
-			class="absolute z-10 w-full bg-white border border-border-field max-h-48 overflow-y-auto {iosField
-				? 'mt-1.5 rounded-xl shadow-panel'
-				: 'mt-1 rounded-md shadow-lg'}"
-		>
-			{#each suggestedUsers as user, index (user.id)}
-				<button
-					id="{inputId}-option-{index}"
-					type="button"
-					role="option"
-					onclick={() => selectUser(user)}
-					aria-selected={index === highlightedIndex}
-					class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none {index ===
-					highlightedIndex
-						? 'bg-border-soft'
-						: ''}"
-				>
-					<div class="font-medium text-sm text-text">
-						{formatUserName(user)}
-					</div>
-					<div class="text-xs text-text-subtle">{user.email}</div>
-				</button>
-			{/each}
-		</div>
-	{/if}
+		{#if showSuggestions && suggestedUsers.length > 0}
+			<div
+				id="{inputId}-listbox"
+				role="listbox"
+				class="absolute z-10 w-full bg-white border border-border-field max-h-48 overflow-y-auto {dropUp
+					? 'bottom-full'
+					: 'top-full'} {iosField
+					? 'rounded-xl shadow-panel'
+					: 'rounded-md shadow-lg'} {dropUp
+					? 'mb-1.5'
+					: iosField
+						? 'mt-1.5'
+						: 'mt-1'}"
+			>
+				{#each suggestedUsers as user, index (user.id)}
+					<button
+						id="{inputId}-option-{index}"
+						type="button"
+						role="option"
+						onclick={() => selectUser(user)}
+						aria-selected={index === highlightedIndex}
+						class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none {index ===
+						highlightedIndex
+							? 'bg-border-soft'
+							: ''}"
+					>
+						<div class="font-medium text-sm text-text">
+							{formatUserName(user)}
+						</div>
+						<div class="text-xs text-text-subtle">{user.email}</div>
+					</button>
+				{/each}
+			</div>
+		{/if}
+	</div>
 
 	{#if hint}
 		<p

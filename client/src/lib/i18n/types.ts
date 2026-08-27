@@ -1215,6 +1215,7 @@ export type TranslationKeys = {
 		transferSuccess: string;
 		sharedItemsWarning: string;
 		readOnlyShare: string;
+		tooManyItems: string;
 		exportSelected: string;
 		exportSuccess: string;
 		exportError: string;

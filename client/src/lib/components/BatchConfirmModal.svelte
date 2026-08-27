@@ -43,6 +43,14 @@
 		 * `hidePermissions` case, a selection of vouchers only.
 		 */
 		mixedWithVouchers?: boolean;
+		/**
+		 * Size of the largest resource-type group in the selection. The batch
+		 * endpoints cap a request at 50 items and each type group is dispatched
+		 * as its own request, so this — not `count` — is the number that can
+		 * exceed the cap. Defaults to `count` for a caller that does not split
+		 * by type.
+		 */
+		largestGroupCount?: number;
 	}
 
 	let {
@@ -54,7 +62,8 @@
 		onCancel,
 		showTransactionPermission = false,
 		hidePermissions = false,
-		mixedWithVouchers = false
+		mixedWithVouchers = false,
+		largestGroupCount
 	}: Props = $props();
 
 	let email = $state('');
@@ -80,16 +89,44 @@
 		}
 	});
 
-	// The batch endpoints cap a request at 50 items; the iOS sheet shows that
-	// ceiling next to the count, so it lives here rather than in the caller.
+	// Mirrors maxBatchSize in internal/handlers/api/batch.go.
 	const BATCH_MAX_ITEMS = 50;
 
-	const confirmDisabled = $derived(isLoading || !email.trim());
+	const groupCount = $derived(largestGroupCount ?? count);
+	const overBatchLimit = $derived(groupCount > BATCH_MAX_ITEMS);
+
+	// Over the cap the request comes back as an opaque 400, so block confirm
+	// here instead of letting the user run into it.
+	const confirmDisabled = $derived(
+		isLoading || !email.trim() || overBatchLimit
+	);
 
 	// iOS draws delete as a centred alert and the two email flows as bottom
 	// sheets; every other platform keeps the single sheet/dialog shell.
 	const iosAlert = $derived(isIOS && action === 'delete');
 </script>
+
+<!-- Shown on every platform when the largest type group is over the batch cap:
+     confirm is blocked there, so say why. -->
+{#snippet limitNotice(extraClass: string)}
+	<div
+		class="flex items-start gap-2 rounded-lg border border-danger-200 bg-danger-50 p-3 {extraClass}"
+	>
+		<svg
+			class="mt-0.5 h-4 w-4 flex-none text-danger-700"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_WARNING} />
+		</svg>
+		<p class="text-body-sm text-danger-800">
+			{tr('batch.tooManyItems', { max: BATCH_MAX_ITEMS })}
+		</p>
+	</div>
+{/snippet}
 
 <!-- Sheet chrome shared by the iOS share and transfer flows: grabber plus a
      nav bar carrying Cancel on the left and the confirm action on the right
@@ -180,8 +217,16 @@
 				>
 					{tr('batch.confirmDeleteTitle')}
 				</h3>
-				<p class="text-label font-normal text-text-muted">
-					{tr('batch.confirmDeleteMessage', { count })}
+				<!-- The alert is 270pt wide, so over the cap the limit message replaces
+				     the confirmation copy instead of stacking a banner under it. -->
+				<p
+					class="text-label font-normal {overBatchLimit
+						? 'text-danger-800'
+						: 'text-text-muted'}"
+				>
+					{overBatchLimit
+						? tr('batch.tooManyItems', { max: BATCH_MAX_ITEMS })
+						: tr('batch.confirmDeleteMessage', { count })}
 				</p>
 			</div>
 			<div class="flex border-t border-[var(--color-glass-edge)]">
@@ -196,7 +241,7 @@
 				<button
 					type="button"
 					onclick={handleConfirm}
-					disabled={isLoading}
+					disabled={isLoading || overBatchLimit}
 					class="flex-1 py-3 text-subheading font-semibold text-danger-600 disabled:opacity-50"
 				>
 					{#if isLoading}
@@ -225,7 +270,7 @@
 		     glass (mockup screen-BatchShareIOS, frames 2 and 3). -->
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
-			class="liquid-glass-surface pointer-events-auto flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[var(--radius-sheet)] shadow-sheet"
+			class="liquid-glass-surface pointer-events-auto flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[var(--radius-sheet)] shadow-sheet sm:max-w-md sm:rounded-[var(--radius-sheet)]"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="document"
@@ -242,12 +287,20 @@
 						<p class="text-label font-normal text-text-muted">
 							{tr('batch.confirmShareMessage', { count })}
 						</p>
+						<!-- The largest type group, not the total: each group goes out as
+						     its own request and the cap applies per request. -->
 						<span
-							class="flex-none rounded-full border border-border bg-surface px-2.25 py-0.75 text-eyebrow font-normal tracking-normal normal-case text-text-subtle tabular-nums"
+							class="flex-none rounded-full border px-2.25 py-0.75 text-eyebrow font-normal tracking-normal normal-case tabular-nums {overBatchLimit
+								? 'border-danger-200 bg-danger-50 text-danger-800'
+								: 'border-border bg-surface text-text-subtle'}"
 						>
-							{count} / {BATCH_MAX_ITEMS}
+							{groupCount} / {BATCH_MAX_ITEMS}
 						</span>
 					</div>
+
+					{#if overBatchLimit}
+						{@render limitNotice('mb-4')}
+					{/if}
 
 					<EmailAutocomplete
 						bind:value={email}
@@ -342,6 +395,9 @@
 					<p class="mb-3.5 text-label font-normal text-text-muted">
 						{tr('batch.confirmTransferMessage', { count })}
 					</p>
+					{#if overBatchLimit}
+						{@render limitNotice('mb-4')}
+					{/if}
 					<div
 						class="mb-4 flex items-start gap-2.5 rounded-lg border border-danger-200 bg-danger-50 px-3.5 py-3.25"
 					>
@@ -367,6 +423,9 @@
 						</p>
 					</div>
 
+					<!-- Last element of the scrolling sheet body, so the suggestion list
+					     opens upwards — downwards it would render past the sheet's
+					     bottom edge and be clipped away. -->
 					<EmailAutocomplete
 						bind:value={email}
 						label={tr('cards.transfer.newOwnerEmail')}
@@ -374,6 +433,7 @@
 						inputId="batch-transfer-email"
 						disabled={isLoading}
 						iosField
+						dropUp
 					/>
 				</div>
 			{/if}
@@ -417,9 +477,12 @@
 						</h3>
 					</div>
 				</div>
-				<p class="text-text-muted mb-6 ml-9">
+				<p class="text-text-muted {overBatchLimit ? 'mb-4' : 'mb-6'} ml-9">
 					{tr('batch.confirmDeleteMessage', { count })}
 				</p>
+				{#if overBatchLimit}
+					{@render limitNotice('mb-6 ml-9')}
+				{/if}
 				<div class="flex gap-3 justify-end">
 					<button
 						type="button"
@@ -432,7 +495,7 @@
 					<button
 						type="button"
 						onclick={handleConfirm}
-						disabled={isLoading}
+						disabled={isLoading || overBatchLimit}
 						class="px-4 py-2 rounded-md text-white bg-danger-600 hover:bg-danger-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{#if isLoading}
@@ -468,6 +531,10 @@
 				<p class="text-sm text-text-muted mb-4">
 					{tr('batch.confirmShareMessage', { count })}
 				</p>
+
+				{#if overBatchLimit}
+					{@render limitNotice('mb-4')}
+				{/if}
 
 				<div
 					class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
@@ -518,6 +585,31 @@
 								? tr('giftCards.sharing.canManageTransactionsDesc')
 								: undefined}
 						/>
+						{#if mixedWithVouchers}
+							<!-- The permissions above do not reach the vouchers in the
+							     selection — the backend shares those read-only. -->
+							<div
+								class="flex items-start gap-2 bg-warning-50 border border-warning-200 rounded-lg p-3"
+							>
+								<svg
+									class="w-4 h-4 text-warning-700 mt-0.5 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									viewBox="0 0 24 24"
+									aria-hidden="true"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d={ICON_LOCK}
+									/>
+								</svg>
+								<p class="text-sm text-warning-800">
+									{tr('batch.readOnlyShare')}
+								</p>
+							</div>
+						{/if}
 					{/if}
 
 					<!-- Action Buttons -->
@@ -576,6 +668,10 @@
 				<p class="text-sm text-text-muted mb-4">
 					{tr('batch.confirmTransferMessage', { count })}
 				</p>
+
+				{#if overBatchLimit}
+					{@render limitNotice('mb-4')}
+				{/if}
 
 				<div
 					class="border border-transfer-200 bg-transfer-50 rounded-lg p-4 space-y-4"
