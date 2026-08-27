@@ -1286,6 +1286,8 @@ export const en: TranslationKeys = {
 		sharedItemsWarning:
 			'{count} shared items selected – only your own items can be edited, shared, or transferred.',
 		readOnlyShare: 'Vouchers are always shared as read-only.',
+		tooManyItems:
+			'At most {max} items per type can be processed at once. Please reduce the selection.',
 		exportSelected: 'Export selected',
 		exportSuccess: '{count} items exported',
 		exportError: 'Export failed',

@@ -1322,6 +1322,8 @@ export const de: TranslationKeys = {
 		sharedItemsWarning:
 			'{count} geteilte Elemente ausgewählt – nur eigene Elemente können bearbeitet, geteilt oder übertragen werden.',
 		readOnlyShare: 'Gutscheine werden immer als schreibgeschützt geteilt.',
+		tooManyItems:
+			'Pro Typ können höchstens {max} Einträge auf einmal verarbeitet werden. Bitte reduziere die Auswahl.',
 		exportSelected: 'Auswahl exportieren',
 		exportSuccess: '{count} Einträge exportiert',
 		exportError: 'Export fehlgeschlagen',

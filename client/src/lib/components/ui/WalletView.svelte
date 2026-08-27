@@ -501,9 +501,22 @@
 	const selectionHasGiftCards = $derived(
 		filteredGiftCards.some((g) => selectedIds.has(g.id))
 	);
+	const selectionHasVouchers = $derived(
+		filteredVouchers.some((v) => selectedIds.has(v.id))
+	);
+	// The batch endpoints cap a request at 50 items and every type group is its
+	// own request, so the number that can actually hit the cap is the largest
+	// group — not the total selection.
+	const largestSelectedGroup = $derived(
+		Math.max(
+			filteredCards.filter((c) => selectedIds.has(c.id)).length,
+			filteredVouchers.filter((v) => selectedIds.has(v.id)).length,
+			filteredGiftCards.filter((g) => selectedIds.has(g.id)).length
+		)
+	);
 	const selectionOnlyVouchers = $derived(
 		selectedIds.size > 0 &&
-			filteredVouchers.some((v) => selectedIds.has(v.id)) &&
+			selectionHasVouchers &&
 			!filteredCards.some((c) => selectedIds.has(c.id)) &&
 			!selectionHasGiftCards
 	);
@@ -1192,6 +1205,8 @@
 	onCancel={() => (showBatchModal = false)}
 	hidePermissions={selectionOnlyVouchers}
 	showTransactionPermission={selectionHasGiftCards}
+	mixedWithVouchers={selectionHasVouchers && !selectionOnlyVouchers}
+	largestGroupCount={largestSelectedGroup}
 />
 
 <ImportDialog

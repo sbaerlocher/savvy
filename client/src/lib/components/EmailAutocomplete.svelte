@@ -16,6 +16,20 @@
 		inputId?: string;
 		disabled?: boolean;
 		required?: boolean;
+		/**
+		 * iOS mockup field chrome (48px tall, --radius-xl corners, 14px value
+		 * text) instead of the shared `.input`. Opt-in per call site so the
+		 * Android/desktop forms this component is also used in stay untouched;
+		 * a call site that passes it should already be gated on
+		 * `platform === 'ios'`.
+		 */
+		iosField?: boolean;
+		/**
+		 * Open the suggestion list above the input instead of below it. For a
+		 * field that sits at the bottom of a scrolling container, where a list
+		 * rendered downwards would be clipped off the container's edge.
+		 */
+		dropUp?: boolean;
 	}
 
 	let {
@@ -26,7 +40,9 @@
 		hint,
 		inputId = 'email-autocomplete',
 		disabled = false,
-		required = true
+		required = true,
+		iosField = false,
+		dropUp = false
 	}: Props = $props();
 
 	function addEmail(email: string) {
@@ -151,9 +167,14 @@
 </script>
 
 <div class="relative">
-	<label for={inputId} class="block text-sm font-medium text-text-ink2 mb-1">
+	<label
+		for={inputId}
+		class={iosField
+			? 'mb-1.75 block text-body-sm font-semibold text-text-ink2'
+			: 'block text-sm font-medium text-text-ink2 mb-1'}
+	>
 		{label}{#if required}
-			*{/if}
+			<span class={iosField ? 'text-danger-600' : ''}>*</span>{/if}
 	</label>
 	{#if multiple && values.length > 0}
 		<div class="flex flex-wrap gap-1 mb-2">
@@ -175,58 +196,81 @@
 			{/each}
 		</div>
 	{/if}
-	<input
-		id={inputId}
-		type="email"
-		{value}
-		role="combobox"
-		aria-expanded={showSuggestions}
-		aria-controls="{inputId}-listbox"
-		aria-activedescendant={highlightedIndex >= 0
-			? `${inputId}-option-${highlightedIndex}`
-			: undefined}
-		oninput={onInput}
-		onfocus={onFocus}
-		onblur={onBlur}
-		onkeydown={onKeydown}
-		required={required && !multiple}
-		name="share-recipient"
-		placeholder={$t('giftCards.sharing.emailPlaceholder')}
-		autocomplete="new-password"
-		data-1p-ignore
-		data-lpignore="true"
-		{disabled}
-		class="input bg-white"
-	/>
+	<!-- Own positioning context so a dropUp list anchors to the input's top edge
+	     rather than the whole field block's (which includes the hint below). -->
+	<div class="relative">
+		<!-- iosField keeps `.input`'s literal 16px value size on purpose: the mockup
+		     draws 14px, but that is exactly the size iOS Safari zooms the page for on
+		     focus. The platform constraint wins over the mockup value here. -->
+		<input
+			id={inputId}
+			type="email"
+			{value}
+			role="combobox"
+			aria-expanded={showSuggestions}
+			aria-controls="{inputId}-listbox"
+			aria-activedescendant={highlightedIndex >= 0
+				? `${inputId}-option-${highlightedIndex}`
+				: undefined}
+			oninput={onInput}
+			onfocus={onFocus}
+			onblur={onBlur}
+			onkeydown={onKeydown}
+			required={required && !multiple}
+			name="share-recipient"
+			placeholder={$t('giftCards.sharing.emailPlaceholder')}
+			autocomplete="new-password"
+			data-1p-ignore
+			data-lpignore="true"
+			{disabled}
+			class={iosField
+				? 'input h-12 rounded-xl bg-white px-3.5'
+				: 'input bg-white'}
+		/>
 
-	{#if showSuggestions && suggestedUsers.length > 0}
-		<div
-			id="{inputId}-listbox"
-			role="listbox"
-			class="absolute z-10 w-full mt-1 bg-white border border-border-field rounded-md shadow-lg max-h-48 overflow-y-auto"
-		>
-			{#each suggestedUsers as user, index (user.id)}
-				<button
-					id="{inputId}-option-{index}"
-					type="button"
-					role="option"
-					onclick={() => selectUser(user)}
-					aria-selected={index === highlightedIndex}
-					class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none {index ===
-					highlightedIndex
-						? 'bg-border-soft'
-						: ''}"
-				>
-					<div class="font-medium text-sm text-text">
-						{formatUserName(user)}
-					</div>
-					<div class="text-xs text-text-subtle">{user.email}</div>
-				</button>
-			{/each}
-		</div>
-	{/if}
+		{#if showSuggestions && suggestedUsers.length > 0}
+			<div
+				id="{inputId}-listbox"
+				role="listbox"
+				class="absolute z-10 w-full bg-white border border-border-field max-h-48 overflow-y-auto {dropUp
+					? 'bottom-full'
+					: 'top-full'} {iosField
+					? 'rounded-xl shadow-panel'
+					: 'rounded-md shadow-lg'} {dropUp
+					? 'mb-1.5'
+					: iosField
+						? 'mt-1.5'
+						: 'mt-1'}"
+			>
+				{#each suggestedUsers as user, index (user.id)}
+					<button
+						id="{inputId}-option-{index}"
+						type="button"
+						role="option"
+						onclick={() => selectUser(user)}
+						aria-selected={index === highlightedIndex}
+						class="w-full text-left px-3 py-2 hover:bg-border-soft focus:bg-border-soft focus:outline-none {index ===
+						highlightedIndex
+							? 'bg-border-soft'
+							: ''}"
+					>
+						<div class="font-medium text-sm text-text">
+							{formatUserName(user)}
+						</div>
+						<div class="text-xs text-text-subtle">{user.email}</div>
+					</button>
+				{/each}
+			</div>
+		{/if}
+	</div>
 
 	{#if hint}
-		<p class="text-xs text-text-subtle mt-1">{hint}</p>
+		<p
+			class="text-text-subtle {iosField
+				? 'mt-1.75 text-eyebrow font-normal tracking-normal normal-case'
+				: 'text-xs mt-1'}"
+		>
+			{hint}
+		</p>
 	{/if}
 </div>
