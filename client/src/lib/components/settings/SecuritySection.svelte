@@ -2,12 +2,12 @@
 	import { ICON_BELL, ICON_LOCK } from '$lib/icons';
 	import { resolve } from '$app/paths';
 	import type { ProfileDTO } from '$lib/api';
-	import { authApi, exportApi, profileApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
+	import { authApi, exportApi } from '$lib/api';
 	import { configStore } from '$lib/stores/config';
 	import { languageStore, t, type Language } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { get } from 'svelte/store';
+	import DeleteAccountCard from './DeleteAccountCard.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -23,12 +23,6 @@
 
 	// Export state
 	let isExporting = $state(false);
-
-	// Delete account state
-	let showDeleteModal = $state(false);
-	let deleteConfirmation = $state('');
-	let deletePassword = $state('');
-	let isDeleting = $state(false);
 
 	// Language
 	const languages: { code: Language; name: string }[] = [
@@ -81,69 +75,6 @@
 			toastStore.error(tr('settings.emailVerification.sentError'));
 		} finally {
 			isSendingVerification = false;
-		}
-	}
-
-	function closeDeleteModal() {
-		if (isDeleting) return;
-		showDeleteModal = false;
-		deleteConfirmation = '';
-		deletePassword = '';
-	}
-
-	function handleModalKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			closeDeleteModal();
-			return;
-		}
-
-		// Focus trapping
-		if (e.key === 'Tab') {
-			const modal = e.currentTarget as HTMLElement;
-			const focusable = modal.querySelectorAll<HTMLElement>(
-				'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-			);
-			if (focusable.length === 0) return;
-
-			const first = focusable[0];
-			const last = focusable[focusable.length - 1];
-
-			if (e.shiftKey && document.activeElement === first) {
-				e.preventDefault();
-				last.focus();
-			} else if (!e.shiftKey && document.activeElement === last) {
-				e.preventDefault();
-				first.focus();
-			}
-		}
-	}
-
-	function handleBackdropClick(e: MouseEvent) {
-		if (e.target === e.currentTarget) {
-			closeDeleteModal();
-		}
-	}
-
-	async function handleDeleteAccount(e: Event) {
-		e.preventDefault();
-
-		if (deleteConfirmation !== 'DELETE') return;
-		if (profile.auth_provider === 'local' && !deletePassword) return;
-
-		isDeleting = true;
-
-		try {
-			await profileApi.deleteAccount({
-				password: deletePassword,
-				confirmation: deleteConfirmation
-			});
-			toastStore.success(tr('settings.dangerZone.deleteSuccess'));
-			await authStore.logout();
-			window.location.href = '/login';
-		} catch {
-			toastStore.error(tr('settings.dangerZone.deleteError'));
-		} finally {
-			isDeleting = false;
 		}
 	}
 </script>
@@ -395,122 +326,5 @@
 		</button>
 	</div>
 
-	<!-- Danger Zone -->
-	<div class="bg-white rounded-lg shadow-lg p-6 border-2 border-danger-200">
-		<h3 class="text-lg font-semibold text-danger-600 mb-4">
-			{tr('settings.dangerZone.title')}
-		</h3>
-
-		<div class="space-y-3">
-			<div>
-				<h4 class="text-sm font-medium text-text">
-					{tr('settings.dangerZone.deleteAccount')}
-				</h4>
-				<p class="text-sm text-text-subtle mt-1">
-					{tr('settings.dangerZone.deleteDescription')}
-				</p>
-			</div>
-			<button
-				type="button"
-				onclick={() => (showDeleteModal = true)}
-				class="btn btn-ghost text-danger-600 border-danger-300 hover:bg-danger-50"
-			>
-				{tr('settings.dangerZone.deleteButton')}
-			</button>
-		</div>
-	</div>
+	<DeleteAccountCard {profile} />
 </div>
-
-{#if showDeleteModal}
-	<div
-		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="delete-modal-title"
-		tabindex="-1"
-		onclick={handleBackdropClick}
-		onkeydown={handleModalKeydown}
-	>
-		<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-			<h3
-				id="delete-modal-title"
-				class="text-lg font-semibold text-danger-600 mb-2"
-			>
-				{tr('settings.dangerZone.deleteConfirmTitle')}
-			</h3>
-			<p class="text-sm text-text-muted mb-4">
-				{tr('settings.dangerZone.deleteConfirmMessage')}
-			</p>
-
-			<form onsubmit={handleDeleteAccount} class="space-y-4">
-				<div>
-					<label
-						for="deleteConfirmation"
-						class="block text-sm font-medium text-text-ink2 mb-1"
-					>
-						{tr('settings.dangerZone.deleteConfirmPlaceholder')}
-					</label>
-					<input
-						id="deleteConfirmation"
-						type="text"
-						bind:value={deleteConfirmation}
-						disabled={isDeleting}
-						autocomplete="off"
-						class="input"
-						placeholder={tr('settings.dangerZone.deleteConfirmWord')}
-					/>
-				</div>
-
-				{#if profile.auth_provider === 'local'}
-					<div>
-						<label
-							for="deletePassword"
-							class="block text-sm font-medium text-text-ink2 mb-1"
-						>
-							{tr('settings.dangerZone.passwordRequired')}
-						</label>
-						<input
-							id="deletePassword"
-							type="password"
-							bind:value={deletePassword}
-							disabled={isDeleting}
-							autocomplete="current-password"
-							class="input"
-						/>
-					</div>
-				{/if}
-
-				<div class="flex gap-3 pt-2">
-					<button
-						type="button"
-						onclick={closeDeleteModal}
-						disabled={isDeleting}
-						class="btn btn-ghost flex-1"
-					>
-						{tr('common.cancel')}
-					</button>
-					<button
-						type="submit"
-						disabled={isDeleting ||
-							deleteConfirmation !== 'DELETE' ||
-							(profile.auth_provider === 'local' && !deletePassword)}
-						class="flex-1 px-4 py-2 bg-danger-600 text-white rounded-md hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-					>
-						{#if isDeleting}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger-400 opacity-75"
-								></span><span
-									class="relative inline-flex rounded-full h-3 w-3 bg-danger-500"
-								></span></span
-							>
-							{tr('settings.dangerZone.deleting')}
-						{:else}
-							{tr('settings.dangerZone.deleteButton')}
-						{/if}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}

@@ -79,11 +79,12 @@ test.describe('Profile', () => {
 		}) => {
 			await profilePage.waitForPageReady();
 
-			// Should show email address
-			const emailDisplay = profilePage.page
-				.locator(`text=${TEST_USERS.regular.email}`)
-				.first();
-			await expect(emailDisplay).toBeVisible({ timeout: 5000 });
+			// Should show email address. It lives in the read-only #email input,
+			// so assert the field value rather than a text node.
+			await expect(profilePage.emailInput).toBeVisible({ timeout: 5000 });
+			await expect(profilePage.emailInput).toHaveValue(
+				TEST_USERS.regular.email
+			);
 
 			// Should show verified badge OR send verification button
 			const verifiedBadge = profilePage.emailVerifiedBadge;
