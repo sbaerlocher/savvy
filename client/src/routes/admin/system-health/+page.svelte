@@ -251,52 +251,8 @@
 			: []
 	);
 
-	// One row per health check, in the mockup's order. Only the iOS branch reads
-	// this; the other platforms keep their hand-written blocks below.
-	const services = $derived(
-		health
-			? [
-					{
-						key: 'database' as const,
-						icon: ICON_DB,
-						name: $t('admin.systemHealth.database'),
-						check: health.checks.database,
-						test: null as null | 'email' | 'push'
-					},
-					{
-						key: 'smtp' as const,
-						icon: ICON_MAIL,
-						name: $t('admin.systemHealth.smtp'),
-						check: health.checks.smtp,
-						test: 'email' as const
-					},
-					{
-						key: 'oauth' as const,
-						icon: ICON_KEY,
-						name: $t('admin.systemHealth.oauth'),
-						check: health.checks.oauth,
-						test: null
-					},
-					{
-						key: 'vapid' as const,
-						icon: ICON_BELL_HEALTH,
-						name: $t('admin.systemHealth.pushNotifications'),
-						check: health.checks.vapid,
-						test: 'push' as const
-					},
-					{
-						key: 'totp_encryption' as const,
-						icon: ICON_LOCK_HEALTH,
-						name: $t('admin.systemHealth.totp'),
-						check: health.checks.totp_encryption,
-						test: null
-					}
-				]
-			: []
-	);
-
 	const failingCount = $derived(
-		services.filter((s) => s.check.enabled && s.check.status === 'unhealthy')
+		serviceRows.filter((s) => s.check.enabled && s.check.status === 'unhealthy')
 			.length
 	);
 
@@ -605,7 +561,7 @@
 		<PageHeader
 			title={$t('nav.adminSystemHealth')}
 			eyebrow={health
-				? $t('admin.systemHealth.servicesCount', { n: services.length })
+				? $t('admin.systemHealth.servicesCount', { n: serviceRows.length })
 				: undefined}
 			mobileActions={false}
 			onBack={goBack}
@@ -727,7 +683,7 @@
 			</div>
 
 			<div class="flex flex-col gap-2.5">
-				{#each services as service (service.key)}
+				{#each serviceRows as service (service.key)}
 					{@const check = service.check}
 					{@const isExpanded = expandedService === service.key}
 					{@const isHealthy = check.enabled && check.status === 'healthy'}
@@ -804,13 +760,17 @@
 							<div
 								class="border-t border-border-soft bg-surface-2 px-3.75 py-3.25"
 							>
+								<!-- serviceDetail leaves healthy SMTP/VAPID blank (the desktop
+								     table shows an empty cell there); the card needs a line.
+								     Per-service wording — readyDesc is the overall-status
+								     legend and would contradict a degraded banner. -->
 								<div
 									class="text-label leading-[1.5] font-normal {check.status ===
 									'unhealthy'
 										? 'text-danger-600'
 										: 'text-text-muted'}"
 								>
-									{serviceDetail(service.key, check)}
+									{service.detail || $t('admin.systemHealth.healthy')}
 								</div>
 								{#if service.test && check.enabled}
 									{@const sending =

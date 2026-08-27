@@ -125,25 +125,6 @@ export const ICON_REFRESH_CIRCLE = 'M21 12a9 9 0 11-3.2-6.9M21 3v5h-5';
 export const ICON_REFRESH =
 	'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15';
 
-/** Paper plane (send test message). */
-export const ICON_SEND = 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8';
-
-/** Database cylinder stack. */
-export const ICON_DATABASE =
-	'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4';
-
-/** Envelope (SMTP / email). */
-export const ICON_MAIL =
-	'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z';
-
-/** Key (OAuth). */
-export const ICON_KEY =
-	'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z';
-
-/** Closed padlock (2FA / TOTP). */
-export const ICON_LOCK_CLOSED =
-	'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z';
-
 /** X mark inside a circle (failed state). */
 export const ICON_X_CIRCLE =
 	'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
