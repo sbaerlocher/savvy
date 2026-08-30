@@ -476,9 +476,18 @@ and Kubernetes manifests, see:**
 ```bash
 just test                  # Run all Go tests
 just test-core             # Run core tests (services + models)
-cd client && npm test      # Run frontend unit tests (Vitest)
-cd client && npm run test:e2e  # Run E2E tests (Playwright)
+dde project:client:test    # Frontend unit tests (Vitest)
+dde project:e2e:start      # Bring up a clean E2E stack…
+dde project:e2e:test       # …and run the Playwright E2E suite against it
+dde project:structure:test # Layout structure + visual baseline suite
 ```
+
+`structure:test` resets and re-seeds the dev database first, so recording and
+verification always compare the same data. It asserts that every page shares
+one content container and one title mechanism, and compares screenshots per
+route × platform. See [client/COMPONENTS.md](client/COMPONENTS.md) for the
+layout layers and [client/tests/structure/README.md](client/tests/structure/README.md)
+for the suite itself.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full testing guide, coverage details, and E2E test commands.
 
