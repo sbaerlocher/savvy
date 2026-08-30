@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageShell from '$lib/components/layout/PageShell.svelte';
 	import { get } from 'svelte/store';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
@@ -240,7 +241,7 @@
 	</div>
 {:else if ANDROID}
 	<!-- Android M3: centered tonal card with a six-cell code display. -->
-	<div class="flex min-h-dvh items-center justify-center px-5">
+	<PageShell width="bleed">
 		<div
 			class="bg-m3-card rounded-m3-lg w-full max-w-88 px-[var(--spacing-card)] pt-7 pb-6"
 		>
@@ -356,7 +357,7 @@
 				</a>
 			</div>
 		</div>
-	</div>
+	</PageShell>
 {:else}
 	<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
 		<div class="max-w-md mx-auto">

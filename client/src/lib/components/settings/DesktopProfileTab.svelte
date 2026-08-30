@@ -11,12 +11,17 @@
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
 
+	import type { Snippet } from 'svelte';
+
 	interface Props {
 		profile: ProfileDTO;
 		onProfileUpdated: (profile: ProfileDTO) => void;
+		/** Extra card in the left column, under the profile form (the page's
+		 *  app-installation / service-worker recovery card). */
+		leftExtra?: Snippet;
 	}
 
-	let { profile, onProfileUpdated }: Props = $props();
+	let { profile, onProfileUpdated, leftExtra }: Props = $props();
 
 	let firstName = $state('');
 	let lastName = $state('');
@@ -229,41 +234,9 @@
 			</form>
 		</div>
 
-		<!-- Data export -->
-		<div class="rounded-xl border border-border bg-white p-6">
-			<h3 class="mb-1.5 text-heading font-semibold text-text">
-				{$t('settings.export.title')}
-			</h3>
-			<p class="mb-4 max-w-lg text-body text-text-muted">
-				{$t('settings.export.description')}
-			</p>
-			<button
-				type="button"
-				onclick={handleExport}
-				disabled={isExporting}
-				class="btn btn-ghost"
-			>
-				{#if isExporting}
-					{$t('settings.export.downloading')}
-				{:else}
-					<svg
-						class="mr-2 h-4 w-4"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-						/>
-					</svg>
-					{$t('settings.export.button')}
-				{/if}
-			</button>
-		</div>
+		{#if leftExtra}
+			{@render leftExtra()}
+		{/if}
 	</div>
 
 	<!-- Sidebar: account facts + danger zone -->
@@ -313,6 +286,42 @@
 					</dd>
 				</div>
 			</dl>
+		</div>
+
+		<!-- Data export -->
+		<div class="rounded-xl border border-border bg-white p-6">
+			<h3 class="mb-1.5 text-heading font-semibold text-text">
+				{$t('settings.export.title')}
+			</h3>
+			<p class="mb-4 max-w-lg text-body text-text-muted">
+				{$t('settings.export.description')}
+			</p>
+			<button
+				type="button"
+				onclick={handleExport}
+				disabled={isExporting}
+				class="btn btn-ghost"
+			>
+				{#if isExporting}
+					{$t('settings.export.downloading')}
+				{:else}
+					<svg
+						class="mr-2 h-4 w-4"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+						/>
+					</svg>
+					{$t('settings.export.button')}
+				{/if}
+			</button>
 		</div>
 
 		<DeleteAccountCard {profile} />

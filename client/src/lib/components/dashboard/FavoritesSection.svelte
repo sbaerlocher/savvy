@@ -15,6 +15,10 @@
 		isGiftCardActive
 	} from '$lib/utils/resource-status';
 	import { platform } from '$lib/utils/platform';
+
+	// Desktop uses the wallet's tile chrome 1:1 (same padding, same barcode
+	// height); the compact variant stays a native-dashboard treatment.
+	const IS_DESKTOP = platform === 'other';
 	import type { DashboardResponse } from '$lib/types/api';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
@@ -112,13 +116,28 @@
 				class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:gap-4.5 xl:grid-cols-3"
 			>
 				{#each cardTiles as model (model.id)}
-					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+					<ResourceTile
+						{model}
+						showBarcode
+						compact={!IS_DESKTOP}
+						{onShowBarcode}
+					/>
 				{/each}
 				{#each voucherTiles as model (model.id)}
-					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+					<ResourceTile
+						{model}
+						showBarcode
+						compact={!IS_DESKTOP}
+						{onShowBarcode}
+					/>
 				{/each}
 				{#each giftCardTiles as model (model.id)}
-					<ResourceTile {model} showBarcode compact {onShowBarcode} />
+					<ResourceTile
+						{model}
+						showBarcode
+						compact={!IS_DESKTOP}
+						{onShowBarcode}
+					/>
 				{/each}
 			</div>
 		{/if}

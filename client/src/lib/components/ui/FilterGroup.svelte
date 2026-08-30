@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { platform } from '$lib/utils/platform';
+	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
 
 	interface Option {
 		value: string;
@@ -85,12 +86,7 @@
 	<!-- iOS flat group: an uppercase caption above permanently expanded options
 	     (mockup screen-MerchantsIOS filter sheet). -->
 	<div>
-		<span
-			id={groupId}
-			class="mb-2.5 block text-section-eyebrow uppercase text-text-subtle"
-		>
-			{label}
-		</span>
+		<SectionLabel id={groupId}>{label}</SectionLabel>
 		{#if variant === 'chips'}
 			<div
 				role="radiogroup"
@@ -243,16 +239,13 @@
 	<!-- Android (M3 tonal/outlined chips) and Desktop (neutral chips) share
 	     this markup; only chipShape/chipSelected/chipUnselected differ. -->
 	<div class={platform === 'android' ? '' : 'py-4'}>
-		<span
-			id={groupId}
-			class="block {plainLabel
-				? 'mb-2.5 text-label text-text-ink2'
-				: platform === 'android'
-					? 'mb-2.5 text-eyebrow uppercase text-text-subtle'
-					: 'mb-2 text-xs font-medium uppercase tracking-wider text-text-subtle'}"
-		>
-			{label}
-		</span>
+		{#if plainLabel}
+			<span id={groupId} class="mb-2.5 block text-label text-text-ink2">
+				{label}
+			</span>
+		{:else}
+			<SectionLabel id={groupId}>{label}</SectionLabel>
+		{/if}
 
 		<div
 			role="radiogroup"

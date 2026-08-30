@@ -24,16 +24,6 @@
 
 	let { data, children }: { data: LayoutData; children?: Snippet } = $props();
 
-	// Resource detail is a sub-screen on both native platforms: the Android
-	// mockup (screen-ResourceDetailAndroid) keeps only the top app bar and the
-	// edit FAB, and no iOS detail frame (screen-ResourceDetailIOS) shows the
-	// floating nav. The list routes themselves keep it, so this matches
-	// "/<kind>/<id>" but neither "/<kind>" nor "/<kind>/new".
-	const NATIVE_DETAIL_ROUTE = $derived(
-		platform !== 'other' &&
-			/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
-	);
-
 	// iOS select mode: the floating batch bar sits in the nav's own slot
 	// (mockup screen-WalletIOS, Phone 3), so the nav steps aside while it is up.
 	// Android/desktop keep their nav — their batch bar stacks above it.
@@ -44,8 +34,7 @@
 			// Native select mode rearranges the bottom chrome: Android swaps the nav
 			// bar and FAB for the M3 contextual top app bar plus batch bottom bar,
 			// iOS lets the floating batch bar take the nav's slot (wallet mockups).
-			!(platform !== 'other' && $selectModeActive) &&
-			!NATIVE_DETAIL_ROUTE
+			!(platform !== 'other' && $selectModeActive)
 	);
 
 	// Android auth screens are full-bleed centered cards (mockups

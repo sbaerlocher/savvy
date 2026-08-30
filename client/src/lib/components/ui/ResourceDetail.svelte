@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		ICON_LOCK,
-		ICON_PENCIL,
-		ICON_TRANSFER,
-		ICON_TRASH
-	} from '$lib/icons';
+	import { ICON_LOCK, ICON_SHARE, ICON_TRANSFER, ICON_TRASH } from '$lib/icons';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -22,12 +17,8 @@
 	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
 	import TransferBox from '$lib/components/TransferBox.svelte';
 	import ShareSection from '$lib/components/resource/ShareSection.svelte';
-	import ResourceActions from '$lib/components/ui/ResourceActions.svelte';
 	import { portal } from '$lib/actions/portal';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import M3DetailAppBar from '$lib/components/ui/M3DetailAppBar.svelte';
-	import M3DetailBarActions from '$lib/components/ui/M3DetailBarActions.svelte';
 	import M3DetailOverflowSheet from '$lib/components/ui/M3DetailOverflowSheet.svelte';
 	import type {
 		CardDTO,
@@ -66,6 +57,11 @@
 		>;
 		/** Gift-card only: balance + transactions ledger. */
 		ledger?: Snippet;
+		/** Bindable, so the page can render the desktop title row (edit-aware
+		 *  title, back link, action buttons) on the shell while this component
+		 *  keeps owning the behaviour. */
+		isEditing?: boolean;
+		isTogglingFavorite?: boolean;
 	}
 
 	let {
@@ -76,10 +72,10 @@
 		shareMode = 'editable',
 		onStartEdit,
 		edit,
-		ledger
+		ledger,
+		isEditing = $bindable(false),
+		isTogglingFavorite = $bindable(false)
 	}: Props = $props();
-
-	let isEditing = $state(false);
 
 	// Android detail chrome (screen-ResourceDetailAndroid): the M3 top app bar
 	// replaces the PageHeader, sharing and transfer move from permanent cards
@@ -149,25 +145,22 @@
 
 	const status = $derived(resource?.status);
 	const isDimmed = $derived(!!status && status !== cfg.activeSentinel);
-	const merchantName = $derived(resource?.merchant?.name);
-	const accentColor = $derived(resource?.merchant?.color || cfg.accentFallback);
 
-	// Header eyebrow: card → program; voucher → single/multi-use label; gift →
-	// nothing on Android/desktop. Every iOS detail frame carries a type kicker
-	// above the title (mockup: "Geschenkkarte"), so gift cards get one there.
+	// Body eyebrow (Android view mode): card → program; voucher →
+	// single/multi-use label; gift cards get none here.
 	const eyebrow = $derived.by(() => {
 		if (asCard) return asCard.program || undefined;
 		if (asVoucher)
 			return asVoucher.usage_limit_type === 'single_use'
 				? tr('vouchers.singleUseOnly')
 				: tr('vouchers.multipleUse');
-		return IS_IOS ? tr('common.gift_card') : undefined;
+		return undefined;
 	});
 	// The card program is whatever the user typed, so it must not get the
 	// native uppercase kicker treatment; the voucher label is translated copy.
 	const eyebrowVerbatim = $derived(!!asCard);
+	const accentColor = $derived(resource?.merchant?.color || cfg.accentFallback);
 
-	const pageTitle = $derived(merchantName || tr(c.titleFallback));
 	const notes = $derived(
 		cfg.notesPresent
 			? (resource as CardDTO | GiftCardDTO | null)?.notes
@@ -324,15 +317,13 @@
 	let showDeleteModal = $state(false);
 	let showTransferModal = $state(false);
 
-	let isTogglingFavorite = $state(false);
-
 	// Transfer targets the same per-kind resource API as sharing.
 	const shareApi = $derived(
 		kind === 'card' ? cardsApi : kind === 'voucher' ? vouchersApi : giftCardsApi
 	);
 
 	// Back: return to where the user came from; fall back to wallet on deep link.
-	function goBack() {
+	export function goBack() {
 		if (history.length > 1) history.back();
 		else goto(resolve('/wallet'));
 	}
@@ -363,18 +354,18 @@
 		goto(listHref());
 	}
 
-	async function startEdit() {
+	export async function startEdit() {
 		// Route populates its bound edit fields (merchants load + field copy),
 		// then we flip into edit mode which renders the `edit` snippet.
 		await onStartEdit();
 		isEditing = true;
 	}
 
-	function cancelEdit() {
+	export function cancelEdit() {
 		isEditing = false;
 	}
 
-	async function toggleFavorite() {
+	export async function toggleFavorite() {
 		if (isTogglingFavorite || !resource) return;
 		isTogglingFavorite = true;
 		try {
@@ -388,14 +379,27 @@
 		}
 	}
 
-	function promptDelete() {
+	// Opened from the Android overflow sheet and the iOS ••• menu.
+	export function openShareSheet() {
+		showMoreMenu = false;
+		showShareSheet = true;
+	}
+
+	// ••• on the title row: Android opens the M3 overflow bottom sheet (share /
+	// transfer / delete), iOS its glass context menu (transfer / delete).
+	export function openMoreMenu() {
+		if (isAndroid) showOverflowSheet = true;
+		else showMoreMenu = true;
+	}
+
+	export function promptDelete() {
 		showMoreMenu = false;
 		showDeleteModal = true;
 	}
 
 	// iOS routes transfer through its own sheet; the other platforms keep the
 	// inline TransferBox in the right-hand column.
-	function openTransferSheet() {
+	export function openTransferSheet() {
 		showMoreMenu = false;
 		showTransferSheet = true;
 	}
@@ -457,23 +461,6 @@
 	const LOCK_PATH = ICON_LOCK;
 
 	// Desktop header (mockup): the type icon sits in a 44px tinted square left of
-	// the eyebrow + title pair. Same neutral line icons the wallet tiles use.
-	const TYPE_ICON: Record<Kind, string> = {
-		card: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-		voucher:
-			'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 010 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 010-4V7a2 2 0 00-2-2H5z',
-		gift_card:
-			'M12 8v13m0-13V6a2 2 0 112-2 2 2 0 01-2 2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
-	};
-
-	// Back link copy: view mode returns to the list, edit mode to the resource.
-	const backToResourceKey = $derived(
-		kind === 'card'
-			? 'common.backToCard'
-			: kind === 'voucher'
-				? 'common.backToVoucher'
-				: 'common.backToGiftCard'
-	);
 
 	// Section title over the desktop edit form ("Kartendaten" / …). Lives in the
 	// per-kind i18n namespace, not in CONFIG's key map.
@@ -485,8 +472,6 @@
 				: 'giftCards.dataSection'
 	);
 
-	const canDelete = $derived(!!resource?.permissions?.can_delete);
-	const canEditResource = $derived(!!resource?.permissions?.can_edit);
 	const isOwner = $derived(!!resource?.permissions?.is_owner);
 	// Desktop only: card and voucher lose the right column entirely when viewed as
 	// a recipient, and the gift card keeps just its read-only ledger there (mockup
@@ -527,230 +512,31 @@
 <svelte:window onkeydown={onMoreMenuKeydown} />
 
 {#if resource}
-	<!-- Android: M3 small top app bar in both modes — view mode carries the
-	     resource title with star + overflow, edit mode swaps to a close cross
-	     and the "<kind> bearbeiten" title (mockup frames 4-6). -->
-	{#if isAndroid}
-		<M3DetailAppBar
-			title={isEditing ? tr(c.editTitle) : pageTitle}
-			nav={isEditing ? 'close' : 'back'}
-			onNav={isEditing ? cancelEdit : goBack}
-		>
-			{#snippet actions()}
-				{#if !isEditing}
-					<M3DetailBarActions
-						{isOffline}
-						isFavorite={resource!.is_favorite}
-						{isTogglingFavorite}
-						showOverflow={!!resource!.permissions?.can_delete}
-						favoriteTitleAdd={tr(cfg.favoriteAdd)}
-						favoriteTitleRemove={tr(cfg.favoriteRemove)}
-						ontoggleFavorite={toggleFavorite}
-						onoverflow={() => (showOverflowSheet = true)}
-					/>
-				{/if}
-			{/snippet}
-		</M3DetailAppBar>
-	{/if}
-
-	{#if IS_DESKTOP}
-		<!-- Desktop header (mockup): back link, type icon + eyebrow/title on the
-		     left, favourite/edit/delete as text buttons on the right. Edit mode
-		     swaps in its own title and drops the action buttons. -->
-		<div class="mb-6 flex items-start justify-between gap-5">
-			<div class="min-w-0">
-				<button
-					type="button"
-					onclick={isEditing ? cancelEdit : goBack}
-					class="mb-3 inline-flex items-center gap-1.5 text-label text-accent hover:text-accent-hover"
-				>
-					<svg
-						class="h-4 w-4"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2.2"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M15 18l-6-6 6-6"
-						/>
-					</svg>
-					{isEditing ? tr(backToResourceKey) : tr('common.backToOverviewPlain')}
-				</button>
-				{#if isEditing}
-					<h1 class="text-title text-text">{tr(c.editTitle)}</h1>
-				{:else}
-					<div class="flex items-center gap-3">
-						<span
-							class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-							style="background: color-mix(in srgb, {accentColor} 16%, transparent); color: {accentColor}"
-						>
-							<svg
-								class="h-5.5 w-5.5"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.9"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d={TYPE_ICON[kind]}
-								/>
-							</svg>
-						</span>
-						<div class="min-w-0">
-							<p
-								class="text-section-eyebrow text-text-faint {eyebrowVerbatim
-									? ''
-									: 'uppercase'}"
-							>
-								{eyebrow
-									? `${tr(`common.${kind}`)} · ${eyebrow}`
-									: tr(`common.${kind}`)}
-							</p>
-							<h1 class="text-title text-text">{pageTitle}</h1>
-						</div>
-					</div>
-				{/if}
-			</div>
-			{#if !isEditing}
-				<div class="flex shrink-0 items-center gap-2.5">
-					<button
-						type="button"
-						data-testid="favorite-button"
-						onclick={toggleFavorite}
-						disabled={isOffline || isTogglingFavorite}
-						aria-pressed={resource.is_favorite}
-						title={resource.is_favorite
-							? tr(cfg.favoriteRemove)
-							: tr(cfg.favoriteAdd)}
-						class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border-field bg-white text-accent transition-colors hover:bg-surface-1 disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						<svg
-							class="h-5 w-5"
-							viewBox="0 0 24 24"
-							fill={resource.is_favorite ? 'currentColor' : 'none'}
-							stroke="currentColor"
-							stroke-width="1.9"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"
-							/>
-						</svg>
-					</button>
-					{#if canEditResource}
-						<button
-							type="button"
-							onclick={startEdit}
-							disabled={isOffline}
-							class="inline-flex h-10 items-center gap-2 rounded-lg border border-border-field bg-white px-4 text-label text-text-ink2 transition-colors hover:bg-surface-1 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<svg
-								class="h-4 w-4"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d={isOffline ? LOCK_PATH : ICON_PENCIL}
-								/>
-							</svg>
-							{tr('common.edit')}
-						</button>
-					{/if}
-					{#if canDelete}
-						<button
-							type="button"
-							onclick={promptDelete}
-							disabled={isOffline}
-							class="inline-flex h-10 items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 text-label text-danger-700 transition-colors hover:bg-danger-100 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<svg
-								class="h-4 w-4"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d={isOffline ? LOCK_PATH : ICON_TRASH}
-								/>
-							</svg>
-							{tr('common.delete')}
-						</button>
-					{/if}
-				</div>
-			{/if}
-		</div>
-		{#if !isEditing && resource.owner && resource.owner.id !== $authStore.user?.id}
-			<p class="-mt-4 mb-6 text-body-sm text-text-faint">
-				{tr(c.sharedBy, {
-					name: resource.owner.first_name || resource.owner.email
-				})}
-			</p>
-		{/if}
-	{/if}
-
-	<!-- Page header (view mode only; the edit form keeps its own title). -->
-	{#if !isEditing && !isAndroid && !IS_DESKTOP}
-		<PageHeader
-			title={pageTitle}
-			{eyebrow}
-			{eyebrowVerbatim}
-			mobileActions={false}
-			showSearch
-			onBack={goBack}
-		>
-			{#snippet actions()}
-				<ResourceActions
-					{isOffline}
-					isFavorite={resource!.is_favorite}
-					{isTogglingFavorite}
-					canEdit={resource!.permissions?.can_edit}
-					canShare={IS_IOS && !!resource!.permissions?.is_owner}
-					hasMore={IS_IOS && !!resource!.permissions?.is_owner}
-					favoriteTitleAdd={tr(cfg.favoriteAdd)}
-					favoriteTitleRemove={tr(cfg.favoriteRemove)}
-					ontoggleFavorite={toggleFavorite}
-					onstartEdit={startEdit}
-					onshare={() => (showShareSheet = true)}
-					onmore={() => (showMoreMenu = true)}
-				/>
-			{/snippet}
-		</PageHeader>
-		{#if resource.owner && resource.owner.id !== $authStore.user?.id}
-			<p class="-mt-6 mb-6 text-xs text-text-faint">
-				{tr(c.sharedBy, {
-					name: resource.owner.first_name || resource.owner.email
-				})}
-			</p>
-		{/if}
+	<!-- The title row (back link, title, actions) lives on the page's
+	     PageShell for every platform; this block starts with the shared-by
+	     line. -->
+	{#if !isEditing && resource.owner && resource.owner.id !== $authStore.user?.id}
+		<p class="mb-6 text-body-sm text-text-faint">
+			{tr(c.sharedBy, {
+				name: resource.owner.first_name || resource.owner.email
+			})}
+		</p>
 	{/if}
 
 	{#if !isEditing}
 		<!-- Android M3: edit is a bottom-right FAB. It opens the same edit mode by
 	     toggling the form; the route renders the form via the edit snippet, but
 	     the trigger lives here. Uses startEdit which the route overrides through
-	     ResourceActions above — the FAB simply mirrors it. The detail route has
-	     no bottom nav (mockup), so the FAB sits on the screen edge. -->
+	     ResourceActions above — the FAB simply mirrors it. The bottom nav stays
+	     visible on detail routes and drops its own New FAB there (MobileNav),
+	     so this one takes the nav-FAB slot above the bar. -->
 		{#if resource.permissions?.can_edit && isAndroid}
 			<button
 				type="button"
 				onclick={startEdit}
 				disabled={isOffline}
 				aria-label={tr('common.edit')}
-				style="bottom: calc(1.375rem + env(safe-area-inset-bottom))"
-				class="bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] disabled:pointer-events-none disabled:opacity-50"
+				class="mobile-nav-fab-android bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] disabled:pointer-events-none disabled:opacity-50"
 			>
 				<svg
 					class="w-6 h-6"
@@ -846,58 +632,6 @@
 				{#if isAndroid && ledger}
 					<div class="mt-3">
 						{@render ledger()}
-					</div>
-				{/if}
-
-				<!-- Android: share / transfer sit as a button row under the card and
-				     open M3 bottom sheets (mockup frames 1-3, 7, 8). A recipient
-				     (is_owner false) gets no row at all — frame 9. -->
-				{#if isAndroid && resource.permissions?.is_owner}
-					<div class="mt-3 flex gap-2.5">
-						<button
-							type="button"
-							onclick={() => (showShareSheet = true)}
-							disabled={isOffline}
-							class="bg-accent-600 text-on-accent text-label flex h-12 flex-1 items-center justify-center gap-2 rounded-m3-full disabled:opacity-50"
-						>
-							<svg
-								class="h-4.5 w-4.5"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								viewBox="0 0 24 24"
-							>
-								<circle cx="18" cy="5" r="3" />
-								<circle cx="6" cy="12" r="3" />
-								<circle cx="18" cy="19" r="3" />
-								<path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
-							</svg>
-							{tr(c.shareTitle)}
-						</button>
-						<button
-							type="button"
-							onclick={() => (showTransferSheet = true)}
-							disabled={isOffline}
-							class="bg-m3-card border-transfer-200 text-transfer-700 text-label flex h-12 flex-1 items-center justify-center gap-2 rounded-m3-full border disabled:opacity-50"
-						>
-							<svg
-								class="h-4.5 w-4.5"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								viewBox="0 0 24 24"
-							>
-								<path d="M7 4L3 8l4 4" />
-								<path d="M3 8h13" />
-								<path d="M17 20l4-4-4-4" />
-								<path d="M21 16H8" />
-							</svg>
-							{tr('common.transfer')}
-						</button>
 					</div>
 				{/if}
 			{:else}
@@ -1070,9 +804,14 @@
 		<M3DetailOverflowSheet
 			open={showOverflowSheet}
 			{isOffline}
+			shareLabel={tr(c.shareTitle)}
 			deleteLabel={tr(c.deleteButton)}
 			onClose={() => (showOverflowSheet = false)}
-			ondelete={promptDelete}
+			onshare={resource.permissions?.is_owner ? openShareSheet : undefined}
+			ontransfer={resource.permissions?.is_owner
+				? openTransferSheet
+				: undefined}
+			ondelete={resource.permissions?.can_delete ? promptDelete : undefined}
 		/>
 
 		<BottomSheet
@@ -1155,11 +894,32 @@
 				></div>
 				<div
 					bind:this={moreMenuEl}
-					class="liquid-glass-menu absolute right-3.5 top-[116px] w-[252px] overflow-hidden rounded-[var(--radius-xl)] focus:outline-none"
+					class="liquid-glass-menu absolute right-3.5 top-[72px] w-[252px] overflow-hidden rounded-[var(--radius-xl)] focus:outline-none"
 					role="menu"
 					tabindex="-1"
 					aria-label={tr('common.moreActions')}
 				>
+					<button
+						type="button"
+						role="menuitem"
+						onclick={openShareSheet}
+						disabled={isOffline}
+						class="flex min-h-[46px] w-full items-center justify-between gap-3 px-4 text-[17px] text-text disabled:opacity-40"
+					>
+						<span>{tr('common.share')}</span>
+						<svg
+							class="h-[19px] w-[19px] flex-none"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.9"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d={ICON_SHARE} />
+						</svg>
+					</button>
+					<div class="h-px bg-[var(--color-glass-edge)]"></div>
 					<button
 						type="button"
 						role="menuitem"

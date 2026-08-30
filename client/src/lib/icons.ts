@@ -128,3 +128,15 @@ export const ICON_REFRESH =
 /** X mark inside a circle (failed state). */
 export const ICON_X_CIRCLE =
 	'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z';
+
+/** Struck-through wifi waves (offline state). */
+export const ICON_WIFI_OFF =
+	'M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414';
+
+/** Puzzled face in a circle (page not found). */
+export const ICON_FACE_CONFUSED =
+	'M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+
+/** Exclamation mark in a triangle (unexpected failure). */
+export const ICON_ALERT_TRIANGLE =
+	'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';

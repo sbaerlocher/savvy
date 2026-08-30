@@ -24,15 +24,16 @@
 	] as const;
 </script>
 
-<div class="mb-7 flex gap-1 border-b border-border">
+<!-- Three separate title-row actions, same chrome as the wallet toolbar and
+     the dashboard tiles; the active tab carries the shared accent-ring state. -->
+<div class="flex items-center gap-2.5">
 	{#each tabs as tab (tab.id)}
 		<a
 			href={resolve(tab.path)}
 			aria-current={active === tab.id ? 'page' : undefined}
-			class="-mb-px inline-flex items-center gap-1.5 border-b-2 px-4 py-3 text-body transition-colors {active ===
-			tab.id
-				? 'border-accent font-semibold text-accent'
-				: 'border-transparent font-medium text-text-subtle hover:text-text'}"
+			class="title-action whitespace-nowrap {active === tab.id
+				? 'ring-2 ring-accent border-accent font-semibold text-accent-hover'
+				: 'text-text-muted'}"
 		>
 			{#if tab.id === 'profile'}
 				<svg

@@ -31,9 +31,9 @@ export const fr: TranslationKeys = {
 		filterGiftCards: 'Filtrer les cartes-cadeaux',
 		backToOverview: "← Retour à l'aperçu",
 		backToOverviewPlain: "Retour à l'aperçu",
-		backToCard: 'Retour à la carte',
-		backToVoucher: 'Retour au bon',
-		backToGiftCard: 'Retour à la carte cadeau',
+		backToCard: '← Retour à la carte',
+		backToVoucher: '← Retour au bon',
+		backToGiftCard: '← Retour à la carte cadeau',
 		shareSubtitle: "Avec d'autres utilisateurs Savvy",
 		transferSubtitle: 'Céder entièrement',
 		optional: 'Optionnel',
@@ -1127,6 +1127,7 @@ export const fr: TranslationKeys = {
 				"E-mail lorsque quelqu'un partage ou transfère quelque chose avec vous.",
 			saved: 'Paramètre enregistré.',
 			error: "Erreur lors de l'enregistrement.",
+			hintTitle: 'Remarque',
 			ios: {
 				subcategoryHint:
 					"Les sous-catégories n'apparaissent que si le canal est actif."
@@ -1354,7 +1355,20 @@ export const fr: TranslationKeys = {
 		},
 		goBack: 'Retour',
 		retry: 'Réessayer',
-		toDashboard: 'Aller au tableau de bord'
+		toDashboard: 'Aller au tableau de bord',
+		offlinePage: {
+			backOnlineTitle: 'Vous êtes de nouveau en ligne !',
+			backOnlineMessage: 'Reprise dans un instant …',
+			retrying: 'Connexion …',
+			goHome: "Aller à l'accueil",
+			availableTitle: 'Fonctions disponibles hors ligne :',
+			availableItems: [
+				'Consulter les pages déjà visitées',
+				'Parcourir les cartes enregistrées',
+				'Afficher les bons en cache',
+				'Ouvrir les cartes cadeaux'
+			]
+		}
 	},
 	admin: {
 		hub: {

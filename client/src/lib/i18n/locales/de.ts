@@ -31,9 +31,9 @@ export const de: TranslationKeys = {
 		filterGiftCards: 'Geschenkkarten filtern',
 		backToOverview: '← Zurück zur Übersicht',
 		backToOverviewPlain: 'Zurück zur Übersicht',
-		backToCard: 'Zurück zur Karte',
-		backToVoucher: 'Zurück zum Gutschein',
-		backToGiftCard: 'Zurück zur Geschenkkarte',
+		backToCard: '← Zurück zur Karte',
+		backToVoucher: '← Zurück zum Gutschein',
+		backToGiftCard: '← Zurück zur Geschenkkarte',
 		shareSubtitle: 'Mit anderen Savvy-Nutzern',
 		transferSubtitle: 'Vollständig abgeben',
 		optional: 'Optional',
@@ -1124,6 +1124,7 @@ export const de: TranslationKeys = {
 				'E-Mail, wenn jemand etwas mit dir teilt oder überträgt.',
 			saved: 'Einstellung gespeichert.',
 			error: 'Fehler beim Speichern.',
+			hintTitle: 'Hinweis',
 			ios: {
 				subcategoryHint:
 					'Unterkategorien erscheinen nur, wenn der Kanal aktiv ist.'
@@ -1353,7 +1354,20 @@ export const de: TranslationKeys = {
 		},
 		goBack: 'Zurück',
 		retry: 'Erneut versuchen',
-		toDashboard: 'Zum Dashboard'
+		toDashboard: 'Zum Dashboard',
+		offlinePage: {
+			backOnlineTitle: 'Du bist wieder online!',
+			backOnlineMessage: "Gleich geht's weiter …",
+			retrying: 'Verbinde …',
+			goHome: 'Zur Startseite',
+			availableTitle: 'Offline verfügbare Funktionen:',
+			availableItems: [
+				'Bereits besuchte Seiten ansehen',
+				'Gespeicherte Karten durchsuchen',
+				'Gutscheine im Cache anzeigen',
+				'Geschenkkarten abrufen'
+			]
+		}
 	},
 	admin: {
 		hub: {

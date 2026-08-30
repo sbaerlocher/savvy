@@ -5,26 +5,21 @@
 	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
 	import { ICON_SEARCH } from '$lib/icons';
 	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
 	import { toastStore } from '$lib/stores/toast';
 	import { showOfflineBanner } from '$lib/stores/offline';
 	import { showNewDialog } from '$lib/stores/newDialog';
 	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
 	import type { UserDTO } from '$lib/types/api';
 
 	const navLogger = logger.child('DesktopNav');
 
-	// Server-provided user (data.user) — carries is_admin for the admin dropdown gate.
+	// Server-provided user (data.user) — carries is_admin for the admin-link gate.
 	let { user }: { user?: UserDTO } = $props();
 
-	let showUserMenu = $state(false);
-	let showAdminMenu = $state(false);
 	let desktopSearch = $state('');
 
 	async function handleLogout() {
-		showUserMenu = false;
 		await authStore.logout();
 		window.location.href = '/login';
 	}
@@ -65,13 +60,14 @@
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
 					<a href={resolve('/dashboard')} class="flex items-center gap-2.5">
-						<!-- Desktop mockup: 30px accent tile carrying the wordmark
-						     initial, next to the wordmark itself. -->
-						<span
+						<!-- The real logo next to the wordmark (the accent initial tile
+						     was a placeholder). -->
+						<img
+							src="/logo.png"
+							alt=""
 							aria-hidden="true"
-							class="hidden h-7.5 w-7.5 shrink-0 items-center justify-center rounded-md bg-accent text-base font-bold tracking-tight text-white sm:flex"
-							>{$t('common.appName').charAt(0)}</span
-						>
+							class="hidden h-7.5 w-7.5 shrink-0 sm:block"
+						/>
 						<span
 							class="hidden sm:inline text-heading font-bold tracking-tight text-text"
 							>{$t('common.appName')}</span
@@ -260,167 +256,31 @@
 					</div>
 				{/if}
 
-				<!-- Admin Dropdown (only for admins, hidden during impersonation; desktop only — mockup mobile header has no admin controls) -->
 				{#if !$authStore.user?.is_impersonating}
-					{#if user?.is_admin && !$authStore.user?.is_impersonating}
-						<div class="relative hidden sm:block">
-							<button
-								type="button"
-								onclick={(e) => {
-									e.stopPropagation();
-									showAdminMenu = !showAdminMenu;
-								}}
-								class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-sm bg-purple-50 text-purple-600 transition-colors hover:text-purple-700"
-								title={$t('nav.admin')}
-								aria-expanded={showAdminMenu}
+					<!-- Admin entry (admins only, desktop only): a straight link into
+					     the admin area — the pages themselves carry the AdminTabs
+					     navigation, so the old dropdown is gone. -->
+					{#if user?.is_admin}
+						<a
+							href={resolve('/admin/users')}
+							class="hidden h-9.5 w-9.5 items-center justify-center rounded-sm bg-purple-50 text-purple-600 transition-colors hover:text-purple-700 sm:inline-flex"
+							title={$t('nav.admin')}
+							aria-label={$t('nav.admin')}
+						>
+							<svg
+								class="h-5.5 w-5.5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
 							>
-								<svg
-									class="h-5.5 w-5.5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-									></path>
-								</svg>
-							</button>
-
-							{#if showAdminMenu}
-								<div
-									role="menu"
-									tabindex="-1"
-									class="absolute right-0 z-50 mt-2 w-64 rounded-xl py-2 {platform ===
-									'ios'
-										? 'liquid-glass-menu'
-										: 'border border-border bg-surface shadow-panel'}"
-									onclick={(e) => e.stopPropagation()}
-									onkeydown={(e) => {
-										if (e.key === 'Escape') showAdminMenu = false;
-									}}
-								>
-									<div
-										class="border-b px-4 py-2.5 {platform === 'ios'
-											? 'border-white/30'
-											: 'border-border-soft'}"
-									>
-										<div class="text-label font-bold text-purple-600">
-											{$t('nav.admin')}
-										</div>
-									</div>
-
-									<a
-										href={resolve('/admin/users')}
-										onclick={() => (showAdminMenu = false)}
-										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
-									>
-										<svg
-											class="h-4.75 w-4.75 text-text-muted"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-											></path>
-										</svg>
-										{$t('nav.adminUsers')}
-									</a>
-
-									<a
-										href={resolve('/admin/merchants')}
-										onclick={() => (showAdminMenu = false)}
-										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
-									>
-										<svg
-											class="h-4.75 w-4.75 text-text-muted"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-											></path>
-										</svg>
-										{$t('nav.adminMerchants')}
-									</a>
-
-									<a
-										href={resolve('/admin/audit-log')}
-										onclick={() => (showAdminMenu = false)}
-										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
-									>
-										<svg
-											class="h-4.75 w-4.75 text-text-muted"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-											></path>
-										</svg>
-										{$t('nav.adminAuditLog')}
-									</a>
-
-									<a
-										href={resolve('/admin/system-health')}
-										onclick={() => (showAdminMenu = false)}
-										class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
-									>
-										<svg
-											class="h-4.75 w-4.75 text-text-muted"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-											></path>
-										</svg>
-										{$t('nav.adminSystemHealth')}
-									</a>
-
-									{#if $configStore.is_development}
-										<a
-											href={resolve('/admin/email-templates')}
-											onclick={() => (showAdminMenu = false)}
-											class="flex w-full items-center gap-3 px-4 py-2.5 text-body text-text-ink2 transition-colors hover:bg-surface-2"
-										>
-											<svg
-												class="h-4.75 w-4.75 text-text-muted"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-												></path>
-											</svg>
-											{$t('nav.adminEmailTemplates')}
-										</a>
-									{/if}
-								</div>
-							{/if}
-						</div>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+								></path>
+							</svg>
+						</a>
 					{/if}
 
 					<!-- Notifications (hidden during impersonation) -->
@@ -437,160 +297,33 @@
 					{/if}
 				{/if}
 
-				<!-- User Menu (hidden during impersonation; desktop only — Profile is a bottom-nav place on mobile, so no redundant user icon in the mobile header) -->
+				<!-- Logout (hidden during impersonation; desktop only). Replaces the old
+				     user dropdown, which only repeated links that already exist in the
+				     nav and on /profile. -->
 				{#if !$authStore.user?.is_impersonating}
-					<div class="relative hidden sm:block">
-						<button
-							type="button"
-							onclick={(e) => {
-								e.stopPropagation();
-								showUserMenu = !showUserMenu;
-							}}
-							class="flex items-center text-sm text-text-subtle hover:text-text-ink2 transition-colors"
-							aria-label={$t('aria.openUserMenu')}
-							aria-expanded={showUserMenu}
+					<button
+						type="button"
+						onclick={handleLogout}
+						class="hidden items-center text-sm text-text-subtle transition-colors hover:text-danger-600 sm:flex"
+						aria-label={$t('nav.logout')}
+						title={$t('nav.logout')}
+					>
+						<svg
+							class="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
 						>
-							<svg
-								class="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-								></path>
-							</svg>
-						</button>
-
-						{#if showUserMenu}
-							<div
-								role="menu"
-								tabindex="-1"
-								class="absolute right-0 mt-2 w-56 rounded-lg py-2 z-50 {platform ===
-								'ios'
-									? 'liquid-glass-menu'
-									: 'bg-white border border-border shadow-xl'}"
-								onclick={(e) => e.stopPropagation()}
-								onkeydown={(e) => {
-									if (e.key === 'Escape') showUserMenu = false;
-								}}
-							>
-								{#if $authStore.user}
-									<div
-										class="px-4 py-3 text-sm border-b {platform === 'ios'
-											? 'border-white/30'
-											: 'border-border'}"
-									>
-										{#if $authStore.user.first_name || $authStore.user.last_name}
-											<div class="font-semibold text-text mb-1">
-												{$authStore.user.first_name || ''}
-												{$authStore.user.last_name || ''}
-											</div>
-										{/if}
-										<div class="text-xs text-text-muted break-all">
-											{$authStore.user.email}
-										</div>
-									</div>
-								{/if}
-
-								<a
-									href={resolve('/profile')}
-									onclick={() => (showUserMenu = false)}
-									class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
-								>
-									<svg
-										class="w-5 h-5 mr-3"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-										></path>
-									</svg>
-									{$t('nav.profile')}
-								</a>
-
-								<a
-									href={resolve('/security')}
-									onclick={() => (showUserMenu = false)}
-									class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
-								>
-									<svg
-										class="w-5 h-5 mr-3"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-										></path>
-									</svg>
-									{$t('nav.security')}
-								</a>
-
-								<a
-									href={resolve('/notifications')}
-									onclick={() => (showUserMenu = false)}
-									class="flex items-center w-full px-4 py-3 text-sm text-text-ink2 hover:bg-surface-1 transition-colors"
-								>
-									<svg
-										class="w-5 h-5 mr-3"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-										></path>
-									</svg>
-									{$t('nav.notifications')}
-								</a>
-
-								<button
-									type="button"
-									onclick={handleLogout}
-									class="flex items-center w-full px-4 py-3 text-sm text-danger-600 hover:bg-surface-1 transition-colors"
-								>
-									<svg
-										class="w-5 h-5 mr-3"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-										></path>
-									</svg>
-									{$t('nav.logout')}
-								</button>
-							</div>
-						{/if}
-					</div>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+							></path>
+						</svg>
+					</button>
 				{/if}
 			</div>
 		</div>
 	</div>
 </nav>
-
-<svelte:window
-	onclick={() => {
-		if (showUserMenu) showUserMenu = false;
-		if (showAdminMenu) showAdminMenu = false;
-	}}
-/>

@@ -1031,6 +1031,7 @@ export type TranslationKeys = {
 			emailSharingDesc: string;
 			saved: string;
 			error: string;
+			hintTitle: string;
 			ios: {
 				subcategoryHint: string;
 			};
@@ -1245,6 +1246,15 @@ export type TranslationKeys = {
 		goBack: string;
 		retry: string;
 		toDashboard: string;
+		/** Standalone offline route (/offline), shown by the service worker. */
+		offlinePage: {
+			backOnlineTitle: string;
+			backOnlineMessage: string;
+			retrying: string;
+			goHome: string;
+			availableTitle: string;
+			availableItems: string[];
+		};
 	};
 	admin: {
 		hub: {

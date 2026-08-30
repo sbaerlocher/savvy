@@ -25,6 +25,11 @@
 		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
 	);
 
+	// Admin screens own their FAB too: /admin/users renders a create-user
+	// FAB in the same slot, and the global "New resource" dialog has no
+	// business on an admin screen anyway.
+	const onAdminRoute = $derived($page.url.pathname.startsWith('/admin'));
+
 	// Three places: Start (dashboard), Wallet, Profile.
 	// href is resolved up-front (resolve() needs literal routes, not a variable).
 	const places = [
@@ -215,7 +220,7 @@
 	</div>
 {:else}
 	<!-- Android Material 3 edge-to-edge bar + FAB for New. Search lives in top bar. -->
-	{#if !(platform === 'android' && onResourceDetail)}
+	{#if !(platform === 'android' && (onResourceDetail || onAdminRoute))}
 		<button
 			type="button"
 			onclick={onNew}

@@ -207,57 +207,56 @@
 </M3SettingsRow>
 
 {#if isEditingName}
-	<form onsubmit={handleSaveProfile} class="space-y-4 px-6 pt-1 pb-4">
-		<div>
-			<label
-				for="firstName"
-				class="mb-1 block text-label font-medium text-text-ink2"
-			>
-				{tr('settings.profile.firstName')}
-			</label>
-			<input
-				id="firstName"
-				type="text"
-				bind:value={firstName}
-				disabled={isSavingProfile}
-				class="input"
-			/>
-		</div>
-		<div>
-			<label
-				for="lastName"
-				class="mb-1 block text-label font-medium text-text-ink2"
-			>
-				{tr('settings.profile.lastName')}
-			</label>
-			<input
-				id="lastName"
-				type="text"
-				bind:value={lastName}
-				disabled={isSavingProfile}
-				class="input"
-			/>
-		</div>
-		<div class="flex gap-3">
-			<button
-				type="button"
-				onclick={() => (isEditingName = false)}
-				disabled={isSavingProfile}
-				class="btn btn-ghost flex-1"
-			>
-				{tr('common.cancel')}
-			</button>
-			<button
-				type="submit"
-				disabled={isSavingProfile}
-				class="btn btn-primary flex-1"
-			>
-				{isSavingProfile
-					? tr('settings.profile.saving')
-					: tr('settings.profile.saveButton')}
-			</button>
-		</div>
-	</form>
+	<!-- m3-filled-form restyles the shared .input/.label/.btn classes into M3
+	     filled text fields and the right-aligned text + filled-pill button pair
+	     (same treatment as the Android resource edit forms). -->
+	<div class="m3-filled-form">
+		<form onsubmit={handleSaveProfile} class="space-y-4 px-6 pt-1 pb-4">
+			<div>
+				<label for="firstName" class="label">
+					{tr('settings.profile.firstName')}
+				</label>
+				<input
+					id="firstName"
+					type="text"
+					bind:value={firstName}
+					disabled={isSavingProfile}
+					class="input"
+				/>
+			</div>
+			<div>
+				<label for="lastName" class="label">
+					{tr('settings.profile.lastName')}
+				</label>
+				<input
+					id="lastName"
+					type="text"
+					bind:value={lastName}
+					disabled={isSavingProfile}
+					class="input"
+				/>
+			</div>
+			<div class="flex gap-2">
+				<button
+					type="button"
+					onclick={() => (isEditingName = false)}
+					disabled={isSavingProfile}
+					class="btn btn-ghost"
+				>
+					{tr('common.cancel')}
+				</button>
+				<button
+					type="submit"
+					disabled={isSavingProfile}
+					class="btn btn-primary"
+				>
+					{isSavingProfile
+						? tr('settings.profile.saving')
+						: tr('settings.profile.saveButton')}
+				</button>
+			</div>
+		</form>
+	</div>
 {/if}
 
 <!-- Email + verification state -->
@@ -322,66 +321,64 @@
 				{tr('settings.dangerZone.deleteConfirmMessage')}
 			</p>
 
-			<form onsubmit={handleDeleteAccount} class="space-y-4">
-				<div>
-					<label
-						for="androidDeleteConfirmation"
-						class="mb-1 block text-label font-medium text-text-ink2"
-					>
-						{tr('settings.dangerZone.deleteConfirmPlaceholder')}
-					</label>
-					<input
-						id="androidDeleteConfirmation"
-						type="text"
-						bind:value={deleteConfirmation}
-						disabled={isDeleting}
-						autocomplete="off"
-						class="input"
-						placeholder={tr('settings.dangerZone.deleteConfirmWord')}
-					/>
-				</div>
-
-				{#if profile.auth_provider === 'local'}
+			<!-- Same M3 treatment as the name editor: filled text fields, then an
+			     M3-dialog button row — right-aligned text button + filled pill. -->
+			<div class="m3-filled-form">
+				<form onsubmit={handleDeleteAccount} class="space-y-4">
 					<div>
-						<label
-							for="androidDeletePassword"
-							class="mb-1 block text-label font-medium text-text-ink2"
-						>
-							{tr('settings.dangerZone.passwordRequired')}
+						<label for="androidDeleteConfirmation" class="label">
+							{tr('settings.dangerZone.deleteConfirmPlaceholder')}
 						</label>
 						<input
-							id="androidDeletePassword"
-							type="password"
-							bind:value={deletePassword}
+							id="androidDeleteConfirmation"
+							type="text"
+							bind:value={deleteConfirmation}
 							disabled={isDeleting}
-							autocomplete="current-password"
+							autocomplete="off"
 							class="input"
+							placeholder={tr('settings.dangerZone.deleteConfirmWord')}
 						/>
 					</div>
-				{/if}
 
-				<div class="flex gap-3 pt-2">
-					<button
-						type="button"
-						onclick={closeDeleteModal}
-						disabled={isDeleting}
-						class="btn btn-ghost flex-1"
-					>
-						{tr('common.cancel')}
-					</button>
-					<button
-						type="submit"
-						disabled={isDeleting ||
-							deleteConfirmation !== 'DELETE' ||
-							(profile.auth_provider === 'local' && !deletePassword)}
-						class="text-label flex-1 rounded-m3-full bg-danger-600 px-4 py-2.5 text-on-accent transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						{isDeleting
-							? tr('settings.dangerZone.deleting')
-							: tr('settings.dangerZone.deleteButton')}
-					</button>
-				</div>
-			</form>
+					{#if profile.auth_provider === 'local'}
+						<div>
+							<label for="androidDeletePassword" class="label">
+								{tr('settings.dangerZone.passwordRequired')}
+							</label>
+							<input
+								id="androidDeletePassword"
+								type="password"
+								bind:value={deletePassword}
+								disabled={isDeleting}
+								autocomplete="current-password"
+								class="input"
+							/>
+						</div>
+					{/if}
+
+					<div class="flex items-center justify-end gap-2 pt-2">
+						<button
+							type="button"
+							onclick={closeDeleteModal}
+							disabled={isDeleting}
+							class="text-label rounded-m3-full h-10 px-3 font-semibold text-text-ink2 transition-colors hover:bg-surface-1 disabled:opacity-50"
+						>
+							{tr('common.cancel')}
+						</button>
+						<button
+							type="submit"
+							disabled={isDeleting ||
+								deleteConfirmation !== 'DELETE' ||
+								(profile.auth_provider === 'local' && !deletePassword)}
+							class="text-label rounded-m3-full h-10 bg-danger-600 px-6 font-semibold text-on-accent transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isDeleting
+								? tr('settings.dangerZone.deleting')
+								: tr('settings.dangerZone.deleteButton')}
+						</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
 {/if}

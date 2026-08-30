@@ -3,6 +3,7 @@
 	import { t } from '$lib/stores/i18n';
 	import { platform } from '$lib/utils/platform';
 	import EmailAutocomplete from './EmailAutocomplete.svelte';
+	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
 
 	interface Props {
 		isOffline: boolean;
@@ -224,9 +225,7 @@
 				/>
 			</div>
 
-			<p class="mb-2.5 text-section-eyebrow uppercase text-text-subtle">
-				{whatHappensLabel}
-			</p>
+			<SectionLabel>{whatHappensLabel}</SectionLabel>
 			<ul class="mb-4 space-y-2.5">
 				{#each details as detail (detail)}
 					<li class="flex items-start gap-2.5">

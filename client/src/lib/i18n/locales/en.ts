@@ -30,9 +30,9 @@ export const en: TranslationKeys = {
 		filterGiftCards: 'Filter Gift Cards',
 		backToOverview: '← Back to overview',
 		backToOverviewPlain: 'Back to overview',
-		backToCard: 'Back to card',
-		backToVoucher: 'Back to voucher',
-		backToGiftCard: 'Back to gift card',
+		backToCard: '← Back to card',
+		backToVoucher: '← Back to voucher',
+		backToGiftCard: '← Back to gift card',
 		shareSubtitle: 'With other Savvy users',
 		transferSubtitle: 'Hand over completely',
 		optional: 'Optional',
@@ -1094,6 +1094,7 @@ export const en: TranslationKeys = {
 				'Email when someone shares or transfers something to you.',
 			saved: 'Setting saved.',
 			error: 'Failed to save setting.',
+			hintTitle: 'Note',
 			ios: {
 				subcategoryHint: 'Subcategories only appear while the channel is on.'
 			}
@@ -1316,7 +1317,20 @@ export const en: TranslationKeys = {
 		},
 		goBack: 'Go back',
 		retry: 'Retry',
-		toDashboard: 'Go to Dashboard'
+		toDashboard: 'Go to Dashboard',
+		offlinePage: {
+			backOnlineTitle: "You're back online!",
+			backOnlineMessage: 'Continuing in a moment …',
+			retrying: 'Connecting …',
+			goHome: 'Go to home',
+			availableTitle: 'Available offline:',
+			availableItems: [
+				'View pages you already visited',
+				'Browse saved cards',
+				'Show cached vouchers',
+				'Open gift cards'
+			]
+		}
 	},
 	admin: {
 		hub: {

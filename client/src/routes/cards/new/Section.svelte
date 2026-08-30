@@ -1,0 +1,193 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { get } from 'svelte/store';
+	import { t } from '$lib/stores/i18n';
+	import { cardsApi } from '$lib/api';
+	import { toastStore } from '$lib/stores/toast';
+	import type { DuplicateWarning } from '$lib/types/api';
+	import { extractDuplicate } from '$lib/utils/api-errors';
+
+	import CardForm from '$lib/components/cards/CardForm.svelte';
+	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
+	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
+	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
+
+	// Svelte 5 compatible translation wrapper
+	const tr = (key: string, params?: Record<string, string | number>) =>
+		get(t)(key, params);
+
+	let cardNumber = $state('');
+	let merchantId = $state('');
+	let program = $state('');
+	let barcodeType = $state('CODE128');
+	let notes = $state('');
+	let isLoading = $state(false);
+	let duplicateWarning = $state<DuplicateWarning | null>(null);
+
+	// Sharing state
+	let shareEmail = $state('');
+	let canEdit = $state(false);
+	let canDelete = $state(false);
+
+	async function handleSubmit() {
+		isLoading = true;
+		duplicateWarning = null;
+		try {
+			const response = await cardsApi.create({
+				card_number: cardNumber,
+				merchant_id: merchantId || undefined,
+				program: program || undefined,
+				barcode_type: barcodeType || undefined,
+				notes: notes || undefined,
+				share_with_email: shareEmail || undefined,
+				share_can_edit: shareEmail ? canEdit : undefined,
+				share_can_delete: shareEmail ? canDelete : undefined
+			});
+			toastStore.success(tr('cards.createSuccess'));
+			// Advisory: a same-numbered card is already shared with the user. Creation is
+			// intentionally allowed (family cards), so surface it as an info toast rather
+			// than blocking — the warning is lost on redirect otherwise.
+			const shared = response.duplicate_warning;
+			if (shared?.is_shared) {
+				const name =
+					[shared.shared_by?.first_name, shared.shared_by?.last_name]
+						.filter(Boolean)
+						.join(' ') ||
+					shared.shared_by?.email ||
+					tr('common.unknown');
+				toastStore.info(
+					tr('duplicate.shared_message', {
+						sharedByName: name,
+						sharedByEmail: shared.shared_by?.email || ''
+					})
+				);
+			}
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/cards/${response.card.id}`;
+		} catch (err: unknown) {
+			const duplicate = extractDuplicate(err);
+			if (duplicate) {
+				duplicateWarning = duplicate;
+			} else {
+				const message =
+					err instanceof Error ? err.message : tr('cards.createError');
+				toastStore.error(message || tr('cards.createError'));
+			}
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function handleRestore() {
+		if (!duplicateWarning?.existing_id) return;
+		const id = duplicateWarning.existing_id;
+		try {
+			await cardsApi.restore(id);
+			// Force full page reload to ensure fresh data in lists
+			window.location.href = `/cards/${id}`;
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : tr('common.restoreError');
+			toastStore.error(message || tr('common.restoreError'));
+		}
+	}
+
+	function handleCancel() {
+		goto(resolve('/cards'));
+	}
+</script>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+	<!-- Left column: Form (2/3 width) -->
+	<div class="lg:col-span-2">
+		<div class="rounded-xl border border-border bg-white p-6">
+			<DuplicateWarningBanner
+				warning={duplicateWarning}
+				resourceType="card"
+				onNavigate={(id) => goto(resolve(`/cards/${id}`))}
+				onrestore={handleRestore}
+			/>
+			<CardForm
+				bind:cardNumber
+				bind:merchantId
+				bind:program
+				bind:barcodeType
+				bind:notes
+				onSubmit={handleSubmit}
+				onCancel={handleCancel}
+				{isLoading}
+				submitLabel={tr('cards.createButton')}
+				pairedLayout
+			/>
+		</div>
+	</div>
+
+	<!-- Right column: Sharing (1/3 width) -->
+	<div class="lg:col-span-1">
+		<div class="rounded-xl border border-border bg-white p-6">
+			<h2 class="text-xl font-bold text-text mb-4">
+				{tr('cards.sharing.title')}
+			</h2>
+			<p class="text-sm text-text-muted mb-4">
+				{tr('cards.sharing.shareOnCreate')}
+			</p>
+
+			<div
+				class="border border-accent-200 bg-accent-50 rounded-lg p-4 space-y-4"
+			>
+				<!-- Email Input with Autocomplete -->
+				<EmailAutocomplete
+					bind:value={shareEmail}
+					label={tr('cards.sharing.userEmail')}
+					hint={tr('forms.userMustBeRegistered')}
+					inputId="share_email"
+				/>
+
+				<!-- Permissions -->
+				<div class="space-y-2">
+					<label class="flex items-start">
+						<input
+							type="checkbox"
+							bind:checked={canEdit}
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
+						/>
+						<div class="ml-2">
+							<span class="block text-sm font-medium text-text"
+								>{tr('cards.sharing.canEdit')}</span
+							>
+							<span class="text-xs text-text-subtle">
+								{tr('cards.sharing.canEditDesc')}
+							</span>
+						</div>
+					</label>
+					<label class="flex items-start">
+						<input
+							type="checkbox"
+							bind:checked={canDelete}
+							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
+						/>
+						<div class="ml-2">
+							<span class="block text-sm font-medium text-text"
+								>{tr('cards.sharing.canDelete')}</span
+							>
+							<span class="text-xs text-text-subtle"
+								>{tr('cards.sharing.canDeleteDesc')}</span
+							>
+						</div>
+					</label>
+				</div>
+
+				<!-- Info Box -->
+				<SharedInfoBox
+					title={tr('cards.sharing.whatIsShared')}
+					items={[
+						tr('cards.sharing.sharedItemCardNumber'),
+						tr('cards.sharing.sharedItemDetails'),
+						tr('cards.sharing.sharedItemNotes')
+					]}
+				/>
+			</div>
+		</div>
+	</div>
+</div>

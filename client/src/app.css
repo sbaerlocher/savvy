@@ -204,6 +204,18 @@
 		height: 42px;
 	}
 
+	/* Title-row action — the one chrome for the right side of every page
+	   title: 42px control, rounded-lg, field border on white. Used by the
+	   wallet toolbar, the merchants filter button, the notification actions,
+	   the merchant-detail edit action and the dashboard stat tiles; state
+	   variants (accent ring, filled primary) override per call site. */
+	.title-action {
+		/* Same 42px as .control — @apply can only inline utilities, not the
+		   component class itself. */
+		height: 42px;
+		@apply flex items-center justify-center gap-2 rounded-lg border border-border-field bg-white px-4 text-label transition-colors hover:bg-surface-1;
+	}
+
 	.label {
 		@apply block text-sm font-medium text-text-ink2 mb-1;
 	}
@@ -324,6 +336,24 @@
 			bottom: 1.5rem;
 		}
 	}
+}
+
+/* iOS inline edit forms (settings rows, delete dialog): the shared
+   .input/.btn classes go liquid glass — milky translucent fields with the
+   glass hairline and an inset highlight, buttons as full-round pills. Same
+   mechanism as .m3-filled-form below: a scoped override on the wrapper, so
+   the forms themselves gain no platform branch. */
+.ios-glass-form input.input,
+.ios-glass-form select.input,
+.ios-glass-form textarea.input {
+	border-radius: var(--radius-xl);
+	border: 1px solid var(--color-glass-edge);
+	background: var(--color-glass-surface-3);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.ios-glass-form .btn {
+	border-radius: 9999px;
 }
 
 /* Android resource-detail edit forms (screen-ResourceDetailAndroid, frames
