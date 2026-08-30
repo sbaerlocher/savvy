@@ -1,0 +1,3 @@
+
+# Structural baseline: the stored login session (auth.setup.ts regenerates it)
+tests/structure/.auth/
