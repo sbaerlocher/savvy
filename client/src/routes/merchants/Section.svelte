@@ -19,13 +19,20 @@
 
 	// Bound up to the page: the count eyebrow renders in the PageShell title
 	// row, while the list data it derives from lives here.
-	// eslint-disable-next-line no-useless-assignment -- write-only bindable, read by the page
 	let {
+		// eslint-disable-next-line no-useless-assignment -- write-only bindable, read by the page
 		eyebrow = $bindable(),
 		// The desktop filter button lives on the page's title row; the panel it
-		// opens is this section's, so the flag is bound across.
-		filterOpen = $bindable(false)
-	}: { eyebrow?: string; filterOpen?: boolean } = $props();
+		// opens is this section's, so the open flag and the applied-filter
+		// indicator are bound across.
+		filterOpen = $bindable(false),
+		// eslint-disable-next-line no-useless-assignment -- write-only bindable, read by the page
+		filtersActive = $bindable(false)
+	}: {
+		eyebrow?: string;
+		filterOpen?: boolean;
+		filtersActive?: boolean;
+	} = $props();
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -58,6 +65,10 @@
 	const hasActiveFilters = $derived(
 		sortBy !== 'name-asc' || typeFilter !== 'all' || statusFilter !== 'all'
 	);
+
+	$effect(() => {
+		filtersActive = hasActiveFilters;
+	});
 
 	// Only the narrowing filters — `hasActiveFilters` also covers `sortBy`, which
 	// reorders without dropping rows and is restored from localStorage, so it
@@ -353,48 +364,6 @@
 			d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
 		/>
 	</svg>
-{/snippet}
-
-<!-- Desktop chrome row action: the lone filter button beside the title (mockup
-     board 1A/1B). Search and the type/sort/status groups live in the panel it
-     opens, so this is the whole toolbar on desktop. Currently unrendered while
-     the desktop section is unmounted (skeleton phase); it returns to the
-     PageShell actions slot with the desktop layout. -->
-<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- unrendered while the desktop section is unmounted -->
-{#snippet desktopFilterButton()}
-	<button
-		type="button"
-		onclick={(e: MouseEvent) => {
-			e.stopPropagation();
-			filterOpen = !filterOpen;
-		}}
-		class="control relative flex items-center justify-center rounded-lg border bg-white px-4 transition-colors hover:bg-surface-1 {hasActiveFilters
-			? 'border-accent text-accent-hover ring-2 ring-accent'
-			: 'border-border-field text-text-muted'}"
-		title={tr('common.filter')}
-		aria-label={tr('common.filter')}
-		aria-expanded={filterOpen}
-	>
-		<svg
-			class="h-5 w-5"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			viewBox="0 0 24 24"
-			aria-hidden="true"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				d={ICON_FILTER_LINES}
-			/>
-		</svg>
-		{#if hasActiveFilters}
-			<span
-				class="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-paper bg-accent"
-			></span>
-		{/if}
-	</button>
 {/snippet}
 
 <!-- Search field for the desktop filter panel (mockup board 1B). Desktop has no

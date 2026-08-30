@@ -18,6 +18,8 @@
 	// Desktop filter button on the title row. The panel it opens lives in the
 	// section — this state gets bound to it when the section is re-attached.
 	let filterOpen = $state(false);
+	// Applied-filter indicator, bound up from the section (ring + dot).
+	let filtersActive = $state(false);
 </script>
 
 <svelte:head>
@@ -34,7 +36,9 @@
 			e.stopPropagation();
 			filterOpen = !filterOpen;
 		}}
-		class="title-action relative text-text-muted"
+		class="title-action relative {filtersActive
+			? 'border-accent text-accent-hover ring-2 ring-accent'
+			: 'text-text-muted'}"
 		title={tr('common.filter')}
 		aria-label={tr('common.filter')}
 		aria-expanded={filterOpen}
@@ -53,6 +57,11 @@
 				d={ICON_FILTER_LINES}
 			/>
 		</svg>
+		{#if filtersActive}
+			<span
+				class="absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-paper bg-accent"
+			></span>
+		{/if}
 	</button>
 {/snippet}
 
@@ -65,5 +74,5 @@
 	mobileActions={!IS_DESKTOP}
 	actions={IS_DESKTOP ? desktopFilterButton : undefined}
 >
-	<Section bind:eyebrow bind:filterOpen />
+	<Section bind:eyebrow bind:filterOpen bind:filtersActive />
 </PageShell>

@@ -74,7 +74,7 @@
 	--text-label--line-height: 1.3;
 	--text-label--font-weight: 600;
 
-	/* Eyebrow — uppercase kicker (11px, 600, wide tracking) */
+	/* Eyebrow — uppercase kicker (13.6px, 600, wide tracking) */
 	--text-eyebrow: 0.85rem; /* 13.6px — raised from the mockups' 11px (Simon, 2026-08-30) */
 	--text-eyebrow--line-height: 1.2;
 	--text-eyebrow--font-weight: 600;
