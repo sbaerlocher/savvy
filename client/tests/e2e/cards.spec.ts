@@ -80,9 +80,14 @@ test.describe('Cards Management', () => {
 		await programField.fill('Updated Program');
 
 		await cardDetailPage.save();
-		await expect(page.locator('text=Updated Program')).toBeVisible({
-			timeout: 5000
-		});
+		// The redesigned detail view no longer prints the program as body text
+		// (the title row carries only the merchant name), so verify the update
+		// by re-opening the edit form and reading the field back.
+		await cardDetailPage.enterEditMode();
+		await expect(page.locator('input#program')).toHaveValue(
+			'Updated Program',
+			{ timeout: 5000 }
+		);
 	});
 
 	test('should delete a card', async ({

@@ -19,7 +19,7 @@
 
 	// M3 allows one FAB per screen. Resource detail pages carry their own edit
 	// FAB in the same slot (ResourceDetail.svelte), and it is the only edit
-	// affordance on Android — ResourceActions hides the header pencil there. So
+	// affordance on Android — the title row hides the edit button there. So
 	// the nav drops its "New" FAB on those routes instead of covering it.
 	const onResourceDetail = $derived(
 		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)

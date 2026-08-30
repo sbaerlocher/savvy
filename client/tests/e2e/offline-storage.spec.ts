@@ -31,10 +31,12 @@ test.describe('Offline Storage', () => {
 		// Match the accessible name: /profile styles account deletion with the
 		// same danger class and renders it first, so a broader selector could hit
 		// that instead.
+		// `.last()`: the sessions list labels its revoke buttons "Abmelden"
+		// too and renders them above the account logout at the page bottom.
 		const logoutButton = page
 			.getByRole('button', { name: /Logout|Abmelden|Déconnexion/i })
 			.filter({ visible: true })
-			.first();
+			.last();
 		if (!(await logoutButton.isVisible({ timeout: 3000 }).catch(() => false))) {
 			await page.goto('/profile');
 		}

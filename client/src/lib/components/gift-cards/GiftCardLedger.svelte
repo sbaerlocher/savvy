@@ -351,6 +351,7 @@
 						</button>
 						<button
 							type="button"
+							data-testid="save-transaction"
 							onclick={handleAddTransaction}
 							disabled={isOffline}
 							class="bg-accent-600 text-on-accent text-label rounded-m3-full inline-flex h-10 items-center px-6 disabled:opacity-50"
@@ -359,6 +360,7 @@
 						</button>
 					{:else}
 						<button
+							data-testid="save-transaction"
 							onclick={handleAddTransaction}
 							disabled={isOffline}
 							class="btn btn-danger flex-1 {isOffline
@@ -435,6 +437,7 @@
 							</div>
 							{#if giftCard.permissions?.can_edit_transactions}
 								<button
+									data-testid="delete-transaction"
 									onclick={() => promptDeleteTransaction(transaction.id)}
 									disabled={isOffline}
 									class="btn-text-danger text-base flex items-center {isOffline

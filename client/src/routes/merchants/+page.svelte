@@ -59,14 +59,11 @@
 <!-- Header. Android carries the count as an eyebrow (mockup); the mobile
      header actions stay on their default for every platform — on iOS that row
      is the only create entry point on this screen. -->
-<!-- Desktop `eyebrow` (count): kommt mit der Section zurück. -->
 <PageShell
 	title={tr('merchantOverview.title')}
 	{eyebrow}
 	mobileActions={!IS_DESKTOP}
 	actions={IS_DESKTOP ? desktopFilterButton : undefined}
 >
-	{#if !IS_DESKTOP}
-		<Section bind:eyebrow />
-	{/if}
+	<Section bind:eyebrow bind:filterOpen />
 </PageShell>

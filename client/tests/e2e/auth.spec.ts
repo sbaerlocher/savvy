@@ -60,10 +60,12 @@ test.describe('Authentication', () => {
 		// Match on the accessible name, not on `.text-danger-600`: the profile page
 		// styles account deletion with that same class and renders it before the
 		// logout, so a class-based `.first()` would click "delete account" there.
+		// `.last()`: the sessions list labels its revoke buttons "Abmelden"
+		// too and renders them above the account logout at the page bottom.
 		const logoutButton = page
 			.getByRole('button', { name: /Logout|Abmelden|Déconnexion/i })
 			.filter({ visible: true })
-			.first();
+			.last();
 		await logoutButton.waitFor({ state: 'visible', timeout: 10000 });
 		await logoutButton.click();
 

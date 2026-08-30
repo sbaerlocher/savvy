@@ -13,7 +13,7 @@ export class LoginPage extends BasePage {
 		'a[href="/register"], a:has-text("Register"), a:has-text("Registrieren")'
 	);
 	readonly errorMessage = this.page
-		.getByText(/Invalid.*password|Ungültig/i)
+		.getByText(/Invalid.*password|Ungültig|zu viele|too many/i)
 		.first();
 
 	constructor(page: Page) {

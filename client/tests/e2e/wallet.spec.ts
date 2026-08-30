@@ -82,10 +82,18 @@ test.describe('Wallet Overview', () => {
 		await expect(toggle).toBeVisible();
 		await toggle.click();
 
-		// Barcode canvases render inside the tiles once the toggle is on.
-		await expect(page.locator('canvas, svg[role="img"], img').first()).toBeVisible(
-			{ timeout: 10000 }
-		);
+		// The tiles reveal the barcode inline (canvas) or, on the compact mobile
+		// tiles, as a per-tile "show barcode" button — accept either signal.
+		const inlineBarcode = page
+			.locator('canvas')
+			.filter({ visible: true })
+			.first();
+		const tileBarcodeButton = page
+			.getByRole('button', { name: /Barcode anzeigen|Show barcode/i })
+			.first();
+		await expect(inlineBarcode.or(tileBarcodeButton).first()).toBeVisible({
+			timeout: 10000
+		});
 	});
 
 	test('should redirect legacy list routes to the wallet with a type filter', async ({

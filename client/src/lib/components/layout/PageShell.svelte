@@ -25,7 +25,6 @@
 		aside,
 		width = 'default',
 		header = true,
-		headerPlaceholder,
 		mobileActions = true,
 		headerClass = '',
 		actions,
@@ -79,13 +78,6 @@
 		 * want the container, just not a second heading.
 		 */
 		header?: boolean;
-		/**
-		 * Stands in for the title row while the page is loading: keeps the header
-		 * cell, draws no `<h1>`. A loading screen has no title yet but has the
-		 * same shape, and without the cell its skeleton lines drop into the
-		 * content slot — below the `aside` instead of beside it.
-		 */
-		headerPlaceholder?: Snippet;
 		/** Passed through to PageHeader: bell + New on the title row. */
 		mobileActions?: boolean;
 		/** Extra classes on the header cell — e.g. Android hides the title row
@@ -139,11 +131,7 @@
 <!-- `data-page-shell` marks this wrapper as the shared shell container, so the
      structure suite can tell it apart from a page re-stating its own. -->
 <div class="{RHYTHM} {WIDTH_CLASS[width]}" data-page-shell={width}>
-	{#if headerPlaceholder}
-		<div class="min-w-0 lg:col-start-1 lg:row-start-1 {headerClass}">
-			{@render headerPlaceholder()}
-		</div>
-	{:else if header && title}
+	{#if header && title}
 		<div class="min-w-0 lg:col-start-1 lg:row-start-1 {headerClass}">
 			<PageHeader
 				{title}

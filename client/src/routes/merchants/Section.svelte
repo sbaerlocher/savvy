@@ -20,7 +20,12 @@
 	// Bound up to the page: the count eyebrow renders in the PageShell title
 	// row, while the list data it derives from lives here.
 	// eslint-disable-next-line no-useless-assignment -- write-only bindable, read by the page
-	let { eyebrow = $bindable() }: { eyebrow?: string } = $props();
+	let {
+		eyebrow = $bindable(),
+		// The desktop filter button lives on the page's title row; the panel it
+		// opens is this section's, so the flag is bound across.
+		filterOpen = $bindable(false)
+	}: { eyebrow?: string; filterOpen?: boolean } = $props();
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -49,7 +54,6 @@
 	let sortBy = $state('name-asc');
 	let typeFilter = $state('all');
 	let statusFilter = $state('all');
-	let showFilterMenu = $state(false);
 
 	const hasActiveFilters = $derived(
 		sortBy !== 'name-asc' || typeFilter !== 'all' || statusFilter !== 'all'
@@ -63,10 +67,10 @@
 	);
 
 	// The side panel is the desktop form of the filter UI; the native layouts get
-	// the bottom sheet from the same `showFilterMenu` flag. Gating on the platform
+	// the bottom sheet from the same `filterOpen` flag. Gating on the platform
 	// keeps the panel out of the DOM there — a CSS-only hide would leave a second
 	// copy of the search field behind.
-	const panelOpen = $derived(showFilterMenu && IS_DESKTOP);
+	const panelOpen = $derived(filterOpen && IS_DESKTOP);
 
 	const filteredMerchants = $derived.by(() => {
 		let result = visibleMerchants;
@@ -362,14 +366,14 @@
 		type="button"
 		onclick={(e: MouseEvent) => {
 			e.stopPropagation();
-			showFilterMenu = !showFilterMenu;
+			filterOpen = !filterOpen;
 		}}
 		class="control relative flex items-center justify-center rounded-lg border bg-white px-4 transition-colors hover:bg-surface-1 {hasActiveFilters
 			? 'border-accent text-accent-hover ring-2 ring-accent'
 			: 'border-border-field text-text-muted'}"
 		title={tr('common.filter')}
 		aria-label={tr('common.filter')}
-		aria-expanded={showFilterMenu}
+		aria-expanded={filterOpen}
 	>
 		<svg
 			class="h-5 w-5"
@@ -454,10 +458,10 @@
 			data-testid="merchant-filter-pill"
 			onclick={(e: MouseEvent) => {
 				e.stopPropagation();
-				showFilterMenu = !showFilterMenu;
+				filterOpen = !filterOpen;
 			}}
 			aria-pressed={hasActiveFilters}
-			aria-expanded={showFilterMenu}
+			aria-expanded={filterOpen}
 			class="liquid-glass-card relative inline-flex h-10 items-center gap-1.75 rounded-[var(--radius-lg)] px-3.5 text-body font-semibold text-text-muted"
 		>
 			<svg
@@ -493,10 +497,10 @@
 			data-testid="merchant-filter-chip"
 			onclick={(e: MouseEvent) => {
 				e.stopPropagation();
-				showFilterMenu = !showFilterMenu;
+				filterOpen = !filterOpen;
 			}}
 			aria-pressed={hasActiveFilters}
-			aria-expanded={showFilterMenu}
+			aria-expanded={filterOpen}
 			class="relative inline-flex h-8 items-center gap-1.5 rounded-m3-sm px-3.5 text-label whitespace-nowrap transition-colors {hasActiveFilters
 				? 'bg-m3-secondary-container text-m3-on-secondary-container'
 				: 'border border-border-chip text-text-muted'}"
@@ -547,12 +551,12 @@
 				type="button"
 				onclick={(e: MouseEvent) => {
 					e.stopPropagation();
-					showFilterMenu = !showFilterMenu;
+					filterOpen = !filterOpen;
 				}}
 				class="flex items-center justify-center gap-2 control px-4 bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				title={tr('common.filter')}
 				aria-label={tr('common.filter')}
-				aria-expanded={showFilterMenu}
+				aria-expanded={filterOpen}
 			>
 				<svg
 					class="w-5 h-5 text-text-muted"
@@ -610,11 +614,11 @@
 				type="button"
 				onclick={(e: MouseEvent) => {
 					e.stopPropagation();
-					showFilterMenu = !showFilterMenu;
+					filterOpen = !filterOpen;
 				}}
 				class="flex-1 flex items-center justify-center control bg-white border border-border-field rounded-md hover:bg-surface-1 transition-colors relative"
 				aria-label={tr('common.filter')}
-				aria-expanded={showFilterMenu}
+				aria-expanded={filterOpen}
 			>
 				<svg
 					class="w-5 h-5 text-text-muted"
@@ -926,7 +930,7 @@
 						</span>
 						<button
 							type="button"
-							onclick={() => (showFilterMenu = false)}
+							onclick={() => (filterOpen = false)}
 							class="text-text-faint hover:text-text-muted transition-colors"
 							aria-label={tr('common.closeFilters')}
 						>
@@ -970,8 +974,8 @@
 
 <!-- Mobile Filter Bottom Sheet -->
 <BottomSheet
-	open={showFilterMenu && !IS_DESKTOP}
-	onClose={() => (showFilterMenu = false)}
+	open={filterOpen && !IS_DESKTOP}
+	onClose={() => (filterOpen = false)}
 	maxHeight="80vh"
 	ariaLabel={tr('common.filter')}
 	tonalAndroid
@@ -1014,7 +1018,7 @@
 				     (mockup); the scrim tap and Escape still dismiss it. -->
 				<button
 					type="button"
-					onclick={() => (showFilterMenu = false)}
+					onclick={() => (filterOpen = false)}
 					class="text-[length:var(--text-code)] font-semibold text-accent-700 transition-opacity active:opacity-60"
 				>
 					{tr('common.done')}
@@ -1022,7 +1026,7 @@
 			{:else}
 				<button
 					type="button"
-					onclick={() => (showFilterMenu = false)}
+					onclick={() => (filterOpen = false)}
 					class="text-text-faint hover:text-text-muted transition-colors"
 					aria-label={tr('common.close')}
 				>
@@ -1128,7 +1132,7 @@
 			<div class={IS_ANDROID ? 'pt-4.5' : 'px-6 pb-4 pt-2'}>
 				<button
 					type="button"
-					onclick={() => (showFilterMenu = false)}
+					onclick={() => (filterOpen = false)}
 					class={IS_ANDROID
 						? 'w-full rounded-m3-full bg-accent px-4 py-3.25 text-label text-white shadow-[var(--shadow-accent)] transition-colors'
 						: 'w-full btn btn-primary'}

@@ -34,6 +34,34 @@ export class ProfilePage extends BasePage {
 		return this.page.locator('#email');
 	}
 
+	// Android (and iOS) disclose the name form behind an M3 settings row;
+	// the accessible name starts with the row title "Name".
+	get nameRowButton(): Locator {
+		return this.page.getByRole('button', { name: /\bName\b/ }).first();
+	}
+
+	/** Opens the name editor where it is disclosed; a no-op on the inline
+	 *  layouts that render the fields directly. */
+	async openNameEditor() {
+		// The Android settings screen loads the profile async and the row is a
+		// TOGGLE, so a probe racing the closing editor can click it shut again —
+		// retry once when the form does not materialise.
+		for (let attempt = 0; attempt < 2; attempt++) {
+			if (await this.firstNameInput.isVisible().catch(() => false)) return;
+			await this.nameRowButton
+				.waitFor({ state: 'visible', timeout: 5000 })
+				.catch(() => {});
+			if (!(await this.nameRowButton.isVisible().catch(() => false))) return;
+			await this.nameRowButton.click();
+			const opened = await this.firstNameInput
+				.waitFor({ state: 'visible', timeout: 3000 })
+				.then(() => true)
+				.catch(() => false);
+			if (opened) return;
+		}
+		await expect(this.firstNameInput).toBeVisible({ timeout: 5000 });
+	}
+
 	get saveProfileButton(): Locator {
 		return this.page
 			.locator(
@@ -52,8 +80,9 @@ export class ProfilePage extends BasePage {
 	}
 
 	get emailVerifiedBadge(): Locator {
+		// Desktop uses rounded-full, the Android M3 badge rounded-m3-full.
 		return this.page
-			.locator('.rounded-full')
+			.locator('[class*="rounded"]')
 			.filter({ hasText: /✓|verifiziert|verified/i })
 			.first();
 	}
@@ -110,6 +139,7 @@ export class ProfilePage extends BasePage {
 	}
 
 	async updateProfile(firstName: string, lastName: string) {
+		await this.openNameEditor();
 		await expect(this.firstNameInput).toBeVisible({ timeout: 5000 });
 		await this.firstNameInput.clear();
 		await this.firstNameInput.fill(firstName);

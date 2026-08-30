@@ -4,7 +4,7 @@
  *
  * The route list drives the whole structural baseline, so a route added
  * without a baseline entry would silently go uncovered. Run via
- * `npm run structure:check-routes`.
+ * `npm run structure:routes`.
  */
 import { readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';

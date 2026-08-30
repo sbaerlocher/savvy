@@ -527,7 +527,7 @@
 		<!-- Android M3: edit is a bottom-right FAB. It opens the same edit mode by
 	     toggling the form; the route renders the form via the edit snippet, but
 	     the trigger lives here. Uses startEdit which the route overrides through
-	     ResourceActions above — the FAB simply mirrors it. The bottom nav stays
+	     the title-row actions — the FAB simply mirrors it. The bottom nav stays
 	     visible on detail routes and drops its own New FAB there (MobileNav),
 	     so this one takes the nav-FAB slot above the bar. -->
 		{#if resource.permissions?.can_edit && isAndroid}
@@ -557,7 +557,8 @@
 
 	{#if isAndroid && !isEditing}
 		<!-- Body eyebrow: the M3 top app bar carries only the title, so the kind
-		     kicker and the "geteilt von" line sit above the card (mockup). -->
+		     kicker sits above the card (mockup). The "shared by" line renders in
+		     the shared block above, for every platform. -->
 		{#if eyebrow}
 			<p
 				class="text-eyebrow text-text-faint mx-0.5 mb-3.5 {eyebrowVerbatim
@@ -565,13 +566,6 @@
 					: 'uppercase'}"
 			>
 				{eyebrow}
-			</p>
-		{/if}
-		{#if resource.owner && resource.owner.id !== $authStore.user?.id}
-			<p class="text-text-faint mx-0.5 -mt-2 mb-3.5 text-xs">
-				{tr(c.sharedBy, {
-					name: resource.owner.first_name || resource.owner.email
-				})}
 			</p>
 		{/if}
 	{/if}

@@ -18,7 +18,6 @@
 		actions,
 		mobileActions = true,
 		showSearch = false,
-		flush = false,
 		onBack
 	}: {
 		/** Main heading, e.g. "Deine Favoriten". */
@@ -43,10 +42,6 @@
 		/** Show a standalone search icon (Android) next to custom actions — used by
 		 *  detail pages that keep search but not the full mobile header actions. */
 		showSearch?: boolean;
-		/** Drop the header's own bottom gap. For call sites that compose the title
-		 *  row into a larger element (merchant detail's colour-bar row) and own
-		 *  the spacing below it themselves. */
-		flush?: boolean;
 		/** When set, render a compact back chevron left of the title (detail pages). */
 		onBack?: () => void;
 	} = $props();
@@ -65,7 +60,7 @@
 	// and the header renders inline on several screens (WalletView's chrome
 	// row, the admin panels) that a shell-level column gap cannot reach.
 	const NATIVE = platform === 'android' || platform === 'ios';
-	const HEADER_MB = $derived(flush ? '' : NATIVE ? 'mb-5' : 'mb-8');
+	const HEADER_MB = NATIVE ? 'mb-5' : 'mb-8';
 	const EYEBROW_BASE = 'text-eyebrow text-text-subtle';
 	// Uppercase is the kicker treatment; user-entered eyebrows opt out.
 	const eyebrowClass = $derived(

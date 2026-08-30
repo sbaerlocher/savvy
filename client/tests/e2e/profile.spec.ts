@@ -13,15 +13,28 @@ test.describe('Profile', () => {
 			await profilePage.waitForPageReady();
 			await profilePage.expectProfilePage();
 
-			// Profile fields should be visible
+			// Profile fields should be visible (Android discloses them via the
+			// name row first).
+			await profilePage.openNameEditor();
 			await expect(profilePage.firstNameInput).toBeVisible({ timeout: 5000 });
 			await expect(profilePage.lastNameInput).toBeVisible({ timeout: 5000 });
-			await expect(profilePage.emailInput).toBeVisible({ timeout: 5000 });
 
-			// Email should be read-only and contain the current user's email
-			await expect(profilePage.emailInput).toBeDisabled();
-			const emailValue = await profilePage.emailInput.inputValue();
-			expect(emailValue).toContain(TEST_USERS.regular.email);
+			// Email: a read-only input on the inline layouts, a plain M3 row on
+			// Android — wait for either presentation, then assert the one shown.
+			await expect(
+				profilePage.emailInput
+					.or(profilePage.page.getByText(TEST_USERS.regular.email))
+					.first()
+			).toBeVisible({ timeout: 10000 });
+			if (await profilePage.emailInput.isVisible().catch(() => false)) {
+				await expect(profilePage.emailInput).toBeDisabled();
+				const emailValue = await profilePage.emailInput.inputValue();
+				expect(emailValue).toContain(TEST_USERS.regular.email);
+			} else {
+				await expect(
+					profilePage.page.getByText(TEST_USERS.regular.email).first()
+				).toBeVisible({ timeout: 5000 });
+			}
 		});
 
 		test('should update display name', async ({
@@ -38,11 +51,25 @@ test.describe('Profile', () => {
 			await profilePage.updateProfile(newFirstName, newLastName);
 			await profilePage.expectToast();
 
-			// Verify the fields retain the new values
-			const updatedFirstName = await profilePage.firstNameInput.inputValue();
-			const updatedLastName = await profilePage.lastNameInput.inputValue();
-			expect(updatedFirstName).toBe(newFirstName);
-			expect(updatedLastName).toBe(newLastName);
+			// Verify the update stuck. Android closes the editor on save and shows
+			// the name on the settings row; the inline layouts keep the fields.
+			// Probe the text first — the closing editor makes an input probe racy.
+			const updatedName = profilePage.page
+				.getByText(`${newFirstName} ${newLastName}`)
+				.first();
+			if (await updatedName.isVisible({ timeout: 2000 }).catch(() => false)) {
+				await expect(updatedName).toBeVisible();
+				// The editor collapses on save — wait that out before the restore
+				// below re-opens it, or the toggle races the close animation.
+				await expect(profilePage.firstNameInput).toBeHidden({
+					timeout: 5000
+				});
+			} else {
+				expect(await profilePage.firstNameInput.inputValue()).toBe(
+					newFirstName
+				);
+				expect(await profilePage.lastNameInput.inputValue()).toBe(newLastName);
+			}
 
 			// Restore original name
 			await profilePage.updateProfile('Anna', 'Müller');
@@ -79,12 +106,23 @@ test.describe('Profile', () => {
 		}) => {
 			await profilePage.waitForPageReady();
 
-			// Should show email address. It lives in the read-only #email input,
-			// so assert the field value rather than a text node.
-			await expect(profilePage.emailInput).toBeVisible({ timeout: 5000 });
-			await expect(profilePage.emailInput).toHaveValue(
-				TEST_USERS.regular.email
-			);
+			// Should show the email address: a read-only #email input on the
+			// inline layouts, a plain M3 row on Android. Wait for either
+			// presentation, then assert the one shown.
+			await expect(
+				profilePage.emailInput
+					.or(profilePage.page.getByText(TEST_USERS.regular.email))
+					.first()
+			).toBeVisible({ timeout: 10000 });
+			if (await profilePage.emailInput.isVisible().catch(() => false)) {
+				await expect(profilePage.emailInput).toHaveValue(
+					TEST_USERS.regular.email
+				);
+			} else {
+				await expect(
+					profilePage.page.getByText(TEST_USERS.regular.email).first()
+				).toBeVisible({ timeout: 5000 });
+			}
 
 			// Should show verified badge OR send verification button
 			const verifiedBadge = profilePage.emailVerifiedBadge;
