@@ -12,6 +12,7 @@
 	import { ICON_CHEVRON_LEFT, ICON_SHIELD } from '$lib/icons';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
+	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
 	import AdminHubSection from './AdminHubSection.svelte';
 	import NotificationsSection from './NotificationsSection.svelte';
 	import { authStore } from '$lib/stores/auth';
@@ -45,9 +46,9 @@
 
 	const isLocalAuth = $derived(profile.auth_provider === 'local');
 	// Admin entry points live here on iOS (mockup screen-AdminIOS): the bottom
-	// nav has no admin tab and DesktopNav's admin dropdown is `hidden sm:block`,
+	// nav has no admin tab and DesktopNav's admin link is `hidden sm:block`,
 	// so without this section a phone has no way into admin at all. Hidden while
-	// impersonating, like the desktop dropdown.
+	// impersonating, like the desktop link.
 	const showAdminHub = $derived(
 		$authStore.user?.is_admin === true && !$authStore.user?.is_impersonating
 	);
@@ -461,9 +462,7 @@
 	</div>
 
 	<!-- ============ PROFILE ============ -->
-	<p class="px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle">
-		{tr('settings.profile.title')}
-	</p>
+	<SectionLabel inset>{tr('settings.profile.title')}</SectionLabel>
 	<div class="mb-2 overflow-hidden rounded-inset bg-surface">
 		<button
 			type="button"
@@ -511,7 +510,7 @@
 		{#if expanded === 'name'}
 			<form
 				onsubmit={handleSaveProfile}
-				class="space-y-3 border-b border-border-soft bg-surface-2 px-4 py-3.5"
+				class="ios-glass-form space-y-3 border-b border-border-soft bg-surface-2 px-4 py-3.5"
 			>
 				<div>
 					<label
@@ -710,9 +709,7 @@
 	{/if}
 
 	<!-- ============ SECURITY ============ -->
-	<p class="px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle">
-		{tr('nav.security')}
-	</p>
+	<SectionLabel inset>{tr('nav.security')}</SectionLabel>
 	<div class="mb-2 overflow-hidden rounded-inset bg-surface">
 		{#if isLocalAuth}
 			<button
@@ -764,7 +761,7 @@
 			{#if expanded === 'password'}
 				<form
 					onsubmit={handleChangePassword}
-					class="space-y-3 border-b border-border-soft bg-surface-2 px-4 py-3.5"
+					class="ios-glass-form space-y-3 border-b border-border-soft bg-surface-2 px-4 py-3.5"
 				>
 					<div>
 						<label
@@ -1038,11 +1035,7 @@
 	<!-- Language and sign-out are not in the mockup, but removing them would
 	     drop the only way to switch language or sign out on a phone. Kept in
 	     the same grouped-inset chrome, below the mockup's own sections. -->
-	<p
-		class="mt-6 px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle"
-	>
-		{tr('aria.selectLanguage')}
-	</p>
+	<SectionLabel inset spaced>{tr('aria.selectLanguage')}</SectionLabel>
 	<div class="mb-2 overflow-hidden rounded-inset bg-surface">
 		{#each languages as lang, i (lang.code)}
 			<button
@@ -1130,7 +1123,7 @@
 				{tr('settings.dangerZone.deleteConfirmMessage')}
 			</p>
 
-			<form onsubmit={handleDeleteAccount} class="space-y-4">
+			<form onsubmit={handleDeleteAccount} class="ios-glass-form space-y-4">
 				<div>
 					<label
 						for="ios-deleteConfirmation"
@@ -1182,7 +1175,7 @@
 						disabled={isDeleting ||
 							deleteConfirmation !== 'DELETE' ||
 							(isLocalAuth && !deletePassword)}
-						class="flex-1 rounded-md bg-danger-600 px-4 py-2 text-body font-semibold text-on-accent transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
+						class="flex-1 rounded-full bg-danger-600 px-4 py-2 text-body font-semibold text-on-accent transition-colors hover:bg-danger-700 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{isDeleting
 							? tr('settings.dangerZone.deleting')

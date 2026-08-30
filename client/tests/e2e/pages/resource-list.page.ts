@@ -134,6 +134,8 @@ export class ResourceListPage extends BasePage {
 				const racy =
 					message.includes('interrupted by another navigation') ||
 					message.includes('net::ERR_ABORTED') ||
+					// Firefox spells the same interrupted-navigation abort differently.
+					message.includes('NS_BINDING_ABORTED') ||
 					message.includes('Timeout');
 				if (!racy || attempt === MAX_GOTO_ATTEMPTS - 1) {
 					throw error;

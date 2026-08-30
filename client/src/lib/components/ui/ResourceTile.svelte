@@ -37,14 +37,6 @@
 			'M12 8v13m0-13V6a2 2 0 112-2 2 2 0 01-2 2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
 	};
 
-	const typeLabel = $derived(
-		model.type === 'card'
-			? $t('dashboard.cardType')
-			: model.type === 'voucher'
-				? $t('dashboard.voucherType')
-				: $t('dashboard.giftCardType')
-	);
-
 	const href = $derived(resourceDetailPath(model.type, model.id));
 
 	const contentClass = $derived(
@@ -201,14 +193,19 @@
 			</div>
 
 			<div class="min-w-0 flex-1">
-				<!-- Type label + compact share status share one row (prototype:
+				<!-- Merchant row carries the compact share status inline (prototype:
 				     lock private / people + N shared-out / people + first name
-				     received). Full text stays on the detail page. -->
-				<div
-					class="flex items-center gap-2 text-tag font-semibold uppercase tracking-wider text-text-faint"
-				>
-					<span>{typeLabel}</span>
-					<span class="flex items-center gap-1 normal-case tracking-normal">
+				     received). The type itself is carried by the icon tile alone —
+				     no text twin. Full text stays on the detail page. -->
+				<div class="flex min-w-0 items-center gap-1.5">
+					<p
+						class="truncate font-semibold text-text transition group-hover:text-accent-hover"
+					>
+						{model.merchantName}
+					</p>
+					<span
+						class="flex shrink-0 items-center gap-1 text-tag font-semibold text-text-faint"
+					>
 						{#if model.shareState.kind === 'private'}
 							<svg
 								class="h-3.5 w-3.5 shrink-0"
@@ -251,11 +248,6 @@
 						{/if}
 					</span>
 				</div>
-				<p
-					class="truncate font-semibold text-text transition group-hover:text-accent-hover"
-				>
-					{model.merchantName}
-				</p>
 				{#if model.identifier}
 					<p class="truncate text-sm text-text-subtle">{model.identifier}</p>
 				{/if}

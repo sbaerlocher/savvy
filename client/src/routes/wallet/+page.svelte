@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cardsApi, giftCardsApi, vouchersApi } from '$lib/api';
 	import WalletView from '$lib/components/ui/WalletView.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { configStore } from '$lib/stores/config';
 	import { locale, t } from '$lib/stores/i18n';
@@ -13,8 +13,19 @@
 	import { beforeNavigate } from '$app/navigation';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import {
+		ICON_BARCODE_TOGGLE,
+		ICON_CLIPBOARD_CHECK,
+		ICON_FUNNEL
+	} from '$lib/icons';
 	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
 	import { walletFilters } from '$lib/stores/walletFilters.svelte';
+
+	// Skeleton phase: on desktop the shell owns the title row and the section
+	// (WalletView) stays unmounted until it is re-attached in a later step.
+	const IS_DESKTOP = platform === 'other';
+	const IS_ANDROID = platform === 'android';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -39,8 +50,50 @@
 	let giftCards = $state<GiftCardDTO[]>([]);
 	let isLoading = $state(true);
 
+	// Count eyebrow above the title (mockup "39 Einträge") — the lists are
+	// loaded by this page, so the total is available even while the section
+	// stays unmounted.
 	const totalItems = $derived(
 		cards.length + vouchers.length + giftCards.length
+	);
+
+	// Desktop toolbar state (title-row actions), bound into WalletView.
+	let headerEyebrow = $state('');
+	let selecting = $state(false);
+	let filterOpen = $state(false);
+	let showImportDialog = $state(false);
+	// Initialised by WalletView on mount (persisted under the storage key the
+	// page passes down); the page toggle keeps the persistence in sync.
+	let showBarcodes = $state(false);
+
+	function toggleBarcodes() {
+		showBarcodes = !showBarcodes;
+		localStorage.setItem('savvy_wallet_show_barcodes', String(showBarcodes));
+	}
+
+	// Filter-button chrome, derived from the shared wallet filter store.
+	const isDefaultStatus = $derived(
+		walletFilters.statusFilter === 'active' ||
+			(walletFilters.typeFilter === 'vouchers' &&
+				walletFilters.statusFilter === 'valid')
+	);
+	const hasActiveFilters = $derived(
+		walletFilters.typeFilter !== 'all' ||
+			!isDefaultStatus ||
+			walletFilters.sortBy !== 'newest' ||
+			walletFilters.ownerFilter !== 'all' ||
+			walletFilters.favoritesOnly ||
+			walletFilters.expiringFilter !== 'all'
+	);
+	// The filter button carries the picked type as its label (mockup board B).
+	const activeTypeLabel = $derived(
+		walletFilters.typeFilter === 'cards'
+			? tr('merchantOverview.filterCards')
+			: walletFilters.typeFilter === 'vouchers'
+				? tr('merchantOverview.filterVouchers')
+				: walletFilters.typeFilter === 'gift-cards'
+					? tr('merchantOverview.filterGiftCards')
+					: ''
 	);
 
 	// Apply ?type= query param on mount (from /cards /vouchers /gift-cards redirects).
@@ -168,51 +221,139 @@
 	<title>{tr('nav.wallet')} - {tr('common.appName')}</title>
 </svelte:head>
 
-{#if isLoading}
-	<div class="px-4 max-w-7xl mx-auto pb-20 md:pb-4">
-		<PageHeader
-			eyebrow={`${totalItems} ${tr('dashboard.entries')}`}
-			title={tr('nav.wallet')}
-		/>
-		<LoadingSpinner />
-	</div>
-{:else}
-	<WalletView
-		filters={walletFilters}
-		{cards}
-		{vouchers}
-		{giftCards}
-		{enabledTypes}
-		{currentUserId}
-		{currentLocale}
-		{isOffline}
-		onReload={loadData}
-		barcodeStorageKey="savvy_wallet_show_barcodes"
-		idPrefix="wallet"
-		matchMerchantName={true}
-		typeFilterPlacement="top"
-		barcodeButtonVariant="label"
-		filterShowAll={false}
-		maxWidth={true}
-		desktopChrome={true}
-		chromeTitle={tr('nav.wallet')}
+<!-- Desktop toolbar on the title row: Select · Filter · Barcodes · Import
+     (mockup). All four drive WalletView through the bound state. -->
+{#snippet toolbarIcon(d: string, active: boolean)}
+	<svg
+		class="w-5 h-5 {active ? 'text-accent-hover' : 'text-text-muted'}"
+		fill="none"
+		stroke="currentColor"
+		viewBox="0 0 24 24"
 	>
-		{#snippet header()}
-			<!-- Header: count above title (mockup "7 Einträge"). -->
-			<PageHeader
-				eyebrow={`${totalItems} ${tr('dashboard.entries')}`}
-				title={tr('nav.wallet')}
-			/>
-		{/snippet}
+		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" {d} />
+	</svg>
+{/snippet}
 
-		{#snippet selectHeader(selectedCount: number)}
-			<!-- iOS select mode: the eyebrow counts the selection instead of the
-			     total, and the bell / "new" actions step aside (mockup Phone 3). -->
-			<PageHeader
-				eyebrow={tr('batch.selected', { count: selectedCount })}
-				title={tr('nav.wallet')}
-				mobileActions={false}
+{#snippet desktopToolbar()}
+	<button
+		type="button"
+		onclick={(e: MouseEvent) => {
+			e.stopPropagation();
+			filterOpen = !filterOpen;
+		}}
+		class="title-action relative {hasActiveFilters
+			? 'ring-2 ring-accent border-accent text-accent-hover'
+			: ''}"
+		title={tr('common.filter')}
+		aria-label={activeTypeLabel
+			? `${tr('common.filter')}: ${activeTypeLabel}`
+			: tr('common.filter')}
+		aria-expanded={filterOpen}
+	>
+		{@render toolbarIcon(ICON_FUNNEL, hasActiveFilters)}
+		{#if activeTypeLabel}
+			<span class="text-label whitespace-nowrap">{activeTypeLabel}</span>
+		{/if}
+		{#if hasActiveFilters}
+			<span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent"
+			></span>
+		{/if}
+	</button>
+	<button
+		type="button"
+		onclick={() => (selecting = !selecting)}
+		disabled={isOffline}
+		class="title-action disabled:cursor-not-allowed disabled:opacity-50 {selecting
+			? 'ring-2 ring-accent border-accent text-accent-hover'
+			: ''}"
+		title={tr('batch.selectMode')}
+		aria-label={tr('batch.selectMode')}
+		aria-pressed={selecting}
+	>
+		{@render toolbarIcon(ICON_CLIPBOARD_CHECK, selecting)}
+	</button>
+	<button
+		type="button"
+		onclick={toggleBarcodes}
+		class="title-action px-6 {showBarcodes
+			? 'ring-2 ring-accent border-accent'
+			: ''}"
+		title={showBarcodes ? tr('barcodeToggle.hide') : tr('barcodeToggle.show')}
+		aria-label={showBarcodes
+			? tr('barcodeToggle.hide')
+			: tr('barcodeToggle.show')}
+		aria-pressed={showBarcodes}
+	>
+		{@render toolbarIcon(ICON_BARCODE_TOGGLE, false)}
+		<span class="text-sm font-medium whitespace-nowrap text-text-muted">
+			{tr('barcodeToggle.label')}
+		</span>
+	</button>
+	<button
+		type="button"
+		onclick={() => (showImportDialog = true)}
+		disabled={isOffline}
+		class="title-action whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+		aria-label={tr('settings.import.title')}
+	>
+		<svg
+			class="w-4 h-4"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
 			/>
-		{/snippet}
-	</WalletView>
+		</svg>
+		<span class="text-label">{tr('settings.import.title')}</span>
+	</button>
+{/snippet}
+
+{#if isLoading}
+	<!-- No eyebrow while loading: the count is not known yet, and the previous
+	     `${totalItems} entries` could only ever render "0" here. -->
+	<PageShell title={tr('nav.wallet')}>
+		<LoadingSpinner />
+	</PageShell>
+{:else}
+	<!-- One title row for every platform, rendered by the shell: the count
+	     eyebrow comes out of WalletView (bound), the desktop toolbar drives it
+	     through the bound state below. Android in select mode hides the row
+	     below `sm` — the fixed contextual app bar replaces it (mockup). -->
+	<PageShell
+		title={tr('nav.wallet')}
+		eyebrow={headerEyebrow}
+		mobileActions={!selecting}
+		actions={IS_DESKTOP && totalItems > 0 ? desktopToolbar : undefined}
+		headerClass={IS_ANDROID && selecting ? 'max-sm:hidden' : ''}
+	>
+		<WalletView
+			filters={walletFilters}
+			{cards}
+			{vouchers}
+			{giftCards}
+			{enabledTypes}
+			{currentUserId}
+			{currentLocale}
+			{isOffline}
+			onReload={loadData}
+			barcodeStorageKey="savvy_wallet_show_barcodes"
+			idPrefix="wallet"
+			matchMerchantName={true}
+			typeFilterPlacement="top"
+			barcodeButtonVariant="label"
+			filterShowAll={false}
+			desktopChrome={true}
+			bind:headerEyebrow
+			bind:selectMode={selecting}
+			bind:showFilterMenu={filterOpen}
+			bind:showBarcodes
+			bind:showImportDialog
+		/>
+	</PageShell>
 {/if}

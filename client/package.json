@@ -11,6 +11,7 @@
 		"workbox-window": "^7.4.1"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "4.11.2",
 		"@eslint/js": "10.0.1",
 		"@playwright/test": "1.62.1",
 		"@sveltejs/adapter-static": "3.0.10",
@@ -34,6 +35,7 @@
 		"svelte-check": "4.7.6",
 		"svelte-eslint-parser": "1.8.1",
 		"tailwindcss": "4.3.3",
+		"tsx": "4.23.12",
 		"typescript": "6.0.3",
 		"typescript-eslint": "8.68.0",
 		"vite": "8.2.2",
@@ -61,6 +63,10 @@
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",
+		"structure": "playwright test --project=structure",
+		"structure:routes": "tsx scripts/check-routes.ts",
+		"structure:record": "playwright test --project=structure tests/structure/baseline.spec.ts --update-snapshots",
+		"structure:axe-record": "AXE_RECORD=1 playwright test --project=structure tests/structure/axe.spec.ts",
 		"postinstall": "cp node_modules/zxing-wasm/dist/reader/zxing_reader.wasm static/zxing_reader.wasm 2>/dev/null || true",
 		"format": "prettier --write './**/*.{svelte,ts,js}'",
 		"format:check": "prettier --check './**/*.{svelte,ts,js}'"

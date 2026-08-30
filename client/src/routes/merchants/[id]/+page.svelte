@@ -15,17 +15,12 @@
 	} from '$lib/types/api';
 	import { extractMerchantFromItems } from '$lib/utils/merchant-aggregator';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import {
-		ICON_CHEVRON_LEFT,
-		ICON_PENCIL,
-		ICON_SEARCH,
-		ICON_STOREFRONT
-	} from '$lib/icons';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import { ICON_PENCIL, ICON_SEARCH, ICON_STOREFRONT } from '$lib/icons';
 	import { platform } from '$lib/utils/platform';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -74,8 +69,9 @@
 
 	// Android draws the edit action as a tonal M3 assist chip on the phone and
 	// falls back to the shared grey button from `sm` up (mockup).
-	const EDIT_BUTTON =
-		'btn btn-xs btn-gray whitespace-nowrap flex items-center gap-1.5';
+	// Desktop/sm+: the shared title-row action chrome; the native max-sm
+	// overrides below keep their own chip shapes.
+	const EDIT_BUTTON = 'title-action whitespace-nowrap text-text-muted';
 	const EDIT_ACTION_CLASS = IS_ANDROID
 		? `max-sm:inline-flex max-sm:h-8 max-sm:shrink-0 max-sm:items-center max-sm:gap-1.25 max-sm:rounded-m3-full max-sm:border-none max-sm:bg-m3-card max-sm:px-3.5 max-sm:text-label max-sm:text-text-ink2 ${EDIT_BUTTON}`
 		: IOS
@@ -129,243 +125,154 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="px-4 pb-20 md:pb-4">
+	<PageShell>
 		<LoadingSpinner />
-	</div>
+	</PageShell>
 {:else if merchant}
-	<WalletView
-		{filters}
-		{cards}
-		{vouchers}
-		{giftCards}
-		{enabledTypes}
-		{currentUserId}
-		{currentLocale}
-		{isOffline}
-		onReload={loadData}
-		barcodeStorageKey="savvy_merchant_detail_show_barcodes"
-		idPrefix="detail"
-		matchMerchantName={false}
-		typeFilterPlacement={IS_ANDROID || IS_DESKTOP ? 'top' : 'batch-header'}
-		filterShowAll={IS_ANDROID || IS_DESKTOP}
-		inlineTypeToolbar
-		androidBarcodeInTypeRow
-		iosToolbarVariant={IOS ? 'detail' : 'wallet'}
-		barcodeButtonVariant="icon"
-		maxWidth={false}
-	>
-		{#snippet header()}
-			<!-- Header. Both native platforms put a back row above the merchant name
-			     and carry the edit action as their own chip: a tonal M3 one on
-			     Android, a glass pill on iOS (mockups). -->
-			{#if IOS}
-				<!-- iOS back row: the platform's own edge swipe covers the gesture,
-				     this is the visible affordance. -->
-				<a
-					href={resolve('/merchants')}
-					class="mb-3 -ml-0.5 inline-flex items-center gap-1.5 text-accent-700 transition-opacity active:opacity-60 sm:hidden"
+	<!-- Declared outside the WalletView tag: a snippet placed inside a component
+	     becomes one of its props, and WalletView has no `editAction` prop — it is
+	     only referenced by the `header` snippet below. -->
+	{#snippet editAction()}
+		<a
+			href={resolve(`/admin/merchants/${merchant?.id}/edit`)}
+			class={EDIT_ACTION_CLASS}
+		>
+			{#if IS_ANDROID || IOS}
+				<svg
+					class="hidden h-3.25 w-3.25 shrink-0 max-sm:block"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
 				>
-					<svg
-						class="h-4.75 w-4.75"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2.2"
+					<path d={ICON_PENCIL} />
+				</svg>
+			{/if}
+			{tr('common.edit')}
+		</a>
+	{/snippet}
+
+	<!-- One title row for every platform, rendered by the shell: back link in
+	     the eyebrow slot, merchant name as the title, the edit chip as the
+	     title-row action. -->
+	<PageShell
+		title={merchant?.name ?? ''}
+		actions={isAdmin && merchant ? editAction : undefined}
+		mobileActions={false}
+	>
+		{#snippet back()}
+			<a
+				href={resolve('/merchants')}
+				class="text-text-subtle hover:text-text-ink2"
+				>{tr('common.backToOverview')}</a
+			>
+		{/snippet}
+		<WalletView
+			{filters}
+			{cards}
+			{vouchers}
+			{giftCards}
+			{enabledTypes}
+			{currentUserId}
+			{currentLocale}
+			{isOffline}
+			onReload={loadData}
+			barcodeStorageKey="savvy_merchant_detail_show_barcodes"
+			idPrefix="detail"
+			matchMerchantName={false}
+			typeFilterPlacement={IS_ANDROID || IS_DESKTOP ? 'top' : 'batch-header'}
+			filterShowAll={IS_ANDROID || IS_DESKTOP}
+			inlineTypeToolbar
+			androidBarcodeInTypeRow
+			iosToolbarVariant={IOS ? 'detail' : 'wallet'}
+			barcodeButtonVariant="icon"
+		>
+			{#snippet emptyIcon()}
+				<svg
+					class="w-16 h-16 mx-auto text-text-placeholder mb-4 {IS_ANDROID
+						? 'max-sm:mx-0 max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5'
+						: ''} {IOS
+						? 'max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5 max-sm:text-text-faint'
+						: ''}"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"
-					>
-						<path d={ICON_CHEVRON_LEFT} />
-					</svg>
-					<span class="text-[length:var(--text-code)] font-medium"
-						>{tr('merchantOverview.title')}</span
-					>
-				</a>
-			{/if}
-			{#if IS_ANDROID}
-				<div
-					class="-mx-4 mb-1 flex items-center gap-1.5 py-2 pr-2 pl-3 sm:hidden"
-				>
-					<button
-						type="button"
-						onclick={() => goto(resolve('/merchants'))}
-						aria-label={tr('common.back')}
-						class="text-text hover:bg-surface-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-m3-full transition-colors"
+						stroke-width="1.5"
+						d={ICON_STOREFRONT}
+					/>
+				</svg>
+			{/snippet}
+
+			{#snippet searchField()}
+				<!-- Merchant detail: always-visible plain search input. The native
+				     platforms draw their own field from the mockups instead — tonal M3
+				     on Android, glass on iOS. -->
+				{#if IOS}
+					<label
+						class="liquid-glass-card mb-2.5 flex h-10 items-center gap-2 rounded-[var(--radius-lg)] px-3.25 sm:hidden"
 					>
 						<svg
-							class="h-5.5 w-5.5"
+							class="h-4 w-4 shrink-0 text-text-faint"
 							fill="none"
 							stroke="currentColor"
 							stroke-width="2"
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
+							aria-hidden="true"
 						>
-							<path d="M19 12H5M11 6l-6 6 6 6" />
+							<path d={ICON_SEARCH} />
 						</svg>
-					</button>
-					<span class="text-subheading font-medium text-text-muted"
-						>{tr('merchantOverview.title')}</span
-					>
-				</div>
-			{/if}
-			{#if IS_DESKTOP}
-				<!-- Back link to the merchant list (mockup board 2). -->
-				<a
-					href={resolve('/merchants')}
-					class="mb-4 inline-flex items-center gap-1.5 text-label text-accent-hover hover:text-accent-active"
-				>
-					<svg
-						class="h-4.25 w-4.25"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2.2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<path d={ICON_CHEVRON_LEFT} />
-					</svg>
-					{tr('merchantOverview.title')}
-				</a>
-			{/if}
-			<div
-				class="mb-8 {IS_ANDROID ? 'max-sm:mb-4' : ''} {IOS
-					? 'max-sm:mb-3.5'
-					: ''}"
-			>
-				<div
-					class="flex items-center justify-between {IS_ANDROID || IOS
-						? 'max-sm:gap-3'
-						: ''}"
-				>
+						<input
+							type="search"
+							bind:value={filters.searchInput}
+							placeholder={tr('common.search')}
+							aria-label={tr('common.search')}
+							class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+						/>
+					</label>
+				{/if}
+				{#if IS_ANDROID}
 					<div
-						class="flex min-w-0 items-center gap-3 {IS_ANDROID || IOS
-							? 'max-sm:flex-1'
-							: ''}"
+						class="mb-3 flex h-11 items-center gap-2 rounded-m3-md bg-m3-card px-3.5 sm:hidden"
 					>
-						<div
-							class="w-2 h-8 shrink-0 rounded-full"
-							style="background-color: {merchant?.color}"
-						></div>
-						<h1
-							class="text-text truncate {IS_DESKTOP
-								? 'text-screen-title'
-								: 'text-3xl font-bold'} {IS_ANDROID || IOS
-								? 'max-sm:text-screen-title'
-								: ''}"
+						<svg
+							class="h-4.25 w-4.25 shrink-0 text-text-faint"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
 						>
-							{merchant?.name}
-						</h1>
+							<path d={ICON_SEARCH} />
+						</svg>
+						<input
+							type="search"
+							bind:value={filters.searchInput}
+							placeholder={tr('common.search')}
+							aria-label={tr('common.search')}
+							class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+						/>
 					</div>
-					{#if isAdmin && merchant}
-						<a
-							href={resolve(`/admin/merchants/${merchant.id}/edit`)}
-							class={EDIT_ACTION_CLASS}
-						>
-							{#if IS_ANDROID || IOS}
-								<svg
-									class="hidden h-3.25 w-3.25 shrink-0 max-sm:block"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									viewBox="0 0 24 24"
-									aria-hidden="true"
-								>
-									<path d={ICON_PENCIL} />
-								</svg>
-							{/if}
-							{tr('common.edit')}
-						</a>
-					{/if}
-				</div>
-			</div>
-		{/snippet}
-
-		{#snippet emptyIcon()}
-			<svg
-				class="w-16 h-16 mx-auto text-text-placeholder mb-4 {IS_ANDROID
-					? 'max-sm:mx-0 max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5'
-					: ''} {IOS
-					? 'max-sm:mb-0 max-sm:h-10.5 max-sm:w-10.5 max-sm:text-text-faint'
-					: ''}"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="1.5"
-					d={ICON_STOREFRONT}
-				/>
-			</svg>
-		{/snippet}
-
-		{#snippet searchField()}
-			<!-- Merchant detail: always-visible plain search input. The native
-			     platforms draw their own field from the mockups instead — tonal M3
-			     on Android, glass on iOS. -->
-			{#if IOS}
-				<label
-					class="liquid-glass-card mb-2.5 flex h-10 items-center gap-2 rounded-[var(--radius-lg)] px-3.25 sm:hidden"
-				>
-					<svg
-						class="h-4 w-4 shrink-0 text-text-faint"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<path d={ICON_SEARCH} />
-					</svg>
+				{/if}
+				<div class="mb-6 {IS_ANDROID || IOS ? 'max-sm:hidden' : ''}">
 					<input
 						type="search"
 						bind:value={filters.searchInput}
 						placeholder={tr('common.search')}
-						aria-label={tr('common.search')}
-						class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
-					/>
-				</label>
-			{/if}
-			{#if IS_ANDROID}
-				<div
-					class="mb-3 flex h-11 items-center gap-2 rounded-m3-md bg-m3-card px-3.5 sm:hidden"
-				>
-					<svg
-						class="h-4.25 w-4.25 shrink-0 text-text-faint"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<path d={ICON_SEARCH} />
-					</svg>
-					<input
-						type="search"
-						bind:value={filters.searchInput}
-						placeholder={tr('common.search')}
-						aria-label={tr('common.search')}
-						class="min-w-0 flex-1 bg-transparent text-body text-text placeholder:text-text-placeholder focus:outline-none"
+						class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
 					/>
 				</div>
-			{/if}
-			<div class="mb-6 {IS_ANDROID || IOS ? 'max-sm:hidden' : ''}">
-				<input
-					type="search"
-					bind:value={filters.searchInput}
-					placeholder={tr('common.search')}
-					class="w-full px-4 py-2 bg-white border border-border-field rounded-md focus:ring-accent focus:border-accent"
-				/>
-			</div>
-		{/snippet}
-	</WalletView>
+			{/snippet}
+		</WalletView>
+	</PageShell>
 {/if}

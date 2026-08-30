@@ -11,10 +11,26 @@
 	import { toastStore } from '$lib/stores/toast';
 	import CardForm from '$lib/components/cards/CardForm.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
 	import ResourceDetail from '$lib/components/ui/ResourceDetail.svelte';
+	import ResourceDetailActions from '$lib/components/ui/ResourceDetailActions.svelte';
 
 	import type { CardDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
 	import { logger } from '$lib/utils/logger';
+
+	import { platform } from '$lib/utils/platform';
+
+	const IS_IOS = platform === 'ios';
+	// Android edits through the FAB (ResourceDetail), so the title row hides
+	// the edit button; share, transfer and delete live behind the more menu.
+	const IS_ANDROID = platform === 'android';
+
+	// Desktop title row: edit-aware title, back link and the action buttons
+	// live on the shell; ResourceDetail keeps owning the behaviour (bound
+	// state + instance methods).
+	let detail: ResourceDetail | undefined = $state();
+	let isEditing = $state(false);
+	let isTogglingFavorite = $state(false);
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -156,7 +172,62 @@
 	>
 </svelte:head>
 
-<div class="px-4 max-w-7xl mx-auto">
+<!-- Desktop: the shell renders the title (skeleton phase — the section stays
+     unmounted). Native: ResourceDetail renders the screen's own heading. -->
+{#snippet backLine()}
+	{#if isEditing}
+		<button
+			type="button"
+			onclick={() => detail?.cancelEdit()}
+			class="text-text-subtle hover:text-text-ink2"
+		>
+			{tr('common.backToCard')}
+		</button>
+	{:else}
+		<!-- history.back() with a wallet fallback: a link to the type route
+		     would redirect through /wallet?type=… and overwrite the user's
+		     wallet filter. -->
+		<button
+			type="button"
+			onclick={() => detail?.goBack()}
+			class="text-text-subtle hover:text-text-ink2"
+		>
+			{tr('common.backToOverview')}
+		</button>
+	{/if}
+{/snippet}
+
+<PageShell
+	title={isEditing
+		? tr('cards.editCard')
+		: (card?.merchant?.name ?? tr('cards.title'))}
+	mobileActions={false}
+	back={IS_ANDROID || IS_IOS ? undefined : backLine}
+	onBack={IS_ANDROID || IS_IOS
+		? () => (isEditing ? detail?.cancelEdit() : detail?.goBack())
+		: undefined}
+>
+	{#snippet actions()}
+		{#if card && !isEditing}
+			<ResourceDetailActions
+				isFavorite={!!card.is_favorite}
+				{isTogglingFavorite}
+				canEdit={!IS_ANDROID && !!card.permissions?.can_edit}
+				canDelete={!!card.permissions?.can_delete}
+				{isOffline}
+				favoriteAddLabel={tr('common.addToFavorites')}
+				favoriteRemoveLabel={tr('common.removeFromFavorites')}
+				onFavorite={() => detail?.toggleFavorite()}
+				onEdit={() => detail?.startEdit()}
+				onDelete={() => detail?.promptDelete()}
+				onMore={(IS_IOS && card.permissions?.is_owner) ||
+				(IS_ANDROID &&
+					(card.permissions?.is_owner || card.permissions?.can_delete))
+					? () => detail?.openMoreMenu()
+					: undefined}
+			/>
+		{/if}
+	{/snippet}
 	{#if isRefreshing}
 		<div class="mb-6 flex justify-end">
 			<span class="text-xs text-text-faint animate-pulse"
@@ -172,6 +243,9 @@
 		     ({#if resource}…{:else}) — prevents the #121 white screen when the
 		     resource is null and not loading (offline / 403 / 404). -->
 		<ResourceDetail
+			bind:this={detail}
+			bind:isEditing
+			bind:isTogglingFavorite
 			kind="card"
 			bind:resource={card}
 			bind:shares
@@ -196,4 +270,4 @@
 			{/snippet}
 		</ResourceDetail>
 	{/if}
-</div>
+</PageShell>

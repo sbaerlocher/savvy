@@ -176,11 +176,7 @@ test.describe('Gift Cards Management', () => {
 			await descriptionInput.fill('Coffee purchase');
 		}
 
-		const submitTransaction = page
-			.locator(
-				'button:has-text("Speichern"), button:has-text("Save"), button:has-text("Hinzufügen"), button:has-text("Add")'
-			)
-			.first();
+		const submitTransaction = page.getByTestId('save-transaction').first();
 
 		const transactionResponse = page.waitForResponse(
 			(resp) =>
@@ -233,11 +229,7 @@ test.describe('Gift Cards Management', () => {
 		await expect(amountInput).toBeVisible({ timeout: 5000 });
 		await amountInput.fill('50.00');
 
-		const submitTransaction = page
-			.locator(
-				'button:has-text("Speichern"), button:has-text("Save"), button:has-text("Hinzufügen"), button:has-text("Add")'
-			)
-			.first();
+		const submitTransaction = page.getByTestId('save-transaction').first();
 		const txnResponse = page.waitForResponse(
 			(resp) => resp.url().includes('/transactions') && resp.status() < 400,
 			{ timeout: 10000 }
@@ -251,9 +243,7 @@ test.describe('Gift Cards Management', () => {
 
 		// Delete the transaction
 		const deleteTransactionBtn = page
-			.locator(
-				'[data-testid="delete-transaction"], button[aria-label*="delete" i], button[aria-label*="löschen" i]'
-			)
+			.getByTestId('delete-transaction')
 			.first();
 		if (
 			await deleteTransactionBtn.isVisible({ timeout: 3000 }).catch(() => false)
@@ -315,11 +305,7 @@ test.describe('Gift Cards Management', () => {
 			await expect(amountInput).toBeVisible({ timeout: 5000 });
 			await amountInput.fill(amount);
 
-			const submitBtn = page
-				.locator(
-					'button:has-text("Speichern"), button:has-text("Save"), button:has-text("Hinzufügen"), button:has-text("Add")'
-				)
-				.first();
+			const submitBtn = page.getByTestId('save-transaction').first();
 			const resp = page.waitForResponse(
 				(r) => r.url().includes('/transactions') && r.status() < 400,
 				{ timeout: 10000 }

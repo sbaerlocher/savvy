@@ -103,23 +103,27 @@
 		 *  round buttons below (mockup screen-MerchantsIOS, Board 2). */
 		iosToolbarVariant?: 'wallet' | 'detail';
 		filterShowAll?: boolean;
-		maxWidth?: boolean;
 		/** Desktop mockup chrome: one row above the grid carrying count + title on
 		 *  the left and the toolbar actions on the right, and no type chip row
 		 *  (type is picked in the filter panel). Only the wallet screen opts in;
 		 *  merchant detail keeps its own header snippet and the chip row. */
 		desktopChrome?: boolean;
-		/** Title for the desktop chrome row (ignored without `desktopChrome`). */
-		chromeTitle?: string;
 		/** Put the type chip row and the toolbar actions on one line, chips left
 		 *  and actions right (mockup screen-MerchantsDesktop board 2). Merchant
 		 *  detail opts in on desktop; the wallet has no chip row at all there. */
 		inlineTypeToolbar?: boolean;
-		header?: Snippet;
-		/** Header variant for iOS select mode: the eyebrow counts the selection
-		 *  instead of the total (mockup screen-WalletIOS, Phone 3). Falls back to
-		 *  `header` when a call site does not provide one. */
-		selectHeader?: Snippet<[number]>;
+		/** Write-only bindable: the screen's eyebrow line (count, filtered count
+		 *  or selection count) for the page's PageShell title row. */
+		headerEyebrow?: string;
+		/** Bindable toolbar state, so a page that renders the toolbar on the
+		 *  shell's title row (desktop) drives this component's behaviour:
+		 *  select mode, the filter panel, the barcode toggle (persisted under
+		 *  `barcodeStorageKey`) and the import dialog. Left unbound, they are
+		 *  plain internal state. */
+		selectMode?: boolean;
+		showFilterMenu?: boolean;
+		showBarcodes?: boolean;
+		showImportDialog?: boolean;
 		emptyIcon?: Snippet;
 		searchField?: Snippet;
 	}
@@ -142,12 +146,14 @@
 		androidBarcodeInTypeRow = false,
 		iosToolbarVariant = 'wallet',
 		filterShowAll = false,
-		maxWidth = true,
 		desktopChrome = false,
-		chromeTitle = '',
 		inlineTypeToolbar = false,
-		header,
-		selectHeader,
+		// eslint-disable-next-line no-useless-assignment -- write-only bindable, read by the page
+		headerEyebrow = $bindable(''),
+		selectMode = $bindable(false),
+		showFilterMenu = $bindable(false),
+		showBarcodes = $bindable(false),
+		showImportDialog = $bindable(false),
 		emptyIcon,
 		searchField
 	}: Props = $props();
@@ -164,18 +170,11 @@
 	const ICON_FUNNEL_SOLID = 'M4 5h16l-6 7v6l-4 2v-8z';
 	const ICON_BARCODE_BARS = 'M4 6v12M7 6v12M10.5 6v12M14 6v12M17 6v12M20 6v12';
 
-	let showFilterMenu = $state(false);
-
 	// Batch selection state
-	let selectMode = $state(false);
 	let selectedIds = new SvelteSet<string>();
 	let batchAction = $state<'delete' | 'share' | 'transfer'>('delete');
 	let showBatchModal = $state(false);
 	let batchLoading = $state(false);
-	let showImportDialog = $state(false);
-
-	// Barcode visibility toggle (per-list, localStorage-persisted, default off).
-	let showBarcodes = $state(false);
 	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
 
 	// 'active' (and 'valid' for vouchers) is the default status, not a
@@ -467,12 +466,13 @@
 		IS_ANDROID && selectMode ? 'max-sm:hidden' : ''
 	);
 
-	// Chrome row eyebrow/title, mirroring the three mockup boards: plain count,
-	// "shown of total · filtered" once a filter narrows the list, and the
-	// selection count while selecting.
+	// The screen's single header line, mirroring the three mockup boards: plain
+	// count, "shown of total · filtered" once a filter narrows the list, and the
+	// selection count while selecting. Every platform branch reads these — the
+	// header renders in exactly one place below.
 	const chromeEyebrow = $derived(
 		selectMode
-			? tr('dashboard.selectionActive')
+			? tr('batch.selected', { count: selectedCount })
 			: hasActiveFilters || filters.searchInput.trim()
 				? tr('dashboard.entriesFiltered', {
 						shown: totalFiltered,
@@ -480,9 +480,10 @@
 					})
 				: `${totalItems} ${tr('dashboard.entries')}`
 	);
-	const chromeHeading = $derived(
-		selectMode ? tr('batch.selected', { count: selectedCount }) : chromeTitle
-	);
+
+	$effect(() => {
+		headerEyebrow = chromeEyebrow;
+	});
 
 	// Active type label on the filter button (mockup board B shows the button
 	// carrying the picked type, not just the funnel glyph).
@@ -579,6 +580,18 @@
 	}
 
 	// Batch functions
+	// Select mode can also be flipped from outside (the page's title-row
+	// toolbar binds `selectMode`), so the mode's side effects live in an
+	// effect rather than only in the toggle handler: leaving select mode
+	// drops the selection, entering it closes the filter panel.
+	$effect(() => {
+		if (selectMode) {
+			showFilterMenu = false;
+		} else {
+			selectedIds.clear();
+		}
+	});
+
 	function toggleSelectMode() {
 		selectMode = !selectMode;
 		if (!selectMode) {
@@ -865,7 +878,7 @@
 	     point — so both keep a button, on their own row so the pills stay
 	     readable when a merchant carries all three types. -->
 	<div class="mb-3 sm:hidden">
-		<div class="scrollbar-none -mx-screen overflow-x-auto px-screen">
+		<div class="scrollbar-none -mx-4 overflow-x-auto px-4">
 			<TypeFilterButtons
 				bind:typeFilter={filters.typeFilter}
 				cardsCount={cards.length}
@@ -1220,12 +1233,10 @@
 	onClose={() => (barcodeModalItem = null)}
 />
 
-<div
-	class="{IOS ? 'px-screen sm:px-4' : 'px-4'} {maxWidth
-		? 'max-w-7xl mx-auto'
-		: ''} pb-20 md:pb-4"
-	class:pb-40={selectMode}
->
+<!-- Width and horizontal padding come from the page's PageShell (and the
+     shell's own <main> behind it); this div only carries the bottom clearance
+     the fixed batch bar needs in select mode. -->
+<div class:pb-40={selectMode}>
 	{#if IS_ANDROID && selectMode}
 		<!-- M3 contextual top app bar: replaces the page header while a selection
 		     is active (wallet mockup). Fixed so it stays put while the list
@@ -1287,8 +1298,9 @@
 		</div>
 		<!-- Spacer so the list starts below the fixed bar. -->
 		<div class="h-14 sm:hidden"></div>
-		<div class="hidden sm:block">{@render header?.()}</div>
-	{:else if IOS && selectMode}
+	{/if}
+
+	{#if IOS && selectMode}
 		<!-- iOS select-mode header row (mockup screen-WalletIOS, Phone 3):
 		     select-all · count · Done, above the page title. The floating bar
 		     below carries only the actions. -->
@@ -1312,35 +1324,6 @@
 			>
 				{tr('common.done')}
 			</button>
-		</div>
-		{#if selectHeader}
-			{@render selectHeader(selectedCount)}
-		{:else}
-			{@render header?.()}
-		{/if}
-	{:else if !DESKTOP_CHROME}
-		{@render header?.()}
-	{/if}
-
-	{#if DESKTOP_CHROME}
-		<!-- Desktop chrome row (mockup): count + title left, actions right, one
-		     line, directly above the grid. It replaces the `header` snippet
-		     outright rather than hiding it per breakpoint — two headings in the
-		     DOM would give the page two `h1`s, the hidden one first. Rendered
-		     above the empty-state branch so an empty wallet still has a title. -->
-		<!-- `flex-wrap`: the row is the only toolbar at every width now, and its
-		     labelled buttons do not shrink — below `sm` they need a second line
-		     rather than overflowing the page. -->
-		<div class="mb-6 flex flex-wrap items-center gap-4">
-			<div class="min-w-0 flex-1">
-				<p class="text-eyebrow text-text-subtle uppercase">{chromeEyebrow}</p>
-				<h1 class="mt-0.5 text-title text-text">{chromeHeading}</h1>
-			</div>
-			{#if totalItems > 0}
-				<div class="flex items-center gap-3">
-					{@render desktopActions()}
-				</div>
-			{/if}
 		</div>
 	{/if}
 

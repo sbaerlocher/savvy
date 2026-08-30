@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageShell from '$lib/components/layout/PageShell.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { authApi } from '$lib/api';
@@ -130,7 +131,7 @@
 	</AuthCardIOS>
 {:else if ANDROID}
 	<!-- Android M3: centered tonal card, no info column, no logo header. -->
-	<div class="flex min-h-dvh items-center justify-center px-5">
+	<PageShell width="bleed">
 		{#if submitted}
 			<div
 				class="bg-m3-card rounded-m3-lg w-full max-w-88 px-card pt-8 pb-7 text-center"
@@ -227,7 +228,7 @@
 				</form>
 			</div>
 		{/if}
-	</div>
+	</PageShell>
 {:else}
 	<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
 		<div class="max-w-5xl mx-auto">

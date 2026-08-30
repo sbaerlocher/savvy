@@ -136,12 +136,49 @@ export class ResourceDetailPage extends BasePage {
 		}
 	}
 
+	get moreActionsButton(): Locator {
+		return this.page
+			.getByRole('button', { name: /Weitere Aktionen|More actions/ })
+			.first();
+	}
+
 	/**
-	 * Opens the share form. Android puts sharing behind a bottom sheet opened
-	 * from a button row under the resource; the other layouts disclose an inline
-	 * form via an "Add" button. Whichever control is present is used.
+	 * The native title rows tuck share and transfer behind a ••• more menu
+	 * (Android: M3 bottom sheet, iOS: context menu). Opens it when present;
+	 * returns false on layouts that keep the actions inline.
+	 */
+	private async openMoreMenu(): Promise<boolean> {
+		if (!(await this.moreActionsButton.isVisible().catch(() => false))) {
+			return false;
+		}
+		await this.moreActionsButton.click();
+		return true;
+	}
+
+	/**
+	 * Opens the share form. The native layouts reach it through the ••• menu;
+	 * the inline layouts disclose it via an "Add" button.
 	 */
 	async openShareForm() {
+		// Wait for whichever entry this layout renders — probing right after a
+		// navigation would find neither and pick the wrong branch.
+		const inlineOpener = this.page
+			.locator(
+				'button:has-text("Hinzufügen"), button:has-text("Add"), button:has-text("Teilen"), button:has-text("Share")'
+			)
+			.first();
+		await expect(this.moreActionsButton.or(inlineOpener).first()).toBeVisible({
+			timeout: 10000
+		});
+		if (await this.openMoreMenu()) {
+			const entry = this.page
+				.getByRole('menuitem', { name: /Teilen|Share/i })
+				.or(this.page.getByRole('button', { name: /Teilen|Share/ }))
+				.filter({ visible: true })
+				.first();
+			await entry.click();
+			return;
+		}
 		const opener = this.page
 			.locator(
 				'button:has-text("Hinzufügen"), button:has-text("Add"), button:has-text("Teilen"), button:has-text("Share")'
@@ -149,6 +186,39 @@ export class ResourceDetailPage extends BasePage {
 			.first();
 		await opener.waitFor({ state: 'visible', timeout: 5000 });
 		await opener.click();
+	}
+
+	/**
+	 * Opens the transfer form (the email input is ready afterwards). Native
+	 * goes through the ••• menu; the inline layouts keep a transfer button.
+	 */
+	async openTransferForm() {
+		const inlineTransfer = this.page
+			.locator(
+				'button:has-text("Übergeben"), button:has-text("Übertragen"), button:has-text("Transfer")'
+			)
+			.first();
+		await expect(
+			this.moreActionsButton.or(inlineTransfer).first()
+		).toBeVisible({ timeout: 10000 });
+		if (await this.openMoreMenu()) {
+			const entry = this.page
+				.getByRole('menuitem', {
+					name: /Besitzerwechsel|Übertragen|Transfer/i
+				})
+				.or(this.page.getByRole('button', { name: /Übertragen|Transfer/ }))
+				.filter({ visible: true })
+				.first();
+			await entry.click();
+			return;
+		}
+		const transferButton = this.page
+			.locator(
+				'button:has-text("Übergeben"), button:has-text("Übertragen"), button:has-text("Transfer")'
+			)
+			.first();
+		await expect(transferButton).toBeVisible({ timeout: 5000 });
+		await transferButton.click();
 	}
 
 	async addShare(

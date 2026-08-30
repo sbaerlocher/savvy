@@ -3,6 +3,7 @@
 	import { profileApi } from '$lib/api';
 	import ToggleSwitch from './ToggleSwitch.svelte';
 	import M3SettingsRow from './M3SettingsRow.svelte';
+	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { t } from '$lib/stores/i18n';
 	import { pushStore } from '$lib/stores/push';
@@ -317,9 +318,7 @@
 	<!-- Grouped-inset channel groups (screen-SettingsIOS). The subcategory
 	     block sits on the recessed sub-surface and is only rendered while its
 	     channel is on, exactly as the mockup's nested state shows. -->
-	<p class="px-1.5 pb-2 text-body-sm font-semibold uppercase text-text-subtle">
-		{tr('settings.notifications.title')}
-	</p>
+	<SectionLabel inset>{tr('settings.notifications.title')}</SectionLabel>
 
 	<div class="mb-3.5 overflow-hidden rounded-inset bg-surface">
 		<div class="flex items-center gap-3 px-4 py-3.5">

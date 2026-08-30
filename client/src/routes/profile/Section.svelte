@@ -1,0 +1,153 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { profileApi, type ProfileDTO } from '$lib/api';
+	import IOSSettingsScreen from '$lib/components/settings/IOSSettingsScreen.svelte';
+	import { authStore } from '$lib/stores/auth';
+	import { t } from '$lib/stores/i18n';
+	import { pwaStore } from '$lib/stores/pwa';
+	import { toastStore } from '$lib/stores/toast';
+	import { logger } from '$lib/utils/logger';
+	import { platform } from '$lib/utils/platform';
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import DesktopProfileTab from '$lib/components/settings/DesktopProfileTab.svelte';
+
+	const pageLogger = logger.child('ProfilePage');
+	const tr = (key: string, params?: Record<string, string | number>) =>
+		get(t)(key, params);
+
+	// iOS renders the whole settings screen from screen-SettingsIOS (profile,
+	// security, sessions and notifications as grouped-inset sections) instead of
+	// the two-column card layout. `platform` is a module constant, so this is a
+	// plain const, not $derived.
+	const IS_IOS = platform === 'ios';
+	// Desktop merges profile, security and notification preferences into one
+	// tabbed settings page (screen-SettingsDesktop); the routes stay in place
+	// and each renders the shell with its own tab preselected.
+	const IS_DESKTOP = platform === 'other';
+
+	let profile = $state<ProfileDTO | null>(null);
+	let isLoadingProfile = $state(true);
+	let isReregistering = $state(false);
+	let swSupported = $state(false);
+
+	// The only other logout is DesktopNav's logout button, which is
+	// `hidden sm:flex` — so below `sm` there was no way to sign out at all.
+	// Profile is the bottom nav's account destination, so the action belongs
+	// here. Same full reload as the desktop one, to drop all in-memory state.
+	async function handleLogout() {
+		await authStore.logout();
+		window.location.href = '/login';
+	}
+
+	onMount(async () => {
+		swSupported = 'serviceWorker' in navigator;
+
+		if (!$authStore.isAuthenticated) {
+			goto(resolve('/login'));
+			return;
+		}
+
+		try {
+			const response = await profileApi.get();
+			profile = response.profile;
+		} catch (error) {
+			pageLogger.error('Failed to load profile', { error });
+			toastStore.error(tr('common.error'));
+		} finally {
+			isLoadingProfile = false;
+		}
+	});
+
+	function handleProfileUpdated(updatedProfile: ProfileDTO) {
+		profile = updatedProfile;
+		authStore.checkAuth();
+	}
+
+	async function handleReregister() {
+		isReregistering = true;
+
+		try {
+			const registered = await pwaStore.reregisterServiceWorker();
+			if (registered) {
+				toastStore.success(tr('pwa.reregisterSuccess'));
+			} else {
+				toastStore.error(tr('pwa.reregisterError'));
+			}
+		} catch (error) {
+			pageLogger.error('Service Worker re-registration failed', { error });
+			toastStore.error(tr('pwa.reregisterError'));
+		} finally {
+			isReregistering = false;
+		}
+	}
+</script>
+
+{#if IS_IOS}
+	{#if isLoadingProfile}
+		<LoadingSpinner />
+	{:else if profile}
+		<IOSSettingsScreen {profile} onProfileUpdated={handleProfileUpdated} />
+	{/if}
+{:else if IS_DESKTOP}
+	{#if isLoadingProfile}
+		<LoadingSpinner />
+	{:else if profile}
+		<DesktopProfileTab {profile} onProfileUpdated={handleProfileUpdated}>
+			{#snippet leftExtra()}
+				<!-- Service worker recovery. /profile is the only entry point in the
+				     app, so the desktop tab has to carry it too — in the left column,
+				     under the profile form. -->
+				{#if swSupported}
+					<div class="rounded-xl border border-border bg-white p-6">
+						<h3 class="mb-1.5 text-heading font-semibold text-text">
+							{$t('pwa.reregisterTitle')}
+						</h3>
+						<p class="mb-4 max-w-lg text-body text-text-muted">
+							{$t('pwa.reregisterDesc')}
+						</p>
+						<button
+							type="button"
+							onclick={handleReregister}
+							disabled={isReregistering}
+							class="btn btn-ghost"
+						>
+							{isReregistering
+								? $t('pwa.reregistering')
+								: $t('pwa.reregisterButton')}
+						</button>
+					</div>
+				{/if}
+			{/snippet}
+		</DesktopProfileTab>
+
+		<!-- Sign out. Same `sm:hidden` guard as the mobile branch: DesktopNav
+		     is `hidden sm:block`, so below `sm` a desktop-platform browser has
+		     no nav bar and would otherwise have no way to sign out. -->
+		<div class="mt-5 sm:hidden">
+			<button
+				type="button"
+				onclick={handleLogout}
+				class="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-danger-600 transition-colors hover:bg-surface-1"
+			>
+				<svg
+					class="h-5 w-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					aria-hidden="true"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+					/>
+				</svg>
+				{$t('nav.logout')}
+			</button>
+		</div>
+	{/if}
+{/if}

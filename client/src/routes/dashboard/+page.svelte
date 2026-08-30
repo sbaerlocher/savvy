@@ -1,210 +1,91 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { t } from '$lib/stores/i18n';
-	import { dashboardApi } from '$lib/api';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { logger } from '$lib/utils/logger';
 	import { platform } from '$lib/utils/platform';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
-	import BarcodeModal, {
-		type BarcodeModalItem
-	} from '$lib/components/dashboard/BarcodeModal.svelte';
+	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import Section from './Section.svelte';
 	import type { DashboardResponse } from '$lib/types/api';
 
-	const pageLogger = logger.child('DashboardPage');
-
-	let data = $state<DashboardResponse | null>(null);
-	let isLoading = $state(true);
-	let isRefreshing = $state(false);
-	let error = $state<string | null>(null);
-
-	let barcodeModalItem = $state<BarcodeModalItem | null>(null);
+	const IS_DESKTOP = platform === 'other';
 
 	const firstName = $derived($authStore.user?.first_name || '');
-	// Stat tile chrome per platform (dashboard mockups): iOS = bordered card,
-	// Android = borderless M3 surface with larger radius, desktop = bordered
-	// card with shadow.
-	const statTileClass =
-		platform === 'android'
-			? 'rounded-[var(--radius-m3-lg)] bg-m3-card px-4.5 py-4'
-			: platform === 'ios'
-				? 'rounded-xl border border-border bg-white px-4 py-3'
-				: 'rounded-xl border border-border bg-white px-5 py-4 shadow-card lg:min-w-36';
-	// Stat value: iOS mockup uses the 23px mono step, others 24px semibold.
-	const statValueClass =
-		platform === 'ios'
-			? 'font-mono text-stat tabular-nums text-text-strong'
-			: 'font-mono text-2xl font-semibold tabular-nums text-text-strong';
-	// Stat label: Android mockup uses 12.5px (--text-body-sm), iOS and desktop
-	// 13px regular (--text-label carries a 600 companion weight, hence the
-	// override).
-	const statLabelClass =
-		platform === 'android'
-			? 'mt-1 text-body-sm text-text-subtle'
-			: platform === 'ios'
-				? 'mt-1 text-label font-normal text-text-subtle'
-				: 'mt-1.5 text-label font-normal text-text-subtle';
 	// Refresh hint next to the eyebrow: iOS mockup uses the 11px eyebrow step,
 	// Android 12px.
 	const refreshHintClass =
 		platform === 'ios' ? 'text-eyebrow font-medium' : 'text-xs font-medium';
-	// Section label "An der Kasse": 11px eyebrow everywhere, the gap differs —
-	// Android 8px, iOS 6px, desktop 14px.
-	const sectionLabelClass =
-		platform === 'android'
-			? 'mb-2 text-eyebrow uppercase text-text-subtle'
-			: platform === 'ios'
-				? 'mb-1.5 text-eyebrow uppercase text-text-subtle'
-				: 'mb-3.5 text-eyebrow uppercase text-text-subtle';
-	// Total entries across all resource types (drives the "Einträge" stat).
-	const entriesCount = $derived(
-		data
-			? data.stats.cards_count +
-					data.stats.vouchers_count +
-					data.stats.gift_cards_count
+
+	// Bound from the Section: the hint sits in the title row, the loading
+	// lives in the Section.
+	let isRefreshing = $state(false);
+
+	// Stat tiles beside the title row (desktop mockup), fed by the section's
+	// dashboard load through the binding below.
+	let desktopStats = $state<DashboardResponse['stats'] | null>(null);
+	const desktopEntries = $derived(
+		desktopStats
+			? desktopStats.cards_count +
+					desktopStats.vouchers_count +
+					desktopStats.gift_cards_count
 			: 0
 	);
 
-	onMount(async () => {
-		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
-			return;
-		}
-
-		await loadDashboard();
-	});
-
-	async function loadDashboard() {
-		isLoading = true;
-		error = null;
-		try {
-			// Phase 1: Show cached data immediately
-			const cached = await dashboardApi.getCached();
-			if (cached) {
-				data = cached;
-				isLoading = false;
-				isRefreshing = true;
-			}
-
-			// Phase 2: Fetch fresh data from network
-			if (navigator.onLine) {
-				try {
-					data = await dashboardApi.get();
-				} catch (err) {
-					if (!cached) {
-						error = $t('common.error');
-						pageLogger.error('Failed to load dashboard', { error: err });
-					}
-				}
-			} else if (!cached) {
-				error = $t('common.error');
-			}
-		} catch (err) {
-			error = $t('common.error');
-			pageLogger.error('Failed to load dashboard', { error: err });
-		} finally {
-			isLoading = false;
-			isRefreshing = false;
-		}
-	}
+	// Desktop stat tile chrome: the shared title-action look (42px, rounded-lg,
+	// field border on white) without its hover — the tiles are read-only. The
+	// taller two-line tiles live in the section with the native layout.
+	const STAT_TILE =
+		'control flex items-center gap-2.5 rounded-lg border border-border-field bg-white px-4';
+	const STAT_VALUE =
+		'font-mono text-lg font-semibold tabular-nums text-text-strong';
+	const STAT_LABEL = 'text-label font-normal text-text-subtle';
 </script>
 
 <svelte:head>
 	<title>{$t('dashboard.title')} - {$t('common.appName')}</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl px-4">
-	{#if isLoading}
-		<!-- Block skeleton mirroring the loaded layout: title line + two stat
-		     tiles. Replaces the generic logo LoadingSpinner. -->
-		<div class="grid grid-cols-1 gap-x-4 lg:grid-cols-[1fr_auto]">
-			<div class="order-1 lg:col-start-1 lg:row-start-1">
-				<Skeleton class="h-4 w-32" />
-				<Skeleton class="mt-3 h-7 w-48" />
+<!-- Stats beside the title row (desktop mockup). Native renders its stats
+     inside the section, after the favourites. -->
+{#snippet desktopStatTiles()}
+	<!-- Rendered empty until the section's load delivers the stats: the aside
+	     prop must stay CONSTANT — flipping it between undefined and a snippet
+	     makes PageShell switch layout branches, which remounts the section and
+	     loops its load. -->
+	{#if desktopStats}
+		<div class="flex items-center gap-2.5">
+			<div data-testid="dashboard-stat-balance" class={STAT_TILE}>
+				<span class={STAT_VALUE}>
+					CHF {Math.round(desktopStats?.total_balance ?? 0)}
+				</span>
+				<span class={STAT_LABEL}>{$t('dashboard.totalBalanceShort')}</span>
 			</div>
-			<div
-				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
-			>
-				<Skeleton class="h-20 lg:min-w-36" />
-				<Skeleton class="h-20 lg:min-w-36" />
+			<div data-testid="dashboard-stat-entries" class={STAT_TILE}>
+				<span class={STAT_VALUE}>{desktopEntries}</span>
+				<span class={STAT_LABEL}>{$t('dashboard.entries')}</span>
 			</div>
-		</div>
-	{:else if error}
-		<div class="rounded-xl border border-border/80 bg-white p-6 text-center">
-			<p class="mb-4 text-danger-600">{error}</p>
-			<button onclick={loadDashboard} class="btn btn-primary"
-				>{$t('common.retry')}</button
-			>
-		</div>
-	{:else if data}
-		<!-- Grid gives the two layouts from the same markup:
-		     mobile (1 col) stacks via `order` — header → favorites → stats;
-		     desktop (2 cols) puts the header top-left and stats top-right,
-		     favorites spanning the full width below. -->
-		<div class="grid grid-cols-1 gap-x-4 lg:grid-cols-[1fr_auto]">
-			<div class="order-1 lg:col-start-1 lg:row-start-1">
-				<PageHeader
-					eyebrow={$t('dashboard.greeting', { name: firstName })}
-					title={$t('dashboard.yourFavorites')}
-				>
-					<!-- Both native mockups put the refresh indicator inline next to
-					     the greeting eyebrow; desktop keeps it in the actions slot. -->
-					{#snippet eyebrowAside()}
-						{#if isRefreshing && platform !== 'other'}
-							<span class="animate-pulse {refreshHintClass} text-text-faint"
-								>{$t('common.refreshing')}</span
-							>
-						{/if}
-					{/snippet}
-					{#snippet actions()}
-						{#if isRefreshing && platform === 'other'}
-							<span class="animate-pulse text-xs text-text-faint"
-								>{$t('common.refreshing')}</span
-							>
-						{/if}
-					{/snippet}
-				</PageHeader>
-			</div>
-
-			<!-- Stats: after favorites on mobile (order-3), top-right on desktop. -->
-			<div
-				class="order-3 mt-6 grid grid-cols-2 gap-3 lg:order-none lg:col-start-2 lg:row-start-1 lg:mt-0"
-			>
-				<div data-testid="dashboard-stat-balance" class={statTileClass}>
-					<p class={statValueClass}>
-						CHF {Math.round(data.stats.total_balance)}
-					</p>
-					<p class={statLabelClass}>
-						{$t('dashboard.totalBalanceShort')}
-					</p>
-				</div>
-				<div data-testid="dashboard-stat-entries" class={statTileClass}>
-					<p class={statValueClass}>
-						{entriesCount}
-					</p>
-					<p class={statLabelClass}>{$t('dashboard.entries')}</p>
-				</div>
-			</div>
-
-			<!-- At-checkout favorites: barcode always visible (register quick access) -->
-			<section class="order-2 lg:col-span-2 lg:row-start-2">
-				<h2 class={sectionLabelClass}>
-					{$t('dashboard.atCheckout')}
-				</h2>
-				<FavoritesSection
-					{data}
-					onShowBarcode={(item) => (barcodeModalItem = item)}
-				/>
-			</section>
 		</div>
 	{/if}
-</div>
+{/snippet}
 
-<BarcodeModal
-	item={barcodeModalItem}
-	onClose={() => (barcodeModalItem = null)}
-/>
+<PageShell
+	eyebrow={$t('dashboard.greeting', { name: firstName })}
+	title={$t('dashboard.yourFavorites')}
+	aside={IS_DESKTOP ? desktopStatTiles : undefined}
+>
+	<!-- Both native mockups put the refresh indicator inline next to the
+	     greeting eyebrow; desktop keeps it in the actions slot. -->
+	{#snippet eyebrowAside()}
+		{#if isRefreshing && platform !== 'other'}
+			<span class="animate-pulse {refreshHintClass} text-text-faint"
+				>{$t('common.refreshing')}</span
+			>
+		{/if}
+	{/snippet}
+	{#snippet actions()}
+		{#if isRefreshing && platform === 'other'}
+			<span class="animate-pulse text-xs text-text-faint"
+				>{$t('common.refreshing')}</span
+			>
+		{/if}
+	{/snippet}
+	<Section bind:isRefreshing bind:stats={desktopStats} />
+</PageShell>

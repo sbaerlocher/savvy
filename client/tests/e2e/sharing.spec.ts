@@ -122,22 +122,7 @@ test.describe('Sharing', () => {
 		await createCardAndNavigate(page, cardsListPage, cardFormPage);
 		await cardDetailPage.waitForPageReady();
 
-		const transferSection = cardDetailPage.transferSection;
-		if (
-			!(await transferSection.isVisible({ timeout: 3000 }).catch(() => false))
-		) {
-			test.skip();
-			return;
-		}
-
-		// Button is a sibling of the heading, find it on the page near the transfer section
-		const transferButton = page
-			.locator(
-				'button:has-text("Übergeben"), button:has-text("Übertragen"), button:has-text("Transfer")'
-			)
-			.first();
-		await expect(transferButton).toBeVisible({ timeout: 3000 });
-		await transferButton.click();
+		await cardDetailPage.openTransferForm();
 
 		const emailInput = page
 			.locator('input[type="email"], input#transfer_email, input[name="email"]')
@@ -275,21 +260,7 @@ test.describe('Sharing', () => {
 
 		await voucherDetailPage.waitForPageReady();
 
-		const transferSection = voucherDetailPage.transferSection;
-		if (
-			!(await transferSection.isVisible({ timeout: 3000 }).catch(() => false))
-		) {
-			test.skip();
-			return;
-		}
-
-		const transferButton = page
-			.locator(
-				'button:has-text("Übergeben"), button:has-text("Übertragen"), button:has-text("Transfer")'
-			)
-			.first();
-		await expect(transferButton).toBeVisible({ timeout: 3000 });
-		await transferButton.click();
+		await voucherDetailPage.openTransferForm();
 
 		const emailInput = page
 			.locator('input[type="email"], input#transfer_email, input[name="email"]')
@@ -363,21 +334,7 @@ test.describe('Sharing', () => {
 
 		await giftCardDetailPage.waitForPageReady();
 
-		const transferSection = giftCardDetailPage.transferSection;
-		if (
-			!(await transferSection.isVisible({ timeout: 3000 }).catch(() => false))
-		) {
-			test.skip();
-			return;
-		}
-
-		const transferButton = page
-			.locator(
-				'button:has-text("Übergeben"), button:has-text("Übertragen"), button:has-text("Transfer")'
-			)
-			.first();
-		await expect(transferButton).toBeVisible({ timeout: 3000 });
-		await transferButton.click();
+		await giftCardDetailPage.openTransferForm();
 
 		const emailInput = page
 			.locator('input[type="email"], input#transfer_email, input[name="email"]')

@@ -13,6 +13,7 @@
 		title,
 		eyebrow,
 		eyebrowAside,
+		eyebrowSnippet,
 		eyebrowVerbatim = false,
 		actions,
 		mobileActions = true,
@@ -26,6 +27,9 @@
 		/** Inline element next to the eyebrow (Android and iOS mockups put the
 		 *  refresh indicator there). */
 		eyebrowAside?: Snippet;
+		/** Renders in the eyebrow position when there is no `eyebrow` string —
+		 *  the form pages put their back-to-overview link there. */
+		eyebrowSnippet?: Snippet;
 		/** Set when the eyebrow carries user-entered text (a card program name,
 		 *  say). The native uppercase treatment is meant for fixed kickers and
 		 *  would case-mangle whatever the user typed. */
@@ -50,6 +54,11 @@
 	// gap (native 20px, desktop 32px) and action spacing (Android 4px between
 	// round buttons, iOS 20px between bare glyphs). `platform` is a module
 	// constant, so plain consts, not $derived.
+	//
+	// The bottom gap lives here, not in PageShell: it is platform-specific
+	// (the native mockups close the header up to 20px, desktop keeps 32px),
+	// and the header renders inline on several screens (WalletView's chrome
+	// row, the admin panels) that a shell-level column gap cannot reach.
 	const NATIVE = platform === 'android' || platform === 'ios';
 	const HEADER_MB = NATIVE ? 'mb-5' : 'mb-8';
 	const EYEBROW_BASE = 'text-eyebrow text-text-subtle';
@@ -57,10 +66,13 @@
 	const eyebrowClass = $derived(
 		eyebrowVerbatim ? EYEBROW_BASE : `${EYEBROW_BASE} uppercase`
 	);
+	// `truncate`: the title is a single line on every platform; without it a
+	// long resource name pushes under the title-row actions (seen on the iOS
+	// detail once its actions became five glass circles).
 	const TITLE_CLASS =
 		platform === 'ios'
-			? 'text-screen-title text-text'
-			: 'mt-0.5 text-title text-text';
+			? 'truncate text-screen-title text-text'
+			: 'mt-0.5 truncate text-title text-text';
 	const ACTIONS_GAP =
 		platform === 'android' ? 'gap-1' : platform === 'ios' ? 'gap-0' : 'gap-2.5';
 
@@ -161,7 +173,12 @@
 	</div>
 {:else}
 	<!-- Page header: plain type hierarchy, no left accent bar (mockup). -->
-	<div class="{HEADER_MB} flex items-start justify-between gap-4">
+	<!-- `sm:flex-wrap`: pages with labelled action buttons (the wallet's desktop
+	     toolbar) do not shrink them, so in a narrow window the actions take a
+	     second line rather than overflowing the page. Only from `sm` up — on a
+	     phone the title truncates instead, keeping the actions on the title row
+	     (iOS/Android mockups). -->
+	<div class="{HEADER_MB} flex items-start justify-between gap-4 sm:flex-wrap">
 		<div
 			class="flex min-w-0 {platform === 'ios'
 				? 'items-start gap-[11px]'
@@ -198,6 +215,12 @@
 						{#if eyebrowAside}
 							{@render eyebrowAside()}
 						{/if}
+					</div>
+				{:else if eyebrowSnippet}
+					<!-- Same slot, same type step — no uppercase, the snippet carries
+					     real copy (the back link), not a kicker. -->
+					<div class="flex items-center gap-2 {EYEBROW_BASE}">
+						{@render eyebrowSnippet()}
 					</div>
 				{/if}
 				<h1 class={TITLE_CLASS}>{title}</h1>
