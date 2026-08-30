@@ -7,6 +7,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Platform-native design system** - Every screen was rebuilt from the design
+  mockups per platform: Material 3 on Android, Liquid Glass on iOS, solid card
+  chrome on desktop — dashboard (#336-#338), wallet (#339-#341), auth
+  (#378-#380), password reset (#374-#376), notifications (#381, #382, #384),
+  resource details (#386-#388), merchants (#389-#391), import dialog
+  (#395-#397), settings (#398-#400), admin (#401-#403) and the batch flows
+  (#405-#407). The look is carried by new token sets in `tokens.css` — M3
+  shape/tonal-surface/elevation tokens, a liquid-glass palette with a
+  no-backdrop-filter fallback, and dedicated transfer and gift-card accents
+  (#317, #320, #327, #328, #329, #333, #335).
+- **Unified page structure (PageShell) (#412)** - Every page renders through a
+  shared `PageShell`: one content container, one title row carrying the back
+  affordance and the right-hand actions, with the page content in a colocated
+  `Section` per route. Replaces five competing per-page container dialects
+  that double-padded content on some screens. The layer model is documented in
+  `client/COMPONENTS.md`.
+- **Structural baseline suite (#412)** - `client/tests/structure/` guards the
+  shared skeleton per route × platform: structure rules (one container, one
+  `h1`, identical nav), 60 committed screenshot baselines and recorded axe
+  violation counts, plus a route-coverage guard (`structure:routes`) so no new
+  page escapes the baseline. Recording is gated behind an explicit confirm.
+- **Admin on mobile (#402, #403)** - iOS and Android get an admin entry in the
+  profile hub (users, merchants, audit log, system health) that previously
+  existed only in the desktop nav; desktop admin moved onto elevated panels
+  (#401).
+- **Merged settings screens (#398-#400)** - Desktop combines profile, security
+  and notification preferences into one tabbed settings page; Android and iOS
+  each merge them into a single native settings screen including sessions, the
+  service-worker recovery entry and a logout row.
+- **OpenAPI specification (#297)** - `just openapi` generates
+  `docs/openapi/` from handler annotations (swag v2); the `cards` slice is
+  fully annotated as the reference, Swagger UI is served at `/api/v1/docs/` in
+  development builds only, and `cmd/openapi-fix` collapses swag's
+  unsatisfiable `oneOf` body wrappers.
+- **Shared UI primitives (#290, #412)** - `Button`, `EmptyState` and
+  `Skeleton` replace per-call-site duplication, and a shared `StateScreen`
+  renders the offline/404/error pages.
+- **Resource names in share/transfer notifications (#295)** - Notifications
+  and their emails name the merchant and description instead of a generic
+  message; monetary values and free-form notes are deliberately kept out of
+  push bodies so they never appear on a lockscreen.
+- **Notification email dispatcher** - Background job (1-minute tick) that claims
+  pending notification emails with `FOR UPDATE SKIP LOCKED`, so the multi-replica
+  deployment needs no leader election. Rows stranded by a dying pod return to the
+  queue after 10 minutes; delivery is at-least-once, meaning a crash between SMTP
+  success and the status write can resend one mail.
+- **Delivery metrics** - `notification_emails_sent_total`,
+  `notification_emails_failed_total` and the `notification_emails_pending` gauge.
+  The gauge is the load-bearing one: without it a stalled dispatcher looks exactly
+  like an idle one.
+- **Firefox and Mobile Chrome E2E jobs (#350)** - Both Playwright projects now
+  run on every pull request (reporting-only, not yet required checks).
+
+### Changed
+
+- **`/settings` redirects to `/profile` (#412)** - The account destination is
+  `/profile`; `?tab=security` maps to `/security` and `?tab=notifications` to
+  `/notifications/settings`.
+- **Native detail actions behind the more menu (#386-#388, #412)** - On
+  Android and iOS, share, transfer and delete sit behind the ••• menu on the
+  detail title row (M3 bottom sheet / glass context menu); Android edits
+  through a FAB instead of a header button, and the bottom navigation stays
+  visible on detail routes.
+- **Wallet chrome (#339-#341)** - Search moved into the platform chrome
+  (desktop nav bar, Android header, iOS bottom-nav pill); desktop gains a
+  title-row toolbar with filter, select mode, a persisted barcode toggle and
+  import. Select mode rearranges the native bottom chrome (contextual top app
+  bar on Android, floating batch bar in the nav slot on iOS).
+- **Transfer accent (#333)** - Transfer UI moved from purple to a dedicated
+  warm `--color-transfer-*` scale (WCAG-AA checked); purple is now the admin
+  accent.
+- **Share/transfer email gating** - The recipient lookup now happens before the
+  notification row is created (the same query the push gate already made, so no
+  extra round trip). A recipient that cannot be loaded yields a `skipped` email
+  state instead of an attempted send.
+- **make → just (#311)** - The Makefile was replaced by a `justfile`; docs and
+  CI templates updated accordingly.
+- **Toolchain and dependency maintenance** - Go toolchain 1.26.6 (#352) with
+  CI on Go 1.27 and `golang:1.27-alpine` build stages (#394); the Node.js
+  runtime moved to 24.20 (#314, #334, #418), `@testing-library/jest-dom` to
+  v7 (#298), `bwip-js` to 4.11 (#377), and TypeScript is capped below 6.1
+  until the Svelte tooling supports it (#304). The remaining Renovate range
+  is routine non-major updates, action pins and Compose image digests.
+
 ### Fixed
 
 - **Failed notification emails were lost permanently** - Email delivery ran inline
@@ -20,25 +106,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   — before parking it as `failed`. Share and transfer emails,
   which previously had no retry at all and lost queued mail on restart, go
   through the same path.
-
-### Added
-
-- **Notification email dispatcher** - Background job (1-minute tick) that claims
-  pending notification emails with `FOR UPDATE SKIP LOCKED`, so the multi-replica
-  deployment needs no leader election. Rows stranded by a dying pod return to the
-  queue after 10 minutes; delivery is at-least-once, meaning a crash between SMTP
-  success and the status write can resend one mail.
-- **Delivery metrics** - `notification_emails_sent_total`,
-  `notification_emails_failed_total` and the `notification_emails_pending` gauge.
-  The gauge is the load-bearing one: without it a stalled dispatcher looks exactly
-  like an idle one.
-
-### Changed
-
-- **Share/transfer email gating** - The recipient lookup now happens before the
-  notification row is created (the same query the push gate already made, so no
-  extra round trip). A recipient that cannot be loaded yields a `skipped` email
-  state instead of an attempted send.
+- **Push notifications opened a blank page (#296)** - The service worker
+  posted a navigation message no client listened for, and gift-card links
+  pointed at `/gift_cards` instead of `/gift-cards`; the corrected route
+  mapping is shared with the share/transfer emails, which carried the same
+  broken link.
+- **Barcode scanner always uses the WASM polyfill (#289)** - Chrome on Android
+  can construct a native `BarcodeDetector` that never detects anything when
+  the Play Services barcode module is missing; the polyfill is now the single
+  path on all platforms.
+- **Dashboard favorites no longer capped at five per type (#285)** - Favorites
+  are an explicit user selection and load in full; the recent-items fallback
+  keeps its limit of 5.
+- **Idempotent init-schema foreign keys (#291)** - All 13 FK constraints guard
+  against `pg_constraint`, so a half-applied init migration can replay without
+  failing on SQLSTATE 42710.
+- **Concurrent map write in the readiness check (#371)** - The
+  `not_configured` writes for SMTP, OAuth, VAPID and TOTP ran unlocked while
+  check goroutines were in flight — a fatal concurrent map write; they now
+  take the mutex.
+- **Platform detection order (#386)** - An Android user agent on a MacIntel
+  platform was misclassified as iOS because the iPadOS touch heuristic ran
+  first; Android is checked first now.
+- **BottomSheet max-height (#322)** - Applied via inline style instead of an
+  interpolated Tailwind class the JIT never emitted.
+- **iOS polish (#372, #373)** - The type filter drops its redundant "all"
+  segment (tapping the active segment clears the filter on every platform) and
+  the resource tile matches the design component.
+- **Seeded notifications match production metadata (#385)** - Seeds carry
+  `merchant_name` and `days_left` so dev notifications render like real ones.
 
 ## [1.6.1] - 2026-07-23
 
