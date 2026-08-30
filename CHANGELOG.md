@@ -86,11 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   state instead of an attempted send.
 - **make → just (#311)** - The Makefile was replaced by a `justfile`; docs and
   CI templates updated accordingly.
-- **Toolchain and dependency maintenance** - Go toolchain 1.26.6 (#352) with
-  CI on Go 1.27 and `golang:1.27-alpine` build stages (#394); the Node.js
-  runtime moved to 24.20 (#314, #334, #418), `@testing-library/jest-dom` to
-  v7 (#298), `bwip-js` to 4.11 (#377), and TypeScript is capped below 6.1
-  until the Svelte tooling supports it (#304). The remaining Renovate range
+- **Toolchain and dependency maintenance** - Go moved to 1.27 across
+  `go.mod`, CI and the `golang:1.27-alpine` build stages (#352, #394, #404);
+  the Node.js runtime moved to 24.20 (#314, #334, #418),
+  `@testing-library/jest-dom` to v7 (#298), `bwip-js` to 4.11 (#377), and
+  TypeScript is capped below 6.1 because `@typescript-eslint/*` declares
+  `typescript <6.1.0` as a required peer (#304). The remaining Renovate range
   is routine non-major updates, action pins and Compose image digests.
 
 ### Fixed
@@ -130,6 +131,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first; Android is checked first now.
 - **BottomSheet max-height (#322)** - Applied via inline style instead of an
   interpolated Tailwind class the JIT never emitted.
+- **BottomSheet was outside the accessibility tree (#350)** - The scrim
+  carried `aria-hidden="true"` with the `role="dialog"` sheet nested inside
+  it, so every control in an open sheet was absent for assistive technology;
+  the scrim and the sheet are siblings now.
 - **iOS polish (#372, #373)** - The type filter drops its redundant "all"
   segment (tapping the active segment clears the filter on every platform) and
   the resource tile matches the design component.
