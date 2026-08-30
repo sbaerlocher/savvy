@@ -132,9 +132,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BottomSheet max-height (#322)** - Applied via inline style instead of an
   interpolated Tailwind class the JIT never emitted.
 - **BottomSheet was outside the accessibility tree (#350)** - The scrim
-  carried `aria-hidden="true"` with the `role="dialog"` sheet nested inside
-  it, so every control in an open sheet was absent for assistive technology;
-  the scrim and the sheet are siblings now.
+  carried `aria-hidden="true"`, which propagates to the whole subtree, so the
+  `role="dialog"` sheet nested inside it was absent for assistive technology;
+  the scrim is `role="presentation"` now, which drops only the scrim itself
+  from the accessibility tree and leaves the nested dialog exposed.
 - **iOS polish (#372, #373)** - The type filter drops its redundant "all"
   segment (tapping the active segment clears the filter on every platform) and
   the resource tile matches the design component.
