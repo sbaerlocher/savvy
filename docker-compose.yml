@@ -187,7 +187,7 @@ services:
     loki:
         profiles:
             - observability
-        image: 'grafana/loki:3.7.6@sha256:efd47c67f9bac88ca29bcf8cb997d9ab29d1848bd0aff579282295542a745952'
+        image: 'grafana/loki:3.7.7@sha256:d70e4659623f3e109af669cae76fe2a5dd5be54e2298fe8aed380d982fbc2500'
         restart: unless-stopped
         command: '-config.file=/etc/loki/loki-config.yaml'
         volumes:
@@ -267,7 +267,7 @@ services:
     grafana:
         profiles:
             - observability
-        image: 'grafana/grafana:13.0@sha256:ed2dca5b8b819ecb34ffa73b6cb218931ae4817512f649dd819516822e5996a7'
+        image: 'grafana/grafana:13.0@sha256:e78917cdd3336d0d679d345b2e6d0f60a0fe85ed7ac3882b68f089fdb6ff2ace'
         environment:
             - GF_AUTH_ANONYMOUS_ENABLED=true
             - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
