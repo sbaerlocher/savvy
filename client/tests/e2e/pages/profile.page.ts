@@ -106,11 +106,16 @@ export class ProfilePage extends BasePage {
 	}
 
 	get deleteConfirmationInput(): Locator {
-		return this.page.locator('#deleteConfirmation');
+		// One id per platform arm: desktop, Android M3 dialog, iOS sheet.
+		return this.page.locator(
+			'#deleteConfirmation, #androidDeleteConfirmation, #ios-deleteConfirmation'
+		);
 	}
 
 	get deletePasswordInput(): Locator {
-		return this.page.locator('#deletePassword');
+		return this.page.locator(
+			'#deletePassword, #androidDeletePassword, #ios-deletePassword'
+		);
 	}
 
 	get deleteConfirmButton(): Locator {
