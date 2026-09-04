@@ -22,7 +22,7 @@ jobs:
     with:
       languages: '["go", "javascript"]'
       # renovate: datasource=golang-version depName=golang
-      go-version: "1.27.0"
+      go-version: "1.27.1"
       concurrency-suffix: code
 
   dependency-scan:
