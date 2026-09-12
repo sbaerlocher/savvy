@@ -1215,7 +1215,9 @@ export const en: TranslationKeys = {
 		transferredTo: 'transferred {resource} from {merchant} to you',
 		transferredToPlain: 'transferred {resource} to you',
 		expiryReminder: '{merchant} {resource} expires in {days} days',
+		expiryReminderToday: '{merchant} {resource} expires today',
 		expiryReminderTomorrow: '{merchant} {resource} expires tomorrow',
+		expiryReminderOn: '{merchant} {resource} expires on {expires_at}',
 		validityStart:
 			'Your voucher from {merchant} is valid starting {valid_from}',
 		validityStartSoon: 'Your voucher from {merchant} is valid soon',

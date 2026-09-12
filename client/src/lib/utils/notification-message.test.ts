@@ -10,7 +10,29 @@ function notification(
 }
 
 describe('reminderMessageKey', () => {
-	it('uses the singular expiry wording on the last day', () => {
+	it('renders the absolute date for expiry', () => {
+		const result = reminderMessageKey(
+			notification('expiry_reminder', {
+				merchant_name: 'Coop',
+				days_left: 3,
+				expires_at: '26. Februar 2026'
+			}),
+			'voucher'
+		);
+		expect(result?.key).toBe('notifications.expiryReminderOn');
+		expect(result?.params.expires_at).toBe('26. Februar 2026');
+	});
+
+	it('falls back to the day-zero wording when the date is missing', () => {
+		const result = reminderMessageKey(
+			notification('expiry_reminder', { merchant_name: 'Coop', days_left: 0 }),
+			'voucher'
+		);
+		expect(result?.key).toBe('notifications.expiryReminderToday');
+		expect(result?.params).not.toHaveProperty('days');
+	});
+
+	it('falls back to the singular wording on the last day', () => {
 		const result = reminderMessageKey(
 			notification('expiry_reminder', { merchant_name: 'Coop', days_left: 1 }),
 			'voucher'
@@ -19,7 +41,7 @@ describe('reminderMessageKey', () => {
 		expect(result?.params).not.toHaveProperty('days');
 	});
 
-	it('uses the plural expiry wording for more than one day', () => {
+	it('falls back to the plural wording for more than one day', () => {
 		const result = reminderMessageKey(
 			notification('expiry_reminder', { merchant_name: 'Coop', days_left: 3 }),
 			'voucher'
