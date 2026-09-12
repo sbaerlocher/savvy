@@ -1215,7 +1215,10 @@ export const en: TranslationKeys = {
 		transferredTo: 'transferred {resource} from {merchant} to you',
 		transferredToPlain: 'transferred {resource} to you',
 		expiryReminder: '{merchant} {resource} expires in {days} days',
-		validityStart: 'Your voucher from {merchant} is valid starting tomorrow',
+		expiryReminderTomorrow: '{merchant} {resource} expires tomorrow',
+		validityStart:
+			'Your voucher from {merchant} is valid starting {valid_from}',
+		validityStartSoon: 'Your voucher from {merchant} is valid soon',
 		timeAgo: {
 			justNow: 'just now',
 			minutesAgo: '{count}m ago',
@@ -1250,7 +1253,7 @@ export const en: TranslationKeys = {
 			share_received: 'Shared with you',
 			transfer_received: 'Transfer received',
 			expiry_reminder: 'Expiring soon',
-			validity_start: 'Now valid'
+			validity_start: 'Valid soon'
 		},
 		moreActions: 'More actions'
 	},

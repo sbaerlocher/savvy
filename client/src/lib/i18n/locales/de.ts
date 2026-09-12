@@ -1248,7 +1248,9 @@ export const de: TranslationKeys = {
 		transferredTo: 'hat {resource} von {merchant} an dich übertragen',
 		transferredToPlain: 'hat {resource} an dich übertragen',
 		expiryReminder: '{merchant} {resource} läuft in {days} Tagen ab',
-		validityStart: 'Dein Gutschein von {merchant} wird morgen gültig',
+		expiryReminderTomorrow: '{merchant} {resource} läuft morgen ab',
+		validityStart: 'Dein Gutschein von {merchant} wird ab {valid_from} gültig',
+		validityStartSoon: 'Dein Gutschein von {merchant} wird bald gültig',
 		timeAgo: {
 			justNow: 'gerade eben',
 			minutesAgo: 'vor {count} Min.',
@@ -1286,7 +1288,7 @@ export const de: TranslationKeys = {
 			share_received: 'Mit dir geteilt',
 			transfer_received: 'Übertragung erhalten',
 			expiry_reminder: 'Läuft bald ab',
-			validity_start: 'Ist jetzt gültig'
+			validity_start: 'Wird bald gültig'
 		},
 		moreActions: 'Weitere Aktionen'
 	},

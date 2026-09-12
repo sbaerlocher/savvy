@@ -1149,7 +1149,9 @@ export type TranslationKeys = {
 		transferredTo: string;
 		transferredToPlain: string;
 		expiryReminder: string;
+		expiryReminderTomorrow: string;
 		validityStart: string;
+		validityStartSoon: string;
 		timeAgo: {
 			justNow: string;
 			minutesAgo: string;
