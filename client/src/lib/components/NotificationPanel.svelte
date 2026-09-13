@@ -15,6 +15,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { platform } from '$lib/utils/platform';
 	import { notificationTone } from '$lib/utils/notification-tone';
+	import { reminderMessageKey } from '$lib/utils/notification-message';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import NotificationTypeIcon from '$lib/components/NotificationTypeIcon.svelte';
 
@@ -79,21 +80,11 @@
 			return merchant
 				? `${fromUser} ${$t('notifications.transferredTo', { resource: resourceTypeLabel, merchant })}`
 				: `${fromUser} ${$t('notifications.transferredToPlain', { resource: resourceTypeLabel })}`;
-		} else if (notification.type === 'expiry_reminder') {
-			const merchantName =
-				(notification.metadata.merchant_name as string) || '';
-			const daysLeft = notification.metadata.days_left as number;
-			return $t('notifications.expiryReminder', {
-				resource: resourceTypeLabel,
-				merchant: merchantName,
-				days: String(daysLeft)
-			});
-		} else if (notification.type === 'validity_start') {
-			const merchantName =
-				(notification.metadata.merchant_name as string) || '';
-			return $t('notifications.validityStart', {
-				merchant: merchantName
-			});
+		}
+
+		const reminder = reminderMessageKey(notification, resourceTypeLabel);
+		if (reminder) {
+			return $t(reminder.key, reminder.params);
 		}
 
 		return $t('notifications.newNotification');

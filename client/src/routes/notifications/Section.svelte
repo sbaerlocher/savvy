@@ -6,6 +6,7 @@
 	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
 	import { notificationStore } from '$lib/stores/notifications';
 	import { t } from '$lib/stores/i18n';
+	import { reminderMessageKey } from '$lib/utils/notification-message';
 	import { toastStore } from '$lib/stores/toast';
 	import { logger } from '$lib/utils/logger';
 	import { notificationTone } from '$lib/utils/notification-tone';
@@ -175,21 +176,11 @@
 			return merchant
 				? `${fromUser} ${$t('notifications.transferredTo', { resource: resourceTypeLabel, merchant })}`
 				: `${fromUser} ${$t('notifications.transferredToPlain', { resource: resourceTypeLabel })}`;
-		} else if (notification.type === 'expiry_reminder') {
-			const merchantName =
-				(notification.metadata.merchant_name as string) || '';
-			const daysLeft = notification.metadata.days_left as number;
-			return $t('notifications.expiryReminder', {
-				resource: resourceTypeLabel,
-				merchant: merchantName,
-				days: String(daysLeft)
-			});
-		} else if (notification.type === 'validity_start') {
-			const merchantName =
-				(notification.metadata.merchant_name as string) || '';
-			return $t('notifications.validityStart', {
-				merchant: merchantName
-			});
+		}
+
+		const reminder = reminderMessageKey(notification, resourceTypeLabel);
+		if (reminder) {
+			return $t(reminder.key, reminder.params);
 		}
 
 		return $t('notifications.newNotification');
