@@ -1,6 +1,6 @@
 module savvy
 
-go 1.27.0
+go 1.27.1
 
 require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
