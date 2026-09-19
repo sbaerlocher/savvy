@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import { vi, beforeEach } from 'vitest';
 
 // Mock SvelteKit modules
@@ -24,52 +24,58 @@ vi.mock('$app/stores', () => ({
 // Mock localStorage with actual storage implementation
 const storage: Record<string, string> = {};
 
-global.localStorage = {
-	getItem: (key: string) => storage[key] || null,
-	setItem: (key: string, value: string) => {
-		storage[key] = value;
-	},
-	removeItem: (key: string) => {
-		delete storage[key];
-	},
-	clear: () => {
-		for (const key in storage) {
+Object.defineProperty(global, 'localStorage', {
+	configurable: true,
+	value: {
+		getItem: (key: string) => storage[key] || null,
+		setItem: (key: string, value: string) => {
+			storage[key] = value;
+		},
+		removeItem: (key: string) => {
 			delete storage[key];
+		},
+		clear: () => {
+			for (const key in storage) {
+				delete storage[key];
+			}
+		},
+		get length() {
+			return Object.keys(storage).length;
+		},
+		key: (index: number) => {
+			const keys = Object.keys(storage);
+			return keys[index] || null;
 		}
-	},
-	get length() {
-		return Object.keys(storage).length;
-	},
-	key: (index: number) => {
-		const keys = Object.keys(storage);
-		return keys[index] || null;
-	}
-} as Storage;
+	} as Storage
+});
 
 // Mock sessionStorage
 const sessionStorageData: Record<string, string> = {};
 
-global.sessionStorage = {
-	getItem: (key: string) => sessionStorageData[key] || null,
-	setItem: (key: string, value: string) => {
-		sessionStorageData[key] = value;
-	},
-	removeItem: (key: string) => {
-		delete sessionStorageData[key];
-	},
-	clear: () => {
-		for (const key in sessionStorageData) {
+Object.defineProperty(global, 'sessionStorage', {
+	configurable: true,
+	value: {
+		getItem: (key: string) => sessionStorageData[key] || null,
+		setItem: (key: string, value: string) => {
+			sessionStorageData[key] = value;
+		},
+		removeItem: (key: string) => {
 			delete sessionStorageData[key];
+		},
+		clear: () => {
+			for (const key in sessionStorageData) {
+				delete sessionStorageData[key];
+			}
+		},
+		get length() {
+			return Object.keys(sessionStorageData).length;
+		},
+		key: (index: number) => {
+			const keys = Object.keys(sessionStorageData);
+			return keys[index] || null;
 		}
-	},
-	get length() {
-		return Object.keys(sessionStorageData).length;
-	},
-	key: (index: number) => {
-		const keys = Object.keys(sessionStorageData);
-		return keys[index] || null;
-	}
-} as Storage;
+	} as Storage
+});
 
 // Mock fetch
 global.fetch = vi.fn();
