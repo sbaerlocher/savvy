@@ -1,11 +1,11 @@
 module savvy
 
-go 1.27.0
+go 1.27.1
 
 require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/coreos/go-oidc/v3 v3.21.0
-	github.com/go-gormigrate/gormigrate/v2 v2.1.6
+	github.com/go-gormigrate/gormigrate/v2 v2.1.7
 	github.com/go-playground/validator/v10 v10.30.4
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/sessions v1.4.0
@@ -15,7 +15,7 @@ require (
 	github.com/prometheus/client_golang v1.24.1
 	github.com/stretchr/testify v1.12.1
 	github.com/swaggo/echo-swagger/v2 v2.0.1
-	github.com/swaggo/swag/v2 v2.0.0-rc5
+	github.com/swaggo/swag/v2 v2.0.0-rc6
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.46.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.46.0
@@ -26,7 +26,7 @@ require (
 	golang.org/x/oauth2 v0.37.0
 	golang.org/x/text v0.42.0
 	golang.org/x/time v0.16.0
-	gorm.io/driver/postgres v1.6.2
+	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
 )
 
