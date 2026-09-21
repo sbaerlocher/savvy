@@ -29,7 +29,7 @@
 		"globals": "17.12.0",
 		"happy-dom": "20.14.5",
 		"postcss": "8.5.28",
-		"prettier": "3.9.6",
+		"prettier": "3.9.8",
 		"prettier-plugin-svelte": "4.1.1",
 		"svelte": "5.57.0",
 		"svelte-check": "4.7.6",
