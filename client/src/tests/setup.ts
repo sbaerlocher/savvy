@@ -24,7 +24,10 @@ vi.mock('$app/stores', () => ({
 // Mock localStorage with actual storage implementation
 const storage: Record<string, string> = {};
 
-global.localStorage = {
+// Vitest 5 forwards globalThis assignments to happy-dom, whose window exposes
+// localStorage/sessionStorage as getter-only — a plain assignment throws, so
+// the mocks are installed via defineProperty instead.
+const localStorageMock = {
 	getItem: (key: string) => storage[key] || null,
 	setItem: (key: string, value: string) => {
 		storage[key] = value;
@@ -46,10 +49,16 @@ global.localStorage = {
 	}
 } as Storage;
 
+Object.defineProperty(globalThis, 'localStorage', {
+	configurable: true,
+	writable: true,
+	value: localStorageMock
+});
+
 // Mock sessionStorage
 const sessionStorageData: Record<string, string> = {};
 
-global.sessionStorage = {
+const sessionStorageMock = {
 	getItem: (key: string) => sessionStorageData[key] || null,
 	setItem: (key: string, value: string) => {
 		sessionStorageData[key] = value;
@@ -70,6 +79,12 @@ global.sessionStorage = {
 		return keys[index] || null;
 	}
 } as Storage;
+
+Object.defineProperty(globalThis, 'sessionStorage', {
+	configurable: true,
+	writable: true,
+	value: sessionStorageMock
+});
 
 // Mock fetch
 global.fetch = vi.fn();
