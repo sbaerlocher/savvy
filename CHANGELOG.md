@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.7.1] - 2026-10-17
+
+### Security
+
+- **Go 1.27.2 and `golang.org/x/net` v0.60.0 (#463)** - Fixes standard-library
+  and HTTP/2 vulnerabilities that govulncheck reported as reachable from the
+  server. The toolchain bump covers `go.mod`, the CI workflows and the
+  `golang:1.27-alpine` build image.
+- Updated `golang.org/x/crypto` to 0.56.0 (#423), `google.golang.org/grpc` to
+  1.83.2 (#434) and `golang.org/x/net` to 0.60.0 (#462), each tagged
+  \[SECURITY\] by Renovate.
+
+### Fixed
+
+- **Reminder wording in the notification list (#437)** - The in-app
+  validity-start title no longer says "Now valid" a day early, the expiry body
+  uses the singular on the last day, and the validity-start body shows the
+  absolute start date instead of a "tomorrow" that goes stale in the list.
+
+### Dependencies
+
+- Updated all non-major dependencies (#425, #426, #429, #433, #436, #438, #441,
+  #443, #444, #446, #448, #452, #453, #455, #456, #458), vitest 5 (#435),
+  vite 8.3.0 and 8.3.1 (#440, #450), happy-dom 20.13.2 (#427), Node.js 24.21.0
+  (#432) and lock file maintenance (#431).
+- Updated Docker images: `golang:1.27-alpine` digest (#447, #464),
+  `alpine:3.24` digest (#445), Docker Compose images (#442),
+  opentelemetry-collector-contrib 0.160.0 and 0.162.0 (#428, #460), Prometheus
+  3.15.0 (#451), Tempo 3.1.0 (#454).
+- Updated `sbaerlocher/.github` to v2026-08-31 (#421, #422), v2026-09-02
+  (#424), v2026-09-07 (#430), v2026-09-14 (#439), v2026-09-27 (#449),
+  v2026-10-04 (#457) and v2026-10-16 (#461).
+
 ## [1.7.0] - 2026-08-31
 
 ### Added
@@ -785,7 +820,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/sbaerlocher/savvy/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/sbaerlocher/savvy/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/sbaerlocher/savvy/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/sbaerlocher/savvy/compare/v1.5.0...v1.6.0
