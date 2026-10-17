@@ -93,7 +93,8 @@ func run() int {
 	// Initialize all dependencies (logging, telemetry, database, migrations, OAuth, etc.)
 	shutdown, oauthProvider, err := setup.InitAllDependencies(cfg)
 	if err != nil {
-		log.Printf("Failed to initialize dependencies: %v", err)
+		slog.Error("Failed to initialize dependencies", "error", err)
+		setup.Shutdown(shutdown, nil)
 		return 1
 	}
 

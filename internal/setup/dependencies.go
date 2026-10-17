@@ -3,6 +3,7 @@ package setup
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -152,24 +153,28 @@ func InitAuditLogging() {
 }
 
 // InitOAuth initializes OAuth provider if configured.
-// Returns the provider (nil if OAuth is not configured or initialization fails).
-func InitOAuth(cfg *config.Config) *oauth.Provider {
+// Initialization failures are fatal when local login is disabled.
+func InitOAuth(cfg *config.Config) (*oauth.Provider, error) {
 	if !cfg.IsOAuthEnabled() {
 		slog.Info("OAuth not configured (set OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_ISSUER to enable)")
-		return nil
+		return nil, nil
 	}
 
 	oauthProvider, err := oauth.NewProvider(cfg)
 	if err != nil {
-		slog.Warn("Failed to initialize OAuth", "error", err)
-		return nil
+		// Discovery errors can include response bodies or URLs containing credentials.
+		if !cfg.EnableLocalLogin {
+			return nil, errors.New("failed to initialize OAuth/OIDC provider with local login disabled; check OAUTH_ISSUER and provider availability")
+		}
+		slog.Warn("Failed to initialize OAuth; falling back to local login (check OAUTH_ISSUER and provider availability)")
+		return nil, nil
 	}
 
 	slog.Info("OAuth initialized successfully",
 		"admin_emails", len(cfg.OAuthAdminEmails),
 		"admin_group", cfg.OAuthAdminGroup,
 	)
-	return oauthProvider
+	return oauthProvider, nil
 }
 
 // InitEmailService initializes the email service based on configuration.
@@ -217,6 +222,12 @@ func InitAllDependencies(cfg *config.Config) (func(context.Context) error, *oaut
 		return shutdown, nil, err
 	}
 
+	// Discover OIDC before opening the database: OIDC-only deployments cannot serve without it.
+	oauthProvider, err := InitOAuth(cfg)
+	if err != nil {
+		return shutdown, nil, err
+	}
+
 	// 3. Database
 	if err := InitDatabase(cfg); err != nil {
 		return shutdown, nil, err
@@ -232,9 +243,6 @@ func InitAllDependencies(cfg *config.Config) (func(context.Context) error, *oaut
 
 	// 6. Audit Logging
 	InitAuditLogging()
-
-	// 7. OAuth
-	oauthProvider := InitOAuth(cfg)
 
 	return shutdown, oauthProvider, nil
 }
