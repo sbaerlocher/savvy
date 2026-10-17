@@ -119,6 +119,43 @@
           "type": "string",
           "default": "DATABASE_URL",
           "description": "Key within the secret containing the database URL"
+        },
+        "host": { "type": "string" },
+        "port": { "type": "integer", "default": 5432 },
+        "name": { "type": "string" },
+        "user": { "type": "string" },
+        "sslMode": { "type": "string", "default": "verify-full" },
+        "passwordSecret": {
+          "type": "object",
+          "properties": {
+            "existingSecret": { "type": "string" },
+            "passwordKey": { "type": "string", "default": "DATABASE_PASSWORD" }
+          }
+        }
+      },
+      "if": {
+        "required": ["existingSecret"],
+        "properties": { "existingSecret": { "minLength": 1 } }
+      },
+      "then": {
+        "required": ["databaseUrlKey"],
+        "properties": { "databaseUrlKey": { "minLength": 1 } }
+      },
+      "else": {
+        "required": ["host", "name", "user", "passwordSecret"],
+        "properties": {
+          "host": { "minLength": 1, "pattern": "\\S" },
+          "port": { "minimum": 1, "maximum": 65535 },
+          "name": { "minLength": 1, "pattern": "\\S" },
+          "user": { "minLength": 1, "pattern": "\\S" },
+          "sslMode": { "enum": ["disable", "require", "verify-ca", "verify-full"] },
+          "passwordSecret": {
+            "required": ["existingSecret", "passwordKey"],
+            "properties": {
+              "existingSecret": { "minLength": 1, "pattern": "\\S" },
+              "passwordKey": { "minLength": 1, "pattern": "\\S" }
+            }
+          }
         }
       }
     },

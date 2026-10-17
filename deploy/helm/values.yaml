@@ -217,10 +217,19 @@ externalSecrets:
 
 # Database Configuration
 database:
-  # Name of existing Kubernetes secret containing DATABASE_URL
+  # Secret containing DATABASE_URL. Takes precedence over separate parameters.
   existingSecret: ""
-  # Key within the secret that contains the database URL
   databaseUrlKey: "DATABASE_URL"
+  # Used only when existingSecret is empty. PostgreSQL is managed externally.
+  host: ""
+  port: 5432
+  name: ""
+  user: ""
+  sslMode: "verify-full" # No plaintext fallback; disable must be explicitly selected.
+  # Password is read directly from this Secret, never from values or a ConfigMap.
+  passwordSecret:
+    existingSecret: ""
+    passwordKey: "DATABASE_PASSWORD"
 
 # Application Configuration
 config:

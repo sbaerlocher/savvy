@@ -1756,8 +1756,13 @@ func main() {
 	// Load config
 	cfg := config.Load()
 
+	connectionString, err := cfg.DatabaseConnectionString()
+	if err != nil {
+		log.Fatalf("Database configuration invalid: %v", err)
+	}
+
 	// Connect to database
-	if err := database.Connect(cfg.DatabaseURL, cfg.LogLevel); err != nil {
+	if err := database.Connect(connectionString, cfg.LogLevel); err != nil {
 		log.Fatal(err)
 	}
 

@@ -24,6 +24,12 @@ const (
 // Config holds all application configuration loaded from environment variables
 type Config struct {
 	DatabaseURL            string
+	DatabaseHost           string
+	DatabasePort           string
+	DatabaseName           string
+	DatabaseUser           string
+	DatabasePassword       string
+	DatabaseSSLMode        string
 	ServerPort             string
 	MetricsPort            string // Separate port for Prometheus metrics (default: 9090)
 	SessionSecret          string // #nosec G117 -- struct field name, not a hardcoded secret
@@ -93,8 +99,14 @@ func Load() *Config {
 		loc = time.UTC
 	}
 
-	return &Config{
-		DatabaseURL:            getEnv("DATABASE_URL", "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"),
+	cfg := &Config{
+		DatabaseURL:            getEnv("DATABASE_URL", ""),
+		DatabaseHost:           getEnv("DATABASE_HOST", ""),
+		DatabasePort:           getEnv("DATABASE_PORT", ""),
+		DatabaseName:           getEnv("DATABASE_NAME", ""),
+		DatabaseUser:           getEnv("DATABASE_USER", ""),
+		DatabasePassword:       getEnv("DATABASE_PASSWORD", ""),
+		DatabaseSSLMode:        getEnv("DATABASE_SSLMODE", ""),
 		ServerPort:             getEnvWithFallback("SERVER_PORT", "PORT", "3000"),
 		MetricsPort:            getEnv("METRICS_PORT", "9090"), // Separate port for Prometheus metrics
 		SessionSecret:          getEnv("SESSION_SECRET", "dev-secret-change-in-production-not-for-use"),
@@ -142,6 +154,10 @@ func Load() *Config {
 		Location:                     loc,
 		CORSAllowedOrigins:           getEnvSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:5173", "http://localhost:3000"}),
 	}
+	if cfg.DatabaseURL == "" && !cfg.hasDatabaseParameters() {
+		cfg.DatabaseURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
+	}
+	return cfg
 }
 
 // IsProduction returns true if the environment is production
@@ -184,6 +200,10 @@ func (c *Config) IsTOTPAvailable() bool {
 // Validate checks configuration constraints that apply in all environments.
 // This catches configuration errors early, regardless of GO_ENV.
 func (c *Config) Validate() error {
+	if _, err := c.DatabaseConnectionString(); err != nil {
+		return err
+	}
+
 	if err := c.validatePorts(); err != nil {
 		return err
 	}
