@@ -5,7 +5,7 @@ Helm chart für das Savvy - Digitale Verwaltung von Kundenkarten, Gutscheinen un
 ## Features
 
 - ✅ Full-Stack Architecture (Go + Echo + SvelteKit + TypeScript)
-- ✅ PostgreSQL Database (external oder internal)
+- ✅ External PostgreSQL via connection URL or separate parameters
 - ✅ External Secrets Operator Integration (Bitwarden)
 - ✅ Prometheus Metrics + ServiceMonitor
 - ✅ Health Checks (Liveness + Readiness)
@@ -18,7 +18,7 @@ Helm chart für das Savvy - Digitale Verwaltung von Kundenkarten, Gutscheinen un
 
 - Kubernetes 1.24+
 - Helm 3.8+
-- PostgreSQL 14+ (external oder via Sub-Chart)
+- PostgreSQL 14+ (managed separately)
 - External Secrets Operator (optional, für Production empfohlen)
 - Cert-Manager (für TLS)
 - Ingress Controller (nginx empfohlen)
@@ -83,7 +83,7 @@ helm install savvy deploy/helm \
 
 ### Required Values
 
-The following values **must** be provided for deployment:
+For URL-based database configuration, provide:
 
 | Parameter                 | Description                                      | Example           |
 | ------------------------- | ------------------------------------------------ | ----------------- |
@@ -115,7 +115,6 @@ When OAuth is enabled, these are also required:
 | `config.smtpHost`             | SMTP server host              | `""`                        |
 | `config.enable2FA`            | Enable 2FA/TOTP               | `false`                     |
 | `secrets.smtp.existingSecret` | Secret with SMTP credentials  | `""`                        |
-| `database.external.enabled`   | Use external PostgreSQL       | `true`                      |
 | `externalSecrets.enabled`     | Use External Secrets Operator | `true`                      |
 | `oauth.enabled`               | Enable OAuth/OIDC             | `false`                     |
 | `ingress.enabled`             | Enable Ingress                | `false`                     |
@@ -124,38 +123,24 @@ When OAuth is enabled, these are also required:
 
 ### Database Configuration
 
-#### External PostgreSQL (Production)
+For separate parameters, use an existing password Secret in the release namespace:
 
 ```yaml
 database:
-  external:
-    enabled: true
-    host: "postgres.database.svc.cluster.local"
-    port: 5432
-    name: "savvy"
-    user: "savvy"
-    sslMode: "require"
-    existingSecret: "savvy-db"
-    existingSecretKey: "password"
+  existingSecret: ""
+  host: "postgres.database.svc.cluster.local"
+  name: "savvy"
+  user: "savvy"
+  passwordSecret:
+    existingSecret: "savvy-db-password"
+    passwordKey: "password"
 ```
 
-#### Internal PostgreSQL (Development)
-
-```yaml
-database:
-  external:
-    enabled: false
-  postgresql:
-    enabled: true
-    auth:
-      username: savvy
-      password: changeme
-      database: savvy
-    primary:
-      persistence:
-        enabled: true
-        size: 8Gi
-```
+A non-empty `database.existingSecret` keeps URL mode (`databaseUrlKey`) and takes precedence.
+Passwords are injected via `secretKeyRef` and must not be URL-encoded.
+Port defaults to `5432` and TLS to `verify-full`. Other TLS modes: `verify-ca`, `require`,
+and explicitly `disable`; plaintext fallback modes `allow`/`prefer` are rejected.
+For non-Helm deployments, see the [environment example](../../.env.example).
 
 ### External Secrets Configuration
 
