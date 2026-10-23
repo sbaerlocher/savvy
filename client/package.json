@@ -54,7 +54,7 @@
 		"build:embed": "npm run build && npm run copy:assets",
 		"copy:assets": "rm -rf ../internal/assets/client && cp -r build ../internal/assets/client && echo '✅ Assets copied to internal/assets/client/'",
 		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && tsc --noEmit -p src/service-worker",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"typecheck": "npm run check",
 		"lint": "eslint .",

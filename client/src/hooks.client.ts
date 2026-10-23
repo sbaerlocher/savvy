@@ -47,11 +47,14 @@ function isChunkLoadError(error: unknown): boolean {
  * Catches all unhandled errors in client-side code
  */
 export const handleError: HandleClientError = async ({
+	kind,
 	error,
-	event,
-	status,
-	message
+	event
 }) => {
+	// Kit 3 passes the error's status/message on the caught error itself
+	// (app and framework errors); unknown errors carry neither.
+	const status = kind === 'unknown' ? undefined : error.status;
+	const message = kind === 'unknown' ? undefined : error.message;
 	// Generate unique error ID for tracking
 	const errorId = crypto.randomUUID();
 

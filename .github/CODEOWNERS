@@ -78,7 +78,6 @@
 
 # Frontend configuration
 /client/vite.config.ts @sbaerlocher
-/client/svelte.config.js @sbaerlocher
 /client/tsconfig.json @sbaerlocher
 /client/package.json @sbaerlocher
 

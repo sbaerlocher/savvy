@@ -58,7 +58,7 @@ func generateCSPNonce() (string, error) {
 // - Browsers ignore 'unsafe-inline' when nonces/hashes are present
 // - SvelteKit SPA requires 'unsafe-inline' for inline event handlers (onclick, etc.)
 // - Svelte transitions create inline <style> elements that need 'unsafe-inline'
-// - CSP config in svelte.config.js only works for SSR, not adapter-static
+// - SvelteKit's CSP config only works for SSR, not adapter-static
 //
 // This will be improved when SvelteKit moves to Web Animations API.
 // See: https://github.com/sveltejs/kit/issues/11747

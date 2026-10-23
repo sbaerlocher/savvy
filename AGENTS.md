@@ -511,7 +511,7 @@ Handlers → Services (Interfaces) → Repositories (Interfaces) → GORM Models
 
 ### Implementation
 
-**Service Worker**: Custom service worker (`src/service-worker.ts`) with Workbox, built natively by SvelteKit
+**Service Worker**: Custom service worker (`src/service-worker/index.ts`) with Workbox, built natively by SvelteKit
 
 - **Strategy**: **NetworkFirst** with automatic warmup cache for offline-first functionality
 - **Warmup Cache**: Automatic API precaching on install using `warmStrategyCache` (Workbox Recipes)
@@ -526,7 +526,7 @@ Handlers → Services (Interfaces) → Repositories (Interfaces) → GORM Models
 ```mermaid
 graph TB
     subgraph Browser["Browser Environment"]
-        SW[Custom Service Worker<br/>src/service-worker.ts<br/>NetworkFirst + Warmup]
+        SW[Custom Service Worker<br/>src/service-worker/<br/>NetworkFirst + Warmup]
         WB[Workbox Cache<br/>CacheStorage API]
         WARM[Warmup Cache<br/>warmStrategyCache<br/>Auto-preload on install]
         NET[Network<br/>/api/v1/*]
@@ -675,8 +675,8 @@ warmStrategyCache({
 
 **Files**:
 
-- Service Worker: [client/src/service-worker.ts](client/src/service-worker.ts) (Custom SW with Workbox Recipes)
-- PWA Config: [client/svelte.config.js](client/svelte.config.js) (`serviceWorker.register: false`), manifest in [client/static/manifest.webmanifest](client/static/manifest.webmanifest)
+- Service Worker: [client/src/service-worker/index.ts](client/src/service-worker/index.ts) (Custom SW with Workbox Recipes)
+- PWA Config: [client/vite.config.ts](client/vite.config.ts) (`sveltekit({ serviceWorker: { register: false } })`), manifest in [client/static/manifest.webmanifest](client/static/manifest.webmanifest)
 - SW Registration: [client/src/routes/+layout.svelte](client/src/routes/+layout.svelte) (Manual registration)
 - Offline Store: [client/src/lib/stores/offline.ts](client/src/lib/stores/offline.ts) (cache validation logic)
 - IndexedDB Wrapper: [client/src/lib/stores/offline-db.ts](client/src/lib/stores/offline-db.ts)
@@ -702,16 +702,16 @@ The system uses a **modern SvelteKit frontend** with JSON API backend:
 
 ```typescript
 // API Client (client/src/lib/api/)
-import { cardsApi } from '$lib/api/cards';
+import { cardsApi } from '#lib/api/cards.js';
 
 const cards = await cardsApi.getAll();
 await cardsApi.create({ merchant_name: 'IKEA', ... });
 await cardsApi.delete(cardId);
 
 // Svelte Stores (client/src/lib/stores/)
-import { authStore } from '$lib/stores/auth';
-import { offlineStore } from '$lib/stores/offline';
-import { notificationStore } from '$lib/stores/notifications';
+import { authStore } from '#lib/stores/auth.js';
+import { offlineStore } from '#lib/stores/offline.js';
+import { notificationStore } from '#lib/stores/notifications.js';
 
 // Components (client/src/lib/components/)
 <CardForm bind:card on:submit={handleSubmit} />
@@ -746,7 +746,7 @@ if (barcodes.length > 0) {
 - **Development**: `docker compose up` (Vite dev server on port 5173 in Docker)
 - **Production**: `npm run build:embed` → copies to `internal/assets/client/`
 - **Go Embedding**: `//go:embed` in main.go serves SvelteKit build
-- **PWA**: SvelteKit builds the service worker natively from `src/service-worker.ts`
+- **PWA**: SvelteKit builds the service worker natively from `src/service-worker/index.ts`
 
 ---
 

@@ -2,23 +2,11 @@ import '@testing-library/jest-dom';
 import { vi, beforeEach } from 'vitest';
 
 // Mock SvelteKit modules
-vi.mock('$app/environment', () => ({
+vi.mock('$app/env', () => ({
 	browser: true,
 	building: false,
 	dev: true,
 	version: '1.0.0'
-}));
-
-vi.mock('$app/stores', () => ({
-	page: {
-		subscribe: vi.fn()
-	},
-	navigating: {
-		subscribe: vi.fn()
-	},
-	updated: {
-		subscribe: vi.fn()
-	}
 }));
 
 // Mock localStorage with actual storage implementation

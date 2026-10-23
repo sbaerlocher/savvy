@@ -2,7 +2,7 @@
 	import type { NotificationDTO } from '#lib/types/api.js';
 
 	// Desktop notification icon set (mirrors ui-NotifIcon from the design
-	// project). Uses its own glyphs rather than $lib/icons because the mockup
+	// project). Uses its own glyphs rather than #lib/icons because the mockup
 	// draws share/transfer/expiry/validity with a distinct, lighter stroke.
 	let {
 		type,

@@ -125,7 +125,7 @@
 				// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
 				resolve('wallet') +
 					(q ? `?search=${encodeURIComponent(q)}` : '?search=1'),
-				{ keepFocus: true, replaceState: true }
+				{ reset: false, replace: true }
 			);
 		}, 250);
 	}

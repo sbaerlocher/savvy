@@ -190,11 +190,11 @@
 		const id = notification.resource_id;
 		switch (notification.resource_type) {
 			case 'voucher':
-				return `/vouchers/${id}` as const;
+				return resolve('/vouchers/[id]', { id });
 			case 'gift_card':
-				return `/gift-cards/${id}` as const;
+				return resolve('/gift-cards/[id]', { id });
 			default:
-				return `/cards/${id}` as const;
+				return resolve('/cards/[id]', { id });
 		}
 	}
 
@@ -202,7 +202,8 @@
 		if (!notification.is_read) {
 			await handleMarkAsRead(notification.id);
 		}
-		goto(resolve(getNotificationLink(notification)));
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- getNotificationLink() returns resolve()d routes
+		goto(getNotificationLink(notification));
 	}
 
 	function formatTimeAgo(dateString: string): string {

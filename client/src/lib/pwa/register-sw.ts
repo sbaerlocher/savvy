@@ -14,7 +14,7 @@ let controllerChangeBound = false;
 /**
  * Registers the service worker manually.
  *
- * SvelteKit's automatic registration is disabled (svelte.config.js) so the
+ * SvelteKit's automatic registration is disabled (vite.config.ts) so the
  * availability check and update toast below stay in our control. May run more than once per page load (re-registration
  * from the profile page), so i18n is read via get(t) rather than the reactive $t.
  *
@@ -27,8 +27,8 @@ export async function registerServiceWorker(): Promise<boolean> {
 		return false;
 	}
 
-	// SvelteKit builds service-worker.js from src/service-worker.ts (served
-	// unbundled as an ES module in dev, hence type: 'module' below)
+	// SvelteKit builds service-worker.js from src/service-worker/ as an ES
+	// module (served unbundled in dev), hence type: 'module' below
 	const swUrl = '/service-worker.js';
 
 	// Verify the SW file actually exists before registering.
@@ -50,7 +50,7 @@ export async function registerServiceWorker(): Promise<boolean> {
 
 	try {
 		const registration = await navigator.serviceWorker.register(swUrl, {
-			type: import.meta.env.DEV ? 'module' : 'classic'
+			type: 'module'
 		});
 		swLogger.info(`Service Worker registered: ${swUrl}`);
 		pwaStore.setRegistration(registration);

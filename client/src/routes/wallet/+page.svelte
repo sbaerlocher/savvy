@@ -206,7 +206,7 @@
 	});
 
 	onMount(async () => {
-		const t = get(page).url.searchParams.get('type');
+		const t = page.url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
 			walletFilters.typeFilter = t;
 			// Mirror the type-change effect: 'active' is invalid for vouchers.

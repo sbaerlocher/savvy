@@ -37,10 +37,10 @@ type NavigableClient = {
 
 /** Minimal shape of `self.clients` used by {@link handleNotificationClick}. */
 type ClientsLike = {
-	matchAll: (options?: {
-		type?: string;
-		includeUncontrolled?: boolean;
-	}) => Promise<NavigableClient[]>;
+	matchAll: (options: {
+		type: 'window';
+		includeUncontrolled: boolean;
+	}) => Promise<readonly NavigableClient[]>;
 	openWindow: (url: string) => Promise<unknown>;
 };
 

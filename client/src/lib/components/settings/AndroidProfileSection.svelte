@@ -18,7 +18,7 @@
 	let { profile, onProfileUpdated }: Props = $props();
 
 	// Leading glyphs are the mockup's own paths (screen-SettingsAndroid), which
-	// differ from the shared $lib/icons set.
+	// differ from the shared #lib/icons set.
 	const ICON_PENCIL_SQUARE =
 		'M11 4h-5a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5';
 	const ICON_PENCIL_TIP = 'M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z';

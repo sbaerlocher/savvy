@@ -83,7 +83,7 @@
 			? `max-sm:liquid-glass-card max-sm:inline-flex max-sm:shrink-0 max-sm:items-center max-sm:gap-1.25 max-sm:rounded-full max-sm:px-3 max-sm:py-1.75 max-sm:text-label max-sm:text-accent-700 ${EDIT_BUTTON}`
 			: EDIT_BUTTON;
 
-	const merchantId = $derived(get(page).params.id ?? '');
+	const merchantId = $derived(page.params.id ?? '');
 
 	async function loadData() {
 		isLoading = true;

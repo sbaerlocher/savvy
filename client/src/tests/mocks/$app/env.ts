@@ -1,4 +1,4 @@
-// Mock for $app/environment
+// Mock for $app/env
 export const browser = true;
 export const building = false;
 export const dev = true;
