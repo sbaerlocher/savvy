@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-24
+
+### Added
+
+- **Separate PostgreSQL connection parameters (#467, #476)** - `DATABASE_HOST`,
+  `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD` and
+  `DATABASE_SSLMODE` build the connection when `DATABASE_URL` is unset, so the
+  password can come from its own Secret without URL encoding. `DATABASE_URL`
+  keeps precedence, and a warning names any parameters it overrides. The Helm
+  chart gains a matching parameter mode with the password read via
+  `secretKeyRef`. Parameter mode defaults to `sslmode=verify-full` and rejects
+  the plaintext fallbacks `allow`/`prefer`.
+
+### Changed
+
+- **OIDC-only startup fails fast (#466)** - With local login disabled, a failed
+  OIDC discovery now stops the server with exit code 1 instead of starting
+  without a usable login method, so the orchestrator restarts it.
+- **SvelteKit 3 (#484)** - The frontend runs on SvelteKit 3 and
+  `@sveltejs/adapter-static` 4. Configuration moved from `svelte.config.js` into
+  `vite.config.ts`, and `$lib` imports became `#lib/….js` subpath imports.
+- **Native SvelteKit service worker (#478)** - `@vite-pwa/sveltekit` is gone;
+  SvelteKit builds the service worker itself, and the service worker version
+  only changes with a release, so redeploys no longer show the update toast.
+  The web app manifest is now `static/manifest.webmanifest`, which uses the
+  brand colours (`theme_color` `#2b808d`, `background_color` `#f3f4f6`) and
+  marks the icons as maskable.
+
+### Fixed
+
+- **Offline cold start (#478)** - Opening the installed app offline at `/` or
+  on a route not visited before served the browser error page, because the
+  cached app shell was a redirected response. The shell is now cached without
+  the redirect flag, and an E2E test covers it offline.
+
+### Security
+
+- **Go 1.27.3 in CI (#475)** - Fixes `GO-2026-6809` (crypto/x509, compromised
+  intermediate certificates), which govulncheck reported against Go 1.27.2.
+
+### Dependencies
+
+- Updated all non-major dependencies (#471, #472, #475, #479, #485),
+  `@playwright/test` 1.64.1 (#468), happy-dom 21 (#469) and Node.js 24.22.0
+  (#473).
+- Updated Docker images: `golang:1.27-alpine` digest (#483), `alpine:3.24`
+  digest (#482), Docker Compose images (#480) and
+  opentelemetry-collector-contrib 0.163.1 (#474).
+- Updated `sbaerlocher/.github` to v2026-10-17 (#470) and v2026-10-23 (#477);
+  the E2E jobs point back at the date tag after #478 (#481).
+
 ## [1.7.1] - 2026-10-17
 
 ### Security
@@ -820,7 +871,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.7.1...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/sbaerlocher/savvy/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/sbaerlocher/savvy/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/sbaerlocher/savvy/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/sbaerlocher/savvy/compare/v1.6.0...v1.6.1
