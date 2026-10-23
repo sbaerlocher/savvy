@@ -17,6 +17,24 @@ func (c *Config) hasDatabaseParameters() bool {
 		c.DatabaseUser != "" || c.DatabasePassword != "" || c.DatabaseSSLMode != ""
 }
 
+// IgnoredDatabaseParameters lists the non-blank separate parameters that DATABASE_URL overrides.
+func (c *Config) IgnoredDatabaseParameters() []string {
+	if c.DatabaseURL == "" {
+		return nil
+	}
+	var keys []string
+	for _, p := range []struct{ key, value string }{
+		{"DATABASE_HOST", c.DatabaseHost}, {"DATABASE_PORT", c.DatabasePort},
+		{"DATABASE_NAME", c.DatabaseName}, {"DATABASE_USER", c.DatabaseUser},
+		{"DATABASE_PASSWORD", c.DatabasePassword}, {"DATABASE_SSLMODE", c.DatabaseSSLMode},
+	} {
+		if strings.TrimSpace(p.value) != "" {
+			keys = append(keys, p.key)
+		}
+	}
+	return keys
+}
+
 // DatabaseConnectionString preserves DATABASE_URL precedence and escapes separate parameters.
 func (c *Config) DatabaseConnectionString() (string, error) {
 	connectionString := c.DatabaseURL

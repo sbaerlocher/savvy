@@ -1,8 +1,7 @@
 package config
 
 import (
-	"bytes"
-	"log/slog"
+	"slices"
 	"strings"
 	"testing"
 
@@ -91,28 +90,22 @@ func TestDatabaseConnectionString(t *testing.T) {
 	}
 }
 
-func TestValidateWarnsWhenURLOverridesParameters(t *testing.T) {
-	var logs bytes.Buffer
-	previous := slog.Default()
-	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
-	defer slog.SetDefault(previous)
-
+func TestIgnoredDatabaseParameters(t *testing.T) {
+	url := "postgres://user:pass@localhost/db?sslmode=disable"
 	for _, tc := range []struct {
-		name, host string
-		wantWarn   bool
+		name string
+		cfg  Config
+		want []string
 	}{
-		{"URL only", "", false},
-		{"URL and parameters", "postgres", true},
+		{"URL only", Config{DatabaseURL: url}, nil},
+		{"parameters only", Config{DatabaseHost: "postgres", DatabaseName: "savvy"}, nil},
+		{"blank values", Config{DatabaseURL: url, DatabaseHost: " ", DatabaseSSLMode: "\t"}, nil},
+		{"URL and parameters", Config{DatabaseURL: url, DatabaseHost: "postgres", DatabaseSSLMode: "require"},
+			[]string{"DATABASE_HOST", "DATABASE_SSLMODE"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			logs.Reset()
-			t.Setenv("DATABASE_URL", "postgres://user:pass@localhost/db?sslmode=disable")
-			t.Setenv("DATABASE_HOST", tc.host)
-			if err := Load().Validate(); err != nil {
-				t.Fatal(err)
-			}
-			if got := strings.Contains(logs.String(), "DATABASE_URL is set; ignoring"); got != tc.wantWarn {
-				t.Fatalf("warning logged = %v, want %v", got, tc.wantWarn)
+			if got := tc.cfg.IgnoredDatabaseParameters(); !slices.Equal(got, tc.want) {
+				t.Fatalf("got %v, want %v", got, tc.want)
 			}
 		})
 	}
