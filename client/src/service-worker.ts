@@ -30,6 +30,18 @@ precacheAndRoute([
 // Cleanup outdated caches from previous versions
 cleanupOutdatedCaches();
 
+// Browsers refuse a redirected response as the answer to a navigation
+// (ERR_FAILED). The shell is often fetched through a redirect (e.g. `/` to
+// `/login` while signed out), so cache a copy without the redirect flag.
+async function withoutRedirect(response: Response): Promise<Response> {
+	if (!response.redirected) return response;
+	return new Response(await response.blob(), {
+		status: response.status,
+		statusText: response.statusText,
+		headers: response.headers
+	});
+}
+
 // ========================================================================
 // NAVIGATION HANDLING - SPA Fallback (StaleWhileRevalidate)
 // ========================================================================
@@ -45,6 +57,9 @@ registerRoute(
 			cacheName: 'navigation-pages',
 			plugins: [
 				new CacheableResponsePlugin({ statuses: [200] }),
+				{
+					cacheWillUpdate: async ({ response }) => withoutRedirect(response)
+				},
 				{
 					// Hard fallback: if StaleWhileRevalidate yields neither cache
 					// nor network (e.g. cold Android homescreen-shortcut start, or
@@ -200,9 +215,13 @@ self.addEventListener('install', (event) => {
 	// the shell reaches navigation-pages ahead of the first navigation. Best
 	// effort: swallow failure (offline install) so it never blocks activation.
 	event.waitUntil(
-		caches
-			.open('navigation-pages')
-			.then((cache) => cache.add('/'))
+		fetch('/')
+			.then(withoutRedirect)
+			.then(async (response) => {
+				if (!response.ok) throw new Error(`HTTP ${response.status}`);
+				const cache = await caches.open('navigation-pages');
+				await cache.put('/', response);
+			})
 			.catch((err) => console.warn('[SW] Shell warmup failed:', err))
 	);
 	// Skip waiting immediately so security/bug fixes reach users without delay
