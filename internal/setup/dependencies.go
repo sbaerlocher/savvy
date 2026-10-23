@@ -103,6 +103,10 @@ func InitDatabase(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
+	// Logged here rather than in Validate so it goes through the configured logger.
+	if ignored := cfg.IgnoredDatabaseParameters(); len(ignored) > 0 {
+		slog.Warn("DATABASE_URL takes precedence; ignoring separate database parameters", "ignored", ignored)
+	}
 	if err := database.Connect(connectionString, cfg.LogLevel); err != nil {
 		return err
 	}

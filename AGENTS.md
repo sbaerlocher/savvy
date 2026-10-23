@@ -936,6 +936,9 @@ TIMEZONE=Europe/Zurich        # IANA timezone for date calculations (default: UT
 
 # Database
 DATABASE_URL=postgres://user:pass@host:5432/db?sslmode=require
+# Alternative to DATABASE_URL (URL takes precedence; requires a password):
+# DATABASE_HOST, DATABASE_PORT (5432), DATABASE_NAME, DATABASE_USER,
+# DATABASE_PASSWORD, DATABASE_SSLMODE (verify-full)
 AUTO_MIGRATE=true             # Auto-run database migrations on startup
 
 # Session

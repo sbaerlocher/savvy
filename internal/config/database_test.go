@@ -1,6 +1,7 @@
 package config
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -84,6 +85,27 @@ func TestDatabaseConnectionString(t *testing.T) {
 				if fallback.TLSConfig == nil {
 					t.Fatal("TLS must not fall back to plaintext")
 				}
+			}
+		})
+	}
+}
+
+func TestIgnoredDatabaseParameters(t *testing.T) {
+	url := "postgres://user:pass@localhost/db?sslmode=disable"
+	for _, tc := range []struct {
+		name string
+		cfg  Config
+		want []string
+	}{
+		{"URL only", Config{DatabaseURL: url}, nil},
+		{"parameters only", Config{DatabaseHost: "postgres", DatabaseName: "savvy"}, nil},
+		{"blank values", Config{DatabaseURL: url, DatabaseHost: " ", DatabaseSSLMode: "\t"}, nil},
+		{"URL and parameters", Config{DatabaseURL: url, DatabaseHost: "postgres", DatabaseSSLMode: "require"},
+			[]string{"DATABASE_HOST", "DATABASE_SSLMODE"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := tc.cfg.IgnoredDatabaseParameters(); !slices.Equal(got, tc.want) {
+				t.Fatalf("got %v, want %v", got, tc.want)
 			}
 		})
 	}
