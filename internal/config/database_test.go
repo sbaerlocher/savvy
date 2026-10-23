@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+	"log/slog"
 	"strings"
 	"testing"
 
@@ -84,6 +86,33 @@ func TestDatabaseConnectionString(t *testing.T) {
 				if fallback.TLSConfig == nil {
 					t.Fatal("TLS must not fall back to plaintext")
 				}
+			}
+		})
+	}
+}
+
+func TestValidateWarnsWhenURLOverridesParameters(t *testing.T) {
+	var logs bytes.Buffer
+	previous := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, nil)))
+	defer slog.SetDefault(previous)
+
+	for _, tc := range []struct {
+		name, host string
+		wantWarn   bool
+	}{
+		{"URL only", "", false},
+		{"URL and parameters", "postgres", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			logs.Reset()
+			t.Setenv("DATABASE_URL", "postgres://user:pass@localhost/db?sslmode=disable")
+			t.Setenv("DATABASE_HOST", tc.host)
+			if err := Load().Validate(); err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.Contains(logs.String(), "DATABASE_URL is set; ignoring"); got != tc.wantWarn {
+				t.Fatalf("warning logged = %v, want %v", got, tc.wantWarn)
 			}
 		})
 	}

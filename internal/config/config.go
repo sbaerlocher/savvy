@@ -203,6 +203,9 @@ func (c *Config) Validate() error {
 	if _, err := c.DatabaseConnectionString(); err != nil {
 		return err
 	}
+	if c.DatabaseURL != "" && c.hasDatabaseParameters() {
+		slog.Warn("DATABASE_URL is set; ignoring DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD and DATABASE_SSLMODE")
+	}
 
 	if err := c.validatePorts(); err != nil {
 		return err
