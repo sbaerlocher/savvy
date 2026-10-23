@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { ICON_CHECK, ICON_LOCK, ICON_WARNING } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import { ICON_CHECK, ICON_LOCK, ICON_WARNING } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import EmailAutocomplete from './EmailAutocomplete.svelte';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
 
 	interface Props {
 		isOffline: boolean;

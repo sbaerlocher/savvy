@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { DuplicateWarning } from '$lib/types/api';
-	import { t } from '$lib/stores/i18n';
+	import type { DuplicateWarning } from '#lib/types/api.js';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>

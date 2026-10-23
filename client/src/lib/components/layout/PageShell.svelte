@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import PageHeader from '#lib/components/ui/PageHeader.svelte';
 	import type { Snippet } from 'svelte';
 
 	/**

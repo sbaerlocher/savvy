@@ -4,7 +4,7 @@ import type {
 	BatchShareRequest,
 	BatchTransferRequest,
 	BatchResponse
-} from '$lib/types/api';
+} from '#lib/types/api.js';
 
 type ResourceType = 'cards' | 'vouchers' | 'gift-cards';
 

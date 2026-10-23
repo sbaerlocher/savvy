@@ -5,7 +5,7 @@ import type {
 	AdminUserUpdateRequest,
 	AuditLogDTO,
 	AuditLogFiltersRequest
-} from '$lib/types/api';
+} from '#lib/types/api.js';
 
 export const adminApi = {
 	// User Management

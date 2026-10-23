@@ -1,6 +1,6 @@
-import { offlineDB } from '$lib/stores/offline-db';
-import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
-import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { cardsApi, vouchersApi, giftCardsApi } from '#lib/api/index.js';
+import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
 
 export type Kind = 'card' | 'voucher' | 'gift_card';
 

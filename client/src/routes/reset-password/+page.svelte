@@ -1,16 +1,16 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
-	import { ApiError, authApi } from '$lib/api';
-	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
-	import AuthResultIOS from '$lib/components/auth/AuthResultIOS.svelte';
-	import M3TextField from '$lib/components/ui/M3TextField.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { platform } from '$lib/utils/platform';
+	import { page } from '$app/state';
+	import { ApiError, authApi } from '#lib/api/index.js';
+	import AuthCardIOS from '#lib/components/auth/AuthCardIOS.svelte';
+	import AuthResultIOS from '#lib/components/auth/AuthResultIOS.svelte';
+	import M3TextField from '#lib/components/ui/M3TextField.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
@@ -39,14 +39,14 @@
 
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 			return;
 		}
 
 		// Initialize CSRF cookie by hitting a public GET endpoint
 		await fetch('/api/v1/config').catch(() => {});
 
-		token = $page.url.searchParams.get('token') || '';
+		token = page.url.searchParams.get('token') || '';
 		if (!token) {
 			status = 'error';
 			errorMessage = tr('auth.resetPassword.invalidToken');
@@ -105,7 +105,7 @@
 				message={tr('auth.resetPassword.successMessage')}
 			>
 				<a
-					href={resolve('/login')}
+					href={resolve('login')}
 					class="flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent"
 				>
 					{tr('auth.resetPassword.goToLogin')}
@@ -121,14 +121,14 @@
 				<div class="flex flex-col gap-3">
 					{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
 						<a
-							href={resolve('/forgot-password')}
+							href={resolve('forgot-password')}
 							class="flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent"
 						>
 							{tr('auth.resetPassword.requestNew')}
 						</a>
 					{/if}
 					<a
-						href={resolve('/login')}
+						href={resolve('login')}
 						class="flex h-13 w-full items-center justify-center rounded-xl border border-border-field bg-surface text-amount font-semibold text-text"
 					>
 						{tr('auth.resetPassword.goToLogin')}
@@ -191,9 +191,9 @@
 				</button>
 
 				<div class="pt-1 text-center">
-					<a href={resolve('/login')} class="text-label text-accent-600">
-						{tr('auth.resetPassword.goToLogin')}
-					</a>
+					<a href={resolve('login')} class="text-label text-accent-600"
+						>{tr('auth.resetPassword.goToLogin')}</a
+					>
 				</div>
 			</form>
 		{/if}
@@ -215,10 +215,8 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"
+						viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg
 					>
-						<path d="M5 13l4 4L19 7" />
-					</svg>
 				</span>
 				<h1 class="text-heading text-text mb-2">
 					{tr('auth.resetPassword.success')}
@@ -227,7 +225,7 @@
 					{tr('auth.resetPassword.successMessage')}
 				</p>
 				<a
-					href={resolve('/login')}
+					href={resolve('login')}
 					class="text-subheading bg-accent-600 text-on-accent rounded-m3-full shadow-accent flex h-12 w-full items-center justify-center"
 				>
 					{tr('auth.resetPassword.goToLogin')}
@@ -247,10 +245,8 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"
+						viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg
 					>
-						<path d="M6 18L18 6M6 6l12 12" />
-					</svg>
 				</span>
 				<h1 class="text-heading text-text mb-2">
 					{tr('auth.resetPassword.error')}
@@ -259,14 +255,14 @@
 				<div class="flex flex-col gap-3">
 					{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
 						<a
-							href={resolve('/forgot-password')}
+							href={resolve('forgot-password')}
 							class="text-subheading bg-accent-600 text-on-accent rounded-m3-full shadow-accent flex h-12 w-full items-center justify-center"
 						>
 							{tr('auth.resetPassword.requestNew')}
 						</a>
 					{/if}
 					<a
-						href={resolve('/login')}
+						href={resolve('login')}
 						class="text-subheading border-border-field text-accent-700 rounded-m3-full flex h-12 w-full items-center justify-center border"
 					>
 						{tr('auth.resetPassword.goToLogin')}
@@ -288,9 +284,9 @@
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
 						>
-							<rect x="2" y="5" width="20" height="14" rx="3" />
-							<path d="M2 10h20" />
-							<path d="M6 15h4" />
+							<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+							<path d="M2 10h20"></path>
+							<path d="M6 15h4"></path>
 						</svg>
 					</span>
 					<h1 class="text-heading text-text">
@@ -336,7 +332,7 @@
 
 					<div class="-mt-1.5 text-center">
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="text-label text-accent-600 font-semibold"
 						>
 							{tr('auth.resetPassword.goToLogin')}
@@ -374,9 +370,9 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 							>
-								<rect x="2" y="5" width="20" height="14" rx="3" />
-								<path d="M2 10h20" />
-								<path d="M6 15h4" />
+								<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+								<path d="M2 10h20"></path>
+								<path d="M6 15h4"></path>
 							</svg>
 						</span>
 					{:else}
@@ -409,7 +405,7 @@
 									stroke-linejoin="round"
 									stroke-width="2"
 									d="M5 13l4 4L19 7"
-								/>
+								></path>
 							</svg>
 						</div>
 						<h2
@@ -427,7 +423,7 @@
 							{tr('auth.resetPassword.successMessage')}
 						</p>
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="btn btn-primary w-full {isDesktop
 								? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:shadow-accent'
 								: ''}"
@@ -453,7 +449,7 @@
 									stroke-linejoin="round"
 									stroke-width="2"
 									d="M6 18L18 6M6 6l12 12"
-								/>
+								></path>
 							</svg>
 						</div>
 						<h2
@@ -474,7 +470,7 @@
 						<div class="space-y-3">
 							{#if errorCode === 'token_expired' || errorCode === 'invalid_token'}
 								<a
-									href={resolve('/forgot-password')}
+									href={resolve('forgot-password')}
 									class="btn btn-primary w-full {isDesktop
 										? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:shadow-accent'
 										: ''}"
@@ -483,7 +479,7 @@
 								</a>
 							{/if}
 							<a
-								href={resolve('/login')}
+								href={resolve('login')}
 								class="btn btn-ghost w-full {isDesktop
 									? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:text-text'
 									: ''}"
@@ -576,13 +572,11 @@
 
 						<div class="text-center pt-4 {isDesktop ? 'lg:pt-0' : ''}">
 							<a
-								href={resolve('/login')}
+								href={resolve('login')}
 								class="font-medium text-accent hover:text-accent {isDesktop
 									? 'lg:text-body lg:font-semibold'
-									: ''}"
+									: ''}">{tr('auth.resetPassword.goToLogin')}</a
 							>
-								{tr('auth.resetPassword.goToLogin')}
-							</a>
 						</div>
 					</form>
 				{/if}

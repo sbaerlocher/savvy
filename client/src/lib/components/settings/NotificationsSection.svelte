@@ -1,15 +1,15 @@
 <script lang="ts">
-	import type { ProfileDTO } from '$lib/api';
-	import { profileApi } from '$lib/api';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { profileApi } from '#lib/api/index.js';
 	import ToggleSwitch from './ToggleSwitch.svelte';
 	import M3SettingsRow from './M3SettingsRow.svelte';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
-	import { configStore } from '$lib/stores/config';
-	import { t } from '$lib/stores/i18n';
-	import { pushStore } from '$lib/stores/push';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
+	import { configStore } from '#lib/stores/config.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { pushStore } from '#lib/stores/push.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { get } from 'svelte/store';

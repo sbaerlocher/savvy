@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { authStore } from '$lib/stores/auth';
+	import { authStore } from '#lib/stores/auth.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
@@ -7,9 +7,9 @@
 	onMount(() => {
 		// Redirect to dashboard if logged in, otherwise to login
 		if ($authStore.isAuthenticated) {
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 		} else {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 		}
 	});
 </script>

@@ -1,6 +1,6 @@
-import { browser } from '$app/environment';
-import { ApiError, authApi } from '$lib/api';
-import { logger } from '$lib/utils/logger';
+import { browser } from '$app/env';
+import { ApiError, authApi } from '#lib/api/index.js';
+import { logger } from '#lib/utils/logger.js';
 import { redirect } from '@sveltejs/kit';
 
 /**

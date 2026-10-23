@@ -7,12 +7,12 @@
  * label derivation) lives HERE, never in the component.
  */
 
-import type { CardDTO, VoucherDTO, GiftCardDTO } from '$lib/types/api';
-import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
-import { formatCurrency } from '$lib/utils/currency';
-import { formatDisplayDate } from '$lib/utils/date';
-import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-import { t } from '$lib/stores/i18n';
+import type { CardDTO, VoucherDTO, GiftCardDTO } from '#lib/types/api.js';
+import type { BarcodeModalItem } from '#lib/components/dashboard/BarcodeModal.svelte';
+import { formatCurrency } from '#lib/utils/currency.js';
+import { formatDisplayDate } from '#lib/utils/date.js';
+import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
+import { t } from '#lib/stores/i18n.js';
 import { get } from 'svelte/store';
 
 /** The unwrapped translate function held by the `t` derived store. */

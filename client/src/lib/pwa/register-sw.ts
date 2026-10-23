@@ -1,8 +1,8 @@
 import { get } from 'svelte/store';
-import { t } from '$lib/stores/i18n';
-import { pwaStore } from '$lib/stores/pwa';
-import { toastStore } from '$lib/stores/toast';
-import { logger } from '$lib/utils/logger';
+import { t } from '#lib/stores/i18n.js';
+import { pwaStore } from '#lib/stores/pwa.js';
+import { toastStore } from '#lib/stores/toast.js';
+import { logger } from '#lib/utils/logger.js';
 
 const swLogger = logger.child('Layout');
 
@@ -14,7 +14,7 @@ let controllerChangeBound = false;
 /**
  * Registers the service worker manually.
  *
- * SvelteKit's automatic registration is disabled (svelte.config.js) so the
+ * SvelteKit's automatic registration is disabled (vite.config.ts) so the
  * availability check and update toast below stay in our control. May run more than once per page load (re-registration
  * from the profile page), so i18n is read via get(t) rather than the reactive $t.
  *
@@ -27,8 +27,8 @@ export async function registerServiceWorker(): Promise<boolean> {
 		return false;
 	}
 
-	// SvelteKit builds service-worker.js from src/service-worker.ts (served
-	// unbundled as an ES module in dev, hence type: 'module' below)
+	// SvelteKit builds service-worker.js from src/service-worker/ (served
+	// unbundled as an ES module in dev, hence type: 'module' there)
 	const swUrl = '/service-worker.js';
 
 	// Verify the SW file actually exists before registering.

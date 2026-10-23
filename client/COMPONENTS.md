@@ -16,8 +16,8 @@ How a page gets its frame, and where to put a new one.
 
 ```svelte
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { t } from '$lib/stores/i18n';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { t } from '#lib/stores/i18n.js';
 </script>
 
 <svelte:head>

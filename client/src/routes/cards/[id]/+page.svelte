@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { cardsApi, merchantsApi, ApiError } from '$lib/api';
-	import { offlineDB } from '$lib/stores/offline-db';
-	import { toastStore } from '$lib/stores/toast';
-	import CardForm from '$lib/components/cards/CardForm.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import ResourceDetail from '$lib/components/ui/ResourceDetail.svelte';
-	import ResourceDetailActions from '$lib/components/ui/ResourceDetailActions.svelte';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { cardsApi, merchantsApi, ApiError } from '#lib/api/index.js';
+	import { offlineDB } from '#lib/stores/offline-db.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import CardForm from '#lib/components/cards/CardForm.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import ResourceDetail from '#lib/components/ui/ResourceDetail.svelte';
+	import ResourceDetailActions from '#lib/components/ui/ResourceDetailActions.svelte';
 
-	import type { CardDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
-	import { logger } from '$lib/utils/logger';
+	import type { CardDTO, ShareDTO, MerchantDTO } from '#lib/types/api.js';
+	import { logger } from '#lib/utils/logger.js';
 
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	const IS_IOS = platform === 'ios';
 	// Android edits through the FAB (ResourceDetail), so the title row hides
@@ -35,9 +35,9 @@
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const pageLogger = logger.child('CardDetailsPage');
 
-	const cardId = $derived($page.params.id!);
+	const pageLogger = logger.child('CardDetailsPage');
+	const cardId = $derived(page.params.id!);
 
 	let card = $state<CardDTO | null>(null);
 	let shares = $state<ShareDTO[]>([]);
@@ -84,12 +84,12 @@
 					) {
 						await offlineDB.deleteCard(cardId);
 						toastStore.error(tr('cards.loadError'));
-						goto(resolve('/cards'));
+						goto(resolve('cards'));
 						return;
 					}
 					if (!cached) {
 						toastStore.error(tr('cards.loadError'));
-						goto(resolve('/cards'));
+						goto(resolve('cards'));
 						return;
 					}
 					// Transient error with cached data available - show warning, don't redirect
@@ -97,11 +97,11 @@
 				}
 			} else if (!cached) {
 				toastStore.error(tr('cards.loadError'));
-				goto(resolve('/cards'));
+				goto(resolve('cards'));
 			}
 		} catch {
 			toastStore.error(tr('cards.loadError'));
-			goto(resolve('/cards'));
+			goto(resolve('cards'));
 		} finally {
 			isLoading = false;
 			isRefreshing = false;

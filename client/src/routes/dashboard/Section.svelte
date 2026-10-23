@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { dashboardApi } from '$lib/api';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { dashboardApi } from '#lib/api/index.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
-	import Skeleton from '$lib/components/ui/Skeleton.svelte';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
-	import FavoritesSection from '$lib/components/dashboard/FavoritesSection.svelte';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
+	import Skeleton from '#lib/components/ui/Skeleton.svelte';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
+	import FavoritesSection from '#lib/components/dashboard/FavoritesSection.svelte';
 	import BarcodeModal, {
 		type BarcodeModalItem
-	} from '$lib/components/dashboard/BarcodeModal.svelte';
-	import type { DashboardResponse } from '$lib/types/api';
+	} from '#lib/components/dashboard/BarcodeModal.svelte';
+	import type { DashboardResponse } from '#lib/types/api.js';
 
 	// Bound up to the page: the refresh hint renders in the PageShell title row
 	// (eyebrowAside/actions) and the stats feed the title-row tiles on desktop,
@@ -76,7 +76,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 

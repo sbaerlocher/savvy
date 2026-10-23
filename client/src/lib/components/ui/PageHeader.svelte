@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { ICON_CLOSE, ICON_SEARCH } from '$lib/icons';
+	import { ICON_CLOSE, ICON_SEARCH } from '#lib/icons.js';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import { page } from '$app/state';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 	import MobileHeaderActions from './MobileHeaderActions.svelte';
 
@@ -19,30 +19,31 @@
 		mobileActions = true,
 		showSearch = false,
 		onBack
-	}: {
+
 		/** Main heading, e.g. "Deine Favoriten". */
-		title: string;
 		/** Small line above the title, e.g. a greeting "Hallo Anna". */
-		eyebrow?: string;
 		/** Inline element next to the eyebrow (Android and iOS mockups put the
 		 *  refresh indicator there). */
-		eyebrowAside?: Snippet;
 		/** Renders in the eyebrow position when there is no `eyebrow` string —
 		 *  the form pages put their back-to-overview link there. */
-		eyebrowSnippet?: Snippet;
 		/** Set when the eyebrow carries user-entered text (a card program name,
 		 *  say). The native uppercase treatment is meant for fixed kickers and
 		 *  would case-mangle whatever the user typed. */
-		eyebrowVerbatim?: boolean;
 		/** Optional trailing controls (buttons, links) rendered on the right. */
-		actions?: Snippet;
 		/** Render the mobile header actions (bell + New) on the title row. Top-level
 		 *  screens keep this on; sub-screens without them can pass false. */
-		mobileActions?: boolean;
 		/** Show a standalone search icon (Android) next to custom actions — used by
 		 *  detail pages that keep search but not the full mobile header actions. */
-		showSearch?: boolean;
 		/** When set, render a compact back chevron left of the title (detail pages). */
+	}: {
+		title: string;
+		eyebrow?: string;
+		eyebrowAside?: Snippet;
+		eyebrowSnippet?: Snippet;
+		eyebrowVerbatim?: boolean;
+		actions?: Snippet;
+		mobileActions?: boolean;
+		showSearch?: boolean;
 		onBack?: () => void;
 	} = $props();
 
@@ -90,7 +91,7 @@
 	// Active-state is derived from the ?search param, not a local flag — that
 	// way it survives the navigation/remount when the query changes.
 	// Inline header search is the Android pattern; iOS uses the bottom-nav pill.
-	const searchParam = $derived($page.url.searchParams.get('search'));
+	const searchParam = $derived(page.url.searchParams.get('search'));
 	const searchActive = $derived(platform === 'android' && searchParam !== null);
 	let searchValue = $state('');
 	let searchEl = $state<HTMLInputElement | null>(null);
@@ -107,13 +108,13 @@
 
 	function openSearch() {
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
-		goto(resolve('/wallet') + '?search=1', { replaceState: true });
+		goto(resolve('wallet') + '?search=1', { replace: true });
 	}
 
 	function closeSearch() {
 		searchValue = '';
 		if (searchDebounce) clearTimeout(searchDebounce);
-		if ($page.url.pathname.startsWith('/wallet')) goto(resolve('/wallet'));
+		if (page.url.pathname.startsWith('/wallet')) goto(resolve('wallet'));
 	}
 
 	function onSearchInput() {
@@ -122,10 +123,10 @@
 		searchDebounce = setTimeout(() => {
 			goto(
 				// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
-				resolve('/wallet') +
+				resolve('wallet') +
 					(q ? `?search=${encodeURIComponent(q)}` : '?search=1'),
-				{ keepFocus: true, replaceState: true }
-			);
+				{ reset: false, replace: true }
+			).then(() => window.scrollTo(0, 0));
 		}, 250);
 	}
 </script>
@@ -142,7 +143,8 @@
 			stroke-width="2"
 			viewBox="0 0 24 24"
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+			></path>
 		</svg>
 		<input
 			bind:this={searchEl}
@@ -167,7 +169,8 @@
 				stroke-width="2"
 				viewBox="0 0 24 24"
 			>
-				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE} />
+				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE}
+				></path>
 			</svg>
 		</button>
 	</div>
@@ -200,9 +203,8 @@
 						stroke-linejoin="round"
 						viewBox="0 0 24 24"
 					>
-						<path
-							d={platform === 'ios' ? 'M15 18l-6-6 6-6' : 'M15 19l-7-7 7-7'}
-						/>
+						<path d={platform === 'ios' ? 'M15 18l-6-6 6-6' : 'M15 19l-7-7 7-7'}
+						></path>
 					</svg>
 				</button>
 			{/if}
@@ -246,7 +248,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								d={ICON_SEARCH}
-							/>
+							></path>
 						</svg>
 					</button>
 				{/if}

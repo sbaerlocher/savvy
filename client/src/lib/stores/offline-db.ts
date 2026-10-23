@@ -17,7 +17,7 @@ import type {
 	GiftCardDTO,
 	MerchantDTO,
 	DashboardResponse
-} from '$lib/types/api';
+} from '#lib/types/api.js';
 
 const DB_NAME = 'savvy-offline';
 const DB_VERSION = 7; // v7: added merchants store

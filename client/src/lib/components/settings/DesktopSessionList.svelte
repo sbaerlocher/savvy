@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { SessionDTO } from '$lib/api';
-	import { t } from '$lib/stores/i18n';
+	import type { SessionDTO } from '#lib/api/index.js';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>

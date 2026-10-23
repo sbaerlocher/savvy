@@ -1,3 +1,5 @@
+import type { HandleClientError } from '@sveltejs/kit/hooks';
+
 /**
  * SvelteKit Client Hooks (SVL-005 Fix)
  * Client-Side Error Handling
@@ -9,10 +11,8 @@
  * - Optional: Integration with error tracking services (Sentry, Rollbar)
  * - OpenTelemetry observability (traces, logs, metrics)
  */
-
-import type { HandleClientError } from '@sveltejs/kit';
-import { logger } from '$lib/utils/logger';
-import { initOpenTelemetry } from '$lib/otel/instrumentation';
+import { logger } from '#lib/utils/logger.js';
+import { initOpenTelemetry } from '#lib/otel/instrumentation.js';
 
 const errorLogger = logger.child('ClientError');
 
@@ -30,6 +30,7 @@ function isChunkLoadError(error: unknown): boolean {
 		// - "error loading dynamically imported module" (Firefox)
 		// - "Importing a module script failed" (Safari)
 		const message = error.message.toLowerCase();
+
 		return (
 			message.includes('dynamically imported') ||
 			message.includes('dynamic import') ||
@@ -46,11 +47,15 @@ function isChunkLoadError(error: unknown): boolean {
  * Catches all unhandled errors in client-side code
  */
 export const handleError: HandleClientError = async ({
+	kind,
 	error,
-	event,
-	status,
-	message
+	event
 }) => {
+	// Kit 3 also passes expected errors (error(...) and framework errors such
+	// as 404s) here; kit 2 did not. Keep their defaults and only handle
+	// unexpected errors, which kit 2 reported as status 500.
+	if (kind !== 'unknown') return;
+	const status = 500;
 	// Generate unique error ID for tracking
 	const errorId = crypto.randomUUID();
 
@@ -76,7 +81,6 @@ export const handleError: HandleClientError = async ({
 	errorLogger.error('Client error occurred:', {
 		errorId,
 		status,
-		message,
 		path: event.url.pathname,
 		error:
 			error instanceof Error
@@ -95,7 +99,7 @@ export const handleError: HandleClientError = async ({
 	// Return user-friendly error message
 	// errorId allows correlation between user reports and logs
 	return {
-		message: message || 'Ein unerwarteter Fehler ist aufgetreten',
+		message: 'Ein unerwarteter Fehler ist aufgetreten',
 		errorId
 	};
 };

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
 
 	// Android uses the M3 back chevron on the title row; the other platforms
@@ -11,7 +11,7 @@
 	const IS_ANDROID = platform === 'android';
 
 	function handleCancel() {
-		goto(resolve('/admin/users'));
+		goto(resolve('admin/users'));
 	}
 </script>
 

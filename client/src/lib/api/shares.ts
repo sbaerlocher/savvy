@@ -7,7 +7,7 @@ import type {
 	ShareCreateRequest,
 	ShareCreateResponse,
 	TransferRequest
-} from '$lib/types/api';
+} from '#lib/types/api.js';
 
 /**
  * Generic share API operations for any resource type

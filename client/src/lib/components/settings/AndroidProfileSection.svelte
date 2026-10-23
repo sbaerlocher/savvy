@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ProfileDTO } from '$lib/api';
-	import { exportApi, profileApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { exportApi, profileApi } from '#lib/api/index.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { get } from 'svelte/store';
 	import M3SettingsRow from './M3SettingsRow.svelte';
 
@@ -18,7 +18,7 @@
 	let { profile, onProfileUpdated }: Props = $props();
 
 	// Leading glyphs are the mockup's own paths (screen-SettingsAndroid), which
-	// differ from the shared $lib/icons set.
+	// differ from the shared #lib/icons set.
 	const ICON_PENCIL_SQUARE =
 		'M11 4h-5a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5';
 	const ICON_PENCIL_TIP = 'M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z';

@@ -2,16 +2,16 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
-	import { vouchersApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
+	import { t } from '#lib/stores/i18n.js';
+	import { vouchersApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
 
-	import type { DuplicateWarning } from '$lib/types/api';
-	import { extractDuplicate } from '$lib/utils/api-errors';
-	import VoucherForm from '$lib/components/vouchers/VoucherForm.svelte';
-	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
-	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
-	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
+	import type { DuplicateWarning } from '#lib/types/api.js';
+	import { extractDuplicate } from '#lib/utils/api-errors.js';
+	import VoucherForm from '#lib/components/vouchers/VoucherForm.svelte';
+	import SharedInfoBox from '#lib/components/SharedInfoBox.svelte';
+	import EmailAutocomplete from '#lib/components/EmailAutocomplete.svelte';
+	import DuplicateWarningBanner from '#lib/components/DuplicateWarningBanner.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -120,7 +120,7 @@
 	}
 
 	function handleCancel() {
-		goto(resolve('/vouchers'));
+		goto(resolve('vouchers'));
 	}
 </script>
 
@@ -131,7 +131,7 @@
 			<DuplicateWarningBanner
 				warning={duplicateWarning}
 				resourceType="voucher"
-				onNavigate={(id) => goto(resolve(`/vouchers/${id}`))}
+				onNavigate={(id) => goto(resolve(`vouchers/${id}`))}
 				onrestore={handleRestore}
 			/>
 			<VoucherForm

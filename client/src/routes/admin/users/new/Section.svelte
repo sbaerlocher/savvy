@@ -2,10 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
-	import { adminApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import { adminApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -27,17 +27,18 @@
 		isLoading = true;
 		try {
 			await adminApi.createUser({
-				email: email,
-				password: password,
+				email,
+				password,
 				first_name: firstName,
 				last_name: lastName,
-				role: role
+				role
 			});
 			toastStore.success(tr('admin.users.createSuccess'));
-			goto(resolve('/admin/users'));
+			goto(resolve('admin/users'));
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : tr('admin.users.createError');
+
 			toastStore.error(message);
 		} finally {
 			isLoading = false;
@@ -125,12 +126,12 @@
 						type="submit"
 						disabled={isLoading}
 						class="btn btn-sm btn-primary flex-1"
+						>{isLoading ? tr('common.loading') : tr('common.save')}</button
 					>
-						{isLoading ? tr('common.loading') : tr('common.save')}
-					</button>
-					<a href={resolve('/admin/users')} class="btn btn-sm btn-ghost">
-						{tr('common.cancel')}
-					</a>
+
+					<a href={resolve('admin/users')} class="btn btn-sm btn-ghost"
+						>{tr('common.cancel')}</a
+					>
 				</div>
 			</form>
 		</div>
@@ -163,7 +164,7 @@
 								fill-rule="evenodd"
 								d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
 								clip-rule="evenodd"
-							/>
+							></path>
 						</svg>
 						<h3 class="text-sm font-bold text-text">
 							{tr('admin.users.roleUser')}
@@ -200,7 +201,7 @@
 								fill-rule="evenodd"
 								d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
 								clip-rule="evenodd"
-							/>
+							></path>
 						</svg>
 						<h3 class="text-sm font-bold text-danger-900">
 							{tr('admin.users.roleAdmin')}
@@ -241,7 +242,7 @@
 							fill-rule="evenodd"
 							d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
 							clip-rule="evenodd"
-						/>
+						></path>
 					</svg>
 					<span class="text-xs">{tr('admin.users.roleInfo.warning')}</span>
 				</div>

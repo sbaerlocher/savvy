@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { adminApi } from '$lib/api';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { adminApi } from '#lib/api/index.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import { platform } from '#lib/utils/platform.js';
 	import {
 		ICON_CHECK_CIRCLE,
 		ICON_CHEVRON_DOWN,
@@ -13,7 +13,7 @@
 		ICON_REFRESH_CIRCLE,
 		ICON_WARNING,
 		ICON_X_CIRCLE
-	} from '$lib/icons';
+	} from '#lib/icons.js';
 
 	const pageLogger = logger.child('SystemHealthPage');
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { t } from '$lib/stores/i18n';
-	import { ICON_PENCIL, ICON_TRASH } from '$lib/icons';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import { ICON_PENCIL, ICON_TRASH } from '#lib/icons.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string) => get(t)(key);

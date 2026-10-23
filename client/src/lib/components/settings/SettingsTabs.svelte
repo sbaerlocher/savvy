@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 
 	export type SettingsTab = 'profile' | 'security' | 'notifications';
 

@@ -6,7 +6,7 @@
 		ICON_CLOSE,
 		ICON_FUNNEL,
 		ICON_LINES
-	} from '$lib/icons';
+	} from '#lib/icons.js';
 	// Shared filter shape for the wallet-style list screens (wallet + merchant
 	// detail). The wallet passes the module-level `walletFilters` $state; merchant
 	// detail declares its own inline $state instance so the two scopes stay
@@ -26,43 +26,43 @@
 
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { ApiError, batchApi, translateBatchError } from '$lib/api';
-	import BatchConfirmModal from '$lib/components/BatchConfirmModal.svelte';
-	import BatchPanel from '$lib/components/BatchPanel.svelte';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import ImportDialog from '$lib/components/ImportDialog.svelte';
-	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import { ApiError, batchApi, translateBatchError } from '#lib/api/index.js';
+	import BatchConfirmModal from '#lib/components/BatchConfirmModal.svelte';
+	import BatchPanel from '#lib/components/BatchPanel.svelte';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import ImportDialog from '#lib/components/ImportDialog.svelte';
+	import ResourceTile from '#lib/components/ui/ResourceTile.svelte';
 	import BarcodeModal, {
 		type BarcodeModalItem
-	} from '$lib/components/dashboard/BarcodeModal.svelte';
+	} from '#lib/components/dashboard/BarcodeModal.svelte';
 	import {
 		cardToTileModel,
 		voucherToTileModel,
 		giftCardToTileModel,
 		type TileModel
-	} from '$lib/utils/tile-model';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	} from '#lib/utils/tile-model.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import type {
 		BatchResponse,
 		CardDTO,
 		GiftCardDTO,
 		VoucherDTO
-	} from '$lib/types/api';
+	} from '#lib/types/api.js';
 	import { get } from 'svelte/store';
 	import { onDestroy, onMount, untrack } from 'svelte';
-	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
-	import TypeFilterButtons from '$lib/components/TypeFilterButtons.svelte';
+	import MerchantFilters from '#lib/components/MerchantFilters.svelte';
+	import TypeFilterButtons from '#lib/components/TypeFilterButtons.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { getGiftCardStatus } from '$lib/utils/resource-status';
+	import { getGiftCardStatus } from '#lib/utils/resource-status.js';
 	import {
 		applyCommonFilters,
 		matchesCardStatus,
 		searchMerchant,
 		sortItems
-	} from '$lib/wallet/filter';
-	import { platform } from '$lib/utils/platform';
-	import { selectModeActive } from '$lib/stores/selectMode';
+	} from '#lib/wallet/filter.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { selectModeActive } from '#lib/stores/selectMode.js';
 
 	// Each native platform renders its own chrome for this screen: Android an
 	// outlined chip toolbar with a contextual top app bar in select mode, iOS a

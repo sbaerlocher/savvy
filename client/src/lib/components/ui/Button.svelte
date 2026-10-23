@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ICON_SPINNER } from '$lib/icons';
+	import { ICON_SPINNER } from '#lib/icons.js';
 	import type { Snippet } from 'svelte';
 
 	// Thin wrapper over the app.css .btn* recipe classes: the CSS stays the

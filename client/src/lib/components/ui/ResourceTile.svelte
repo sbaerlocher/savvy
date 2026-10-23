@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
-	import { resourceDetailPath } from '$lib/resource/routes';
-	import Barcode from '$lib/components/Barcode.svelte';
-	import { platform } from '$lib/utils/platform';
-	import type { TileModel } from '$lib/utils/tile-model';
-	import type { BarcodeModalItem } from '$lib/components/dashboard/BarcodeModal.svelte';
+	import { ICON_LOCK } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { resourceDetailPath } from '#lib/resource/routes.js';
+	import Barcode from '#lib/components/Barcode.svelte';
+	import { platform } from '#lib/utils/platform.js';
+	import type { TileModel } from '#lib/utils/tile-model.js';
+	import type { BarcodeModalItem } from '#lib/components/dashboard/BarcodeModal.svelte';
 
 	let {
 		model,

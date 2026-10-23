@@ -2,7 +2,7 @@
  * Currency formatting utilities using Intl.NumberFormat
  */
 
-import type { Language } from '$lib/stores/i18n';
+import type { Language } from '#lib/stores/i18n.js';
 
 /**
  * Maps language codes to locale strings for Intl.NumberFormat

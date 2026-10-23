@@ -6,10 +6,10 @@ import type {
 	VoucherUpdateRequest,
 	PermissionDTO,
 	ShareDTO
-} from '$lib/types/api';
-import { offlineDB } from '$lib/stores/offline-db';
-import { browser } from '$app/environment';
-import { logger } from '$lib/utils/logger';
+} from '#lib/types/api.js';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { browser } from '$app/env';
+import { logger } from '#lib/utils/logger.js';
 
 const log = logger.child('VouchersAPI');
 
@@ -35,7 +35,7 @@ export const vouchersApi = {
 		perPage?: number
 	): Promise<{
 		vouchers: VoucherDTO[];
-		pagination?: import('$lib/types/api').PaginationMeta;
+		pagination?: import('#lib/types/api.js').PaginationMeta;
 	}> {
 		if (browser) {
 			// Read all vouchers (owned + shared) from IndexedDB
@@ -55,7 +55,7 @@ export const vouchersApi = {
 
 				const result = await api.get<{
 					vouchers: VoucherDTO[];
-					pagination?: import('$lib/types/api').PaginationMeta;
+					pagination?: import('#lib/types/api.js').PaginationMeta;
 				}>(url);
 
 				// Store all vouchers together (owned + shared) in IndexedDB
@@ -87,7 +87,7 @@ export const vouchersApi = {
 		const url = queryString ? `/vouchers?${queryString}` : '/vouchers';
 		return api.get<{
 			vouchers: VoucherDTO[];
-			pagination?: import('$lib/types/api').PaginationMeta;
+			pagination?: import('#lib/types/api.js').PaginationMeta;
 		}>(url);
 	},
 

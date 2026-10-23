@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
 
 	// Android uses the M3 back chevron on the title row; the other platforms
@@ -17,7 +17,7 @@
 
 {#snippet backLine()}
 	<a
-		href={resolve('/admin/merchants')}
+		href={resolve('admin/merchants')}
 		class="text-text-subtle hover:text-text-ink2 transition-colors"
 	>
 		{$t('common.backToOverview')}
@@ -28,7 +28,6 @@
 	title={$t('admin.merchants.editMerchant')}
 	mobileActions={false}
 	back={IS_ANDROID ? undefined : backLine}
-	onBack={IS_ANDROID ? () => goto(resolve('/admin/merchants')) : undefined}
+	onBack={IS_ANDROID ? () => goto(resolve('admin/merchants')) : undefined}
+	><Section /></PageShell
 >
-	<Section />
-</PageShell>

@@ -1,4 +1,4 @@
-import type { CardDTO, GiftCardDTO } from '$lib/types/api';
+import type { CardDTO, GiftCardDTO } from '#lib/types/api.js';
 
 export type GiftCardStatus = 'active' | 'depleted' | 'expired';
 

@@ -1,32 +1,32 @@
 <script lang="ts">
-	import { cardsApi, giftCardsApi, vouchersApi } from '$lib/api';
-	import WalletView from '$lib/components/ui/WalletView.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { locale, t } from '$lib/stores/i18n';
-	import { isOnline } from '$lib/stores/offline';
-	import { toastStore } from '$lib/stores/toast';
-	import type { CardDTO, GiftCardDTO, VoucherDTO } from '$lib/types/api';
-	import { page } from '$app/stores';
+	import { cardsApi, giftCardsApi, vouchersApi } from '#lib/api/index.js';
+	import WalletView from '#lib/components/ui/WalletView.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { locale, t } from '#lib/stores/i18n.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import type { CardDTO, GiftCardDTO, VoucherDTO } from '#lib/types/api.js';
+	import { page } from '$app/state';
 	import { onMount, tick } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 	import {
 		ICON_BARCODE_TOGGLE,
 		ICON_CLIPBOARD_CHECK,
 		ICON_FUNNEL
-	} from '$lib/icons';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
-	import { walletFilters } from '$lib/stores/walletFilters.svelte';
+	} from '#lib/icons.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { walletFilters } from '#lib/stores/walletFilters.svelte.js';
 
 	// Skeleton phase: on desktop the shell owns the title row and the section
 	// (WalletView) stays unmounted until it is re-attached in a later step.
 	const IS_DESKTOP = platform === 'other';
-	const IS_ANDROID = platform === 'android';
 
+	const IS_ANDROID = platform === 'android';
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
 	const pageLogger = logger.child('WalletPage');
@@ -77,6 +77,7 @@
 			(walletFilters.typeFilter === 'vouchers' &&
 				walletFilters.statusFilter === 'valid')
 	);
+
 	const hasActiveFilters = $derived(
 		walletFilters.typeFilter !== 'all' ||
 			!isDefaultStatus ||
@@ -85,6 +86,7 @@
 			walletFilters.favoritesOnly ||
 			walletFilters.expiringFilter !== 'all'
 	);
+
 	// The filter button carries the picked type as its label (mockup board B).
 	const activeTypeLabel = $derived(
 		walletFilters.typeFilter === 'cards'
@@ -111,7 +113,7 @@
 			perPage?: number
 		) => Promise<
 			{
-				pagination?: import('$lib/types/api').PaginationMeta;
+				pagination?: import('#lib/types/api.js').PaginationMeta;
 			} & Record<string, unknown>
 		>,
 		key: string,
@@ -187,7 +189,7 @@
 	// header, the iOS bottom-nav pill — so the page only mirrors the param into
 	// the filter state. Reactive on the param so navigating to /wallet?search=…
 	// while already on the page still applies (onMount alone would miss it).
-	const searchParam = $derived($page.url.searchParams.get('search'));
+	const searchParam = $derived(page.url.searchParams.get('search'));
 	$effect(() => {
 		// '1' is the "empty box" signal every chrome sends, so it clears the query
 		// rather than being ignored — otherwise the last search sticks forever.
@@ -197,12 +199,14 @@
 
 	// Remember the scroll position when leaving, so returning from a detail page
 	// restores it (SvelteKit's own restore fires before the async list renders).
-	beforeNavigate(() => {
+	beforeNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
+
 		walletFilters.scrollY = window.scrollY;
 	});
 
 	onMount(async () => {
-		const t = get(page).url.searchParams.get('type');
+		const t = page.url.searchParams.get('type');
 		if (t && validTypes.includes(t)) {
 			walletFilters.typeFilter = t;
 			// Mirror the type-change effect: 'active' is invalid for vouchers.
@@ -230,7 +234,8 @@
 		stroke="currentColor"
 		viewBox="0 0 24 24"
 	>
-		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" {d} />
+		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" {d}
+		></path>
 	</svg>
 {/snippet}
 
@@ -308,7 +313,7 @@
 				stroke-linejoin="round"
 				stroke-width="2"
 				d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-			/>
+			></path>
 		</svg>
 		<span class="text-label">{tr('settings.import.title')}</span>
 	</button>

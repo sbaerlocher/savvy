@@ -3,7 +3,7 @@
 
 	// Centered empty-state block for "no items" screens. Replaces the ad-hoc
 	// `<div class="text-center py-… text-text-subtle">…</div>` repeated per route.
-	// `icon` is a heroicons `d` path string (from $lib/icons); the <svg> wrapper
+	// `icon` is a heroicons `d` path string (from #lib/icons); the <svg> wrapper
 	// stays here so call sites pass only the path, matching repo icon idiom.
 	let {
 		icon = undefined as string | undefined,

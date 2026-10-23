@@ -7,10 +7,10 @@ import type {
 	PermissionDTO,
 	ShareDTO,
 	DuplicateWarning
-} from '$lib/types/api';
-import { offlineDB } from '$lib/stores/offline-db';
-import { browser } from '$app/environment';
-import { logger } from '$lib/utils/logger';
+} from '#lib/types/api.js';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { browser } from '$app/env';
+import { logger } from '#lib/utils/logger.js';
 
 const log = logger.child('CardsAPI');
 
@@ -40,7 +40,7 @@ export const cardsApi = {
 		perPage?: number
 	): Promise<{
 		cards: CardDTO[];
-		pagination?: import('$lib/types/api').PaginationMeta;
+		pagination?: import('#lib/types/api.js').PaginationMeta;
 	}> {
 		if (browser) {
 			// Read all cards (owned + shared) from IndexedDB
@@ -60,7 +60,7 @@ export const cardsApi = {
 
 				const result = await api.get<{
 					cards: CardDTO[];
-					pagination?: import('$lib/types/api').PaginationMeta;
+					pagination?: import('#lib/types/api.js').PaginationMeta;
 				}>(url);
 
 				// Store all cards together (owned + shared) in IndexedDB
@@ -89,7 +89,7 @@ export const cardsApi = {
 		const url = queryString ? `/cards?${queryString}` : '/cards';
 		return api.get<{
 			cards: CardDTO[];
-			pagination?: import('$lib/types/api').PaginationMeta;
+			pagination?: import('#lib/types/api.js').PaginationMeta;
 		}>(url);
 	},
 

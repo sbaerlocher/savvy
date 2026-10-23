@@ -2,9 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
 
 	// Android uses the M3 back chevron on the title row; the other platforms
@@ -21,9 +21,7 @@
 </svelte:head>
 
 {#snippet backLine()}
-	<a
-		href={resolve('/admin/users')}
-		class="text-text-subtle hover:text-text-ink2"
+	<a href={resolve('admin/users')} class="text-text-subtle hover:text-text-ink2"
 		>{tr('common.backToOverview')}</a
 	>
 {/snippet}
@@ -32,7 +30,6 @@
 	title={tr('admin.users.createUser')}
 	mobileActions={false}
 	back={IS_ANDROID ? undefined : backLine}
-	onBack={IS_ANDROID ? () => goto(resolve('/admin/users')) : undefined}
+	onBack={IS_ANDROID ? () => goto(resolve('admin/users')) : undefined}
+	><Section /></PageShell
 >
-	<Section />
-</PageShell>

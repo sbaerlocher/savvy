@@ -1,21 +1,26 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { cardsApi, vouchersApi, giftCardsApi, merchantsApi } from '$lib/api';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { isOnline } from '$lib/stores/offline';
-	import { toastStore } from '$lib/stores/toast';
+	import {
+		cardsApi,
+		vouchersApi,
+		giftCardsApi,
+		merchantsApi
+	} from '#lib/api/index.js';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import {
 		deriveMerchantOverview,
 		type MerchantOverview
-	} from '$lib/utils/merchant-aggregator';
+	} from '#lib/utils/merchant-aggregator.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import MerchantFilters from '$lib/components/MerchantFilters.svelte';
-	import { ICON_CLOSE, ICON_FILTER_LINES, ICON_SEARCH } from '$lib/icons';
-	import { platform } from '$lib/utils/platform';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import MerchantFilters from '#lib/components/MerchantFilters.svelte';
+	import { ICON_CLOSE, ICON_FILTER_LINES, ICON_SEARCH } from '#lib/icons.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Bound up to the page: the count eyebrow renders in the PageShell title
 	// row, while the list data it derives from lives here.
@@ -325,7 +330,7 @@
      the Filter control next to it. Disabled offline like every other mutation. -->
 {#snippet iosAdminAddPill()}
 	<a
-		href={resolve('/admin/merchants/new')}
+		href={resolve('admin/merchants/new')}
 		onclick={(e) => {
 			if (isOffline) e.preventDefault();
 		}}
@@ -342,9 +347,8 @@
 			stroke-width="2.1"
 			viewBox="0 0 24 24"
 			aria-hidden="true"
+			><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg
 		>
-			<path stroke-linecap="round" d="M12 5v14M5 12h14" />
-		</svg>
 	</a>
 {/snippet}
 
@@ -362,7 +366,7 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 			d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-		/>
+		></path>
 	</svg>
 {/snippet}
 
@@ -381,7 +385,8 @@
 			viewBox="0 0 24 24"
 			aria-hidden="true"
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
+			<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+			></path>
 		</svg>
 		<input
 			type="search"
@@ -445,7 +450,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					d={ICON_FILTER_LINES}
-				/>
+				></path>
 			</svg>
 			{tr('common.filter')}
 			{#if hasActiveFilters}
@@ -486,7 +491,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					d={ICON_FILTER_LINES}
-				/>
+				></path>
 			</svg>
 			{tr('common.filter')}
 		</button>
@@ -538,7 +543,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -547,7 +552,7 @@
 			</button>
 			{#if isAdmin}
 				<a
-					href={resolve('/admin/merchants/new')}
+					href={resolve('admin/merchants/new')}
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
 					}}
@@ -600,7 +605,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -609,7 +614,7 @@
 			</button>
 			{#if isAdmin}
 				<a
-					href={resolve('/admin/merchants/new')}
+					href={resolve('admin/merchants/new')}
 					onclick={(e) => {
 						if (isOffline) e.preventDefault();
 					}}
@@ -651,7 +656,7 @@
 	{/if}
 	<div class="inline-block mb-6 {IS_ANDROID || IOS ? 'max-sm:hidden' : ''}">
 		<a
-			href={resolve('/admin/merchants/new')}
+			href={resolve('admin/merchants/new')}
 			onclick={(e) => {
 				if (isOffline) e.preventDefault();
 			}}
@@ -729,7 +734,7 @@
 					     corner radius, not a left border on the box — flat and tonal on
 					     Android, bordered on white for iOS (mockups). -->
 					<a
-						href={resolve(`/merchants/${merchant.id}`)}
+						href={resolve(`merchants/${merchant.id}`)}
 						class="overflow-hidden group h-full flex flex-col {IS_ANDROID
 							? 'relative max-sm:rounded-m3-lg max-sm:bg-m3-card sm:rounded-lg sm:bg-white sm:shadow sm:hover:shadow-md sm:transition-shadow'
 							: IS_DESKTOP
@@ -885,7 +890,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-							/>
+							></path>
 						</svg>
 						<h3 class="text-sm font-semibold text-text">
 							{tr('common.filter')}
@@ -977,7 +982,7 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							d={ICON_FILTER_LINES}
-						/>
+						></path>
 					</svg>
 				{/if}
 				{tr('common.filter')}
@@ -1006,11 +1011,8 @@
 						stroke-width="2"
 						viewBox="0 0 24 24"
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d={ICON_CLOSE}
-						/>
+						<path stroke-linecap="round" stroke-linejoin="round" d={ICON_CLOSE}
+						></path>
 					</svg>
 				</button>
 			{/if}
@@ -1030,11 +1032,8 @@
 					viewBox="0 0 24 24"
 					aria-hidden="true"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d={ICON_SEARCH}
-					/>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+					></path>
 				</svg>
 				<input
 					type="search"
@@ -1061,11 +1060,8 @@
 					viewBox="0 0 24 24"
 					aria-hidden="true"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d={ICON_SEARCH}
-					/>
+					<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+					></path>
 				</svg>
 				<input
 					type="search"

@@ -2,7 +2,7 @@ import { api } from './client';
 import type {
 	NotificationListResponse,
 	NotificationUnreadCountResponse
-} from '$lib/types/api';
+} from '#lib/types/api.js';
 
 export const notificationsApi = {
 	/**

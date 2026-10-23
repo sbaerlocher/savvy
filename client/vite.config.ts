@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -21,7 +23,24 @@ export default defineConfig({
 		// Exclude WASM modules from optimization to preserve dynamic imports
 		exclude: ['barcode-detector']
 	},
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		sveltekit({
+			preprocess: vitePreprocess(),
+			adapter: adapter({
+				pages: 'build',
+				assets: 'build',
+				fallback: 'index.html',
+				precompress: false,
+				strict: true
+			}),
+			// Deterministic per release (release-tool syncs package.json to the tag), so
+			// the service worker only changes when the app does, not on every build.
+			version: { name: process.env.npm_package_version },
+			// Registered manually in #lib/pwa/register-sw.ts (availability check, update toast)
+			serviceWorker: { register: false }
+		})
+	],
 	server: {
 		port: 5173,
 		// Leading dot covers subdomains: dde >= v2.0.0-beta.2 serves git

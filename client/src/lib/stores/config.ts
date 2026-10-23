@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import { logger } from '$lib/utils/logger';
+import { logger } from '#lib/utils/logger.js';
 
 export interface AppConfig {
 	oauth: {

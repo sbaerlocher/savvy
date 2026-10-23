@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { MerchantDTO } from '$lib/types/api';
-	import { t } from '$lib/stores/i18n';
+	import type { MerchantDTO } from '#lib/types/api.js';
+	import { t } from '#lib/stores/i18n.js';
 
 	interface Props {
 		merchants: MerchantDTO[];

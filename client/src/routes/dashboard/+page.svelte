@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import Section from './Section.svelte';
-	import type { DashboardResponse } from '$lib/types/api';
+	import type { DashboardResponse } from '#lib/types/api.js';
 
 	const IS_DESKTOP = platform === 'other';
 

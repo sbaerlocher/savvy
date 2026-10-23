@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { authStore } from '$lib/stores/auth';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { adminApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import { authStore } from '#lib/stores/auth.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { adminApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import {
 		ICON_CHECK,
 		ICON_CHEVRON_DOWN,
@@ -16,11 +16,11 @@
 		ICON_FILTER_LINES,
 		ICON_PLUS,
 		ICON_SEARCH
-	} from '$lib/icons';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import FilterGroup from '$lib/components/ui/FilterGroup.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import type { AdminUserDTO } from '$lib/types/api';
+	} from '#lib/icons.js';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import FilterGroup from '#lib/components/ui/FilterGroup.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import type { AdminUserDTO } from '#lib/types/api.js';
 
 	const pageLogger = logger.child('AdminPage');
 
@@ -193,10 +193,12 @@
 					return (
 						new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
 					);
+
 				case 'oldest':
 					return (
 						new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
 					);
+
 				default:
 					return 0;
 			}
@@ -280,7 +282,7 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									d={ICON_SEARCH}
-								/>
+								></path>
 							</svg>
 							<input
 								type="search"
@@ -313,7 +315,7 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									d={ICON_FILTER_LINES}
-								/>
+								></path>
 							</svg>
 							{$t('common.filter')}
 							{#if hasActiveFilters}
@@ -325,7 +327,7 @@
 
 						{#if localLoginEnabled}
 							<a
-								href={resolve('/admin/users/new')}
+								href={resolve('admin/users/new')}
 								class="inline-flex h-10 items-center rounded-lg bg-accent px-4.5 text-label whitespace-nowrap text-white shadow-sm transition-colors hover:bg-accent-hover {isOffline
 									? 'pointer-events-none cursor-not-allowed opacity-50 blur-[0.5px]'
 									: ''}"
@@ -352,18 +354,23 @@
 							<span class="text-section-eyebrow uppercase text-text-subtle"
 								>{$t('admin.users.email')}</span
 							>
+
 							<span class="text-section-eyebrow uppercase text-text-subtle"
 								>{$t('admin.users.name')}</span
 							>
+
 							<span class="text-section-eyebrow uppercase text-text-subtle"
 								>{$t('admin.users.role')}</span
 							>
+
 							<span class="text-section-eyebrow uppercase text-text-subtle"
 								>{$t('admin.users.provider')}</span
 							>
+
 							<span class="text-section-eyebrow uppercase text-text-subtle"
 								>{$t('admin.users.createdAt')}</span
 							>
+
 							<span
 								class="text-section-eyebrow text-right uppercase text-text-subtle"
 								>{$t('admin.users.actions')}</span
@@ -437,7 +444,7 @@
 												stroke-linecap="round"
 												stroke-linejoin="round"
 												d="M19 9l-7 7-7-7"
-											/>
+											></path>
 										</svg>
 									</span>
 								</button>
@@ -484,7 +491,7 @@
 										<div class="flex flex-none gap-2">
 											{#if !isOAuth}
 												<a
-													href={resolve(`/admin/users/${user.id}/edit`)}
+													href={resolve(`admin/users/${user.id}/edit`)}
 													class="inline-flex h-9 items-center rounded-full bg-accent px-4 text-body-sm font-semibold text-white transition-colors hover:bg-accent-hover"
 												>
 													{$t('common.edit')}
@@ -603,9 +610,9 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
+								>{$t('common.sort')}</label
 							>
-								{$t('common.sort')}
-							</label>
+
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
 								<option value="email-asc"
 									>{$t('admin.users.sortEmailAsc')}</option
@@ -651,10 +658,9 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_SEARCH}></path></svg
 			>
-				<path d={ICON_SEARCH} />
-			</svg>
+
 			<input
 				type="search"
 				bind:value={search}
@@ -681,10 +687,9 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_FILTER_LINES}></path></svg
 			>
-				<path d={ICON_FILTER_LINES} />
-			</svg>
+
 			{#if hasActiveFilters}
 				<span
 					class="absolute top-2.25 right-2.25 h-1.75 w-1.75 rounded-full border-2 border-surface bg-accent-600"
@@ -749,10 +754,8 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"
+							aria-hidden="true"><path d={ICON_CHEVRON_DOWN}></path></svg
 						>
-							<path d={ICON_CHEVRON_DOWN} />
-						</svg>
 					</button>
 
 					{#if isExpanded}
@@ -798,7 +801,7 @@
 									</span>
 								{:else}
 									<a
-										href={resolve(`/admin/users/${user.id}/edit`)}
+										href={resolve(`admin/users/${user.id}/edit`)}
 										class="inline-flex h-9 items-center rounded-full bg-accent-600 px-4 text-chip text-on-accent"
 									>
 										{$t('common.edit')}
@@ -839,7 +842,7 @@
 	     the bottom nav. -->
 	{#if localLoginEnabled}
 		<a
-			href={resolve('/admin/users/new')}
+			href={resolve('admin/users/new')}
 			aria-label={$t('admin.users.createUser')}
 			class="mobile-nav-fab-android bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] {isOffline
 				? 'pointer-events-none opacity-50'
@@ -853,10 +856,8 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_PLUS}></path></svg
 			>
-				<path d={ICON_PLUS} />
-			</svg>
 		</a>
 	{/if}
 
@@ -873,7 +874,8 @@
 				stroke-width="2"
 				viewBox="0 0 24 24"
 			>
-				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
+				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+				></path>
 			</svg>
 			<input
 				type="search"
@@ -901,7 +903,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					d={ICON_FILTER_LINES}
-				/>
+				></path>
 			</svg>
 			{#if hasActiveFilters}
 				<span
@@ -969,7 +971,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								d={ICON_CHEVRON_DOWN}
-							/>
+							></path>
 						</svg>
 					</button>
 
@@ -1017,7 +1019,7 @@
 										</button>
 									{:else}
 										<a
-											href={resolve(`/admin/users/${user.id}/edit`)}
+											href={resolve(`admin/users/${user.id}/edit`)}
 											class="bg-accent text-on-accent rounded-m3-full text-body-sm inline-flex h-9 items-center px-4 font-semibold"
 										>
 											{$t('common.edit')}
@@ -1094,7 +1096,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -1105,7 +1107,7 @@
 			<!-- Create User Button -->
 			{#if localLoginEnabled}
 				<a
-					href={resolve('/admin/users/new')}
+					href={resolve('admin/users/new')}
 					class="btn btn-primary whitespace-nowrap {isOffline
 						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 						: ''}"
@@ -1139,7 +1141,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -1150,7 +1152,7 @@
 			<!-- Create User Button (Mobile) -->
 			{#if localLoginEnabled}
 				<a
-					href={resolve('/admin/users/new')}
+					href={resolve('admin/users/new')}
 					class="btn btn-sm btn-primary flex-1 text-center {isOffline
 						? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 						: ''}"
@@ -1228,7 +1230,7 @@
 														stroke-linejoin="round"
 														stroke-width="2"
 														d="M19 9l-7 7-7-7"
-													/>
+													></path>
 												</svg>
 											</div>
 										</td>
@@ -1329,7 +1331,7 @@
 													>
 														{#if !isOAuth}
 															<a
-																href={resolve(`/admin/users/${user.id}/edit`)}
+																href={resolve(`admin/users/${user.id}/edit`)}
 																class="btn btn-sm btn-primary"
 															>
 																{$t('common.edit')}
@@ -1412,6 +1414,7 @@
 				<div class="mb-2.25 text-tag text-text-subtle uppercase">
 					{$t('admin.users.role')}
 				</div>
+
 				<div
 					class="mb-4.5 flex rounded-md bg-tile-tint p-0.5"
 					role="radiogroup"
@@ -1436,6 +1439,7 @@
 				<div class="mb-2.25 text-tag text-text-subtle uppercase">
 					{$t('admin.users.provider')}
 				</div>
+
 				<div
 					class="mb-4.5 flex rounded-md bg-tile-tint p-0.5"
 					role="radiogroup"
@@ -1479,10 +1483,8 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"
+						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
 					>
-						<path d={ICON_CHEVRON_RIGHT} />
-					</svg>
 				</button>
 
 				{#if sortExpanded}
@@ -1517,10 +1519,8 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										viewBox="0 0 24 24"
-										aria-hidden="true"
+										aria-hidden="true"><path d={ICON_CHECK}></path></svg
 									>
-										<path d={ICON_CHECK} />
-									</svg>
 								{/if}
 							</button>
 						{/each}
@@ -1564,9 +1564,8 @@
 						stroke="currentColor"
 						stroke-width="2"
 						viewBox="0 0 24 24"
+						><path stroke-linecap="round" d={ICON_CLOSE}></path></svg
 					>
-						<path stroke-linecap="round" d={ICON_CLOSE} />
-					</svg>
 				</button>
 			</div>
 
@@ -1609,7 +1608,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						d="M19 9l-7 7-7-7"
-					/>
+					></path>
 				</svg>
 			</button>
 
@@ -1699,9 +1698,9 @@
 					<label
 						for="sortByMobile"
 						class="block text-sm font-medium text-text-ink2 mb-2"
+						>{$t('common.sort')}</label
 					>
-						{$t('common.sort')}
-					</label>
+
 					<select id="sortByMobile" bind:value={sortBy} class="input bg-white">
 						<option value="email-asc">{$t('admin.users.sortEmailAsc')}</option>
 						<option value="email-desc">{$t('admin.users.sortEmailDesc')}</option
@@ -1773,7 +1772,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								d={ICON_CHECK}
-							/>
+							></path>
 						</svg>
 					{/if}
 				</span>

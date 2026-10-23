@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
-	import { adminApi } from '$lib/api';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { adminApi } from '#lib/api/index.js';
 
 	const pageLogger = logger.child('EmailTemplatesPage');
 

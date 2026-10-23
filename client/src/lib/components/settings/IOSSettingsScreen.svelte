@@ -8,19 +8,19 @@
 		sessionsApi,
 		type ProfileDTO,
 		type SessionDTO
-	} from '$lib/api';
-	import { ICON_CHEVRON_LEFT, ICON_SHIELD } from '$lib/icons';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
+	} from '#lib/api/index.js';
+	import { ICON_CHEVRON_LEFT, ICON_SHIELD } from '#lib/icons.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import TwoFactorSettings from '#lib/components/TwoFactorSettings.svelte';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
 	import AdminHubSection from './AdminHubSection.svelte';
 	import NotificationsSection from './NotificationsSection.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { languageStore, t, type Language } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { pwaStore } from '$lib/stores/pwa';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { languageStore, t, type Language } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { pwaStore } from '#lib/stores/pwa.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 

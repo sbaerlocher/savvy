@@ -1,10 +1,10 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 	import Section from './Section.svelte';
-	import SettingsTabs from '$lib/components/settings/SettingsTabs.svelte';
+	import SettingsTabs from '#lib/components/settings/SettingsTabs.svelte';
 
 	// `platform` is a module constant, so a plain const, not $derived. Desktop
 	// renders this route as the security tab of the merged settings page.

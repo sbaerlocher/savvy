@@ -1,17 +1,17 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import { get } from 'svelte/store';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { logger } from '$lib/utils/logger';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import M3TextField from '$lib/components/ui/M3TextField.svelte';
-	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { logger } from '#lib/utils/logger.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import M3TextField from '#lib/components/ui/M3TextField.svelte';
+	import AuthCardIOS from '#lib/components/auth/AuthCardIOS.svelte';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android mockup (screen-AuthAndroid) replaces the split layout with a
 	// centered M3 card, so it branches at the top level instead of overriding.
@@ -41,7 +41,7 @@
 	// Redirect if already logged in or registration disabled
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 			return;
 		}
 
@@ -53,17 +53,17 @@
 				const registrationEnabled = config.registration_enabled ?? false;
 
 				if (!registrationEnabled) {
-					goto(resolve('/login'));
+					goto(resolve('login'));
 					return;
 				}
 			} else {
 				// Config endpoint failed - redirect to login for safety
-				goto(resolve('/login'));
+				goto(resolve('login'));
 				return;
 			}
 		} catch (error) {
 			pageLogger.error('Failed to load config', { error });
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		} finally {
 			configLoaded = true;
@@ -82,7 +82,7 @@
 				last_name: lastName || undefined
 			});
 			toastStore.success(tr('auth.register.success'));
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 		} catch {
 			toastStore.error($authStore.error || tr('auth.register.error'));
 		} finally {
@@ -196,11 +196,12 @@
 
 				<div class="pt-0.5 text-center">
 					<span class="text-label font-normal text-text-muted"
-						>{tr('auth.register.hasAccount')}
-					</span>
-					<a href={resolve('/login')} class="text-label text-accent-600">
-						{tr('auth.register.loginNow')}
-					</a>
+						>{tr('auth.register.hasAccount')}</span
+					>
+
+					<a href={resolve('login')} class="text-label text-accent-600"
+						>{tr('auth.register.loginNow')}</a
+					>
 				</div>
 			</form>
 		</AuthCardIOS>
@@ -227,9 +228,9 @@
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
 						>
-							<rect x="2" y="5" width="20" height="14" rx="3" />
-							<path d="M2 10h20" />
-							<path d="M6 15h4" />
+							<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+							<path d="M2 10h20"></path>
+							<path d="M6 15h4"></path>
 						</svg>
 					</span>
 					<h1 class="text-heading text-text">{tr('auth.register.title')}</h1>
@@ -310,7 +311,7 @@
 							{tr('auth.register.hasAccount')}
 						</span>
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="text-label text-accent-600 font-semibold"
 						>
 							{tr('auth.register.loginNow')}
@@ -352,9 +353,9 @@
 											stroke-linecap="round"
 											stroke-linejoin="round"
 										>
-											<rect x="2" y="5" width="20" height="14" rx="3" />
-											<path d="M2 10h20" />
-											<path d="M6 15h4" />
+											<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+											<path d="M2 10h20"></path>
+											<path d="M6 15h4"></path>
 										</svg>
 									</span>
 								{:else}
@@ -496,7 +497,7 @@
 														fill-rule="evenodd"
 														d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
 														clip-rule="evenodd"
-													/>
+													></path>
 												</svg>
 											</div>
 											<div class="ml-3">
@@ -533,13 +534,11 @@
 
 								<div class="text-center pt-4 {isDesktop ? 'lg:pt-0' : ''}">
 									<a
-										href={resolve('/login')}
+										href={resolve('login')}
 										class="font-medium text-accent hover:text-accent {isDesktop
 											? 'lg:text-body lg:font-semibold'
-											: ''}"
+											: ''}">{tr('auth.register.hasAccount')}</a
 									>
-										{tr('auth.register.hasAccount')}
-									</a>
 								</div>
 							</form>
 						</div>
@@ -578,7 +577,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3 class="text-sm font-medium text-text">
@@ -600,7 +599,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3 class="text-sm font-medium text-text">
@@ -622,7 +621,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3 class="text-sm font-medium text-text">
@@ -644,7 +643,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3 class="text-sm font-medium text-text">
@@ -676,7 +675,7 @@
 											stroke-linejoin="round"
 											stroke-width="2"
 											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-										/>
+										></path>
 									</svg>
 									<span class="text-xs">{tr('auth.register.securityNote')}</span
 									>

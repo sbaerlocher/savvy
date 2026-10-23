@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
-	import { ICON_SEARCH } from '$lib/icons';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { showOfflineBanner } from '$lib/stores/offline';
-	import { showNewDialog } from '$lib/stores/newDialog';
-	import { logger } from '$lib/utils/logger';
-	import type { UserDTO } from '$lib/types/api';
+	import NotificationPanel from '#lib/components/NotificationPanel.svelte';
+	import { ICON_SEARCH } from '#lib/icons.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { showOfflineBanner } from '#lib/stores/offline.js';
+	import { showNewDialog } from '#lib/stores/newDialog.js';
+	import { logger } from '#lib/utils/logger.js';
+	import type { UserDTO } from '#lib/types/api.js';
 
 	const navLogger = logger.child('DesktopNav');
 
@@ -30,7 +30,7 @@
 		const q = desktopSearch.trim();
 		const query = q ? `?search=${encodeURIComponent(q)}` : '?search=1';
 		/* eslint-disable-next-line svelte/no-navigation-without-resolve -- base is resolve()d; the rest is a query string */
-		goto(`${resolve('/wallet')}${query}`);
+		goto(`${resolve('wallet')}${query}`);
 	}
 
 	async function handleStopImpersonation() {
@@ -59,7 +59,7 @@
 		<div class="flex justify-between h-16">
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
-					<a href={resolve('/dashboard')} class="flex items-center gap-2.5">
+					<a href={resolve('dashboard')} class="flex items-center gap-2.5">
 						<!-- The real logo next to the wordmark (the accent initial tile
 						     was a placeholder). -->
 						<img
@@ -80,50 +80,48 @@
 				     underline sitting on the bar's bottom edge. -->
 				<div class="hidden sm:ml-6 sm:flex sm:gap-1 sm:self-stretch">
 					<a
-						href={resolve('/dashboard')}
+						href={resolve('dashboard')}
 						data-testid="nav-start-desktop"
 						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
-						class:font-semibold={$page.url.pathname.startsWith('/dashboard')}
-						class:font-medium={!$page.url.pathname.startsWith('/dashboard')}
-						class:text-text={$page.url.pathname.startsWith('/dashboard')}
-						class:text-text-subtle={!$page.url.pathname.startsWith(
-							'/dashboard'
-						)}
+						class:font-semibold={page.url.pathname.startsWith('/dashboard')}
+						class:font-medium={!page.url.pathname.startsWith('/dashboard')}
+						class:text-text={page.url.pathname.startsWith('/dashboard')}
+						class:text-text-subtle={!page.url.pathname.startsWith('/dashboard')}
 					>
 						{$t('nav.start')}
-						{#if $page.url.pathname.startsWith('/dashboard')}
+						{#if page.url.pathname.startsWith('/dashboard')}
 							<span
 								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
 							></span>
 						{/if}
 					</a>
 					<a
-						href={resolve('/wallet')}
+						href={resolve('wallet')}
 						data-testid="nav-wallet-desktop"
 						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
-						class:font-semibold={$page.url.pathname.startsWith('/wallet')}
-						class:font-medium={!$page.url.pathname.startsWith('/wallet')}
-						class:text-text={$page.url.pathname.startsWith('/wallet')}
-						class:text-text-subtle={!$page.url.pathname.startsWith('/wallet')}
+						class:font-semibold={page.url.pathname.startsWith('/wallet')}
+						class:font-medium={!page.url.pathname.startsWith('/wallet')}
+						class:text-text={page.url.pathname.startsWith('/wallet')}
+						class:text-text-subtle={!page.url.pathname.startsWith('/wallet')}
 					>
 						{$t('nav.wallet')}
-						{#if $page.url.pathname.startsWith('/wallet')}
+						{#if page.url.pathname.startsWith('/wallet')}
 							<span
 								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
 							></span>
 						{/if}
 					</a>
 					<a
-						href={resolve('/profile')}
+						href={resolve('profile')}
 						data-testid="nav-profile-desktop"
 						class="relative inline-flex items-center px-3.5 text-sm transition-colors hover:text-text-ink2"
-						class:font-semibold={$page.url.pathname.startsWith('/profile')}
-						class:font-medium={!$page.url.pathname.startsWith('/profile')}
-						class:text-text={$page.url.pathname.startsWith('/profile')}
-						class:text-text-subtle={!$page.url.pathname.startsWith('/profile')}
+						class:font-semibold={page.url.pathname.startsWith('/profile')}
+						class:font-medium={!page.url.pathname.startsWith('/profile')}
+						class:text-text={page.url.pathname.startsWith('/profile')}
+						class:text-text-subtle={!page.url.pathname.startsWith('/profile')}
 					>
 						{$t('nav.profile')}
-						{#if $page.url.pathname.startsWith('/profile')}
+						{#if page.url.pathname.startsWith('/profile')}
 							<span
 								class="absolute inset-x-3.5 -bottom-px h-0.5 rounded-full bg-accent"
 							></span>
@@ -149,11 +147,8 @@
 						viewBox="0 0 24 24"
 						aria-hidden="true"
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d={ICON_SEARCH}
-						/>
+						<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+						></path>
 					</svg>
 					<input
 						type="search"
@@ -180,7 +175,7 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M12 4v16m8-8H4"
-						/>
+						></path>
 					</svg>
 					{$t('common.new')}
 				</button>
@@ -262,7 +257,7 @@
 					     navigation, so the old dropdown is gone. -->
 					{#if user?.is_admin}
 						<a
-							href={resolve('/admin/users')}
+							href={resolve('admin/users')}
 							class="hidden h-9.5 w-9.5 items-center justify-center rounded-sm bg-purple-50 text-purple-600 transition-colors hover:text-purple-700 sm:inline-flex"
 							title={$t('nav.admin')}
 							aria-label={$t('nav.admin')}

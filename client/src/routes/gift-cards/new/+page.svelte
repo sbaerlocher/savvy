@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import Section from './Section.svelte';
 
 	// Svelte 5 compatible translation wrapper
@@ -19,7 +19,7 @@
 	<Section />
 	{#snippet back()}
 		<a
-			href={resolve('/gift-cards')}
+			href={resolve('gift-cards')}
 			class="text-text-subtle hover:text-text-ink2"
 			>{tr('common.backToOverview')}</a
 		>

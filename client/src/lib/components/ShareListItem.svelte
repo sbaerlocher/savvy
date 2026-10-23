@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
+	import { ICON_LOCK } from '#lib/icons.js';
 	import type { Snippet } from 'svelte';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
-	import type { ShareDTO } from '$lib/types/api';
-	import { formatUserName } from '$lib/utils/user';
+	import { t } from '#lib/stores/i18n.js';
+	import type { ShareDTO } from '#lib/types/api.js';
+	import { formatUserName } from '#lib/utils/user.js';
 
 	interface Props {
 		share: ShareDTO;

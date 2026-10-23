@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { ICON_CAMERA, ICON_CAMERA_LENS } from '$lib/icons';
-	import { toastStore } from '$lib/stores/toast';
-	import { t } from '$lib/stores/i18n';
-	import { checkSymbologySuitability } from '$lib/utils/barcode';
+	import { ICON_CAMERA, ICON_CAMERA_LENS } from '#lib/icons.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { checkSymbologySuitability } from '#lib/utils/barcode.js';
 
 	interface Props {
 		value: string;
@@ -93,7 +93,7 @@
 
 	<!-- Barcode Scanner (lazy loaded) -->
 	{#if scanning}
-		{#await import('$lib/components/BarcodeScanner.svelte') then module}
+		{#await import('#lib/components/BarcodeScanner.svelte') then module}
 			{@const BarcodeScanner = module.default}
 			<BarcodeScanner
 				bind:open={scanning}

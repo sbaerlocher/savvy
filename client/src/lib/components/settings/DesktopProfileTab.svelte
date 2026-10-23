@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { ProfileDTO } from '$lib/api';
-	import { authApi, exportApi, profileApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { languageStore, t, type Language } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { authApi, exportApi, profileApi } from '#lib/api/index.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { languageStore, t, type Language } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { get } from 'svelte/store';
 	import DeleteAccountCard from './DeleteAccountCard.svelte';
 

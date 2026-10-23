@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
-import { authApi, adminApi, ApiError } from '$lib/api';
-import type { UserDTO, LoginRequest, RegisterRequest } from '$lib/types/api';
-import { logger } from '$lib/utils/logger';
-import { offlineDB } from '$lib/stores/offline-db';
-import { languageStore } from '$lib/stores/i18n';
+import { browser } from '$app/env';
+import { authApi, adminApi, ApiError } from '#lib/api/index.js';
+import type { UserDTO, LoginRequest, RegisterRequest } from '#lib/types/api.js';
+import { logger } from '#lib/utils/logger.js';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { languageStore } from '#lib/stores/i18n.js';
 
 const authLogger = logger.child('Auth');
 

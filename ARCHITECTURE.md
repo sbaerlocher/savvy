@@ -1258,8 +1258,7 @@ client/
 │   │   │   └── api.ts         // API Request/Response Types
 │   │   └── utils/             // Helper Functions
 │   └── app.css                // Global TailwindCSS
-├── vite.config.ts             // Vite Configuration + PWA
-├── svelte.config.js           // SvelteKit Configuration
+├── vite.config.ts             // Vite + SvelteKit Configuration
 └── package.json               // Dependencies
 ```
 
@@ -1290,10 +1289,10 @@ graph LR
 **Vite Configuration** (`vite.config.ts`):
 
 - **SvelteKit Plugin**: Core SvelteKit functionality
-- **Service Worker**: built natively by SvelteKit from `src/service-worker.ts` (no PWA plugin)
-  - Precache list from `$service-worker` (`build`, `files`, `version`)
-  - Automatic registration disabled (`kit.serviceWorker.register: false` in `svelte.config.js`);
-    registered manually via `$lib/pwa/register-sw.ts`
+- **Service Worker**: built natively by SvelteKit from `src/service-worker/index.ts` (no PWA plugin)
+  - Precache list from `$app/manifest` (`immutable`, `assets`) and `version` from `$app/env`
+  - Automatic registration disabled (`serviceWorker.register: false` in `vite.config.ts`);
+    registered manually via `#lib/pwa/register-sw.ts`
   - Web app manifest is the static file `static/manifest.webmanifest`
 
 **Benefits of this Architecture**:
@@ -1323,7 +1322,7 @@ graph TB
         direction TB
 
         subgraph Cache["Cache Layer"]
-            SW[Custom Service Worker<br/>src/service-worker.ts<br/>NetworkFirst + Warmup]
+            SW[Custom Service Worker<br/>src/service-worker/<br/>NetworkFirst + Warmup]
             WB[Workbox Cache<br/>CacheStorage API]
             WARM[Warmup Cache<br/>warmStrategyCache<br/>Auto-preload on install]
             NET[Network<br/>/api/v1/*<br/>JSON API]
@@ -1362,7 +1361,7 @@ graph TB
 
 #### 1. Service Worker Cache (CacheStorage API)
 
-Managed by custom Service Worker (`src/service-worker.ts`) with Workbox:
+Managed by custom Service Worker (`src/service-worker/index.ts`) with Workbox:
 
 - **Strategy**: **NetworkFirst** with automatic warmup cache
   - Tries network first with 5-second timeout
@@ -1492,9 +1491,9 @@ API clients implement an **offline-first pattern** for read operations (`client/
 
 **Service Worker** (Custom with Workbox):
 
-- **Source**: `client/src/service-worker.ts` (custom implementation)
-- **Build**: native SvelteKit service worker; precache list from `$service-worker`
-- **Registration**: Manual via `$lib/pwa/register-sw.ts`, called from `+layout.svelte`
+- **Source**: `client/src/service-worker/index.ts` (custom implementation)
+- **Build**: native SvelteKit service worker; precache list from `$app/manifest`
+- **Registration**: Manual via `#lib/pwa/register-sw.ts`, called from `+layout.svelte`
 - **Caching**: NetworkFirst with automatic warmup cache (Workbox Recipes)
 - **Warmup**: Critical API routes preloaded on install (cards, vouchers, gift-cards, dashboard)
 - **Precaching**: Static assets (app shell, icons, SvelteKit chunks) cached during install

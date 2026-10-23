@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { platform } from '$lib/utils/platform';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
+	import { platform } from '#lib/utils/platform.js';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
 
 	interface Option {
 		value: string;

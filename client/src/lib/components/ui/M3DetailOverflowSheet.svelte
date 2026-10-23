@@ -1,7 +1,7 @@
 <script lang="ts">
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import { ICON_TRANSFER } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import { ICON_TRANSFER } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
 
 	// Overflow menu behind the ••• on the Android detail title row: share and

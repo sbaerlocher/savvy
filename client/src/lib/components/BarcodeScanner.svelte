@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { ICON_CLOSE, ICON_SPINNER } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
-	import { logger } from '$lib/utils/logger';
+	import { ICON_CLOSE, ICON_SPINNER } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { logger } from '#lib/utils/logger.js';
 	import {
 		mapBarcodeFormat,
 		validateBarcodeFormat,
 		sanitizeBarcodeValue,
 		isValidBarcodeLength,
 		cameraErrorKey
-	} from '$lib/utils/barcode';
+	} from '#lib/utils/barcode.js';
 	import {
 		createBarcodeDetector,
 		type BarcodeDetectorWrapper
-	} from '$lib/utils/barcode-detector';
-	import { portal } from '$lib/actions/portal';
+	} from '#lib/utils/barcode-detector.js';
+	import { portal } from '#lib/actions/portal.js';
 	import { tick } from 'svelte';
 
 	const componentLogger = logger.child('BarcodeScanner');

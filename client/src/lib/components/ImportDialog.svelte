@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { importApi } from '$lib/api';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import type { ImportPreview, ImportResult } from '$lib/types/api';
+	import { importApi } from '#lib/api/index.js';
+	import Modal from '#lib/components/ui/Modal.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import type { ImportPreview, ImportResult } from '#lib/types/api.js';
 	import { get } from 'svelte/store';
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);

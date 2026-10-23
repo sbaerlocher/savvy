@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 
 	// Material 3 outlined text field (Android auth screens): floating label that
 	// sits on the white card surface (--color-m3-card), accent 2px outline while focused, neutral 1px

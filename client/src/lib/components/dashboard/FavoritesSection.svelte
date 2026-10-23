@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { t, locale } from '$lib/stores/i18n';
-	import { authStore } from '$lib/stores/auth';
-	import { isOnline } from '$lib/stores/offline';
+	import { t, locale } from '#lib/stores/i18n.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { isOnline } from '#lib/stores/offline.js';
 	import { resolve } from '$app/paths';
-	import ResourceTile from '$lib/components/ui/ResourceTile.svelte';
+	import ResourceTile from '#lib/components/ui/ResourceTile.svelte';
 	import {
 		cardToTileModel,
 		voucherToTileModel,
 		giftCardToTileModel
-	} from '$lib/utils/tile-model';
+	} from '#lib/utils/tile-model.js';
 	import {
 		isCardActive,
 		isVoucherValid,
 		isGiftCardActive
-	} from '$lib/utils/resource-status';
-	import { platform } from '$lib/utils/platform';
+	} from '#lib/utils/resource-status.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Desktop uses the wallet's tile chrome 1:1 (same padding, same barcode
 	// height); the compact variant stays a native-dashboard treatment.
 	const IS_DESKTOP = platform === 'other';
-	import type { DashboardResponse } from '$lib/types/api';
+	import type { DashboardResponse } from '#lib/types/api.js';
 	import type { BarcodeModalItem } from './BarcodeModal.svelte';
 
 	let {
@@ -42,6 +42,7 @@
 			.filter(isCardActive)
 			.map((c) => cardToTileModel(c, currentUserId, currentLocale))
 	);
+
 	const voucherTiles = $derived(
 		data.recent_vouchers
 			.filter(isVoucherValid)
@@ -52,7 +53,6 @@
 			.filter(isGiftCardActive)
 			.map((g) => giftCardToTileModel(g, currentUserId, currentLocale))
 	);
-
 	const isEmpty = $derived(
 		cardTiles.length === 0 &&
 			voucherTiles.length === 0 &&
@@ -99,7 +99,7 @@
 					{$t('dashboard.noActivityHint')}
 				</p>
 				<a
-					href={resolve('/cards/new')}
+					href={resolve('cards/new')}
 					onclick={(e) => {
 						if (!$isOnline) e.preventDefault();
 					}}

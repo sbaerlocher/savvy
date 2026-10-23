@@ -1,9 +1,9 @@
 import { writable, derived, get } from 'svelte/store';
-import type { NotificationDTO } from '$lib/types/api';
-import { notificationsApi } from '$lib/api/notifications';
+import type { NotificationDTO } from '#lib/types/api.js';
+import { notificationsApi } from '#lib/api/notifications.js';
 import { toastStore } from './toast';
 import { t } from './i18n';
-import { logger } from '$lib/utils/logger';
+import { logger } from '#lib/utils/logger.js';
 
 const tr = (key: string, params?: Record<string, string | number>) =>
 	get(t)(key, params);

@@ -6,18 +6,18 @@
 		sessionsApi,
 		type ProfileDTO,
 		type SessionDTO
-	} from '$lib/api';
-	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	} from '#lib/api/index.js';
+	import TwoFactorSettings from '#lib/components/TwoFactorSettings.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import DesktopSessionList from '$lib/components/settings/DesktopSessionList.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import DesktopSessionList from '#lib/components/settings/DesktopSessionList.svelte';
 
 	// `platform` is a module constant, so a plain const, not $derived. Desktop
 	// renders this route as the security tab of the merged settings page.
@@ -63,7 +63,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 
@@ -431,7 +431,7 @@
 														stroke-linejoin="round"
 														stroke-width="2"
 														d="M6 18L18 6M6 6l12 12"
-													/>
+													></path>
 												</svg>
 											{/if}
 										</button>

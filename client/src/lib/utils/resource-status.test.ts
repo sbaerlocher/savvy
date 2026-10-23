@@ -4,7 +4,7 @@ import {
 	isGiftCardActive,
 	isVoucherValid
 } from './resource-status';
-import type { GiftCardDTO } from '$lib/types/api';
+import type { GiftCardDTO } from '#lib/types/api.js';
 
 const past = '2000-01-01T00:00:00Z';
 const future = '2999-01-01T00:00:00Z';

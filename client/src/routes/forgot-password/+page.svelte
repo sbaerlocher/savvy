@@ -1,15 +1,15 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { authApi } from '$lib/api';
-	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
-	import AuthResultIOS from '$lib/components/auth/AuthResultIOS.svelte';
-	import M3TextField from '$lib/components/ui/M3TextField.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { platform } from '$lib/utils/platform';
+	import { authApi } from '#lib/api/index.js';
+	import AuthCardIOS from '#lib/components/auth/AuthCardIOS.svelte';
+	import AuthResultIOS from '#lib/components/auth/AuthResultIOS.svelte';
+	import M3TextField from '#lib/components/ui/M3TextField.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
@@ -35,7 +35,7 @@
 
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 			return;
 		}
 		// Initialize CSRF cookie by hitting a public GET endpoint. Gate the
@@ -80,7 +80,7 @@
 				message={tr('auth.forgotPassword.successMessage')}
 			>
 				<a
-					href={resolve('/login')}
+					href={resolve('login')}
 					class="flex h-13 w-full items-center justify-center rounded-xl bg-accent-600 text-amount font-semibold text-on-accent shadow-accent"
 				>
 					{tr('auth.forgotPassword.backToLogin')}
@@ -122,9 +122,9 @@
 				</button>
 
 				<div class="pt-1 text-center">
-					<a href={resolve('/login')} class="text-label text-accent-600">
-						{tr('auth.forgotPassword.backToLogin')}
-					</a>
+					<a href={resolve('login')} class="text-label text-accent-600"
+						>{tr('auth.forgotPassword.backToLogin')}</a
+					>
 				</div>
 			</form>
 		{/if}
@@ -150,7 +150,7 @@
 					>
 						<path
 							d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-						/>
+						></path>
 					</svg>
 				</span>
 				<h1 class="text-heading text-text mb-2">
@@ -160,7 +160,7 @@
 					{tr('auth.forgotPassword.successMessage')}
 				</p>
 				<a
-					href={resolve('/login')}
+					href={resolve('login')}
 					class="text-subheading bg-accent-600 text-on-accent rounded-m3-full shadow-accent flex h-12 w-full items-center justify-center"
 				>
 					{tr('auth.forgotPassword.backToLogin')}
@@ -181,9 +181,9 @@
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
 						>
-							<rect x="2" y="5" width="20" height="14" rx="3" />
-							<path d="M2 10h20" />
-							<path d="M6 15h4" />
+							<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+							<path d="M2 10h20"></path>
+							<path d="M6 15h4"></path>
 						</svg>
 					</span>
 					<h1 class="text-heading text-text">
@@ -219,7 +219,7 @@
 
 					<div class="-mt-1.5 text-center">
 						<a
-							href={resolve('/login')}
+							href={resolve('login')}
 							class="text-label text-accent-600 font-semibold"
 						>
 							{tr('auth.forgotPassword.backToLogin')}
@@ -260,9 +260,9 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 									>
-										<rect x="2" y="5" width="20" height="14" rx="3" />
-										<path d="M2 10h20" />
-										<path d="M6 15h4" />
+										<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+										<path d="M2 10h20"></path>
+										<path d="M6 15h4"></path>
 									</svg>
 								</span>
 							{:else}
@@ -299,7 +299,7 @@
 											stroke-linejoin="round"
 											stroke-width="2"
 											d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-										/>
+										></path>
 									</svg>
 								</div>
 								<h2
@@ -317,7 +317,7 @@
 									{tr('auth.forgotPassword.successMessage')}
 								</p>
 								<a
-									href={resolve('/login')}
+									href={resolve('login')}
 									class="btn btn-primary w-full {isDesktop
 										? 'lg:h-12 lg:rounded-lg lg:text-subheading lg:shadow-accent'
 										: ''}"
@@ -387,13 +387,11 @@
 
 								<div class="text-center pt-4 {isDesktop ? 'lg:pt-0' : ''}">
 									<a
-										href={resolve('/login')}
+										href={resolve('login')}
 										class="font-medium text-accent hover:text-accent {isDesktop
 											? 'lg:text-body lg:font-semibold'
-											: ''}"
+											: ''}">{tr('auth.forgotPassword.backToLogin')}</a
 									>
-										{tr('auth.forgotPassword.backToLogin')}
-									</a>
 								</div>
 							</form>
 						{/if}
@@ -435,7 +433,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-									/>
+									></path>
 								</svg>
 								<div>
 									<h3
@@ -467,7 +465,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-									/>
+									></path>
 								</svg>
 								<div>
 									<h3
@@ -499,7 +497,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
+									></path>
 								</svg>
 								<div>
 									<h3
@@ -539,7 +537,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-									/>
+									></path>
 								</svg>
 								<span class="text-xs"
 									>{tr('auth.forgotPassword.securityNote')}</span

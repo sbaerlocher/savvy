@@ -2,8 +2,8 @@ import {
 	BarcodeDetector as PolyfillBarcodeDetector,
 	prepareZXingModule
 } from 'barcode-detector/ponyfill';
-import { logger } from '$lib/utils/logger';
-import { SCANNER_FORMATS } from '$lib/utils/barcode';
+import { logger } from '#lib/utils/logger.js';
+import { SCANNER_FORMATS } from '#lib/utils/barcode.js';
 
 // Override WASM location to serve from same origin instead of jsDelivr CDN.
 // Without this, CSP `connect-src 'self'` blocks the CDN fetch, causing

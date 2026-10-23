@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import SettingsTabs from '$lib/components/settings/SettingsTabs.svelte';
-	import AndroidSettingsScreen from '$lib/components/settings/AndroidSettingsScreen.svelte';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import SettingsTabs from '#lib/components/settings/SettingsTabs.svelte';
+	import AndroidSettingsScreen from '#lib/components/settings/AndroidSettingsScreen.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 	import Section from './Section.svelte';
 
@@ -26,7 +26,7 @@
 	// a deep link (PWA start URL) does not leave the chevron dead.
 	function goBack() {
 		if (history.length > 1) history.back();
-		else goto(resolve('/dashboard'));
+		else goto(resolve('dashboard'));
 	}
 </script>
 

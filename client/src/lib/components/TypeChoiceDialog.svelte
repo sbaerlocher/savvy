@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import Modal from '#lib/components/ui/Modal.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 
 	interface Props {
@@ -29,21 +29,21 @@
 		[
 			{
 				key: 'card',
-				href: resolve('/cards/new'),
+				href: resolve('cards/new'),
 				label: tr('common.card'),
 				enabled: $configStore.features.cards,
 				path: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
 			},
 			{
 				key: 'voucher',
-				href: resolve('/vouchers/new'),
+				href: resolve('vouchers/new'),
 				label: tr('common.voucher'),
 				enabled: $configStore.features.vouchers,
 				path: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z'
 			},
 			{
 				key: 'gift_card',
-				href: resolve('/gift-cards/new'),
+				href: resolve('gift-cards/new'),
 				label: tr('common.gift_card'),
 				enabled: $configStore.features.gift_cards,
 				path: 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7'
@@ -53,7 +53,7 @@
 				// entry is role-gated rather than feature-gated. Create lives here;
 				// edit/delete live in the /admin/merchants table.
 				key: 'merchant',
-				href: resolve('/admin/merchants/new'),
+				href: resolve('admin/merchants/new'),
 				label: tr('common.merchant'),
 				enabled: $authStore.user?.is_admin ?? false,
 				path: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5'
@@ -127,7 +127,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d={type.path}
-							/>
+							></path>
 						</svg>
 					</span>
 					<span class="font-medium text-text">{type.label}</span>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { configStore } from '$lib/stores/config';
-	import { t } from '$lib/stores/i18n';
+	import { configStore } from '#lib/stores/config.js';
+	import { t } from '#lib/stores/i18n.js';
 
 	export type AdminTab =
 		'users' | 'merchants' | 'audit-log' | 'system-health' | 'email-templates';

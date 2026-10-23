@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ProfileDTO } from '$lib/api';
-	import { profileApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { profileApi } from '#lib/api/index.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>

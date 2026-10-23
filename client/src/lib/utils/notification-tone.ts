@@ -1,4 +1,4 @@
-import type { NotificationDTO } from '$lib/types/api';
+import type { NotificationDTO } from '#lib/types/api.js';
 
 /**
  * Desktop notification rows render the type icon inside a tinted tile. Each

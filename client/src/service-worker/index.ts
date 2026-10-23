@@ -1,15 +1,11 @@
-/// <reference types="@sveltejs/kit" />
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
-
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
-import { build, files, version } from '$service-worker';
-import { handleNotificationClick } from '$lib/pwa/notification-click';
+import { version } from '$app/env';
+import { assets, immutable } from '$app/manifest';
+import { handleNotificationClick } from '#lib/pwa/notification-click.js';
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -19,15 +15,17 @@ declare let self: ServiceWorkerGlobalScope;
 
 // Precache the app code (js/css/wasm; fonts load via the immutable runtime cache)
 // and static icons/manifest. Build files are content-hashed; static files are
-// revisioned by the app version (kit.version.name). Large static WASM (zxing) is
+// revisioned by the app version (version.name in vite.config.ts). Manifest paths
+// are base-relative and SvelteKit serves this worker from the base root, so
+// Workbox resolves both lists against the worker's URL. Large static WASM (zxing) is
 // left to runtime fetches. index.html is not precached (see install handler).
 precacheAndRoute([
-	...build
-		.filter((url) => /\.(js|css|wasm)$/.test(url))
-		.map((url) => ({ url, revision: null })),
-	...files
-		.filter((url) => /\.(png|svg|webmanifest)$/.test(url))
-		.map((url) => ({ url, revision: version }))
+	...immutable
+		.filter(({ path }) => /\.(js|css|wasm)$/.test(path))
+		.map(({ path }) => ({ url: path, revision: null })),
+	...assets
+		.filter(({ path }) => /\.(png|svg|webmanifest)$/.test(path))
+		.map(({ path }) => ({ url: path, revision: version }))
 ]);
 
 // Cleanup outdated caches from previous versions

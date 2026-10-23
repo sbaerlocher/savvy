@@ -4,12 +4,12 @@
 		ICON_CLOSE,
 		ICON_INFO_CIRCLE,
 		ICON_WARNING
-	} from '$lib/icons';
-	import { toastStore } from '$lib/stores/toast';
-	import type { Toast } from '$lib/stores/toast';
+	} from '#lib/icons.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import type { Toast } from '#lib/stores/toast.js';
 	import { fly, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	const isIOS = platform === 'ios';
 

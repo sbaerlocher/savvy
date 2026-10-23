@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { ICON_BELL, ICON_LOCK } from '$lib/icons';
+	import { ICON_BELL, ICON_LOCK } from '#lib/icons.js';
 	import { resolve } from '$app/paths';
-	import type { ProfileDTO } from '$lib/api';
-	import { authApi, exportApi } from '$lib/api';
-	import { configStore } from '$lib/stores/config';
-	import { languageStore, t, type Language } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { authApi, exportApi } from '#lib/api/index.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { languageStore, t, type Language } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { get } from 'svelte/store';
 	import DeleteAccountCard from './DeleteAccountCard.svelte';
 
@@ -146,7 +146,7 @@
 								fill-rule="evenodd"
 								d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
 								clip-rule="evenodd"
-							/>
+							></path>
 						</svg>
 						{tr('settings.emailVerification.verified')}
 					</span>
@@ -192,7 +192,7 @@
 	<!-- Link to the dedicated security page (password, 2FA, sessions).
 	     Placed right after the account card on all viewports. -->
 	<a
-		href={resolve('/security')}
+		href={resolve('security')}
 		class="group flex items-center gap-4 rounded-xl border border-border bg-white p-6 transition hover:border-border-field"
 	>
 		<div
@@ -210,7 +210,7 @@
 					stroke-linejoin="round"
 					stroke-width="2"
 					d={ICON_LOCK}
-				/>
+				></path>
 			</svg>
 		</div>
 		<div class="min-w-0 flex-1">
@@ -233,13 +233,13 @@
 				stroke-linejoin="round"
 				stroke-width="2"
 				d="M9 5l7 7-7 7"
-			/>
+			></path>
 		</svg>
 	</a>
 
 	<!-- Link to the notification preferences page. -->
 	<a
-		href={resolve('/notifications/settings')}
+		href={resolve('notifications/settings')}
 		class="group flex items-center gap-4 rounded-xl border border-border bg-white p-6 transition hover:border-border-field"
 	>
 		<div
@@ -257,7 +257,7 @@
 					stroke-linejoin="round"
 					stroke-width="2"
 					d={ICON_BELL}
-				/>
+				></path>
 			</svg>
 		</div>
 		<div class="min-w-0 flex-1">
@@ -280,7 +280,7 @@
 				stroke-linejoin="round"
 				stroke-width="2"
 				d="M9 5l7 7-7 7"
-			/>
+			></path>
 		</svg>
 	</a>
 
@@ -319,7 +319,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-					/>
+					></path>
 				</svg>
 				{tr('settings.export.button')}
 			{/if}

@@ -18,9 +18,9 @@
 
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { t, locale } from '$lib/stores/i18n';
-	import { formatCurrency } from '$lib/utils/currency';
-	import Barcode from '$lib/components/Barcode.svelte';
+	import { t, locale } from '#lib/stores/i18n.js';
+	import { formatCurrency } from '#lib/utils/currency.js';
+	import Barcode from '#lib/components/Barcode.svelte';
 
 	let {
 		item,

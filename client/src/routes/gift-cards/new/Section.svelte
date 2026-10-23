@@ -2,22 +2,22 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { giftCardsApi, sharedUsersApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { t } from '$lib/stores/i18n';
-	import type { UserDTO, DuplicateWarning } from '$lib/types/api';
-	import { extractDuplicate } from '$lib/utils/api-errors';
+	import { giftCardsApi, sharedUsersApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { t } from '#lib/stores/i18n.js';
+	import type { UserDTO, DuplicateWarning } from '#lib/types/api.js';
+	import { extractDuplicate } from '#lib/utils/api-errors.js';
 
-	import { logger } from '$lib/utils/logger';
-	import GiftCardForm from '$lib/components/gift-cards/GiftCardForm.svelte';
-	import SharedInfoBox from '$lib/components/SharedInfoBox.svelte';
-	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
+	import { logger } from '#lib/utils/logger.js';
+	import GiftCardForm from '#lib/components/gift-cards/GiftCardForm.svelte';
+	import SharedInfoBox from '#lib/components/SharedInfoBox.svelte';
+	import DuplicateWarningBanner from '#lib/components/DuplicateWarningBanner.svelte';
 
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const pageLogger = logger.child('GiftCardsNewPage');
 
+	const pageLogger = logger.child('GiftCardsNewPage');
 	let cardNumber = $state('');
 	let merchantId = $state('');
 	let initialBalance = $state(0);
@@ -141,7 +141,7 @@
 	}
 
 	function handleCancel() {
-		goto(resolve('/gift-cards'));
+		goto(resolve('gift-cards'));
 	}
 </script>
 
@@ -152,7 +152,7 @@
 			<DuplicateWarningBanner
 				warning={duplicateWarning}
 				resourceType="gift_card"
-				onNavigate={(id) => goto(resolve(`/gift-cards/${id}`))}
+				onNavigate={(id) => goto(resolve(`gift-cards/${id}`))}
 				onrestore={handleRestore}
 			/>
 			<GiftCardForm
@@ -176,6 +176,7 @@
 	<!-- Right column: Sharing (1/3 width) -->
 	<div class="lg:col-span-1 space-y-4">
 		<!-- Sharing Box -->
+
 		<div class="rounded-xl border border-border bg-white p-6">
 			<h2 class="text-xl font-bold text-text mb-4">
 				{tr('giftCards.sharing.title')}

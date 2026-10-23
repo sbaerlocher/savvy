@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import { defaultClientConditions } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
 
 export default defineConfig({
-	plugins: [svelte()],
+	plugins: [svelte({ preprocess: vitePreprocess() })],
 	test: {
 		globals: true,
 		environment: 'happy-dom',
@@ -32,7 +32,6 @@ export default defineConfig({
 		// would drop `module`/`development|production` for every dependency.
 		conditions: [...defaultClientConditions, 'browser'],
 		alias: {
-			$lib: resolve('./src/lib'),
 			$app: resolve('./src/tests/mocks/$app')
 		}
 	}

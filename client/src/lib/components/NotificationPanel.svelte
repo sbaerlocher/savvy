@@ -5,19 +5,19 @@
 		ICON_CLOSE,
 		ICON_SHARE,
 		ICON_TRANSFER
-	} from '$lib/icons';
+	} from '#lib/icons.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
-	import { notificationStore } from '$lib/stores/notifications';
-	import type { NotificationDTO } from '$lib/types/api';
-	import { resourceDetailPath } from '$lib/resource/routes';
+	import { t } from '#lib/stores/i18n.js';
+	import { notificationStore } from '#lib/stores/notifications.js';
+	import type { NotificationDTO } from '#lib/types/api.js';
+	import { resourceDetailPath } from '#lib/resource/routes.js';
 	import { onDestroy, onMount } from 'svelte';
-	import { platform } from '$lib/utils/platform';
-	import { notificationTone } from '$lib/utils/notification-tone';
-	import { reminderMessageKey } from '$lib/utils/notification-message';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import NotificationTypeIcon from '$lib/components/NotificationTypeIcon.svelte';
+	import { platform } from '#lib/utils/platform.js';
+	import { notificationTone } from '#lib/utils/notification-tone.js';
+	import { reminderMessageKey } from '#lib/utils/notification-message.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import NotificationTypeIcon from '#lib/components/NotificationTypeIcon.svelte';
 
 	// Desktop renders the mockup dropdown (tinted icon tiles, unread dot, footer
 	// link); iOS/Android keep the existing panel. `platform` is a module
@@ -171,7 +171,7 @@
 			stroke-linejoin="round"
 			stroke-width="2"
 			d={ICON_BELL}
-		/>
+		></path>
 	</svg>
 
 	{#if unreadCount > 0}
@@ -189,7 +189,7 @@
 {#if mode === 'link'}
 	<!-- eslint-disable svelte/no-navigation-without-resolve -- href from resolve() -->
 	<a
-		href={resolve('/notifications')}
+		href={resolve('notifications')}
 		class={triggerClass}
 		aria-label={$t('notifications.title')}
 	>
@@ -284,7 +284,7 @@
 
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href from resolve() -->
 		<a
-			href={resolve('/notifications')}
+			href={resolve('notifications')}
 			class="flex items-center justify-center gap-1.5 p-3.5 text-[length:var(--text-label)] font-semibold text-accent-700"
 			onclick={() => notificationStore.closePanel()}
 		>
@@ -298,10 +298,8 @@
 				stroke-width="2.2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				aria-hidden="true"
+				aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg
 			>
-				<path d="M9 6l6 6-6 6" />
-			</svg>
 		</a>
 	</div>
 {/if}
@@ -346,13 +344,13 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M2 13l4 4L15 8"
-							/>
+							></path>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M9 13l4 4L22 8"
-							/>
+							></path>
 						</svg>
 					</button>
 				{/if}
@@ -360,7 +358,7 @@
 					class="text-accent hover:text-accent-hover p-1.5 rounded-md hover:bg-accent-50 transition-colors"
 					onclick={() => {
 						notificationStore.closePanel();
-						goto(resolve('/notifications'));
+						goto(resolve('notifications'));
 					}}
 					title={$t('notifications.viewAll')}
 					aria-label={$t('notifications.viewAll')}
@@ -376,7 +374,7 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-						/>
+						></path>
 					</svg>
 				</button>
 			</div>
@@ -399,7 +397,7 @@
 							stroke-linejoin="round"
 							stroke-width="1.5"
 							d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-						/>
+						></path>
 					</svg>
 					<p>{$t('notifications.noNotifications')}</p>
 				</div>
@@ -429,7 +427,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d={ICON_SHARE}
-									/>
+									></path>
 								</svg>
 							{:else if notification.type === 'transfer_received'}
 								<svg
@@ -443,7 +441,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d={ICON_TRANSFER}
-									/>
+									></path>
 								</svg>
 							{:else if notification.type === 'expiry_reminder'}
 								<svg
@@ -457,7 +455,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
+									></path>
 								</svg>
 							{:else if notification.type === 'validity_start'}
 								<svg
@@ -471,7 +469,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d={ICON_CHECK_CIRCLE}
-									/>
+									></path>
 								</svg>
 							{:else}
 								<svg
@@ -485,7 +483,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d={ICON_BELL}
-									/>
+									></path>
 								</svg>
 							{/if}
 						</div>
@@ -511,9 +509,9 @@
 									}}
 									aria-label={$t('notifications.markAsRead')}
 								>
-									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-										<circle cx="12" cy="12" r="5" />
-									</svg>
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+										><circle cx="12" cy="12" r="5"></circle></svg
+									>
 								</button>
 							{/if}
 
@@ -536,7 +534,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d={ICON_CLOSE}
-									/>
+									></path>
 								</svg>
 							</button>
 						</div>

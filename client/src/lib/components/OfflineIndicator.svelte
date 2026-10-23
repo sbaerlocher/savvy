@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ICON_CHECK_CIRCLE, ICON_CLOSE, ICON_WARNING } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
-	import { isOnline as isOnlineStore } from '$lib/stores/offline';
+	import { ICON_CHECK_CIRCLE, ICON_CLOSE, ICON_WARNING } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { isOnline as isOnlineStore } from '#lib/stores/offline.js';
 	import { slide, fade } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 

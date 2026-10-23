@@ -1,5 +1,5 @@
-import type { ShareCreateResponse } from '$lib/types/api';
-import { ApiError } from '$lib/api/client';
+import type { ShareCreateResponse } from '#lib/types/api.js';
+import { ApiError } from '#lib/api/client.js';
 
 type Tr = (key: string, params?: Record<string, string | number>) => string;
 

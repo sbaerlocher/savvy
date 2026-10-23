@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { ICON_CLOSE, ICON_SEARCH } from '$lib/icons';
-	import { page } from '$app/stores';
+	import { ICON_CLOSE, ICON_SEARCH } from '#lib/icons.js';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	interface Props {
 		// Opens the global type-choice ("New") dialog.
@@ -14,7 +14,7 @@
 
 	let { onNew }: Props = $props();
 
-	const isActive = (path: string) => $page.url.pathname.startsWith(path);
+	const isActive = (path: string) => page.url.pathname.startsWith(path);
 	const preloadStrategy = $derived($isOnline ? 'hover' : 'off');
 
 	// M3 allows one FAB per screen. Resource detail pages carry their own edit
@@ -22,32 +22,32 @@
 	// affordance on Android — the title row hides the edit button there. So
 	// the nav drops its "New" FAB on those routes instead of covering it.
 	const onResourceDetail = $derived(
-		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test($page.url.pathname)
+		/^\/(cards|vouchers|gift-cards)\/(?!new$)[^/]+$/.test(page.url.pathname)
 	);
 
 	// Admin screens own their FAB too: /admin/users renders a create-user
 	// FAB in the same slot, and the global "New resource" dialog has no
 	// business on an admin screen anyway.
-	const onAdminRoute = $derived($page.url.pathname.startsWith('/admin'));
+	const onAdminRoute = $derived(page.url.pathname.startsWith('/admin'));
 
 	// Three places: Start (dashboard), Wallet, Profile.
 	// href is resolved up-front (resolve() needs literal routes, not a variable).
 	const places = [
 		{
 			path: '/dashboard',
-			href: resolve('/dashboard'),
+			href: resolve('dashboard'),
 			label: 'nav.start',
 			icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
 		},
 		{
 			path: '/wallet',
-			href: resolve('/wallet'),
+			href: resolve('wallet'),
 			label: 'nav.wallet',
 			icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
 		},
 		{
 			path: '/profile',
-			href: resolve('/profile'),
+			href: resolve('profile'),
 			label: 'nav.profile',
 			icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
 		}
@@ -63,7 +63,7 @@
 
 	// Prefill from the current ?search param so re-opening keeps the query.
 	$effect(() => {
-		const param = $page.url.searchParams.get('search');
+		const param = page.url.searchParams.get('search');
 		if (param && param !== '1') searchValue = param;
 	});
 
@@ -79,21 +79,23 @@
 		searchActive = false;
 		searchValue = '';
 		if (searchDebounce) clearTimeout(searchDebounce);
-		if ($page.url.pathname.startsWith('/wallet')) goto(resolve('/wallet'));
+		if (page.url.pathname.startsWith('/wallet')) goto(resolve('wallet'));
 	}
 
 	function onSearchInput() {
 		if (searchDebounce) clearTimeout(searchDebounce);
 		const q = searchValue.trim();
+
 		searchDebounce = setTimeout(() => {
 			const target =
-				resolve('/wallet') +
+				resolve('wallet') +
 				(q ? `?search=${encodeURIComponent(q)}` : '?search=1');
+
 			// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
 			goto(target, {
-				keepFocus: true,
-				replaceState: true
-			});
+				reset: false,
+				replace: true
+			}).then(() => window.scrollTo(0, 0));
 		}, 250);
 	}
 
@@ -138,7 +140,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d={place.icon}
-							/>
+							></path>
 						</svg>
 						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
 							>{$t(place.label)}</span
@@ -164,7 +166,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d={ICON_SEARCH}
-					/>
+					></path>
 				</svg>
 			</button>
 		{:else}
@@ -183,7 +185,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d={ICON_SEARCH}
-					/>
+					></path>
 				</svg>
 				<input
 					bind:this={searchEl}
@@ -212,7 +214,7 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d={ICON_CLOSE}
-						/>
+						></path>
 					</svg>
 				</button>
 			</div>
@@ -241,7 +243,7 @@
 					stroke-linejoin="round"
 					stroke-width="2"
 					d="M12 4v16m8-8H4"
-				/>
+				></path>
 			</svg>
 		</button>
 	{/if}
@@ -283,7 +285,7 @@
 									stroke-linejoin="round"
 									stroke-width="2"
 									d={place.icon}
-								/>
+								></path>
 							</svg>
 						</span>
 						<span
@@ -320,7 +322,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d={place.icon}
-							/>
+							></path>
 						</svg>
 						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
 							>{$t(place.label)}</span
