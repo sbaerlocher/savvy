@@ -85,11 +85,29 @@ spec:
                 name: {{ include "savvy.fullname" . }}-config
           env:
             # Database Configuration
+            {{- if .Values.database.existingSecret }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ required "database.existingSecret is required! Please provide the name of a Kubernetes secret containing DATABASE_URL" .Values.database.existingSecret }}
-                  key: {{ .Values.database.databaseUrlKey }}
+                  name: {{ .Values.database.existingSecret }}
+                  key: {{ required "database.databaseUrlKey is required" .Values.database.databaseUrlKey }}
+            {{- else }}
+            - name: DATABASE_HOST
+              value: {{ required "database.host is required when database.existingSecret is empty" .Values.database.host | quote }}
+            - name: DATABASE_PORT
+              value: {{ .Values.database.port | quote }}
+            - name: DATABASE_NAME
+              value: {{ required "database.name is required when database.existingSecret is empty" .Values.database.name | quote }}
+            - name: DATABASE_USER
+              value: {{ required "database.user is required when database.existingSecret is empty" .Values.database.user | quote }}
+            - name: DATABASE_SSLMODE
+              value: {{ .Values.database.sslMode | quote }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "database.passwordSecret.existingSecret is required when database.existingSecret is empty" .Values.database.passwordSecret.existingSecret }}
+                  key: {{ required "database.passwordSecret.passwordKey is required" .Values.database.passwordSecret.passwordKey }}
+            {{- end }}
 
             # Session Secret
             - name: SESSION_SECRET

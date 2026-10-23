@@ -99,7 +99,11 @@ func InitI18n() error {
 
 // InitDatabase connects to the database and optionally enables telemetry.
 func InitDatabase(cfg *config.Config) error {
-	if err := database.Connect(cfg.DatabaseURL, cfg.LogLevel); err != nil {
+	connectionString, err := cfg.DatabaseConnectionString()
+	if err != nil {
+		return err
+	}
+	if err := database.Connect(connectionString, cfg.LogLevel); err != nil {
 		return err
 	}
 

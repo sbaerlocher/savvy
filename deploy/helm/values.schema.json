@@ -119,6 +119,22 @@
           "type": "string",
           "default": "DATABASE_URL",
           "description": "Key within the secret containing the database URL"
+        },
+        "host": { "type": "string" },
+        "port": { "type": "integer", "default": 5432, "minimum": 1, "maximum": 65535 },
+        "name": { "type": "string" },
+        "user": { "type": "string" },
+        "sslMode": {
+          "type": "string",
+          "default": "verify-full",
+          "enum": ["disable", "require", "verify-ca", "verify-full"]
+        },
+        "passwordSecret": {
+          "type": "object",
+          "properties": {
+            "existingSecret": { "type": "string" },
+            "passwordKey": { "type": "string", "default": "DATABASE_PASSWORD" }
+          }
         }
       }
     },
