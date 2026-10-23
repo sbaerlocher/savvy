@@ -39,6 +39,15 @@ SERVER_PORT=3000
 
 # Database
 DATABASE_URL=postgres://user:pass@host:5432/savvy?sslmode=require
+# Alternative: leave DATABASE_URL unset and use separate parameters
+# (DATABASE_URL takes precedence; a warning is logged when both are set).
+# Parameter mode requires a password; client-certificate or .pgpass auth needs DATABASE_URL.
+# DATABASE_HOST=postgres.example.com
+# DATABASE_PORT=5432                  # default: 5432
+# DATABASE_NAME=savvy
+# DATABASE_USER=savvy
+# DATABASE_PASSWORD=...               # plain value, no URL encoding
+# DATABASE_SSLMODE=verify-full        # default: verify-full (disable, require, verify-ca, verify-full)
 
 # Session (CRITICAL: Change in production!)
 SESSION_SECRET=<generate-with-openssl-rand-base64-32>
@@ -142,7 +151,7 @@ configuration from `/api/v1/config` on page load.
 ### Pre-Deployment Checklist
 
 - [ ] Generate strong SESSION_SECRET (min 32 chars)
-- [ ] Configure DATABASE_URL with SSL enabled
+- [ ] Configure DATABASE_URL (or DATABASE_HOST/NAME/USER/PASSWORD) with SSL enabled
 - [ ] Set up TLS certificates (Let's Encrypt via Traefik)
 - [ ] Configure backup strategy
 - [ ] Set up monitoring (Prometheus + Grafana)
