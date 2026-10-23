@@ -14,8 +14,8 @@ let controllerChangeBound = false;
 /**
  * Registers the service worker manually.
  *
- * injectRegister: "inline" doesn't work with adapter-static, so registration is
- * done imperatively here. May run more than once per page load (re-registration
+ * SvelteKit's automatic registration is disabled (svelte.config.js) so the
+ * availability check and update toast below stay in our control. May run more than once per page load (re-registration
  * from the profile page), so i18n is read via get(t) rather than the reactive $t.
  *
  * Returns true when a service worker is registered, false when registration was
@@ -27,10 +27,9 @@ export async function registerServiceWorker(): Promise<boolean> {
 		return false;
 	}
 
-	// SvelteKit generates service-worker.js from src/service-worker.ts
-	const swUrl = import.meta.env.DEV
-		? '/dev-sw.js?dev-sw'
-		: '/service-worker.js';
+	// SvelteKit builds service-worker.js from src/service-worker.ts (served
+	// unbundled as an ES module in dev, hence type: 'module' below)
+	const swUrl = '/service-worker.js';
 
 	// Verify the SW file actually exists before registering.
 	// Prevents zombie registrations when accessing the Go dev server (port 8080)

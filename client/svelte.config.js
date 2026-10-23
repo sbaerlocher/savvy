@@ -12,6 +12,10 @@ const config = {
 			precompress: false,
 			strict: true
 		}),
+		// Registered manually in $lib/pwa/register-sw.ts (availability check, update toast)
+		serviceWorker: {
+			register: false
+		},
 		alias: {
 			$lib: 'src/lib',
 			$components: 'src/lib/components'

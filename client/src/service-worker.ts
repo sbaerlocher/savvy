@@ -8,19 +8,24 @@ import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { build, files, version } from '$service-worker';
 import { handleNotificationClick } from '$lib/pwa/notification-click';
 
-// Type definitions for Workbox
-declare let self: ServiceWorkerGlobalScope & {
-	__WB_MANIFEST: Array<{ url: string; revision: string | null }>;
-};
+declare let self: ServiceWorkerGlobalScope;
 
 // ========================================================================
 // PRECACHE SETUP - Static Assets
 // ========================================================================
 
-// Precache all static assets (manifest injected by @vite-pwa/sveltekit injectManifest)
-precacheAndRoute(self.__WB_MANIFEST);
+// Precache the app build and static icons/manifest. Build files are content-hashed;
+// static files are revisioned by the app version. Large static WASM (zxing) is
+// left to runtime fetches. index.html is not precached (see install handler).
+precacheAndRoute([
+	...build.map((url) => ({ url, revision: null })),
+	...files
+		.filter((url) => /\.(png|svg|webmanifest)$/.test(url))
+		.map((url) => ({ url, revision: version }))
+]);
 
 // Cleanup outdated caches from previous versions
 cleanupOutdatedCaches();
@@ -72,7 +77,7 @@ registerRoute(
 // RUNTIME CACHING - JS/CSS/WASM Chunks (safety net for offline navigation)
 // ========================================================================
 // Precaching covers production builds. Runtime caching adds:
-// - Dev mode support (where __WB_MANIFEST is empty)
+// - Dev mode support (where the build list is empty)
 // - Safety net for lazy-loaded or missed chunks in production
 
 // Immutable SvelteKit chunks (content-hashed → safe to cache permanently)
@@ -187,12 +192,11 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('install', (event) => {
 	console.log('[SW] Installing Service Worker...');
-	// Note: Cannot reference __WB_MANIFEST here (injectManifest allows only one match)
 	// Warm the app shell (`/`) into the navigation cache so the very first cold
 	// launch — e.g. an Android homescreen-shortcut start to start_url `/` before
 	// any navigation has been cached — can serve the shell from the
 	// handlerDidError fallback instead of showing a white screen. index.html is
-	// not precached (see vite.config.ts), so this network fetch is the only way
+	// not precached, so this network fetch is the only way
 	// the shell reaches navigation-pages ahead of the first navigation. Best
 	// effort: swallow failure (offline install) so it never blocks activation.
 	event.waitUntil(
