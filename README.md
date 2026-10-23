@@ -411,7 +411,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed package structure and archit
 | **i18n**               | go-i18n                    | Internationalization            |
 | **Metrics**            | Prometheus                 | Application Metrics             |
 | **Tracing**            | OpenTelemetry              | Distributed Tracing             |
-| **PWA**                | @vite-pwa/sveltekit        | Service Worker & Offline        |
+| **PWA**                | SvelteKit service worker   | Service Worker & Offline        |
 | **Service Worker**     | Workbox                    | Caching & Offline Strategies    |
 
 ### Development & Testing

@@ -237,4 +237,36 @@ test.describe('Offline Storage', () => {
 			indexedDB.deleteDatabase('savvy-test-corruption');
 		});
 	});
+
+	test('should serve the app shell offline for root and unvisited routes', async ({
+		page
+	}) => {
+		await loginAsUser(
+			page,
+			TEST_USERS.regular.email,
+			TEST_USERS.regular.password
+		);
+
+		// The service worker installs on the first (signed-out) page load, so its
+		// shell warmup goes through the `/` -> `/login` redirect.
+		await page.waitForFunction(
+			async () =>
+				(await navigator.serviceWorker.getRegistration())?.active?.state ===
+				'activated',
+			null,
+			{ timeout: 30000 }
+		);
+		await page.reload();
+		await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+
+		await page.context().setOffline(true);
+		try {
+			for (const path of ['/', '/gift-cards']) {
+				await page.goto(path);
+				await expect(page.locator('main')).toBeVisible({ timeout: 10000 });
+			}
+		} finally {
+			await page.context().setOffline(false);
+		}
+	});
 });

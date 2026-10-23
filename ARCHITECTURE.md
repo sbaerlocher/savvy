@@ -33,7 +33,7 @@ The Savvy follows a **modern API-First Full-Stack Architecture** with a SvelteKi
 a JSON API. SvelteKit uses Vite for build/dev server, TailwindCSS for styling, barcode-detector for
 barcode scanning (browser), and bwip-js for barcode generation (server). Svelte Stores manage global
 state (auth, offline, notifications, i18n). PWA functionality is provided via custom Service Worker
-with Workbox Recipes (injectManifest strategy) for offline-first caching.
+built natively by SvelteKit (Workbox for caching) for offline-first caching.
 
 **Application Layer**: The Go-based Echo Web Framework processes API requests (`/api/v1/`) through a middleware chain (Authentication, CSRF, CORS, Tracing). JSON API Handlers transform requests into DTOs, call business services, and return JSON responses. This clear layering follows the Layered Architecture pattern.
 
@@ -1035,7 +1035,7 @@ The Savvy uses a **modern SPA approach** with SvelteKit as the frontend framewor
 - **Vite Build**: Fast dev server and optimized production build
 - **Component Architecture**: Reusable Svelte components
 - **Svelte Stores**: Centralized state management (auth, offline, i18n, notifications)
-- **PWA Support**: Custom Service Worker with Workbox Recipes (injectManifest + warmStrategyCache)
+- **PWA Support**: Custom Service Worker built natively by SvelteKit, with Workbox caching
 
 This architecture enables fast development, clear separation of frontend/backend, and modern developer experience.
 
@@ -1290,11 +1290,11 @@ graph LR
 **Vite Configuration** (`vite.config.ts`):
 
 - **SvelteKit Plugin**: Core SvelteKit functionality
-- **Vite PWA Plugin** (`@vite-pwa/sveltekit`): PWA manifest generation + custom service worker
-  - `injectManifest` strategy for custom Service Worker
-  - Manual registration in `+layout.svelte` (full control)
-  - Workbox integration with NetworkFirst + warmup cache
-  - Auto-update support via `registerType: 'autoUpdate'`
+- **Service Worker**: built natively by SvelteKit from `src/service-worker.ts` (no PWA plugin)
+  - Precache list from `$service-worker` (`build`, `files`, `version`)
+  - Automatic registration disabled (`kit.serviceWorker.register: false` in `svelte.config.js`);
+    registered manually via `$lib/pwa/register-sw.ts`
+  - Web app manifest is the static file `static/manifest.webmanifest`
 
 **Benefits of this Architecture**:
 
@@ -1493,8 +1493,8 @@ API clients implement an **offline-first pattern** for read operations (`client/
 **Service Worker** (Custom with Workbox):
 
 - **Source**: `client/src/service-worker.ts` (custom implementation)
-- **Strategy**: `injectManifest` via `@vite-pwa/sveltekit` plugin
-- **Registration**: Manual in `+layout.svelte` (`registerType: 'autoUpdate'`)
+- **Build**: native SvelteKit service worker; precache list from `$service-worker`
+- **Registration**: Manual via `$lib/pwa/register-sw.ts`, called from `+layout.svelte`
 - **Caching**: NetworkFirst with automatic warmup cache (Workbox Recipes)
 - **Warmup**: Critical API routes preloaded on install (cards, vouchers, gift-cards, dashboard)
 - **Precaching**: Static assets (app shell, icons, SvelteKit chunks) cached during install

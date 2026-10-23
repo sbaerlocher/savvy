@@ -160,56 +160,49 @@ estoppel, or otherwise.
 - Copyright: (c) Niclas Gruhn
 - Repository: https://github.com/niclas-gruhn/barcode-detector
 
-### 7. Vite PWA Plugin
-- Name: @vite-pwa/sveltekit
-- Version: ^1.1.0
-- License: MIT
-- Copyright: (c) 2022 Anthony Fu
-- Repository: https://github.com/vite-pwa/sveltekit
-
-### 8. Workbox
-- Name: workbox-window
-- Version: ^7.4.0
+### 7. Workbox
+- Name: workbox-precaching, workbox-routing, workbox-strategies, workbox-expiration, workbox-cacheable-response
+- Version: 7.4.1
 - License: Apache-2.0
 - Copyright: (c) 2017 Google LLC
 - Repository: https://github.com/GoogleChrome/workbox
 
-### 9. OpenTelemetry API
+### 8. OpenTelemetry API
 - Name: @opentelemetry/api
 - Version: ^1.9.0
 - License: Apache-2.0
 - Copyright: (c) OpenTelemetry Authors
 - Repository: https://github.com/open-telemetry/opentelemetry-js
 
-### 10. OpenTelemetry SDK (Web)
+### 9. OpenTelemetry SDK (Web)
 - Name: @opentelemetry/sdk-trace-web
 - Version: ^2.5.1
 - License: Apache-2.0
 - Copyright: (c) OpenTelemetry Authors
 - Repository: https://github.com/open-telemetry/opentelemetry-js
 
-### 11. Playwright
+### 10. Playwright
 - Name: @playwright/test
 - Version: 1.58.2
 - License: Apache-2.0
 - Copyright: (c) Microsoft Corporation
 - Repository: https://github.com/microsoft/playwright
 
-### 12. Vitest
+### 11. Vitest
 - Name: vitest
 - Version: ^4.0.18
 - License: MIT
 - Copyright: (c) 2021-Present Anthony Fu and Vitest contributors
 - Repository: https://github.com/vitest-dev/vitest
 
-### 13. PostCSS
+### 12. PostCSS
 - Name: postcss
 - Version: ^8.5.6
 - License: MIT
 - Copyright: (c) 2013 Andrey Sitnik
 - Repository: https://github.com/postcss/postcss
 
-### 14. TypeScript
+### 13. TypeScript
 - Name: typescript
 - Version: 5.9.3
 - License: Apache-2.0
@@ -230,18 +223,18 @@ estoppel, or otherwise.
 
 ## Build Tools and Infrastructure
 
-### 1. Docker
+### 14. Docker
 - License: Apache-2.0
 - Copyright: (c) 2013-2024 Docker, Inc.
 - Website: https://www.docker.com/
 
-### 2. Air (Hot Reload)
+### 15. Air (Hot Reload)
 - Name: github.com/air-verse/air
 - Version: v1.61.1
 - License: GPL-3.0
 - Repository: https://github.com/air-verse/air
 
-### 3. Alpine Linux
+### 16. Alpine Linux
 - Version: 3.23
 - License: Various (primarily MIT, GPL, BSD)
 - Website: https://alpinelinux.org/

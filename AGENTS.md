@@ -511,7 +511,7 @@ Handlers → Services (Interfaces) → Repositories (Interfaces) → GORM Models
 
 ### Implementation
 
-**Service Worker**: Custom service worker (`src/service-worker.ts`) with Workbox + `injectManifest` strategy
+**Service Worker**: Custom service worker (`src/service-worker.ts`) with Workbox, built natively by SvelteKit
 
 - **Strategy**: **NetworkFirst** with automatic warmup cache for offline-first functionality
 - **Warmup Cache**: Automatic API precaching on install using `warmStrategyCache` (Workbox Recipes)
@@ -665,7 +665,7 @@ warmStrategyCache({
 
 1. **Service Worker Cache** (CacheStorage API)
    - HTTP responses for network requests
-   - Managed by custom service worker (injectManifest)
+   - Managed by custom service worker
    - Expiration: 1 day (API), 1 hour (Dashboard/Merchants)
 
 2. **IndexedDB** (via offline-db.ts)
@@ -676,7 +676,7 @@ warmStrategyCache({
 **Files**:
 
 - Service Worker: [client/src/service-worker.ts](client/src/service-worker.ts) (Custom SW with Workbox Recipes)
-- PWA Config: [client/vite.config.ts](client/vite.config.ts) (`injectManifest` strategy, globPatterns)
+- PWA Config: [client/svelte.config.js](client/svelte.config.js) (`serviceWorker.register: false`), manifest in [client/static/manifest.webmanifest](client/static/manifest.webmanifest)
 - SW Registration: [client/src/routes/+layout.svelte](client/src/routes/+layout.svelte) (Manual registration)
 - Offline Store: [client/src/lib/stores/offline.ts](client/src/lib/stores/offline.ts) (cache validation logic)
 - IndexedDB Wrapper: [client/src/lib/stores/offline-db.ts](client/src/lib/stores/offline-db.ts)
@@ -746,7 +746,7 @@ if (barcodes.length > 0) {
 - **Development**: `docker compose up` (Vite dev server on port 5173 in Docker)
 - **Production**: `npm run build:embed` → copies to `internal/assets/client/`
 - **Go Embedding**: `//go:embed` in main.go serves SvelteKit build
-- **PWA**: `@vite-pwa/sveltekit` plugin generates service worker
+- **PWA**: SvelteKit builds the service worker natively from `src/service-worker.ts`
 
 ---
 
