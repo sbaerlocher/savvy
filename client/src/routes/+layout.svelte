@@ -30,7 +30,8 @@
 	const showMobileNav = $derived(
 		$authStore.isAuthenticated &&
 			!page.url.pathname.startsWith('/login') &&
-			!page.url.pathname.startsWith('/register') && // Native select mode rearranges the bottom chrome: Android swaps the nav
+			!page.url.pathname.startsWith('/register') &&
+			// Native select mode rearranges the bottom chrome: Android swaps the nav
 			// bar and FAB for the M3 contextual top app bar plus batch bottom bar,
 			// iOS lets the floating batch bar take the nav's slot (wallet mockups).
 			!(platform !== 'other' && $selectModeActive)

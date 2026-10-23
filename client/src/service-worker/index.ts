@@ -5,7 +5,6 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { version } from '$app/env';
 import { assets, immutable } from '$app/manifest';
-import { asset } from '$app/paths';
 import { handleNotificationClick } from '#lib/pwa/notification-click.js';
 
 declare let self: ServiceWorkerGlobalScope;
@@ -17,7 +16,8 @@ declare let self: ServiceWorkerGlobalScope;
 // Precache the app code (js/css/wasm; fonts load via the immutable runtime cache)
 // and static icons/manifest. Build files are content-hashed; static files are
 // revisioned by the app version (version.name in vite.config.ts). Manifest paths
-// are relative to the base path; Workbox resolves them against this worker's URL. Large static WASM (zxing) is
+// are base-relative and SvelteKit serves this worker from the base root, so
+// Workbox resolves both lists against the worker's URL. Large static WASM (zxing) is
 // left to runtime fetches. index.html is not precached (see install handler).
 precacheAndRoute([
 	...immutable
@@ -25,7 +25,7 @@ precacheAndRoute([
 		.map(({ path }) => ({ url: path, revision: null })),
 	...assets
 		.filter(({ path }) => /\.(png|svg|webmanifest)$/.test(path))
-		.map(({ path }) => ({ url: asset(path), revision: version }))
+		.map(({ path }) => ({ url: path, revision: version }))
 ]);
 
 // Cleanup outdated caches from previous versions

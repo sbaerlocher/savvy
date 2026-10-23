@@ -10,13 +10,13 @@
 	onMount(() => {
 		const urlTab = page.url.searchParams.get('tab');
 		if (urlTab === 'security') {
-			goto(resolve('security'), { replaceState: true });
+			goto(resolve('security'), { replace: true });
 			return;
 		}
 		if (urlTab === 'notifications') {
-			goto(resolve('notifications/settings'), { replaceState: true });
+			goto(resolve('notifications/settings'), { replace: true });
 			return;
 		}
-		goto(resolve('profile'), { replaceState: true });
+		goto(resolve('profile'), { replace: true });
 	});
 </script>

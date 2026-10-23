@@ -95,7 +95,7 @@
 			goto(target, {
 				reset: false,
 				replace: true
-			});
+			}).then(() => window.scrollTo(0, 0));
 		}, 250);
 	}
 

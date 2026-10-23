@@ -4,6 +4,6 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
-		goto(resolve('admin/users'), { replaceState: true });
+		goto(resolve('admin/users'), { replace: true });
 	});
 </script>

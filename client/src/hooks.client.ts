@@ -51,10 +51,11 @@ export const handleError: HandleClientError = async ({
 	error,
 	event
 }) => {
-	// Kit 3 passes the error's status/message on the caught error itself
-	// (app and framework errors); unknown errors carry neither.
-	const status = kind === 'unknown' ? undefined : error.status;
-	const message = kind === 'unknown' ? undefined : error.message;
+	// Kit 3 also passes expected errors (error(...) and framework errors such
+	// as 404s) here; kit 2 did not. Keep their defaults and only handle
+	// unexpected errors, which kit 2 reported as status 500.
+	if (kind !== 'unknown') return;
+	const status = 500;
 	// Generate unique error ID for tracking
 	const errorId = crypto.randomUUID();
 
@@ -80,7 +81,6 @@ export const handleError: HandleClientError = async ({
 	errorLogger.error('Client error occurred:', {
 		errorId,
 		status,
-		message,
 		path: event.url.pathname,
 		error:
 			error instanceof Error
@@ -99,7 +99,7 @@ export const handleError: HandleClientError = async ({
 	// Return user-friendly error message
 	// errorId allows correlation between user reports and logs
 	return {
-		message: message || 'Ein unerwarteter Fehler ist aufgetreten',
+		message: 'Ein unerwarteter Fehler ist aufgetreten',
 		errorId
 	};
 };

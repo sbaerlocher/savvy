@@ -27,8 +27,8 @@ export async function registerServiceWorker(): Promise<boolean> {
 		return false;
 	}
 
-	// SvelteKit builds service-worker.js from src/service-worker/ as an ES
-	// module (served unbundled in dev), hence type: 'module' below
+	// SvelteKit builds service-worker.js from src/service-worker/ (served
+	// unbundled as an ES module in dev, hence type: 'module' there)
 	const swUrl = '/service-worker.js';
 
 	// Verify the SW file actually exists before registering.
@@ -50,7 +50,7 @@ export async function registerServiceWorker(): Promise<boolean> {
 
 	try {
 		const registration = await navigator.serviceWorker.register(swUrl, {
-			type: 'module'
+			type: import.meta.env.DEV ? 'module' : 'classic'
 		});
 		swLogger.info(`Service Worker registered: ${swUrl}`);
 		pwaStore.setRegistration(registration);

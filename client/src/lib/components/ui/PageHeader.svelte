@@ -108,7 +108,7 @@
 
 	function openSearch() {
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- base path is resolve()d; ?search is a query string
-		goto(resolve('wallet') + '?search=1', { replaceState: true });
+		goto(resolve('wallet') + '?search=1', { replace: true });
 	}
 
 	function closeSearch() {
@@ -126,7 +126,7 @@
 				resolve('wallet') +
 					(q ? `?search=${encodeURIComponent(q)}` : '?search=1'),
 				{ reset: false, replace: true }
-			);
+			).then(() => window.scrollTo(0, 0));
 		}, 250);
 	}
 </script>

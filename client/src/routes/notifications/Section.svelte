@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { resourceDetailPath } from '#lib/resource/routes.js';
 	import { notificationsApi } from '#lib/api/notifications.js';
 	import NotificationTypeIcon from '#lib/components/NotificationTypeIcon.svelte';
 	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
@@ -186,24 +187,16 @@
 		return $t('notifications.newNotification');
 	}
 
-	function getNotificationLink(notification: NotificationDTO) {
-		const id = notification.resource_id;
-		switch (notification.resource_type) {
-			case 'voucher':
-				return resolve('/vouchers/[id]', { id });
-			case 'gift_card':
-				return resolve('/gift-cards/[id]', { id });
-			default:
-				return resolve('/cards/[id]', { id });
-		}
-	}
-
 	async function handleNotificationClick(notification: NotificationDTO) {
 		if (!notification.is_read) {
 			await handleMarkAsRead(notification.id);
 		}
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- getNotificationLink() returns resolve()d routes
-		goto(getNotificationLink(notification));
+		const link = resourceDetailPath(
+			notification.resource_type,
+			notification.resource_id
+		);
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resourceDetailPath() returns resolve()d routes
+		goto(link);
 	}
 
 	function formatTimeAgo(dateString: string): string {
