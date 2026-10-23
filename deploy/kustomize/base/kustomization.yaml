@@ -31,7 +31,7 @@ labels:
 
 images:
   - name: ghcr.io/sbaerlocher/container/savvy
-    newTag: 1.6.1
+    newTag: 1.7.1
 
 configMapGenerator:
   - name: savvy-version
