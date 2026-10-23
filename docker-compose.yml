@@ -173,7 +173,7 @@ services:
     otel-collector:
         profiles:
             - observability
-        image: 'otel/opentelemetry-collector-contrib:0.163.1@sha256:1175b03003053962012f5a231f5567f66a3e8fdb960c7835c0e48f7aa1555806'
+        image: 'otel/opentelemetry-collector-contrib:0.163.2@sha256:7f22d2a6748110ffb6a59bc0df448bccbf501cdb667d610ede4c61d3863d5849'
         restart: unless-stopped
         command:
             - '--config=/etc/otel-collector-config.yaml'
@@ -187,7 +187,7 @@ services:
     loki:
         profiles:
             - observability
-        image: 'grafana/loki:3.7.8@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193'
+        image: 'grafana/loki:3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28'
         restart: unless-stopped
         command: '-config.file=/etc/loki/loki-config.yaml'
         volumes:
@@ -218,7 +218,7 @@ services:
     tempo:
         profiles:
             - observability
-        image: 'grafana/tempo:3.1.0@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd'
+        image: 'grafana/tempo:3.1.1@sha256:64e2fbd56d9c2b3412a4b430a58ea59e91a670b1e75f920a0c702213ad145044'
         restart: unless-stopped
         command: '-config.file=/etc/tempo/tempo-config.yaml'
         volumes:
@@ -237,7 +237,7 @@ services:
     prometheus:
         profiles:
             - observability
-        image: 'prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e'
+        image: 'prom/prometheus:v3.15.1@sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2'
         restart: unless-stopped
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -267,7 +267,7 @@ services:
     grafana:
         profiles:
             - observability
-        image: 'grafana/grafana:13.0@sha256:e78917cdd3336d0d679d345b2e6d0f60a0fe85ed7ac3882b68f089fdb6ff2ace'
+        image: 'grafana/grafana:13.0@sha256:2abd2114bb65e4d6f0614206b7c882c1e7c6a992827ba08396aa5afc23ca07f5'
         environment:
             - GF_AUTH_ANONYMOUS_ENABLED=true
             - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
