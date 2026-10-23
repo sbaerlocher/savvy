@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   password can come from its own Secret without URL encoding. `DATABASE_URL`
   keeps precedence, and a warning names any parameters it overrides. The Helm
   chart gains a matching parameter mode with the password read via
-  `secretKeyRef`. Parameter mode defaults to `sslmode=verify-full` and rejects
-  the plaintext fallbacks `allow`/`prefer`.
+  `secretKeyRef`. Parameter mode defaults to `sslmode=verify-full`, accepts
+  `require`, `verify-ca` and an explicit `disable`, and rejects the
+  opportunistic modes `allow`/`prefer`.
 
 ### Changed
 
@@ -50,11 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Dependencies
 
 - Updated all non-major dependencies (#471, #472, #475, #479, #485),
-  `@playwright/test` 1.64.1 (#468), happy-dom 21 (#469) and Node.js 24.22.0
-  (#473).
+  `@playwright/test` 1.64.1 (#468), happy-dom 21 (#469) and Node.js 24.22.1
+  (#473, #483, #485).
 - Updated Docker images: `golang:1.27-alpine` digest (#483), `alpine:3.24`
   digest (#482), Docker Compose images (#480) and
-  opentelemetry-collector-contrib 0.163.1 (#474).
+  opentelemetry-collector-contrib 0.163.2 (#474, #480).
 - Updated `sbaerlocher/.github` to v2026-10-17 (#470) and v2026-10-23 (#477);
   the E2E jobs point back at the date tag after #478 (#481).
 
