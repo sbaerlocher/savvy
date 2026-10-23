@@ -27,7 +27,7 @@
 		"eslint": "10.13.0",
 		"eslint-plugin-svelte": "3.23.1",
 		"globals": "17.13.0",
-		"happy-dom": "21.0.3",
+		"happy-dom": "21.0.4",
 		"postcss": "8.5.31",
 		"prettier": "3.9.10",
 		"prettier-plugin-svelte": "4.1.1",
