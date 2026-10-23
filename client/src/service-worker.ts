@@ -17,11 +17,14 @@ declare let self: ServiceWorkerGlobalScope;
 // PRECACHE SETUP - Static Assets
 // ========================================================================
 
-// Precache the app build and static icons/manifest. Build files are content-hashed;
-// static files are revisioned by the app version. Large static WASM (zxing) is
+// Precache the app code (js/css/wasm; fonts load via the immutable runtime cache)
+// and static icons/manifest. Build files are content-hashed; static files are
+// revisioned by the app version (kit.version.name). Large static WASM (zxing) is
 // left to runtime fetches. index.html is not precached (see install handler).
 precacheAndRoute([
-	...build.map((url) => ({ url, revision: null })),
+	...build
+		.filter((url) => /\.(js|css|wasm)$/.test(url))
+		.map((url) => ({ url, revision: null })),
 	...files
 		.filter((url) => /\.(png|svg|webmanifest)$/.test(url))
 		.map((url) => ({ url, revision: version }))

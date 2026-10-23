@@ -13,6 +13,11 @@ const config = {
 			strict: true
 		}),
 		// Registered manually in $lib/pwa/register-sw.ts (availability check, update toast)
+		// Deterministic per release (release-tool syncs package.json to the tag), so
+		// the service worker only changes when the app does, not on every build.
+		version: {
+			name: process.env.npm_package_version
+		},
 		serviceWorker: {
 			register: false
 		},
