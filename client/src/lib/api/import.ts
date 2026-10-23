@@ -1,5 +1,5 @@
 import { api, getCSRFToken } from './client';
-import type { ImportResult, ImportPreview } from '$lib/types/api';
+import type { ImportResult, ImportPreview } from '#lib/types/api.js';
 
 export const importApi = {
 	previewJSON: async (data: unknown): Promise<ImportPreview> => {

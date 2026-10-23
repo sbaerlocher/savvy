@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import { sharedUsersApi } from '$lib/api';
-	import type { UserDTO } from '$lib/types/api';
-	import { logger } from '$lib/utils/logger';
-	import { t } from '$lib/stores/i18n';
-	import { formatUserName } from '$lib/utils/user';
+	import { sharedUsersApi } from '#lib/api/index.js';
+	import type { UserDTO } from '#lib/types/api.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { formatUserName } from '#lib/utils/user.js';
 
 	interface Props {
 		value?: string;

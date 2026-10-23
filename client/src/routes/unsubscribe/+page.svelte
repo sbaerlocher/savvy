@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
-	import { authStore } from '$lib/stores/auth';
-	import { authApi } from '$lib/api';
-	import { ApiError } from '$lib/api/client';
-	import { t } from '$lib/stores/i18n';
+	import { authStore } from '#lib/stores/auth.js';
+	import { authApi } from '#lib/api/index.js';
+	import { ApiError } from '#lib/api/client.js';
+	import { t } from '#lib/stores/i18n.js';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 
 	const tr = (key: string) => get(t)(key);
 
@@ -16,8 +16,8 @@
 	let unsubType = $state<'notifications' | 'reminders'>('notifications');
 
 	onMount(async () => {
-		const token = $page.url.searchParams.get('token');
-		const type = $page.url.searchParams.get('type');
+		const token = page.url.searchParams.get('token');
+		const type = page.url.searchParams.get('type');
 		if (type === 'reminders') {
 			unsubType = 'reminders';
 		}
@@ -87,7 +87,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M5 13l4 4L19 7"
-									/>
+									></path>
 								</svg>
 							</div>
 							<h2 class="text-xl font-semibold text-text mb-2">
@@ -101,15 +101,15 @@
 
 							{#if $authStore.isAuthenticated}
 								<a
-									href={resolve('/notifications')}
+									href={resolve('notifications')}
 									class="btn btn-primary w-full"
 								>
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href={resolve('/login')} class="btn btn-primary w-full">
-									{tr('unsubscribe.goToLogin')}
-								</a>
+								<a href={resolve('login')} class="btn btn-primary w-full"
+									>{tr('unsubscribe.goToLogin')}</a
+								>
 							{/if}
 						</div>
 					{:else if status === 'error'}
@@ -128,7 +128,7 @@
 										stroke-linejoin="round"
 										stroke-width="2"
 										d="M6 18L18 6M6 6l12 12"
-									/>
+									></path>
 								</svg>
 							</div>
 							<h2 class="text-xl font-semibold text-text mb-2">
@@ -137,16 +137,13 @@
 							<p class="text-text-muted mb-6">{errorMessage}</p>
 
 							{#if $authStore.isAuthenticated}
-								<a
-									href={resolve('/notifications')}
-									class="btn btn-ghost w-full"
-								>
+								<a href={resolve('notifications')} class="btn btn-ghost w-full">
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href={resolve('/login')} class="btn btn-ghost w-full">
-									{tr('unsubscribe.goToLogin')}
-								</a>
+								<a href={resolve('login')} class="btn btn-ghost w-full"
+									>{tr('unsubscribe.goToLogin')}</a
+								>
 							{/if}
 						</div>
 					{:else}
@@ -155,9 +152,10 @@
 							<p class="text-text-muted mb-6">
 								{tr('unsubscribe.invalidToken')}
 							</p>
-							<a href={resolve('/login')} class="btn btn-primary w-full">
-								{tr('unsubscribe.goToLogin')}
-							</a>
+
+							<a href={resolve('login')} class="btn btn-primary w-full"
+								>{tr('unsubscribe.goToLogin')}</a
+							>
 						</div>
 					{/if}
 				</div>
@@ -188,7 +186,7 @@
 									fill-rule="evenodd"
 									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 									clip-rule="evenodd"
-								/>
+								></path>
 							</svg>
 							<div>
 								<h3 class="text-sm font-medium text-text">
@@ -210,7 +208,7 @@
 									fill-rule="evenodd"
 									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 									clip-rule="evenodd"
-								/>
+								></path>
 							</svg>
 							<div>
 								<h3 class="text-sm font-medium text-text">
@@ -232,7 +230,7 @@
 									fill-rule="evenodd"
 									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 									clip-rule="evenodd"
-								/>
+								></path>
 							</svg>
 							<div>
 								<h3 class="text-sm font-medium text-text">
@@ -258,7 +256,7 @@
 									stroke-linejoin="round"
 									stroke-width="2"
 									d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-								/>
+								></path>
 							</svg>
 							<span class="text-xs">{tr('unsubscribe.securityNote')}</span>
 						</div>

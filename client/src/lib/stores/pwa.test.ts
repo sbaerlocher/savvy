@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 
 const registerServiceWorker = vi.fn();
-vi.mock('$lib/pwa/register-sw', () => ({
+vi.mock('#lib/pwa/register-sw.js', () => ({
 	registerServiceWorker: () => registerServiceWorker()
 }));
 

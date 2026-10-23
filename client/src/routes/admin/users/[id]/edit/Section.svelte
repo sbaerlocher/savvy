@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { adminApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
-	import { toastStore } from '$lib/stores/toast';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import type { AdminUserDTO } from '$lib/types/api';
-	import { platform } from '$lib/utils/platform';
+	import { adminApi } from '#lib/api/index.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import type { AdminUserDTO } from '#lib/types/api.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android renders the form M3-flavoured (m3-filled-form restyles the
 	// shared .input/.label/.btn classes); `platform` is a module constant.
 	const IS_ANDROID = platform === 'android';
 
-	const userId = $derived($page.params.id);
+	const userId = $derived(page.params.id);
 
 	let user = $state<AdminUserDTO | null>(null);
 	let email = $state('');
@@ -47,7 +47,7 @@
 		try {
 			if (!userId) {
 				toastStore.error($t('admin.users.loadError'));
-				goto(resolve('/admin/users'));
+				goto(resolve('admin/users'));
 				return;
 			}
 			const response = await adminApi.getUser(userId);
@@ -58,7 +58,7 @@
 			role = user.role;
 		} catch {
 			toastStore.error($t('admin.users.loadError'));
-			goto(resolve('/admin/users'));
+			goto(resolve('admin/users'));
 		} finally {
 			isLoadingUser = false;
 		}
@@ -84,10 +84,11 @@
 				...(isOAuthUser ? {} : { role })
 			});
 			toastStore.success($t('admin.users.updateSuccess'));
-			goto(resolve('/admin/users'));
+			goto(resolve('admin/users'));
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : $t('admin.users.updateError');
+
 			toastStore.error(message);
 		} finally {
 			isLoading = false;
@@ -95,7 +96,7 @@
 	}
 
 	function handleCancel() {
-		goto(resolve('/admin/users'));
+		goto(resolve('admin/users'));
 	}
 
 	function promptImpersonate() {
@@ -305,7 +306,7 @@
 									fill-rule="evenodd"
 									d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
 									clip-rule="evenodd"
-								/>
+								></path>
 							</svg>
 							<h3 class="text-sm font-bold text-text">
 								{$t('admin.users.roleUser')}
@@ -342,7 +343,7 @@
 									fill-rule="evenodd"
 									d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
 									clip-rule="evenodd"
-								/>
+								></path>
 							</svg>
 							<h3 class="text-sm font-bold text-danger-900">
 								{$t('admin.users.roleAdmin')}
@@ -383,7 +384,7 @@
 								fill-rule="evenodd"
 								d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
 								clip-rule="evenodd"
-							/>
+							></path>
 						</svg>
 						<span class="text-xs">{$t('admin.users.roleInfo.warning')}</span>
 					</div>

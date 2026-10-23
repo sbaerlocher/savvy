@@ -1,19 +1,19 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
 	import { get } from 'svelte/store';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
-	import { logger } from '$lib/utils/logger';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import M3TextField from '$lib/components/ui/M3TextField.svelte';
-	import AuthCardIOS from '$lib/components/auth/AuthCardIOS.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { logger } from '#lib/utils/logger.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import M3TextField from '#lib/components/ui/M3TextField.svelte';
+	import AuthCardIOS from '#lib/components/auth/AuthCardIOS.svelte';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android mockup (screen-AuthAndroid) replaces the split layout with a
 	// centered M3 card, so it branches at the top level instead of overriding.
@@ -48,12 +48,12 @@
 	// Redirect if already logged in
 	onMount(async () => {
 		if ($authStore.isAuthenticated) {
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 			return;
 		}
 
 		// Check for OAuth error from callback redirect
-		oauthError = $page.url.searchParams.get('error') || '';
+		oauthError = page.url.searchParams.get('error') || '';
 
 		// Clean error from URL to prevent showing stale errors on page reload
 		if (oauthError) {
@@ -100,12 +100,12 @@
 
 			// Check if 2FA is required
 			if ($authStore.requires2FA) {
-				goto(resolve('/login/2fa'));
+				goto(resolve('login/2fa'));
 				return;
 			}
 
 			toastStore.success(tr('auth.login.success'));
-			goto(resolve('/dashboard'));
+			goto(resolve('dashboard'));
 		} catch {
 			toastStore.error($authStore.error || tr('auth.login.error'));
 		} finally {
@@ -254,14 +254,14 @@
 
 					<div class="flex items-center justify-between pt-0.5">
 						{#if registrationEnabled}
-							<a href={resolve('/register')} class="text-label text-accent-600"
+							<a href={resolve('register')} class="text-label text-accent-600"
 								>{tr('auth.register.title')}</a
 							>
 						{:else}
 							<span></span>
 						{/if}
 						<a
-							href={resolve('/forgot-password')}
+							href={resolve('forgot-password')}
 							class="text-label text-accent-600"
 						>
 							{tr('auth.login.forgotPassword')}
@@ -297,9 +297,9 @@
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
 						>
-							<rect x="2" y="5" width="20" height="14" rx="3" />
-							<path d="M2 10h20" />
-							<path d="M6 15h4" />
+							<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+							<path d="M2 10h20"></path>
+							<path d="M6 15h4"></path>
 						</svg>
 					</span>
 					<h1 class="text-heading text-text">{tr('auth.login.title')}</h1>
@@ -325,7 +325,7 @@
 						<svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor">
 							<path
 								d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
-							/>
+							></path>
 						</svg>
 						{tr('auth.login.oauthButton')}
 					</a>
@@ -386,7 +386,7 @@
 						<div class="-mt-1.5 flex items-center justify-between">
 							{#if registrationEnabled}
 								<a
-									href={resolve('/register')}
+									href={resolve('register')}
 									class="text-label text-accent-600 font-semibold"
 								>
 									{tr('auth.login.registerNow')}
@@ -395,7 +395,7 @@
 								<span></span>
 							{/if}
 							<a
-								href={resolve('/forgot-password')}
+								href={resolve('forgot-password')}
 								class="text-label text-accent-600 font-semibold"
 							>
 								{tr('auth.login.forgotPassword')}
@@ -442,9 +442,9 @@
 											stroke-linecap="round"
 											stroke-linejoin="round"
 										>
-											<rect x="2" y="5" width="20" height="14" rx="3" />
-											<path d="M2 10h20" />
-											<path d="M6 15h4" />
+											<rect x="2" y="5" width="20" height="14" rx="3"></rect>
+											<path d="M2 10h20"></path>
+											<path d="M6 15h4"></path>
 										</svg>
 									</span>
 								{:else}
@@ -473,7 +473,7 @@
 													fill-rule="evenodd"
 													d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
 													clip-rule="evenodd"
-												/>
+												></path>
 											</svg>
 										</div>
 										<div class="ml-3">
@@ -615,8 +615,8 @@
 													>
 														<path
 															d="M2 12s3.5-7 10-7c1.9 0 3.5.6 4.9 1.4M22 12s-3.5 7-10 7c-1.9 0-3.5-.6-4.9-1.4"
-														/>
-														<path d="M3 3l18 18" />
+														></path>
+														<path d="M3 3l18 18"></path>
 													</svg>
 												{:else}
 													<svg
@@ -630,8 +630,8 @@
 													>
 														<path
 															d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
-														/>
-														<circle cx="12" cy="12" r="3" />
+														></path>
+														<circle cx="12" cy="12" r="3"></circle>
 													</svg>
 												{/if}
 											</button>
@@ -651,7 +651,7 @@
 															fill-rule="evenodd"
 															d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
 															clip-rule="evenodd"
-														/>
+														></path>
 													</svg>
 												</div>
 												<div class="ml-3">
@@ -686,25 +686,22 @@
 									>
 										{#if registrationEnabled}
 											<a
-												href={resolve('/register')}
+												href={resolve('register')}
 												class="font-medium text-accent hover:text-accent text-sm {isDesktop
 													? 'lg:text-body lg:font-semibold'
 													: ''}"
+												>{tr('auth.login.noAccountYet')}
+												{tr('auth.login.registerNow')}</a
 											>
-												{tr('auth.login.noAccountYet')}
-												{tr('auth.login.registerNow')}
-											</a>
 										{:else}
 											<span></span>
 										{/if}
 										<a
-											href={resolve('/forgot-password')}
+											href={resolve('forgot-password')}
 											class="font-medium text-accent hover:text-accent text-sm {isDesktop
 												? 'lg:text-body lg:font-semibold'
-												: ''}"
+												: ''}">{tr('auth.login.forgotPassword')}</a
 										>
-											{tr('auth.login.forgotPassword')}
-										</a>
 									</div>
 								</form>
 							{/if}
@@ -744,7 +741,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3
@@ -774,7 +771,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3
@@ -804,7 +801,7 @@
 											fill-rule="evenodd"
 											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 											clip-rule="evenodd"
-										/>
+										></path>
 									</svg>
 									<div>
 										<h3
@@ -844,7 +841,7 @@
 											stroke-linejoin="round"
 											stroke-width="2"
 											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-										/>
+										></path>
 									</svg>
 									<span class="text-xs">{tr('auth.login.securityNote')}</span>
 								</div>

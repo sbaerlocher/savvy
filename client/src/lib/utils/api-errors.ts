@@ -1,5 +1,5 @@
-import { ApiError } from '$lib/api/client';
-import type { DuplicateWarning } from '$lib/types/api';
+import { ApiError } from '#lib/api/client.js';
+import type { DuplicateWarning } from '#lib/types/api.js';
 
 /**
  * Extracts duplicate warning data from a 409 duplicate_barcode API error.

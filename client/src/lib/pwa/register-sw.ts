@@ -1,8 +1,8 @@
 import { get } from 'svelte/store';
-import { t } from '$lib/stores/i18n';
-import { pwaStore } from '$lib/stores/pwa';
-import { toastStore } from '$lib/stores/toast';
-import { logger } from '$lib/utils/logger';
+import { t } from '#lib/stores/i18n.js';
+import { pwaStore } from '#lib/stores/pwa.js';
+import { toastStore } from '#lib/stores/toast.js';
+import { logger } from '#lib/utils/logger.js';
 
 const swLogger = logger.child('Layout');
 

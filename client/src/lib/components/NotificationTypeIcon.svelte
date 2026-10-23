@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NotificationDTO } from '$lib/types/api';
+	import type { NotificationDTO } from '#lib/types/api.js';
 
 	// Desktop notification icon set (mirrors ui-NotifIcon from the design
 	// project). Uses its own glyphs rather than $lib/icons because the mockup

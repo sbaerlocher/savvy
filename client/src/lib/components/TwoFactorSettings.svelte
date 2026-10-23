@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
-	import { authApi } from '$lib/api';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import Modal from '$lib/components/ui/Modal.svelte';
+	import { authApi } from '#lib/api/index.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import Modal from '#lib/components/ui/Modal.svelte';
 
 	const componentLogger = logger.child('TwoFactorSettings');
 	const tr = (key: string, params?: Record<string, string | number>) =>

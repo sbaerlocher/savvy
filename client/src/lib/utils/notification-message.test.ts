@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { reminderMessageKey } from './notification-message';
-import type { NotificationDTO } from '$lib/types/api';
+import type { NotificationDTO } from '#lib/types/api.js';
 
 function notification(
 	type: string,

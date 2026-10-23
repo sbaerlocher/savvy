@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	interface Props {
 		checked: boolean;

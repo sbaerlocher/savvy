@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
-	import { authStore } from '$lib/stores/auth';
-	import { authApi } from '$lib/api';
-	import { ApiError } from '$lib/api/client';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import { authStore } from '#lib/stores/auth.js';
+	import { authApi } from '#lib/api/index.js';
+	import { ApiError } from '#lib/api/client.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { page } from '$app/state';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -20,7 +20,7 @@
 	let isResending = $state(false);
 
 	onMount(async () => {
-		const token = $page.url.searchParams.get('token');
+		const token = page.url.searchParams.get('token');
 		if (!token) {
 			status = 'error';
 			errorMessage = tr('auth.verification.invalidToken');
@@ -53,7 +53,7 @@
 
 	async function handleResend() {
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 
@@ -101,7 +101,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M5 13l4 4L19 7"
-							/>
+							></path>
 						</svg>
 					</div>
 					<h2 class="text-xl font-semibold text-text mb-2">
@@ -112,13 +112,13 @@
 					</p>
 
 					{#if $authStore.isAuthenticated}
-						<a href={resolve('/dashboard')} class="btn btn-primary w-full">
-							{tr('auth.verification.goToDashboard')}
-						</a>
+						<a href={resolve('dashboard')} class="btn btn-primary w-full"
+							>{tr('auth.verification.goToDashboard')}</a
+						>
 					{:else}
-						<a href={resolve('/login')} class="btn btn-primary w-full">
-							{tr('auth.verification.goToLogin')}
-						</a>
+						<a href={resolve('login')} class="btn btn-primary w-full"
+							>{tr('auth.verification.goToLogin')}</a
+						>
 					{/if}
 				</div>
 			{:else if status === 'error'}
@@ -137,7 +137,7 @@
 								stroke-linejoin="round"
 								stroke-width="2"
 								d="M6 18L18 6M6 6l12 12"
-							/>
+							></path>
 						</svg>
 					</div>
 					<h2 class="text-xl font-semibold text-text mb-2">
@@ -166,13 +166,13 @@
 						{/if}
 
 						{#if $authStore.isAuthenticated}
-							<a href={resolve('/dashboard')} class="btn btn-ghost w-full">
-								{tr('auth.verification.goToDashboard')}
-							</a>
+							<a href={resolve('dashboard')} class="btn btn-ghost w-full"
+								>{tr('auth.verification.goToDashboard')}</a
+							>
 						{:else}
-							<a href={resolve('/login')} class="btn btn-ghost w-full">
-								{tr('auth.verification.goToLogin')}
-							</a>
+							<a href={resolve('login')} class="btn btn-ghost w-full"
+								>{tr('auth.verification.goToLogin')}</a
+							>
 						{/if}
 					</div>
 				</div>
@@ -182,9 +182,10 @@
 					<p class="text-text-muted mb-6">
 						{tr('auth.verification.checkEmail')}
 					</p>
-					<a href={resolve('/login')} class="btn btn-primary w-full">
-						{tr('auth.verification.goToLogin')}
-					</a>
+
+					<a href={resolve('login')} class="btn btn-primary w-full"
+						>{tr('auth.verification.goToLogin')}</a
+					>
 				</div>
 			{/if}
 		</div>

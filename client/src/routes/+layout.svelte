@@ -1,22 +1,22 @@
 <script lang="ts">
 	/* global __APP_VERSION__ -- compile-time constant injected by Vite `define` (see vite.config.ts, typed in src/app.d.ts) */
-	import { page } from '$app/stores';
-	import MobileNav from '$lib/components/MobileNav.svelte';
-	import OfflineIndicator from '$lib/components/OfflineIndicator.svelte';
-	import Toast from '$lib/components/Toast.svelte';
-	import TypeChoiceDialog from '$lib/components/TypeChoiceDialog.svelte';
-	import DesktopNav from '$lib/components/shell/DesktopNav.svelte';
-	import AppFooter from '$lib/components/shell/AppFooter.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { configStore } from '$lib/stores/config';
-	import { pwaStore } from '$lib/stores/pwa';
-	import { registerServiceWorker } from '$lib/pwa/register-sw';
-	import { showNewDialog } from '$lib/stores/newDialog';
-	import { selectModeActive } from '$lib/stores/selectMode';
-	import { browser } from '$app/environment';
+	import { page } from '$app/state';
+	import MobileNav from '#lib/components/MobileNav.svelte';
+	import OfflineIndicator from '#lib/components/OfflineIndicator.svelte';
+	import Toast from '#lib/components/Toast.svelte';
+	import TypeChoiceDialog from '#lib/components/TypeChoiceDialog.svelte';
+	import DesktopNav from '#lib/components/shell/DesktopNav.svelte';
+	import AppFooter from '#lib/components/shell/AppFooter.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { pwaStore } from '#lib/stores/pwa.js';
+	import { registerServiceWorker } from '#lib/pwa/register-sw.js';
+	import { showNewDialog } from '#lib/stores/newDialog.js';
+	import { selectModeActive } from '#lib/stores/selectMode.js';
+	import { browser } from '$app/env';
 	import { onMount, type Snippet } from 'svelte';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import '../app.css';
 	import type { LayoutData } from './$types';
 
@@ -29,9 +29,8 @@
 	// Android/desktop keep their nav — their batch bar stacks above it.
 	const showMobileNav = $derived(
 		$authStore.isAuthenticated &&
-			!$page.url.pathname.startsWith('/login') &&
-			!$page.url.pathname.startsWith('/register') &&
-			// Native select mode rearranges the bottom chrome: Android swaps the nav
+			!page.url.pathname.startsWith('/login') &&
+			!page.url.pathname.startsWith('/register') && // Native select mode rearranges the bottom chrome: Android swaps the nav
 			// bar and FAB for the M3 contextual top app bar plus batch bottom bar,
 			// iOS lets the floating batch bar take the nav's slot (wallet mockups).
 			!(platform !== 'other' && $selectModeActive)
@@ -46,7 +45,7 @@
 	const ANDROID_FULL_BLEED = $derived(
 		platform === 'android' &&
 			['/login', '/register', '/forgot-password', '/reset-password'].some(
-				(route) => $page.url.pathname.startsWith(route)
+				(route) => page.url.pathname.startsWith(route)
 			)
 	);
 
@@ -62,7 +61,7 @@
 
 			if (!preloadStarted && browser && navigator.onLine) {
 				preloadStarted = true;
-				import('$lib/utils/preload').then(({ preloadEverything }) => {
+				import('#lib/utils/preload.js').then(({ preloadEverything }) => {
 					preloadEverything()
 						.then(() => {
 							layoutLogger.info(
@@ -108,7 +107,7 @@
 <OfflineIndicator />
 
 <!-- Desktop Navigation -->
-{#if $authStore.isAuthenticated && !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
+{#if $authStore.isAuthenticated && !page.url.pathname.startsWith('/login') && !page.url.pathname.startsWith('/register')}
 	<DesktopNav user={data.user} />
 {/if}
 

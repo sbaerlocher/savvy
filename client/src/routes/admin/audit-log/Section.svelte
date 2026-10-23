@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { adminApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
-	import { ICON_FILTER_LINES, ICON_SEARCH } from '$lib/icons';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import type { AuditLogDTO, AdminUserDTO } from '$lib/types/api';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { adminApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { ICON_FILTER_LINES, ICON_SEARCH } from '#lib/icons.js';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import EmptyState from '#lib/components/ui/EmptyState.svelte';
+	import type { AuditLogDTO, AdminUserDTO } from '#lib/types/api.js';
 
 	const pageLogger = logger.child('AuditLogPage');
 

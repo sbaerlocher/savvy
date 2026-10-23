@@ -2,15 +2,15 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/stores';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { merchantsApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-	import type { MerchantDTO } from '$lib/types/api';
-	import { platform } from '$lib/utils/platform';
+	import { page } from '$app/state';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { merchantsApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
+	import type { MerchantDTO } from '#lib/types/api.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android renders the form M3-flavoured (m3-filled-form restyles the
 	// shared .input/.label/.btn classes); `platform` is a module constant.
@@ -30,7 +30,7 @@
 	let showDeleteModal = $state(false);
 	let errors = $state<{ [key: string]: string }>({});
 
-	const merchantId = $derived($page.params.id!);
+	const merchantId = $derived(page.params.id!);
 	const isOffline = $derived(!$isOnline);
 
 	// Server-side guard in +layout.server.ts ensures user is admin
@@ -62,7 +62,7 @@
 			website = merchant.website || '';
 		} catch {
 			toastStore.error($t('admin.merchants.loadError'));
-			goto(resolve('/merchants'));
+			goto(resolve('merchants'));
 		} finally {
 			isLoading = false;
 		}
@@ -95,10 +95,11 @@
 
 			await merchantsApi.update(merchantId, input);
 			toastStore.success($t('admin.merchants.updateSuccess'));
-			goto(resolve(`/merchants/${merchantId}`));
+			goto(resolve(`merchants/${merchantId}`));
 		} catch (err: unknown) {
 			const message =
 				err instanceof Error ? err.message : $t('admin.merchants.updateError');
+
 			toastStore.error(message || $t('admin.merchants.updateError'));
 		} finally {
 			isSubmitting = false;
@@ -111,7 +112,7 @@
 			toastStore.success(
 				$t('admin.merchants.deleteSuccess', { name: merchant?.name ?? '' })
 			);
-			goto(resolve('/merchants'));
+			goto(resolve('merchants'));
 		} catch {
 			toastStore.error($t('admin.merchants.deleteError'));
 		}
@@ -267,12 +268,13 @@
 							class="btn btn-primary px-6 {isSubmitting || isOffline
 								? 'opacity-50 cursor-not-allowed'
 								: ''}"
+							>{isSubmitting ? $t('common.saving') : $t('common.save')}</button
 						>
-							{isSubmitting ? $t('common.saving') : $t('common.save')}
-						</button>
-						<a href={resolve('/merchants')} class="btn btn-ghost">
-							{$t('common.cancel')}
-						</a>
+
+						<a href={resolve('merchants')} class="btn btn-ghost"
+							>{$t('common.cancel')}</a
+						>
+
 						<button
 							type="button"
 							onclick={() => (showDeleteModal = true)}
@@ -411,7 +413,7 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-						/>
+						></path>
 					</svg>
 				</div>
 				<div class="flex-1">
@@ -433,12 +435,11 @@
 					type="button"
 					class="px-4 py-2 rounded-md border border-border-field hover:bg-surface-1 transition-colors text-text-ink2"
 					onclick={() => (showDeleteModal = false)}
+					>{$t('common.cancel')}</button
 				>
-					{$t('common.cancel')}
-				</button>
-				<button type="button" class="btn btn-danger" onclick={handleDelete}>
-					{$t('common.delete')}
-				</button>
+				<button type="button" class="btn btn-danger" onclick={handleDelete}
+					>{$t('common.delete')}</button
+				>
 			</div>
 		</div>
 	</div>

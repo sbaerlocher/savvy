@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { UserDTO } from '$lib/types/api';
+import type { UserDTO } from '#lib/types/api.js';
 
 export const sharedUsersApi = {
 	/**

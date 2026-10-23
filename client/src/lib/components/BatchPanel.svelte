@@ -8,11 +8,11 @@
 		ICON_TRANSFER,
 		ICON_TRASH,
 		ICON_WARNING
-	} from '$lib/icons';
+	} from '#lib/icons.js';
 	import type { Snippet } from 'svelte';
-	import { t } from '$lib/stores/i18n';
-	import { isOnline } from '$lib/stores/offline';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>

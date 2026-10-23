@@ -1,4 +1,4 @@
-import type { Language } from '$lib/stores/i18n';
+import type { Language } from '#lib/stores/i18n.js';
 
 export type TranslationKeys = {
 	common: {

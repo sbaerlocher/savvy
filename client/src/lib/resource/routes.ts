@@ -17,6 +17,6 @@ export function resourceDetailPath(type: string, id: string): string {
 		case 'gift_card':
 			return resolve('/gift-cards/[id]', { id });
 		default:
-			return resolve('/dashboard');
+			return resolve('dashboard');
 	}
 }

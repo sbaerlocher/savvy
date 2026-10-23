@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
-import { pushApi } from '$lib/api/push';
-import { logger } from '$lib/utils/logger';
+import { pushApi } from '#lib/api/push.js';
+import { logger } from '#lib/utils/logger.js';
 
 const pushLogger = logger.child('PushStore');
 

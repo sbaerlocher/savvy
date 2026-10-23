@@ -2,12 +2,12 @@
  * Preload and cache all important data for offline use
  */
 
-import { cardsApi } from '$lib/api/cards';
-import { vouchersApi } from '$lib/api/vouchers';
-import { giftCardsApi } from '$lib/api/gift-cards';
-import { dashboardApi } from '$lib/api/dashboard';
-import { merchantsApi } from '$lib/api/merchants';
-import { logger } from '$lib/utils/logger';
+import { cardsApi } from '#lib/api/cards.js';
+import { vouchersApi } from '#lib/api/vouchers.js';
+import { giftCardsApi } from '#lib/api/gift-cards.js';
+import { dashboardApi } from '#lib/api/dashboard.js';
+import { merchantsApi } from '#lib/api/merchants.js';
+import { logger } from '#lib/utils/logger.js';
 
 // Create child logger for preload
 const preloadLogger = logger.child('Preload');

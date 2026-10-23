@@ -2,14 +2,14 @@
 	import { onMount, onDestroy } from 'svelte';
 	import Barcode from './Barcode.svelte';
 	import { get } from 'svelte/store';
-	import { t, locale } from '$lib/stores/i18n';
-	import { formatCurrency } from '$lib/utils/currency';
-	import { formatDisplayDate } from '$lib/utils/date';
-	import { logger } from '$lib/utils/logger';
-	import { is2DType } from '$lib/utils/barcode';
-	import { platform } from '$lib/utils/platform';
-	import { FullscreenState } from '$lib/utils/fullscreen-state.svelte';
-	import { portal } from '$lib/actions/portal';
+	import { t, locale } from '#lib/stores/i18n.js';
+	import { formatCurrency } from '#lib/utils/currency.js';
+	import { formatDisplayDate } from '#lib/utils/date.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { is2DType } from '#lib/utils/barcode.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { FullscreenState } from '#lib/utils/fullscreen-state.svelte.js';
+	import { portal } from '#lib/actions/portal.js';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);

@@ -1,8 +1,8 @@
 import { api } from './client';
-import type { MerchantDTO } from '$lib/types/api';
-import { offlineDB } from '$lib/stores/offline-db';
-import { browser } from '$app/environment';
-import { logger } from '$lib/utils/logger';
+import type { MerchantDTO } from '#lib/types/api.js';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { browser } from '$app/env';
+import { logger } from '#lib/utils/logger.js';
 
 const log = logger.child('MerchantsAPI');
 

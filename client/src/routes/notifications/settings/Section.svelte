@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { profileApi, type ProfileDTO } from '$lib/api';
-	import NotificationsSection from '$lib/components/settings/NotificationsSection.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import { profileApi, type ProfileDTO } from '#lib/api/index.js';
+	import NotificationsSection from '#lib/components/settings/NotificationsSection.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 
 	// `platform` is a module constant, so a plain const, not $derived. Desktop
 	// renders this route as the notifications tab of the merged settings page.
@@ -25,7 +25,7 @@
 
 	onMount(async () => {
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 		try {

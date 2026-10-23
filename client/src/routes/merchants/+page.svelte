@@ -1,9 +1,9 @@
 <script lang="ts">
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { ICON_FILTER_LINES } from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { ICON_FILTER_LINES } from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>

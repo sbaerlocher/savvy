@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { platform } from '$lib/utils/platform';
-	import { merchantsApi } from '$lib/api';
+	import { platform } from '#lib/utils/platform.js';
+	import { merchantsApi } from '#lib/api/index.js';
 	import { onMount } from 'svelte';
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 
-	import type { MerchantDTO } from '$lib/types/api';
-	import { logger } from '$lib/utils/logger';
-	import MerchantSelect from '$lib/components/MerchantSelect.svelte';
-	import BarcodeFields from '$lib/components/forms/BarcodeFields.svelte';
+	import type { MerchantDTO } from '#lib/types/api.js';
+	import { logger } from '#lib/utils/logger.js';
+	import MerchantSelect from '#lib/components/MerchantSelect.svelte';
+	import BarcodeFields from '#lib/components/forms/BarcodeFields.svelte';
 
 	const componentLogger = logger.child('CardForm');
 

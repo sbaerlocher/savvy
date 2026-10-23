@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { merchantsApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { merchantsApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import {
 		ICON_CHECK,
 		ICON_CHEVRON_DOWN,
@@ -15,12 +15,12 @@
 		ICON_FILTER_LINES,
 		ICON_PLUS,
 		ICON_SEARCH
-	} from '$lib/icons';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-	import type { MerchantDTO } from '$lib/types/api';
+	} from '#lib/icons.js';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
+	import type { MerchantDTO } from '#lib/types/api.js';
 
 	const pageLogger = logger.child('AdminMerchantsPage');
 
@@ -101,10 +101,12 @@
 					return (
 						new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
 					);
+
 				case 'oldest':
 					return (
 						new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
 					);
+
 				default:
 					return 0;
 			}
@@ -169,7 +171,7 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									d={ICON_SEARCH}
-								/>
+								></path>
 							</svg>
 							<input
 								type="search"
@@ -202,7 +204,7 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									d={ICON_FILTER_LINES}
-								/>
+								></path>
 							</svg>
 							{$t('common.filter')}
 							{#if hasActiveFilters}
@@ -213,7 +215,7 @@
 						</button>
 
 						<a
-							href={resolve('/admin/merchants/new')}
+							href={resolve('admin/merchants/new')}
 							class="inline-flex h-10 items-center rounded-lg bg-accent px-4.5 text-label whitespace-nowrap text-white shadow-sm transition-colors hover:bg-accent-hover {isOffline
 								? 'pointer-events-none cursor-not-allowed opacity-50 blur-[0.5px]'
 								: ''}"
@@ -357,7 +359,7 @@
 													>
 														<a
 															href={resolve(
-																`/admin/merchants/${merchant.id}/edit`
+																`admin/merchants/${merchant.id}/edit`
 															)}
 															class="btn btn-sm btn-primary {isOffline
 																? 'opacity-50 cursor-not-allowed pointer-events-none'
@@ -422,9 +424,9 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
+								>{$t('common.sort')}</label
 							>
-								{$t('common.sort')}
-							</label>
+
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
 								<option value="name-asc"
 									>{$t('admin.merchants.sortNameAsc')}</option
@@ -472,10 +474,9 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_SEARCH}></path></svg
 			>
-				<path d={ICON_SEARCH} />
-			</svg>
+
 			<input
 				type="search"
 				bind:value={search}
@@ -502,10 +503,9 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_FILTER_LINES}></path></svg
 			>
-				<path d={ICON_FILTER_LINES} />
-			</svg>
+
 			{#if hasActiveFilters}
 				<span
 					class="absolute top-2.25 right-2.25 h-1.75 w-1.75 rounded-full border-2 border-surface bg-accent-600"
@@ -545,6 +545,7 @@
 							<span class="block truncate text-body font-semibold text-text"
 								>{merchant.name}</span
 							>
+
 							<span
 								class="mt-px block truncate text-chip font-normal text-text-subtle"
 								>{merchant.website ||
@@ -561,10 +562,8 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"
+							aria-hidden="true"><path d={ICON_CHEVRON_DOWN}></path></svg
 						>
-							<path d={ICON_CHEVRON_DOWN} />
-						</svg>
 					</button>
 
 					{#if isExpanded}
@@ -634,13 +633,12 @@
 
 							<div class="flex flex-wrap gap-2">
 								<a
-									href={resolve(`/admin/merchants/${merchant.id}/edit`)}
+									href={resolve(`admin/merchants/${merchant.id}/edit`)}
 									class="inline-flex h-9 items-center rounded-full bg-accent px-4 text-chip text-on-accent {isOffline
 										? 'pointer-events-none opacity-45'
-										: ''}"
+										: ''}">{$t('common.edit')}</a
 								>
-									{$t('common.edit')}
-								</a>
+
 								<button
 									type="button"
 									onclick={() => (deleteTarget = merchant)}
@@ -661,7 +659,7 @@
 	     drops its "New" FAB on admin routes, so this one takes the slot above
 	     the bottom nav. -->
 	<a
-		href={resolve('/admin/merchants/new')}
+		href={resolve('admin/merchants/new')}
 		aria-label={$t('admin.merchants.createMerchant')}
 		class="mobile-nav-fab-android bg-accent text-on-accent fixed right-4.5 z-50 flex h-14 w-14 items-center justify-center rounded-m3-lg shadow-[var(--shadow-fab)] {isOffline
 			? 'pointer-events-none opacity-50'
@@ -675,10 +673,8 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 			viewBox="0 0 24 24"
-			aria-hidden="true"
+			aria-hidden="true"><path d={ICON_PLUS}></path></svg
 		>
-			<path d={ICON_PLUS} />
-		</svg>
 	</a>
 
 	<!-- Docked search pill plus the round filter button carrying the active
@@ -694,7 +690,8 @@
 				stroke-width="2"
 				viewBox="0 0 24 24"
 			>
-				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH} />
+				<path stroke-linecap="round" stroke-linejoin="round" d={ICON_SEARCH}
+				></path>
 			</svg>
 			<input
 				type="search"
@@ -722,7 +719,7 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					d={ICON_FILTER_LINES}
-				/>
+				></path>
 			</svg>
 			{#if hasActiveFilters}
 				<span
@@ -780,7 +777,7 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								d={ICON_CHEVRON_DOWN}
-							/>
+							></path>
 						</svg>
 					</button>
 
@@ -850,13 +847,12 @@
 
 								<div class="flex flex-wrap gap-2">
 									<a
-										href={resolve(`/admin/merchants/${merchant.id}/edit`)}
+										href={resolve(`admin/merchants/${merchant.id}/edit`)}
 										class="bg-accent text-on-accent rounded-m3-full text-body-sm inline-flex h-9 items-center px-4 font-semibold {isOffline
 											? 'pointer-events-none opacity-45'
-											: ''}"
+											: ''}">{$t('common.edit')}</a
 									>
-										{$t('common.edit')}
-									</a>
+
 									<button
 										type="button"
 										onclick={() => (deleteTarget = merchant)}
@@ -911,7 +907,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -921,7 +917,7 @@
 
 			<!-- Create Merchant Button -->
 			<a
-				href={resolve('/admin/merchants/new')}
+				href={resolve('admin/merchants/new')}
 				class="btn btn-primary whitespace-nowrap {isOffline
 					? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 					: ''}"
@@ -954,7 +950,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-					/>
+					></path>
 				</svg>
 				{#if hasActiveFilters}
 					<span class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"
@@ -964,7 +960,7 @@
 
 			<!-- Create Merchant Button (Mobile) -->
 			<a
-				href={resolve('/admin/merchants/new')}
+				href={resolve('admin/merchants/new')}
 				class="btn btn-sm btn-primary flex-1 text-center {isOffline
 					? 'opacity-50 cursor-not-allowed pointer-events-none blur-[0.5px]'
 					: ''}"
@@ -1047,7 +1043,7 @@
 														stroke-linejoin="round"
 														stroke-width="2"
 														d="M19 9l-7 7-7-7"
-													/>
+													></path>
 												</svg>
 											</div>
 										</td>
@@ -1165,7 +1161,7 @@
 													>
 														<a
 															href={resolve(
-																`/admin/merchants/${merchant.id}/edit`
+																`admin/merchants/${merchant.id}/edit`
 															)}
 															class="btn btn-sm btn-primary {isOffline
 																? 'opacity-50 cursor-not-allowed pointer-events-none'
@@ -1230,9 +1226,9 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
+								>{$t('common.sort')}</label
 							>
-								{$t('common.sort')}
-							</label>
+
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
 								<option value="name-asc"
 									>{$t('admin.merchants.sortNameAsc')}</option
@@ -1316,10 +1312,8 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"
+						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
 					>
-						<path d={ICON_CHEVRON_RIGHT} />
-					</svg>
 				</button>
 
 				{#if sortExpanded}
@@ -1354,10 +1348,8 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										viewBox="0 0 24 24"
-										aria-hidden="true"
+										aria-hidden="true"><path d={ICON_CHECK}></path></svg
 									>
-										<path d={ICON_CHECK} />
-									</svg>
 								{/if}
 							</button>
 						{/each}
@@ -1398,9 +1390,8 @@
 						stroke="currentColor"
 						stroke-width="2"
 						viewBox="0 0 24 24"
+						><path stroke-linecap="round" d={ICON_CLOSE}></path></svg
 					>
-						<path stroke-linecap="round" d={ICON_CLOSE} />
-					</svg>
 				</button>
 			</div>
 
@@ -1432,7 +1423,7 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										d={ICON_CHECK}
-									/>
+									></path>
 								</svg>
 							{/if}
 						</span>
@@ -1494,9 +1485,9 @@
 					<label
 						for="sortByMobile"
 						class="block text-sm font-medium text-text-ink2 mb-2"
+						>{$t('common.sort')}</label
 					>
-						{$t('common.sort')}
-					</label>
+
 					<select id="sortByMobile" bind:value={sortBy} class="input bg-white">
 						<option value="name-asc">{$t('admin.merchants.sortNameAsc')}</option
 						>

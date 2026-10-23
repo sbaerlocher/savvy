@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type bwipjsType from 'bwip-js';
-	import { logger } from '$lib/utils/logger';
-	import { barcodeBcid, is2DBcid } from '$lib/utils/barcode';
+	import { logger } from '#lib/utils/logger.js';
+	import { barcodeBcid, is2DBcid } from '#lib/utils/barcode.js';
 
 	// bwip-js is ~1 MB and only needed once a barcode actually renders. A static
 	// import pulls it into the first-paint chunk of every route that mounts a

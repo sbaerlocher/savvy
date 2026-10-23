@@ -1,6 +1,6 @@
-import type { ErrorResponse } from '$lib/types/api';
-import { browser } from '$app/environment';
-import { logger } from '$lib/utils/logger';
+import type { ErrorResponse } from '#lib/types/api.js';
+import { browser } from '$app/env';
+import { logger } from '#lib/utils/logger.js';
 
 const API_BASE_URL = '/api/v1';
 

@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { profileApi, type ProfileDTO } from '$lib/api';
-	import IOSSettingsScreen from '$lib/components/settings/IOSSettingsScreen.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { pwaStore } from '$lib/stores/pwa';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { platform } from '$lib/utils/platform';
+	import { profileApi, type ProfileDTO } from '#lib/api/index.js';
+	import IOSSettingsScreen from '#lib/components/settings/IOSSettingsScreen.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { pwaStore } from '#lib/stores/pwa.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import DesktopProfileTab from '$lib/components/settings/DesktopProfileTab.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import DesktopProfileTab from '#lib/components/settings/DesktopProfileTab.svelte';
 
 	const pageLogger = logger.child('ProfilePage');
 	const tr = (key: string, params?: Record<string, string | number>) =>
@@ -46,7 +46,7 @@
 		swSupported = 'serviceWorker' in navigator;
 
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 
@@ -144,7 +144,7 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-					/>
+					></path>
 				</svg>
 				{$t('nav.logout')}
 			</button>

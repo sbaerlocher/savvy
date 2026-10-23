@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ICON_SEARCH } from '$lib/icons';
-	import NotificationPanel from '$lib/components/NotificationPanel.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { showNewDialog } from '$lib/stores/newDialog';
-	import { platform } from '$lib/utils/platform';
+	import { ICON_SEARCH } from '#lib/icons.js';
+	import NotificationPanel from '#lib/components/NotificationPanel.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { showNewDialog } from '#lib/stores/newDialog.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android search opens an inline M3 search field in the header row; the
 	// parent PageHeader owns that state and passes the opener down.

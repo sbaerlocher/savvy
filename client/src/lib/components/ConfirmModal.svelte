@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { ICON_INFO_CIRCLE, ICON_TRANSFER, ICON_WARNING } from '$lib/icons';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { ICON_INFO_CIRCLE, ICON_TRANSFER, ICON_WARNING } from '#lib/icons.js';
+	import Modal from '#lib/components/ui/Modal.svelte';
+	import { platform } from '#lib/utils/platform.js';
 
 	let {
 		isOpen = false,

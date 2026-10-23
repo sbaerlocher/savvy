@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { notificationsApi } from '$lib/api/notifications';
-	import NotificationTypeIcon from '$lib/components/NotificationTypeIcon.svelte';
-	import SectionLabel from '$lib/components/ui/SectionLabel.svelte';
-	import { notificationStore } from '$lib/stores/notifications';
-	import { t } from '$lib/stores/i18n';
-	import { reminderMessageKey } from '$lib/utils/notification-message';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import { notificationTone } from '$lib/utils/notification-tone';
-	import { platform } from '$lib/utils/platform';
-	import type { NotificationDTO } from '$lib/types/api';
+	import { notificationsApi } from '#lib/api/notifications.js';
+	import NotificationTypeIcon from '#lib/components/NotificationTypeIcon.svelte';
+	import SectionLabel from '#lib/components/ui/SectionLabel.svelte';
+	import { notificationStore } from '#lib/stores/notifications.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { reminderMessageKey } from '#lib/utils/notification-message.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import { notificationTone } from '#lib/utils/notification-tone.js';
+	import { platform } from '#lib/utils/platform.js';
+	import type { NotificationDTO } from '#lib/types/api.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 
 	const PAGE_SIZE = 20;
 	const pageLogger = logger.child('NotificationsPage');
@@ -277,10 +277,10 @@
 		stroke-linejoin="round"
 		aria-hidden="true"
 	>
-		<circle cx="12" cy="12" r="3" />
+		<circle cx="12" cy="12" r="3"></circle>
 		<path
 			d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
-		/>
+		></path>
 	</svg>
 {/snippet}
 
@@ -294,10 +294,8 @@
 		stroke-width="2"
 		stroke-linecap="round"
 		stroke-linejoin="round"
-		aria-hidden="true"
+		aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg
 	>
-		<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
-	</svg>
 {/snippet}
 
 <!-- Desktop row (mockup board B). `unread` drives dot, tint and title weight. -->
@@ -368,10 +366,8 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						aria-hidden="true"
+						aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg
 					>
-						<path d="M20 6L9 17l-5-5" />
-					</svg>
 				</button>
 			{/if}
 			<button
@@ -443,9 +439,9 @@
 				(openMenuId = openMenuId === notification.id ? null : notification.id)}
 		>
 			<svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor">
-				<circle cx="12" cy="5" r="1.8" />
-				<circle cx="12" cy="12" r="1.8" />
-				<circle cx="12" cy="19" r="1.8" />
+				<circle cx="12" cy="5" r="1.8"></circle>
+				<circle cx="12" cy="12" r="1.8"></circle>
+				<circle cx="12" cy="19" r="1.8"></circle>
 			</svg>
 		</button>
 
@@ -506,10 +502,9 @@
 						stroke="currentColor"
 						stroke-width="2"
 						stroke-linecap="round"
-						stroke-linejoin="round"
+						stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg
 					>
-						<path d="M20 6L9 17l-5-5" />
-					</svg>
+
 					{tr('notifications.ios.swipeRead')}
 				</button>
 			{/if}
@@ -529,9 +524,9 @@
 					stroke-width="2"
 					stroke-linecap="round"
 					stroke-linejoin="round"
+					><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg
 				>
-					<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
-				</svg>
+
 				{tr('notifications.ios.swipeDelete')}
 			</button>
 		</div>
@@ -617,8 +612,8 @@
 							>
 								<path
 									d="M18 8a6 6 0 00-9.3-5M5.2 8.7C5 12.5 3 15 3 15h13M13.7 21a2 2 0 01-3.4 0"
-								/>
-								<path d="M3 3l18 18" />
+								></path>
+								<path d="M3 3l18 18"></path>
 							</svg>
 						</span>
 						<h1
@@ -632,7 +627,7 @@
 							{tr('notifications.emptyDescription')}
 						</div>
 						<a
-							href={resolve('/notifications/settings')}
+							href={resolve('notifications/settings')}
 							class="mt-6 inline-flex items-center gap-2 rounded-full border border-border-field bg-surface px-[18px] py-[11px] text-[length:var(--text-label)] font-semibold text-accent-700"
 						>
 							{@render gearIcon(16)}
@@ -713,8 +708,8 @@
 				>
 					<path
 						d="M18 8a6 6 0 00-9.3-5M5.2 8.7C5 12.5 3 15 3 15h13M13.7 21a2 2 0 01-3.4 0"
-					/>
-					<path d="M3 3l18 18" />
+					></path>
+					<path d="M3 3l18 18"></path>
 				</svg>
 			</span>
 			<p class="text-heading text-text-strong">
@@ -724,7 +719,7 @@
 				{tr('notifications.emptyDescription')}
 			</p>
 			<a
-				href={resolve('/notifications/settings')}
+				href={resolve('notifications/settings')}
 				class="mt-5.5 inline-flex items-center gap-2 rounded-m3-full bg-accent px-5 py-3 text-label text-on-accent shadow-fab"
 			>
 				{@render gearIcon(16)}
@@ -811,8 +806,8 @@
 				>
 					<path
 						d="M18 8a6 6 0 00-9.3-5M5.2 8.7C5 12.5 3 15 3 15h13M13.7 21a2 2 0 01-3.4 0"
-					/>
-					<path d="M3 3l18 18" />
+					></path>
+					<path d="M3 3l18 18"></path>
 				</svg>
 			</span>
 			<p class="text-heading text-text-strong">
@@ -822,7 +817,7 @@
 				{tr('notifications.emptyDescription')}
 			</p>
 			<a
-				href={resolve('/notifications/settings')}
+				href={resolve('notifications/settings')}
 				class="liquid-glass-surface mt-5.5 inline-flex items-center gap-1.75 rounded-full px-4.5 py-2.75 text-label text-accent-700"
 			>
 				<svg
@@ -834,10 +829,10 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 				>
-					<circle cx="12" cy="12" r="3" />
+					<circle cx="12" cy="12" r="3"></circle>
 					<path
 						d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
-					/>
+					></path>
 				</svg>
 				{tr('notifications.settingsLink')}
 			</a>

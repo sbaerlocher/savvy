@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
@@ -21,7 +23,26 @@ export default defineConfig({
 		// Exclude WASM modules from optimization to preserve dynamic imports
 		exclude: ['barcode-detector']
 	},
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		sveltekit({
+			preprocess: vitePreprocess(),
+			adapter: adapter({
+				pages: 'build',
+				assets: 'build',
+				fallback: 'index.html',
+				precompress: false,
+				strict: true
+			}),
+
+			// Registered manually in $lib/pwa/register-sw.ts (availability check, update toast)
+			// Deterministic per release (release-tool syncs package.json to the tag), so
+			// the service worker only changes when the app does, not on every build.
+			version: { name: process.env.npm_package_version },
+			serviceWorker: { register: false },
+			alias: { $lib: 'src/lib', $components: 'src/lib/components' }
+		})
+	],
 	server: {
 		port: 5173,
 		// Leading dot covers subdomains: dde >= v2.0.0-beta.2 serves git
@@ -29,23 +50,23 @@ export default defineConfig({
 		allowedHosts: ['.savvy.test'],
 		proxy: {
 			'/api': {
-				target: 'http://api:8080', // Docker: api container on port 8080
+				target: 'http://api:8080' /* Docker: api container on port 8080 */,
 				changeOrigin: true
 			},
 			'/auth': {
-				target: 'http://api:8080', // OAuth routes
+				target: 'http://api:8080' /* OAuth routes */,
 				changeOrigin: true
 			},
 			'/health': {
-				target: 'http://api:8080', // Health check
+				target: 'http://api:8080' /* Health check */,
 				changeOrigin: true
 			},
 			'/ready': {
-				target: 'http://api:8080', // Readiness check
+				target: 'http://api:8080' /* Readiness check */,
 				changeOrigin: true
 			},
 			'/metrics': {
-				target: 'http://api:8080', // Prometheus metrics
+				target: 'http://api:8080' /* Prometheus metrics */,
 				changeOrigin: true
 			}
 		}

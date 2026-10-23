@@ -1,15 +1,15 @@
 <script lang="ts">
-	import type { ProfileDTO, SessionDTO } from '$lib/api';
-	import { authApi, profileApi, sessionsApi } from '$lib/api';
-	import { configStore } from '$lib/stores/config';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
+	import type { ProfileDTO, SessionDTO } from '#lib/api/index.js';
+	import { authApi, profileApi, sessionsApi } from '#lib/api/index.js';
+	import { configStore } from '#lib/stores/config.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import M3SettingsRow from './M3SettingsRow.svelte';
 	import ToggleSwitch from './ToggleSwitch.svelte';
-	import TwoFactorSettings from '$lib/components/TwoFactorSettings.svelte';
+	import TwoFactorSettings from '#lib/components/TwoFactorSettings.svelte';
 
 	const sectionLogger = logger.child('AndroidSecuritySection');
 	const tr = (key: string, params?: Record<string, string | number>) =>

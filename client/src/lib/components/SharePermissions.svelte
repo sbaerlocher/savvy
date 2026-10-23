@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ICON_CHECK } from '$lib/icons';
+	import { ICON_CHECK } from '#lib/icons.js';
 
 	interface Props {
 		canEdit?: boolean;

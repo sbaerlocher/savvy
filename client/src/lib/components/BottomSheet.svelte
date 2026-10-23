@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 	import type { Snippet } from 'svelte';
 
 	interface Props {

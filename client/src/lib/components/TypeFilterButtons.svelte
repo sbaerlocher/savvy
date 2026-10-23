@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	const tr = (key: string) => get(t)(key);
 

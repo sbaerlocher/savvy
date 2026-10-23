@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { platform } from '$lib/utils/platform';
+	import { t } from '#lib/stores/i18n.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
-	import AdminTabs from '$lib/components/admin/AdminTabs.svelte';
+	import AdminTabs from '#lib/components/admin/AdminTabs.svelte';
 
 	const IS_DESKTOP = platform === 'other';
 	const IS_IOS = platform === 'ios';
@@ -17,7 +17,7 @@
 			history.back();
 			return;
 		}
-		goto(resolve('/profile'));
+		goto(resolve('profile'));
 	}
 </script>
 

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { notificationStore } from '$lib/stores/notifications';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { notificationStore } from '#lib/stores/notifications.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import Section from './Section.svelte';
@@ -28,7 +28,7 @@
 
 	onMount(() => {
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 		// The eyebrow counts below read the store (authoritative, server-side);
@@ -42,7 +42,7 @@
 	// would be a no-op and leave the chevron dead.
 	function goBack() {
 		if (history.length > 1) history.back();
-		else goto(resolve('/dashboard'));
+		else goto(resolve('dashboard'));
 	}
 </script>
 
@@ -63,7 +63,7 @@
 	>
 		{#snippet actions()}
 			<a
-				href={resolve('/notifications/settings')}
+				href={resolve('notifications/settings')}
 				class="title-action whitespace-nowrap text-text-muted"
 			>
 				<svg
@@ -75,10 +75,10 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 				>
-					<circle cx="12" cy="12" r="3" />
+					<circle cx="12" cy="12" r="3"></circle>
 					<path
 						d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
-					/>
+					></path>
 				</svg>
 				{tr('notifications.settingsTitle')}
 			</a>
@@ -142,10 +142,8 @@
 					stroke="currentColor"
 					stroke-width="2.3"
 					stroke-linecap="round"
-					stroke-linejoin="round"
+					stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg
 				>
-					<path d="M20 6L9 17l-5-5" />
-				</svg>
 			</button>
 		{/snippet}
 

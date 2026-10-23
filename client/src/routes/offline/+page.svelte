@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { languageStore, t } from '$lib/stores/i18n';
-	import { translations } from '$lib/i18n';
-	import Button from '$lib/components/ui/Button.svelte';
-	import StateScreen from '$lib/components/layout/StateScreen.svelte';
-	import { ICON_CHECK, ICON_INFO_CIRCLE, ICON_WIFI_OFF } from '$lib/icons';
+	import { languageStore, t } from '#lib/stores/i18n.js';
+	import { translations } from '#lib/i18n/index.js';
+	import Button from '#lib/components/ui/Button.svelte';
+	import StateScreen from '#lib/components/layout/StateScreen.svelte';
+	import { ICON_CHECK, ICON_INFO_CIRCLE, ICON_WIFI_OFF } from '#lib/icons.js';
 
 	let retrying = $state(false);
 	let isOnline = $state(false);

@@ -1,27 +1,32 @@
 <script lang="ts">
-	import { cardsApi, giftCardsApi, merchantsApi, vouchersApi } from '$lib/api';
+	import {
+		cardsApi,
+		giftCardsApi,
+		merchantsApi,
+		vouchersApi
+	} from '#lib/api/index.js';
 	import WalletView, {
 		type WalletFilterState
-	} from '$lib/components/ui/WalletView.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { locale, t } from '$lib/stores/i18n';
-	import { isOnline } from '$lib/stores/offline';
-	import { toastStore } from '$lib/stores/toast';
+	} from '#lib/components/ui/WalletView.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { locale, t } from '#lib/stores/i18n.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import type {
 		CardDTO,
 		GiftCardDTO,
 		MerchantDTO,
 		VoucherDTO
-	} from '$lib/types/api';
-	import { extractMerchantFromItems } from '$lib/utils/merchant-aggregator';
-	import { page } from '$app/stores';
+	} from '#lib/types/api.js';
+	import { extractMerchantFromItems } from '#lib/utils/merchant-aggregator.js';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { ICON_PENCIL, ICON_SEARCH, ICON_STOREFRONT } from '$lib/icons';
-	import { platform } from '$lib/utils/platform';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { ICON_PENCIL, ICON_SEARCH, ICON_STOREFRONT } from '#lib/icons.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
@@ -134,7 +139,7 @@
 	     only referenced by the `header` snippet below. -->
 	{#snippet editAction()}
 		<a
-			href={resolve(`/admin/merchants/${merchant?.id}/edit`)}
+			href={resolve(`admin/merchants/${merchant?.id}/edit`)}
 			class={EDIT_ACTION_CLASS}
 		>
 			{#if IS_ANDROID || IOS}
@@ -146,10 +151,8 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					viewBox="0 0 24 24"
-					aria-hidden="true"
+					aria-hidden="true"><path d={ICON_PENCIL}></path></svg
 				>
-					<path d={ICON_PENCIL} />
-				</svg>
 			{/if}
 			{tr('common.edit')}
 		</a>
@@ -165,7 +168,7 @@
 	>
 		{#snippet back()}
 			<a
-				href={resolve('/merchants')}
+				href={resolve('merchants')}
 				class="text-text-subtle hover:text-text-ink2"
 				>{tr('common.backToOverview')}</a
 			>
@@ -206,7 +209,7 @@
 						stroke-linejoin="round"
 						stroke-width="1.5"
 						d={ICON_STOREFRONT}
-					/>
+					></path>
 				</svg>
 			{/snippet}
 
@@ -226,10 +229,9 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"
+							aria-hidden="true"><path d={ICON_SEARCH}></path></svg
 						>
-							<path d={ICON_SEARCH} />
-						</svg>
+
 						<input
 							type="search"
 							bind:value={filters.searchInput}
@@ -251,10 +253,9 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"
+							aria-hidden="true"><path d={ICON_SEARCH}></path></svg
 						>
-							<path d={ICON_SEARCH} />
-						</svg>
+
 						<input
 							type="search"
 							bind:value={filters.searchInput}

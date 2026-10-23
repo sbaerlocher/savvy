@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { merchantsApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-	import { platform } from '$lib/utils/platform';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { merchantsApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
+	import { platform } from '#lib/utils/platform.js';
 
 	// Android renders the form M3-flavoured (m3-filled-form restyles the
 	// shared .input/.label/.btn classes); `platform` is a module constant.
@@ -57,10 +57,11 @@
 
 			await merchantsApi.create(input);
 			toastStore.success($t('admin.merchants.createSuccess'));
-			goto(resolve('/merchants'));
+			goto(resolve('merchants'));
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : $t('admin.merchants.createError');
+
 			toastStore.error(message);
 		} finally {
 			isSubmitting = false;
@@ -186,12 +187,12 @@
 						class="btn btn-primary px-6 {isSubmitting || isOffline
 							? 'opacity-50 cursor-not-allowed'
 							: ''}"
+						>{isSubmitting ? $t('common.saving') : $t('common.create')}</button
 					>
-						{isSubmitting ? $t('common.saving') : $t('common.create')}
-					</button>
-					<a href={resolve('/merchants')} class="btn btn-ghost">
-						{$t('common.cancel')}
-					</a>
+
+					<a href={resolve('merchants')} class="btn btn-ghost"
+						>{$t('common.cancel')}</a
+					>
 				</div>
 
 				{#if isOffline}

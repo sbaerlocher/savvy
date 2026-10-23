@@ -7,10 +7,10 @@ import type {
 	TransactionDTO,
 	TransactionCreateRequest,
 	GiftCardResponse
-} from '$lib/types/api';
-import { offlineDB } from '$lib/stores/offline-db';
-import { browser } from '$app/environment';
-import { logger } from '$lib/utils/logger';
+} from '#lib/types/api.js';
+import { offlineDB } from '#lib/stores/offline-db.js';
+import { browser } from '$app/env';
+import { logger } from '#lib/utils/logger.js';
 
 const log = logger.child('GiftCardsAPI');
 
@@ -37,7 +37,7 @@ export const giftCardsApi = {
 		perPage?: number
 	): Promise<{
 		gift_cards: GiftCardDTO[];
-		pagination?: import('$lib/types/api').PaginationMeta;
+		pagination?: import('#lib/types/api.js').PaginationMeta;
 	}> {
 		if (browser) {
 			// Read all gift cards (owned + shared) from IndexedDB
@@ -57,7 +57,7 @@ export const giftCardsApi = {
 
 				const result = await api.get<{
 					gift_cards: GiftCardDTO[];
-					pagination?: import('$lib/types/api').PaginationMeta;
+					pagination?: import('#lib/types/api.js').PaginationMeta;
 				}>(url);
 
 				// Store all gift cards together (owned + shared) in IndexedDB
@@ -89,7 +89,7 @@ export const giftCardsApi = {
 		const url = queryString ? `/gift-cards?${queryString}` : '/gift-cards';
 		return api.get<{
 			gift_cards: GiftCardDTO[];
-			pagination?: import('$lib/types/api').PaginationMeta;
+			pagination?: import('#lib/types/api.js').PaginationMeta;
 		}>(url);
 	},
 

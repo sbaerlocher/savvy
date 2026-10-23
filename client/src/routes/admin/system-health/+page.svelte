@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
-	import AdminTabs from '$lib/components/admin/AdminTabs.svelte';
+	import AdminTabs from '#lib/components/admin/AdminTabs.svelte';
 
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_DESKTOP = platform === 'other';
@@ -18,7 +18,7 @@
 			history.back();
 			return;
 		}
-		goto(resolve('/profile'));
+		goto(resolve('profile'));
 	}
 </script>
 

@@ -5,11 +5,11 @@
 		ICON_SPINNER,
 		ICON_TRANSFER,
 		ICON_WARNING
-	} from '$lib/icons';
-	import Modal from '$lib/components/ui/Modal.svelte';
-	import { t } from '$lib/stores/i18n';
+	} from '#lib/icons.js';
+	import Modal from '#lib/components/ui/Modal.svelte';
+	import { t } from '#lib/stores/i18n.js';
 	import { get } from 'svelte/store';
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 	import EmailAutocomplete from './EmailAutocomplete.svelte';
 	import SharePermissions from './SharePermissions.svelte';
 

@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { browser } from '$app/environment';
+	import { page } from '$app/state';
+	import { browser } from '$app/env';
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
-	import Button from '$lib/components/ui/Button.svelte';
-	import StateScreen from '$lib/components/layout/StateScreen.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import Button from '#lib/components/ui/Button.svelte';
+	import StateScreen from '#lib/components/layout/StateScreen.svelte';
 	import {
 		ICON_ALERT_TRIANGLE,
 		ICON_FACE_CONFUSED,
 		ICON_WIFI_OFF
-	} from '$lib/icons';
+	} from '#lib/icons.js';
 
 	const isOffline = $derived(browser && !navigator.onLine);
-	const status = $derived($page.status);
-	const message = $derived($page.error?.message || '');
+	const status = $derived(page.status);
+	const message = $derived(page.error?.message || '');
 
 	// The three cases differ only in icon, tone and copy — so they pick a
 	// variant rather than each rebuilding the screen. Previously each branch
@@ -78,8 +78,9 @@
 				{$t('errors.retry')}
 			</Button>
 		{/if}
-		<Button variant="secondary" href={resolve('/dashboard')} class="w-full">
-			{$t('errors.toDashboard')}
-		</Button>
+
+		<Button variant="secondary" href={resolve('dashboard')} class="w-full"
+			>{$t('errors.toDashboard')}</Button
+		>
 	{/snippet}
 </StateScreen>

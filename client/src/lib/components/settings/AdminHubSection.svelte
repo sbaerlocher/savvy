@@ -6,9 +6,9 @@
 		ICON_CHEVRON_RIGHT,
 		ICON_DOCUMENT,
 		ICON_USERS
-	} from '$lib/icons';
-	import { t } from '$lib/stores/i18n';
-	import { platform } from '$lib/utils/platform';
+	} from '#lib/icons.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { platform } from '#lib/utils/platform.js';
 	import { get } from 'svelte/store';
 
 	const tr = (key: string) => get(t)(key);
@@ -24,25 +24,25 @@
 
 	const items = [
 		{
-			href: resolve('/admin/users'),
+			href: resolve('admin/users'),
 			icon: ICON_USERS,
 			label: 'nav.adminUsers',
 			sub: 'admin.hub.usersSub'
 		},
 		{
-			href: resolve('/admin/merchants'),
+			href: resolve('admin/merchants'),
 			icon: ICON_CART,
 			label: 'nav.adminMerchants',
 			sub: 'admin.hub.merchantsSub'
 		},
 		{
-			href: resolve('/admin/audit-log'),
+			href: resolve('admin/audit-log'),
 			icon: ICON_DOCUMENT,
 			label: 'nav.adminAuditLog',
 			sub: 'admin.hub.auditLogSub'
 		},
 		{
-			href: resolve('/admin/system-health'),
+			href: resolve('admin/system-health'),
 			icon: ICON_CHART,
 			label: 'nav.adminSystemHealth',
 			sub: 'admin.hub.systemHealthSub'
@@ -84,10 +84,8 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					viewBox="0 0 24 24"
-					aria-hidden="true"
+					aria-hidden="true"><path d={item.icon}></path></svg
 				>
-					<path d={item.icon} />
-				</svg>
 			</span>
 			<span class="min-w-0 flex-1">
 				<span class="text-subheading text-text block font-normal"
@@ -105,19 +103,18 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg
 			>
-				<path d="M9 5l7 7-7 7" />
-			</svg>
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	{/each}
 {:else}
 	<section>
 		<div class="flex items-center gap-1.75 px-1.5 pb-2">
-			<span class="text-body-sm font-semibold text-purple-600 uppercase">
-				{tr('nav.admin')}
-			</span>
+			<span class="text-body-sm font-semibold text-purple-600 uppercase"
+				>{tr('nav.admin')}</span
+			>
+
 			<span
 				class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-tag font-semibold tracking-normal text-purple-600"
 			>
@@ -146,10 +143,8 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"
+							aria-hidden="true"><path d={item.icon}></path></svg
 						>
-							<path d={item.icon} />
-						</svg>
 					</span>
 					<span class="min-w-0 flex-1">
 						<span class="block text-[length:var(--text-code)] text-text"
@@ -167,10 +162,8 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"
+						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
 					>
-						<path d={ICON_CHEVRON_RIGHT} />
-					</svg>
 				</a>
 				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{/each}

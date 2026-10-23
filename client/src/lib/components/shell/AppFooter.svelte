@@ -1,7 +1,7 @@
 <script lang="ts">
 	/* global __APP_VERSION__ -- compile-time constant injected by Vite `define` (see vite.config.ts, typed in src/app.d.ts) */
 	import { resolve } from '$app/paths';
-	import { t } from '$lib/stores/i18n';
+	import { t } from '#lib/stores/i18n.js';
 </script>
 
 <footer
@@ -42,7 +42,7 @@
 				<ul class="space-y-2">
 					<li>
 						<a
-							href={resolve('/dashboard')}
+							href={resolve('dashboard')}
 							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.start')}
@@ -50,7 +50,7 @@
 					</li>
 					<li>
 						<a
-							href={resolve('/wallet')}
+							href={resolve('wallet')}
 							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.wallet')}
@@ -58,7 +58,7 @@
 					</li>
 					<li>
 						<a
-							href={resolve('/profile')}
+							href={resolve('profile')}
 							class="text-sm text-text-muted hover:text-accent transition-colors"
 						>
 							{$t('nav.profile')}

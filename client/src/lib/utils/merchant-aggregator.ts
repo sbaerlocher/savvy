@@ -3,8 +3,8 @@ import type {
 	VoucherDTO,
 	GiftCardDTO,
 	MerchantDTO
-} from '$lib/types/api';
-import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
+} from '#lib/types/api.js';
+import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
 
 /** Aggregated merchant data derived client-side from cached items. */
 export interface MerchantOverview {

@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
+	import { ICON_LOCK } from '#lib/icons.js';
 	import { get } from 'svelte/store';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
-	import { CONFIG, type Kind } from '$lib/resource/config';
-	import { platform } from '$lib/utils/platform';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import EmailAutocomplete from '$lib/components/EmailAutocomplete.svelte';
-	import SharePermissions from '$lib/components/SharePermissions.svelte';
-	import ShareListItem from '$lib/components/ShareListItem.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { cardsApi, vouchersApi, giftCardsApi } from '#lib/api/index.js';
+	import { CONFIG, type Kind } from '#lib/resource/config.js';
+	import { platform } from '#lib/utils/platform.js';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import EmailAutocomplete from '#lib/components/EmailAutocomplete.svelte';
+	import SharePermissions from '#lib/components/SharePermissions.svelte';
+	import ShareListItem from '#lib/components/ShareListItem.svelte';
 	import {
 		formatShareResult,
 		shareResponseFromError
-	} from '$lib/utils/share-result';
+	} from '#lib/utils/share-result.js';
 	import type {
 		CardDTO,
 		VoucherDTO,
@@ -21,7 +21,7 @@
 		ShareDTO,
 		ShareCreateRequest,
 		ShareCreateResponse
-	} from '$lib/types/api';
+	} from '#lib/types/api.js';
 
 	type ResourceDTO = CardDTO | VoucherDTO | GiftCardDTO;
 

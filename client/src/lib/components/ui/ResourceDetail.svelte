@@ -1,31 +1,36 @@
 <script lang="ts">
-	import { ICON_LOCK, ICON_SHARE, ICON_TRANSFER, ICON_TRASH } from '$lib/icons';
+	import {
+		ICON_LOCK,
+		ICON_SHARE,
+		ICON_TRANSFER,
+		ICON_TRASH
+	} from '#lib/icons.js';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { authStore } from '$lib/stores/auth';
-	import { t, locale } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
-	import { formatCurrency } from '$lib/utils/currency';
-	import { platform } from '$lib/utils/platform';
-	import { cardsApi, vouchersApi, giftCardsApi } from '$lib/api';
-	import { resourceDetailPath } from '$lib/resource/routes';
-	import { CONFIG, type Kind } from '$lib/resource/config';
-	import DuplicateWarningBanner from '$lib/components/DuplicateWarningBanner.svelte';
-	import BarcodeDisplay from '$lib/components/BarcodeDisplay.svelte';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import TransferBox from '$lib/components/TransferBox.svelte';
-	import ShareSection from '$lib/components/resource/ShareSection.svelte';
-	import { portal } from '$lib/actions/portal';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import M3DetailOverflowSheet from '$lib/components/ui/M3DetailOverflowSheet.svelte';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t, locale } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { formatCurrency } from '#lib/utils/currency.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { cardsApi, vouchersApi, giftCardsApi } from '#lib/api/index.js';
+	import { resourceDetailPath } from '#lib/resource/routes.js';
+	import { CONFIG, type Kind } from '#lib/resource/config.js';
+	import DuplicateWarningBanner from '#lib/components/DuplicateWarningBanner.svelte';
+	import BarcodeDisplay from '#lib/components/BarcodeDisplay.svelte';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import TransferBox from '#lib/components/TransferBox.svelte';
+	import ShareSection from '#lib/components/resource/ShareSection.svelte';
+	import { portal } from '#lib/actions/portal.js';
+	import BottomSheet from '#lib/components/BottomSheet.svelte';
+	import M3DetailOverflowSheet from '#lib/components/ui/M3DetailOverflowSheet.svelte';
 	import type {
 		CardDTO,
 		VoucherDTO,
 		GiftCardDTO,
 		ShareDTO
-	} from '$lib/types/api';
+	} from '#lib/types/api.js';
 
 	type ResourceDTO = CardDTO | VoucherDTO | GiftCardDTO;
 
@@ -129,6 +134,7 @@
 
 	// --- Typed accessors for the union DTO ---------------------------------
 	const asCard = $derived(kind === 'card' ? (resource as CardDTO) : null);
+
 	const asVoucher = $derived(
 		kind === 'voucher' ? (resource as VoucherDTO) : null
 	);
@@ -325,17 +331,17 @@
 	// Back: return to where the user came from; fall back to wallet on deep link.
 	export function goBack() {
 		if (history.length > 1) history.back();
-		else goto(resolve('/wallet'));
+		else goto(resolve('wallet'));
 	}
 
 	// resolve() needs literal-prefixed routes for its typed-route check, so branch
 	// on kind rather than interpolate cfg.listPath (which types as `string`).
 	function listHref(): string {
 		return kind === 'card'
-			? resolve('/cards')
+			? resolve('cards')
 			: kind === 'voucher'
-				? resolve('/vouchers')
-				: resolve('/gift-cards');
+				? resolve('vouchers')
+				: resolve('gift-cards');
 	}
 
 	function detailHref(id: string): string {
@@ -503,7 +509,7 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				d={isOffline ? LOCK_PATH : ICON_TRASH}
-			/>
+			></path>
 		</svg>
 		{tr('common.delete')}
 	</button>
@@ -549,7 +555,7 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-					/>
+					></path>
 				</svg>
 			</button>
 		{/if}
@@ -724,11 +730,11 @@
 								viewBox="0 0 24 24"
 							>
 								{#if isOffline}
-									<path d={LOCK_PATH} />
+									<path d={LOCK_PATH}></path>
 								{:else}
-									<path d="M4 7h16" />
-									<path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
-									<path d="M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13" />
+									<path d="M4 7h16"></path>
+									<path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2"></path>
+									<path d="M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13"></path>
 								{/if}
 							</svg>
 							{tr(c.deleteButton)}
@@ -908,10 +914,8 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"
+							stroke-linejoin="round"><path d={ICON_SHARE}></path></svg
 						>
-							<path d={ICON_SHARE} />
-						</svg>
 					</button>
 					<div class="h-px bg-[var(--color-glass-edge)]"></div>
 					<button
@@ -929,10 +933,8 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"
+							stroke-linejoin="round"><path d={ICON_TRANSFER}></path></svg
 						>
-							<path d={ICON_TRANSFER} />
-						</svg>
 					</button>
 					<div class="h-px bg-[var(--color-glass-edge)]"></div>
 					<button
@@ -950,10 +952,8 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"
+							stroke-linejoin="round"><path d={ICON_TRASH}></path></svg
 						>
-							<path d={ICON_TRASH} />
-						</svg>
 					</button>
 				</div>
 			</div>

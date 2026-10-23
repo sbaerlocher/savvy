@@ -59,7 +59,7 @@ function createPWAStore() {
 
 			update((state) => ({ ...state, registration: null }));
 
-			const { registerServiceWorker } = await import('$lib/pwa/register-sw');
+			const { registerServiceWorker } = await import('#lib/pwa/register-sw.js');
 			return registerServiceWorker();
 		},
 

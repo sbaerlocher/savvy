@@ -1,5 +1,5 @@
 import { api, type ApiOptions } from './client';
-import type { UserDTO, LoginRequest, RegisterRequest } from '$lib/types/api';
+import type { UserDTO, LoginRequest, RegisterRequest } from '#lib/types/api.js';
 
 export const authApi = {
 	/**

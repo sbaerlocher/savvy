@@ -9,7 +9,7 @@ import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { build, files, version } from '$service-worker';
-import { handleNotificationClick } from '$lib/pwa/notification-click';
+import { handleNotificationClick } from '#lib/pwa/notification-click.js';
 
 declare let self: ServiceWorkerGlobalScope;
 

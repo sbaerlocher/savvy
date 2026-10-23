@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock API BEFORE imports
-vi.mock('$lib/api', () => ({
+vi.mock('#lib/api/index.js', () => ({
 	authApi: {
 		me: vi.fn(),
 		login: vi.fn(),
@@ -25,8 +25,8 @@ vi.mock('$lib/api', () => ({
 // Now import after mocks are set up
 import { get } from 'svelte/store';
 import { authStore } from './auth';
-import { authApi } from '$lib/api';
-import type { UserDTO } from '$lib/types/api';
+import { authApi } from '#lib/api/index.js';
+import type { UserDTO } from '#lib/types/api.js';
 
 describe('authStore', () => {
 	const mockUser: UserDTO = {

@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { get } from 'svelte/store';
-	import { isOnline } from '$lib/stores/offline';
-	import { t } from '$lib/stores/i18n';
-	import { vouchersApi, merchantsApi, ApiError } from '$lib/api';
-	import { offlineDB } from '$lib/stores/offline-db';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import VoucherForm from '$lib/components/vouchers/VoucherForm.svelte';
-	import ResourceDetail from '$lib/components/ui/ResourceDetail.svelte';
-	import ResourceDetailActions from '$lib/components/ui/ResourceDetailActions.svelte';
-	import type { VoucherDTO, ShareDTO, MerchantDTO } from '$lib/types/api';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { vouchersApi, merchantsApi, ApiError } from '#lib/api/index.js';
+	import { offlineDB } from '#lib/stores/offline-db.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import VoucherForm from '#lib/components/vouchers/VoucherForm.svelte';
+	import ResourceDetail from '#lib/components/ui/ResourceDetail.svelte';
+	import ResourceDetailActions from '#lib/components/ui/ResourceDetailActions.svelte';
+	import type { VoucherDTO, ShareDTO, MerchantDTO } from '#lib/types/api.js';
 
-	import { platform } from '$lib/utils/platform';
+	import { platform } from '#lib/utils/platform.js';
 
 	const IS_IOS = platform === 'ios';
 	// Android edits through the FAB (ResourceDetail), so the title row hides
@@ -34,9 +34,9 @@
 	// Svelte 5 compatible translation wrapper
 	const tr = (key: string, params?: Record<string, string | number>) =>
 		get(t)(key, params);
-	const pageLogger = logger.child('VoucherDetailPage');
 
-	const voucherId = $derived($page.params.id);
+	const pageLogger = logger.child('VoucherDetailPage');
+	const voucherId = $derived(page.params.id);
 
 	let voucher = $state<VoucherDTO | null>(null);
 	let shares = $state<ShareDTO[]>([]);
@@ -69,7 +69,7 @@
 		try {
 			if (!voucherId) {
 				toastStore.error(tr('vouchers.loadError'));
-				goto(resolve('/vouchers'));
+				goto(resolve('vouchers'));
 				return;
 			}
 
@@ -95,12 +95,12 @@
 					) {
 						await offlineDB.deleteVoucher(voucherId);
 						toastStore.error(tr('vouchers.loadError'));
-						goto(resolve('/vouchers'));
+						goto(resolve('vouchers'));
 						return;
 					}
 					if (!cached) {
 						toastStore.error(tr('vouchers.loadError'));
-						goto(resolve('/vouchers'));
+						goto(resolve('vouchers'));
 						return;
 					}
 					// Transient error with cached data available - show warning, don't redirect
@@ -108,11 +108,11 @@
 				}
 			} else if (!cached) {
 				toastStore.error(tr('vouchers.loadError'));
-				goto(resolve('/vouchers'));
+				goto(resolve('vouchers'));
 			}
 		} catch {
 			toastStore.error(tr('vouchers.loadError'));
-			goto(resolve('/vouchers'));
+			goto(resolve('vouchers'));
 		} finally {
 			isLoading = false;
 			isRefreshing = false;
@@ -146,6 +146,7 @@
 		// Ensure barcode_type always has a valid value (handle null, undefined, empty string)
 		editBarcodeType =
 			(voucher.barcode_type && voucher.barcode_type.trim()) || 'CODE128';
+
 		editUsageLimitType = voucher.usage_limit_type || 'single_use';
 		editValidFrom = voucher.valid_from ? voucher.valid_from.split('T')[0] : '';
 		editValidUntil = voucher.valid_until

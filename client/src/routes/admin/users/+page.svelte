@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { ICON_PLUS } from '$lib/icons';
-	import PageShell from '$lib/components/layout/PageShell.svelte';
-	import { t } from '$lib/stores/i18n';
-	import { isOnline } from '$lib/stores/offline';
-	import { platform } from '$lib/utils/platform';
+	import { ICON_PLUS } from '#lib/icons.js';
+	import PageShell from '#lib/components/layout/PageShell.svelte';
+	import { t } from '#lib/stores/i18n.js';
+	import { isOnline } from '#lib/stores/offline.js';
+	import { platform } from '#lib/utils/platform.js';
 	import Section from './Section.svelte';
-	import AdminTabs from '$lib/components/admin/AdminTabs.svelte';
+	import AdminTabs from '#lib/components/admin/AdminTabs.svelte';
 
 	// `platform` is a module constant, so a plain const, not $derived.
 	const IS_DESKTOP = platform === 'other';
@@ -25,7 +25,7 @@
 			history.back();
 			return;
 		}
-		goto(resolve('/profile'));
+		goto(resolve('profile'));
 	}
 </script>
 
@@ -40,7 +40,7 @@
 {#snippet iosCreate()}
 	{#if localLoginEnabled}
 		<a
-			href={resolve('/admin/users/new')}
+			href={resolve('admin/users/new')}
 			aria-label={$t('admin.users.createUser')}
 			class="liquid-glass-surface inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-purple-600 transition-colors active:text-purple-700 {isOffline
 				? 'pointer-events-none opacity-50'
@@ -54,10 +54,8 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"
+				aria-hidden="true"><path d={ICON_PLUS}></path></svg
 			>
-				<path d={ICON_PLUS} />
-			</svg>
 		</a>
 	{/if}
 {/snippet}

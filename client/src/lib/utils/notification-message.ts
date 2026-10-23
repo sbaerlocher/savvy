@@ -1,4 +1,4 @@
-import type { NotificationDTO } from '$lib/types/api';
+import type { NotificationDTO } from '#lib/types/api.js';
 
 /**
  * Picks the translation key and params for a reminder notification body.

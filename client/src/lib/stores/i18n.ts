@@ -1,6 +1,6 @@
 import { writable, derived } from 'svelte/store';
-import { translations } from '$lib/i18n';
-import { logger } from '$lib/utils/logger';
+import { translations } from '#lib/i18n/index.js';
+import { logger } from '#lib/utils/logger.js';
 
 const i18nLogger = logger.child('I18n');
 
@@ -35,7 +35,7 @@ function createI18nStore() {
 				localStorage.setItem('savvy_language', lang);
 			}
 			// Sync to backend (fire-and-forget, non-blocking)
-			import('$lib/api/profile').then(({ profileApi }) => {
+			import('#lib/api/profile.js').then(({ profileApi }) => {
 				profileApi.update({ language: lang }).catch((err) => {
 					i18nLogger.warn('Failed to sync language to backend:', err);
 				});

@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { profileApi, type ProfileDTO } from '$lib/api';
-	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { profileApi, type ProfileDTO } from '#lib/api/index.js';
+	import LoadingSpinner from '#lib/components/LoadingSpinner.svelte';
 	import AdminHubSection from './AdminHubSection.svelte';
 	import AndroidProfileSection from './AndroidProfileSection.svelte';
 	import AndroidSecuritySection from './AndroidSecuritySection.svelte';
 	import M3SettingsRow from './M3SettingsRow.svelte';
 	import NotificationsSection from './NotificationsSection.svelte';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { pwaStore } from '$lib/stores/pwa';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { pwaStore } from '#lib/stores/pwa.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 
@@ -33,20 +33,19 @@
 	// (same as the iOS and desktop branches), so the Android screen carries a
 	// row for it too.
 	let swSupported = $state(false);
-	let isReregistering = $state(false);
 
+	let isReregistering = $state(false);
 	const ICON_REFRESH =
 		'M4 4v5h5M20 20v-5h-5M5.6 9a7 7 0 0111.6-2.6L20 9M4 15l2.8 2.6A7 7 0 0018.4 15';
 	const ICON_LOGOUT =
 		'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1';
-
 	const showAdminHub = $derived($authStore.user?.is_admin ?? false);
 
 	onMount(async () => {
 		swSupported = 'serviceWorker' in navigator;
 
 		if (!$authStore.isAuthenticated) {
-			goto(resolve('/login'));
+			goto(resolve('login'));
 			return;
 		}
 

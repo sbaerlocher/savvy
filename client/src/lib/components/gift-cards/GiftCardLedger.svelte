@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { ICON_LOCK } from '$lib/icons';
+	import { ICON_LOCK } from '#lib/icons.js';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { t, locale } from '$lib/stores/i18n';
-	import { giftCardsApi } from '$lib/api';
-	import { toastStore } from '$lib/stores/toast';
-	import { logger } from '$lib/utils/logger';
-	import ConfirmModal from '$lib/components/ConfirmModal.svelte';
-	import { MERCHANT_DEFAULT_COLOR } from '$lib/utils/merchant-color';
-	import { platform } from '$lib/utils/platform';
-	import { formatDisplayDate, todayInputValue } from '$lib/utils/date';
-	import type { GiftCardDTO, TransactionDTO } from '$lib/types/api';
+	import { t, locale } from '#lib/stores/i18n.js';
+	import { giftCardsApi } from '#lib/api/index.js';
+	import { toastStore } from '#lib/stores/toast.js';
+	import { logger } from '#lib/utils/logger.js';
+	import ConfirmModal from '#lib/components/ConfirmModal.svelte';
+	import { MERCHANT_DEFAULT_COLOR } from '#lib/utils/merchant-color.js';
+	import { platform } from '#lib/utils/platform.js';
+	import { formatDisplayDate, todayInputValue } from '#lib/utils/date.js';
+	import type { GiftCardDTO, TransactionDTO } from '#lib/types/api.js';
 
 	interface Props {
 		giftCard: GiftCardDTO;

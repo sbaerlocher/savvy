@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { ProfileDTO } from '$lib/api';
-	import { exportApi, profileApi } from '$lib/api';
-	import { authStore } from '$lib/stores/auth';
-	import { t } from '$lib/stores/i18n';
-	import { toastStore } from '$lib/stores/toast';
+	import type { ProfileDTO } from '#lib/api/index.js';
+	import { exportApi, profileApi } from '#lib/api/index.js';
+	import { authStore } from '#lib/stores/auth.js';
+	import { t } from '#lib/stores/i18n.js';
+	import { toastStore } from '#lib/stores/toast.js';
 	import { get } from 'svelte/store';
 	import M3SettingsRow from './M3SettingsRow.svelte';
 
