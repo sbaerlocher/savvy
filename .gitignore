@@ -136,3 +136,6 @@ client/static/zxing_reader.wasm
 
 # Ansible local cache (collections/roles/modules pulled by tooling)
 .ansible/
+
+# lefthook markdownlint scratch copies (.lefthook/markdownlint.sh)
+client/.markdownlint-hook.*/

@@ -8,7 +8,7 @@
 ## 📚 Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Git Hooks in Worktrees](#git-hooks-in-worktrees)
+- [Git Hooks](#git-hooks)
 - [Quick Start](#quick-start)
 - [Hot Reload (Air)](#hot-reload-air)
 - [Testing](#testing)
@@ -51,29 +51,45 @@ go install github.com/air-verse/air@latest
 
 ---
 
-## Git Hooks in Worktrees
+## Git Hooks
 
-The repo ships [`lefthook.yml`](lefthook.yml) with pre-commit (prettier,
-eslint) and pre-push (format-check, lint, typecheck, go test) hooks. The
-frontend hooks run `npm run …` in `client/`, which needs `client/node_modules`
-— git-ignored and **not shared across git worktrees** (each worktree has its
-own working tree).
+The repo ships [`lefthook.yml`](lefthook.yml) with pre-commit (gofmt,
+golangci-lint, prettier, eslint, markdownlint) and pre-push (go test,
+format-check, lint, typecheck) hooks. Like every project command they run in
+the dde containers, not on the host: [`.lefthook/dde-run.sh`](.lefthook/dde-run.sh)
+executes Go tooling in `api` and Node tooling in `client`, as the container's
+non-root user, so rewritten files stay owned by the host user.
 
-A worktree created for frontend changes therefore has no `node_modules`. When
-a push includes `client/` files, the frontend hooks can't resolve the
-prettier/eslint/svelte-check binaries and **fail the push with a
-missing-binary error** — the gate never actually runs and the check only
-happens later in CI. (lefthook only _skips_ these `root: client/` commands
-when no pushed file falls under `client/`, i.e. when there's nothing to gate.)
-Before touching frontend files in a fresh worktree, install once:
+- **Stack running** — the hook runs in the container; its exit code gates the
+  commit/push.
+- **Stack not running** — the hook fails with a hint instead of passing
+  unchecked. Start the stack with `dde project:up`, or skip one hook with
+  `LEFTHOOK_EXCLUDE=<command> git commit`.
+- **dde not installed** — the hooks are skipped with a notice. CI does not run
+  lefthook; it runs its own gates.
 
-```bash
-cd client && npm ci
-```
+dde resolves the stack from the current directory, so a **git worktree needs
+its own stack** (`dde project:up` in the worktree): the main clone's
+containers mount the main clone's files and would check the wrong tree. In
+return a worktree needs no host `npm ci` — the frontend hooks use the client
+container's `node_modules`.
 
-Node/npm come from `.nvmrc`; Docker stays the canonical dev path. DB and E2E
-gates remain CI-only (they need Postgres/Playwright). lefthook is opt-in and
-skippable with `LEFTHOOK=0 git commit` or `--no-verify`.
+Notes:
+
+- `go-test` points `DATABASE_URL` at an unresolvable `.invalid` host, so the
+  DB-backed tests skip instead of migrating and cleaning the dev database. DB
+  and E2E gates remain CI-only.
+- `golangci-lint` is not part of the api image. The hook builds the version
+  pinned in `lefthook.yml` (`GOLANGCI_LINT_VERSION`, bumped by Renovate) with
+  `go run` on first use; the build cache lives in the container, so the first
+  lint after recreating the stack takes a while.
+- `markdownlint` runs `npx markdownlint-cli` in the client container. That
+  container only mounts `client/`, so
+  [`.lefthook/markdownlint.sh`](.lefthook/markdownlint.sh) copies the staged
+  files and `.markdownlint.json` into a git-ignored scratch directory under
+  `client/` for the run.
+
+lefthook is opt-in and skippable with `LEFTHOOK=0 git commit`.
 
 ### Root-owned files in the bind mount
 
