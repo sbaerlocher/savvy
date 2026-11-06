@@ -14,7 +14,7 @@ set -euo pipefail
 markdownlint_version=0.50.0
 
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
-root=$(git rev-parse --show-toplevel)
+root=$(CDPATH='' cd -- "$script_dir/.." && pwd -P) # see dde-run.sh
 cd "$root"
 
 [ "$#" -gt 0 ] || exit 0

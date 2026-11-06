@@ -39,7 +39,10 @@ if ! command -v dde >/dev/null 2>&1; then
 	exit 0
 fi
 
-toplevel=$(cd "$(git rev-parse --show-toplevel)" && pwd -P)
+# The repo root is this script's parent dir. Not `git rev-parse
+# --show-toplevel`: git exports GIT_DIR to some hooks (pre-push in a worktree),
+# and with GIT_DIR set that returns the cwd instead of the repo root.
+toplevel=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
 here=$(pwd -P)
 case "$here" in
 "$toplevel") rel=. ;;
