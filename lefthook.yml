@@ -1,7 +1,11 @@
+
 # Git hooks managed by lefthook (https://lefthook.dev).
-# Fast host-native safety net before commit/push. The dde + docker
-# container flow remains the canonical CI path; lefthook is opt-in and
-# can be skipped with `LEFTHOOK=0 git commit` or `--no-verify`.
+# Fast safety net before commit/push. Every command runs inside the dde
+# containers via .lefthook/dde-run.sh (Go tooling in `api`, Node tooling in
+# `client`), never on the host. Without dde installed the commands are skipped
+# with a notice; with dde but the stack down they fail with a hint — start it
+# with `dde project:up`. lefthook is opt-in and can be skipped with
+# `LEFTHOOK=0 git commit` or `LEFTHOOK_EXCLUDE=<command> git commit`.
 #
 # Install locally with: `brew install lefthook && lefthook install`
 ---
@@ -11,53 +15,61 @@ pre-commit:
     # Go: auto-format and re-stage.
     gofmt:
       glob: '*.go'
-      run: gofmt -w {staged_files}
+      run: .lefthook/dde-run.sh api gofmt -w {staged_files}
       stage_fixed: true
 
     # Go: full-module lint via .golangci.yml. Glob gates whether the hook
     # runs; the lint analyses the whole module to catch cross-file regressions.
+    # The api image ships no golangci-lint, so `go run` builds the pinned
+    # version once and caches it in the container.
     golangci-lint:
       glob: '*.go'
-      run: golangci-lint run
+      run: .lefthook/dde-run.sh api go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0 run
 
     # Frontend: Prettier (config in client/.prettierrc).
     prettier:
       root: client/
       glob: '*.{js,cjs,mjs,ts,svelte,json,css}'
-      run: npx prettier --write {staged_files}
+      run: ../.lefthook/dde-run.sh client npx prettier --write {staged_files}
       stage_fixed: true
 
     # Frontend: ESLint flat config.
     eslint:
       root: client/
       glob: '*.{js,cjs,mjs,ts,svelte}'
-      run: npx eslint --fix {staged_files}
+      run: ../.lefthook/dde-run.sh client npx eslint --fix {staged_files}
       stage_fixed: true
 
+    # Markdown: linted in the client container (the only one with Node); the
+    # script copies the files under client/ because that container sees
+    # nothing else.
     markdownlint:
       glob: '*.md'
-      run: markdownlint {staged_files}
+      run: .lefthook/markdownlint.sh {staged_files}
 
 pre-push:
   parallel: true
   commands:
-    # Go unit/integration suites. CI gates the full -race sweep on merge.
+    # Go unit suites. DATABASE_URL is unset so the DB-backed tests skip
+    # instead of migrating and cleaning the dev database the api container
+    # points at; CI gates them (and the full -race sweep) against its own
+    # Postgres.
     go-test:
-      run: go test ./internal/... ./cmd/...
+      run: .lefthook/dde-run.sh api env -u DATABASE_URL go test ./internal/... ./cmd/...
 
     # Frontend: mirror the client-ci job (ci-js.yml) locally before push —
     # format-check, lint, typecheck. Non-mutating (check, not --write/--fix),
-    # unlike the pre-commit hooks. Requires client/node_modules; in a fresh
-    # worktree run `cd client && npm ci` once (see DEVELOPMENT.md).
+    # unlike the pre-commit hooks. Uses the client container's node_modules,
+    # so a git worktree needs no host `npm ci`.
     prettier:
       root: client/
-      run: npm run format:check
+      run: ../.lefthook/dde-run.sh client npm run format:check
 
     eslint:
       root: client/
-      run: npm run lint
+      run: ../.lefthook/dde-run.sh client npm run lint
 
     # Frontend type check (svelte-check).
     typecheck:
       root: client/
-      run: npm run typecheck
+      run: ../.lefthook/dde-run.sh client npm run typecheck
