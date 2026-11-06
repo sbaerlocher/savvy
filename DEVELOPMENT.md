@@ -79,10 +79,10 @@ Notes:
 - `go-test` points `DATABASE_URL` at an unresolvable `.invalid` host, so the
   DB-backed tests skip instead of migrating and cleaning the dev database. DB
   and E2E gates remain CI-only.
-- `golangci-lint` is not part of the api image. It is pinned as a Go tool in
-  its own module, [`tools/golangci-lint/go.mod`](tools/golangci-lint/go.mod)
-  (Renovate bumps it), and built on first use; the build cache lives in the
-  container, so the first lint after recreating the stack takes a while.
+- `golangci-lint` is not part of the api image. The hook builds the version
+  pinned in `lefthook.yml` (`GOLANGCI_LINT_VERSION`, bumped by Renovate) with
+  `go run` on first use; the build cache lives in the container, so the first
+  lint after recreating the stack takes a while.
 - `markdownlint` runs `npx markdownlint-cli` in the client container. That
   container only mounts `client/`, so
   [`.lefthook/markdownlint.sh`](.lefthook/markdownlint.sh) copies the staged

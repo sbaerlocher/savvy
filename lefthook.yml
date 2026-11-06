@@ -19,12 +19,15 @@ pre-commit:
 
     # Go: full-module lint via .golangci.yml. Glob gates whether the hook
     # runs; the lint analyses the whole module to catch cross-file regressions.
-    # The api image ships no golangci-lint; it is pinned as a Go tool in its
-    # own module (tools/golangci-lint/go.mod, tracked by Renovate) so its
-    # dependencies stay out of the app's go.mod.
+    # The api image ships no golangci-lint, so `go run` builds the pinned
+    # version in the container on first use. Not a go.mod tool dependency:
+    # several of its linters are GPL-licensed and fail dependency review.
     golangci-lint:
       glob: '*.go'
-      run: .lefthook/dde-run.sh api go tool -modfile=tools/golangci-lint/go.mod golangci-lint run
+      env:
+        # renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
+        GOLANGCI_LINT_VERSION: v2.15.0
+      run: .lefthook/dde-run.sh api go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION} run
 
     # Frontend: Prettier (config in client/.prettierrc).
     prettier:
