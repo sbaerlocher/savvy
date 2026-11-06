@@ -75,6 +75,23 @@ Node/npm come from `.nvmrc`; Docker stays the canonical dev path. DB and E2E
 gates remain CI-only (they need Postgres/Playwright). lefthook is opt-in and
 skippable with `LEFTHOOK=0 git commit` or `--no-verify`.
 
+### Root-owned files in the bind mount
+
+dde starts the containers as root, so files written into the bind mount as
+root (`dde project:exec --root`, git inside the container) end up root-owned
+on the host and break host git and lefthook with `EACCES`. Two dde hooks keep
+the working tree user-owned:
+
+- `.dde/hooks/project.up.pre/10-volume-mountpoints.sh` pre-creates the
+  anonymous-volume mountpoints (`tmp/`, `client/node_modules/`) as the host
+  user, so Docker does not create them as root.
+- `.dde/hooks/project.down.pre/10-chown-bind-mount.sh` chowns root-owned
+  files under `/app` (and, in a worktree, the main clone's `.git`) back to the
+  host user before the stack stops.
+
+The chown is best effort and needs the running `api` container. After a crash
+or a plain `docker stop`, run `dde project:up && dde project:down` once.
+
 ---
 
 ## Quick Start
