@@ -1,4 +1,3 @@
-
 # Git hooks managed by lefthook (https://lefthook.dev).
 # Fast safety net before commit/push. Every command runs inside the dde
 # containers via .lefthook/dde-run.sh (Go tooling in `api`, Node tooling in
@@ -20,11 +19,12 @@ pre-commit:
 
     # Go: full-module lint via .golangci.yml. Glob gates whether the hook
     # runs; the lint analyses the whole module to catch cross-file regressions.
-    # The api image ships no golangci-lint, so `go run` builds the pinned
-    # version once and caches it in the container.
+    # The api image ships no golangci-lint; it is pinned as a Go tool in its
+    # own module (tools/golangci-lint/go.mod, tracked by Renovate) so its
+    # dependencies stay out of the app's go.mod.
     golangci-lint:
       glob: '*.go'
-      run: .lefthook/dde-run.sh api go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0 run
+      run: .lefthook/dde-run.sh api go tool -modfile=tools/golangci-lint/go.mod golangci-lint run
 
     # Frontend: Prettier (config in client/.prettierrc).
     prettier:
@@ -50,12 +50,13 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
-    # Go unit suites. DATABASE_URL is unset so the DB-backed tests skip
-    # instead of migrating and cleaning the dev database the api container
-    # points at; CI gates them (and the full -race sweep) against its own
-    # Postgres.
+    # Go unit suites. DATABASE_URL points at an unresolvable host (.invalid,
+    # RFC 2606) so the DB-backed tests skip instead of migrating and cleaning
+    # the dev database the api container points at. Unsetting it is not
+    # enough: the test helpers then fall back to localhost:5432. CI gates the
+    # DB tests (and the full -race sweep) against its own Postgres.
     go-test:
-      run: .lefthook/dde-run.sh api env -u DATABASE_URL go test ./internal/... ./cmd/...
+      run: .lefthook/dde-run.sh api env 'DATABASE_URL=postgres://lefthook@db.invalid:5432/none?sslmode=disable' go test ./internal/... ./cmd/...
 
     # Frontend: mirror the client-ci job (ci-js.yml) locally before push —
     # format-check, lint, typecheck. Non-mutating (check, not --write/--fix),

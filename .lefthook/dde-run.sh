@@ -9,9 +9,10 @@
 #   client -> client/ is mounted at /app/client (the client container sees
 #             nothing outside client/)
 #
-# The command runs as the container's default user (uid 1000 = the dde/host
-# user), never with --root, so files it rewrites (gofmt, prettier, eslint
-# --fix) stay owned by the host user.
+# `dde project:exec` runs as the host uid, never with --root here, so files a
+# command rewrites (gofmt, prettier, eslint --fix) stay owned by the host user.
+# The api image owns its Go caches as uid 1000; for any other host uid the
+# command gets per-uid GOMODCACHE/GOCACHE under /tmp instead of EACCES.
 #
 # Outcomes:
 #   - dde not installed   -> skip with a notice, exit 0 (contributors without
@@ -71,14 +72,25 @@ esac
 workdir=$base
 [ "$rel" = . ] || workdir=$base/$rel
 
-if ! dde project:exec --service="$service" -- true </dev/null >/dev/null 2>&1; then
+if ! probe=$(dde project:exec --service="$service" -- true </dev/null 2>&1); then
 	{
-		echo "lefthook: dde service '$service' is not running for $toplevel"
+		[ -z "$probe" ] || printf '%s\n' "$probe"
+		echo "lefthook: cannot exec into dde service '$service' for $toplevel"
 		echo "lefthook: start the stack with 'dde project:up', or skip this hook once with"
 		echo "lefthook:   LEFTHOOK_EXCLUDE=<command name from lefthook.yml> git commit|push"
 	} >&2
 	exit 1
 fi
 
+# Runs in the container shell: fall back to per-uid Go caches when the image's
+# (owned by uid 1000) are not writable for the exec user.
 # shellcheck disable=SC2016 # expanded by the container shell
-exec dde project:exec --service="$service" -- sh -c 'cd "$1" && shift && exec "$@"' _ "$workdir" "$@" </dev/null
+in_container='
+cd "$1" && shift
+if command -v go >/dev/null 2>&1; then
+	[ -w "$(go env GOMODCACHE)" ] || export GOMODCACHE="/tmp/gomodcache-$(id -u)"
+	[ -w "$(go env GOCACHE)" ] || export GOCACHE="/tmp/gocache-$(id -u)"
+fi
+exec "$@"'
+
+exec dde project:exec --service="$service" -- sh -c "$in_container" _ "$workdir" "$@" </dev/null
