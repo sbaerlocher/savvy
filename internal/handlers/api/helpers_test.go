@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -287,5 +288,91 @@ func TestResolveMerchantUpdate_Success(t *testing.T) {
 	assert.NotNil(t, mid)
 	assert.Equal(t, merchantID, *mid)
 	assert.Equal(t, "IKEA", name)
+	mockMerchant.AssertExpectations(t)
+}
+
+// ==================== resolveMerchant Tests ====================
+
+// assertErrorCode checks the error code of a JSON ErrorResponse body.
+func assertErrorCode(t *testing.T, rec *httptest.ResponseRecorder, code string) {
+	t.Helper()
+	var resp ErrorResponse
+	if assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp)) {
+		assert.Equal(t, code, resp.Error)
+	}
+}
+
+func newResolveMerchantContext(t *testing.T) (*echo.Context, *httptest.ResponseRecorder) {
+	t.Helper()
+	e := echo.New()
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
+	rec := httptest.NewRecorder()
+	return e.NewContext(req, rec), rec
+}
+
+func TestResolveMerchant_InvalidUUID(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	merchantID := "not-a-uuid"
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+}
+
+func TestResolveMerchant_MerchantNotFound(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	id := uuid.New()
+	merchantID := id.String()
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("GetMerchantByID", mock.Anything, id).Return((*models.Merchant)(nil), assert.AnError)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant")
+	mockMerchant.AssertExpectations(t)
+}
+
+func TestResolveMerchant_EmptyIDWithNewName(t *testing.T) {
+	c, _ := newResolveMerchantContext(t)
+	merchantID := ""
+	newName := "Neu"
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+
+	mid, name, err := resolveMerchant(c, mockMerchant, &merchantID, &newName)
+	assert.NoError(t, err)
+	assert.NotNil(t, mid)
+	assert.Equal(t, "Neu", name)
+	mockMerchant.AssertExpectations(t)
+}
+
+func TestResolveMerchant_EmptyIDNoName(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	merchantID := ""
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_merchant")
+}
+
+func TestResolveMerchant_CreateFails(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	newName := "Neu"
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(assert.AnError)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, nil, &newName)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assertErrorCode(t, rec, "server_error")
 	mockMerchant.AssertExpectations(t)
 }

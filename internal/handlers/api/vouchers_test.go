@@ -279,6 +279,22 @@ func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
 	mockVoucherService.AssertExpectations(t)
 }
 
+func TestVouchersHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
+	handler, mockVoucherService, _, _, _, _, _, _ := setupVouchersTest()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"merchant_id":"not-a-uuid","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
+}
+
 // ==================== Update Tests ====================
 
 func TestVouchersHandler_Update_Success(t *testing.T) {
