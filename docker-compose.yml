@@ -173,7 +173,7 @@ services:
     otel-collector:
         profiles:
             - observability
-        image: 'otel/opentelemetry-collector-contrib:0.163.2@sha256:7f22d2a6748110ffb6a59bc0df448bccbf501cdb667d610ede4c61d3863d5849'
+        image: 'otel/opentelemetry-collector-contrib:0.164.0@sha256:340c9ca6a36617084c6661bdc4f0fe92b7cda5a805d61673ec8db375fddc522b'
         restart: unless-stopped
         command:
             - '--config=/etc/otel-collector-config.yaml'
@@ -267,7 +267,7 @@ services:
     grafana:
         profiles:
             - observability
-        image: 'grafana/grafana:13.0@sha256:2abd2114bb65e4d6f0614206b7c882c1e7c6a992827ba08396aa5afc23ca07f5'
+        image: 'grafana/grafana:13.0@sha256:28476aa8096cd8d0f658a05a443b605fffb450e57f444335216175d604cfd23d'
         environment:
             - GF_AUTH_ANONYMOUS_ENABLED=true
             - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
