@@ -7,7 +7,6 @@ package api
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"savvy/internal/models"
@@ -183,17 +182,17 @@ func (h *VouchersHandler) Show(c *echo.Context) error {
 // returns nil after writing its response.
 func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
 	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
-		return badVoucherRequest(c, "missing_fields", "Code, type, valid_from, and valid_until are required")
+		return writeBadRequest(c, "missing_fields", "Code, type, valid_from, and valid_until are required")
 	}
 
 	if err := validateStringLength(req.Code, "code"); err != nil {
-		return badVoucherRequest(c, "field_too_long", err.Error())
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if err := validateStringLengthPtr(req.Description, "description"); err != nil {
-		return badVoucherRequest(c, "field_too_long", err.Error())
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return badVoucherRequest(c, "field_too_long", err.Error())
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 
 	if err := validateEnum(c, req.Type, validVoucherTypes, "type"); err != nil {
@@ -202,21 +201,15 @@ func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
 
 	// Either an existing merchant or a new merchant name is required
 	if (req.MerchantID == nil || *req.MerchantID == "") && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
-		return badVoucherRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+		return writeBadRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
 	}
 
 	// Value > 0 (free vouchers are gratis and carry no value)
 	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
-		return badVoucherRequest(c, "invalid_value", "Value must be greater than 0")
+		return writeBadRequest(c, "invalid_value", "Value must be greater than 0")
 	}
 
 	return nil
-}
-
-// badVoucherRequest sends a 400 error response and returns a non-nil error.
-func badVoucherRequest(c *echo.Context, code, message string) error {
-	_ = c.JSON(http.StatusBadRequest, ErrorResponse{Error: code, Message: message})
-	return fmt.Errorf("invalid voucher request: %s", code)
 }
 
 // Create creates a new voucher

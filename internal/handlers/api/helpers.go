@@ -85,6 +85,7 @@ func resolveMerchant(
 		// Use existing merchant
 		mid, err := uuid.Parse(*merchantID)
 		if err != nil {
+			slog.ErrorContext(c.Request().Context(), "failed to parse merchant ID", "merchant_id", logsafe.String(*merchantID), "error", err)
 			_ = c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant_id",
 				Message: "Invalid merchant ID",
@@ -94,7 +95,7 @@ func resolveMerchant(
 
 		merchant, err := merchantService.GetMerchantByID(c.Request().Context(), mid)
 		if err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "error", err)
+			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
 			_ = c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant",
 				Message: "Merchant not found",
@@ -489,6 +490,13 @@ func parseUUIDParam(c *echo.Context, param string, errorCode string, errorMessag
 		return uuid.Nil, fmt.Errorf("invalid %s: %w", param, err)
 	}
 	return id, nil
+}
+
+// writeBadRequest sends a 400 JSON error response and returns a non-nil error.
+// Callers should return the error directly (response is already sent).
+func writeBadRequest(c *echo.Context, code, message string) error {
+	_ = c.JSON(http.StatusBadRequest, ErrorResponse{Error: code, Message: message})
+	return fmt.Errorf("bad request: %s", code)
 }
 
 // ==================== Enum Validation ====================
