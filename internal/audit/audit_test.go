@@ -112,7 +112,7 @@ func TestLogDeletionFromContext(t *testing.T) {
 
 	// Create Echo context
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/cards/123", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/cards/123", nil)
 	req.Header.Set("User-Agent", "TestAgent/1.0")
 	req.Header.Set("X-Forwarded-For", "203.0.113.1")
 	rec := httptest.NewRecorder()
@@ -144,7 +144,7 @@ func TestLogDeletionFromContext_NoUser(t *testing.T) {
 
 	// Create Echo context without user
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/cards/123", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/cards/123", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -202,7 +202,7 @@ func TestLogUpdateFromContext(t *testing.T) {
 	db.Create(user)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/cards/123", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/cards/123", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.Set("current_user", user)

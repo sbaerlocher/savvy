@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +20,7 @@ import (
 
 func TestParsePaginationParams_NoPagination(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -32,7 +33,7 @@ func TestParsePaginationParams_NoPagination(t *testing.T) {
 
 func TestParsePaginationParams_WithPageOnly(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=3", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=3", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -45,7 +46,7 @@ func TestParsePaginationParams_WithPageOnly(t *testing.T) {
 
 func TestParsePaginationParams_WithPerPageOnly(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?per_page=50", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?per_page=50", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -58,7 +59,7 @@ func TestParsePaginationParams_WithPerPageOnly(t *testing.T) {
 
 func TestParsePaginationParams_BothParams(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=2&per_page=10", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=2&per_page=10", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -71,7 +72,7 @@ func TestParsePaginationParams_BothParams(t *testing.T) {
 
 func TestParsePaginationParams_CapsPerPageAt100(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?per_page=999", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?per_page=999", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -83,7 +84,7 @@ func TestParsePaginationParams_CapsPerPageAt100(t *testing.T) {
 
 func TestParsePaginationParams_InvalidValues(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=abc&per_page=-1", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=abc&per_page=-1", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -96,7 +97,7 @@ func TestParsePaginationParams_InvalidValues(t *testing.T) {
 
 func TestParsePaginationParams_ZeroValues(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=0&per_page=0", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=0&per_page=0", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -122,7 +123,7 @@ func TestCapitalizeFirst(t *testing.T) {
 
 func TestParseResourceID_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
@@ -136,7 +137,7 @@ func TestParseResourceID_Valid(t *testing.T) {
 
 func TestParseResourceID_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
@@ -151,7 +152,7 @@ func TestParseResourceID_Invalid(t *testing.T) {
 
 func TestParseUUIDParam_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
@@ -165,7 +166,7 @@ func TestParseUUIDParam_Valid(t *testing.T) {
 
 func TestParseUUIDParam_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPathValues(echo.PathValues{{Name: "sharedWithID", Value: "invalid"}})
@@ -180,7 +181,7 @@ func TestParseUUIDParam_Invalid(t *testing.T) {
 
 func TestValidateEnum_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -191,14 +192,15 @@ func TestValidateEnum_Valid(t *testing.T) {
 
 func TestValidateEnum_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
 	err := validateEnum(c, "unknown", map[string]bool{"active": true, "inactive": true}, "status")
 
-	assert.Nil(t, err) // validateEnum returns the c.JSON result, not an error
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_status")
 }
 
 // ==================== stringPtrValue Tests ====================
@@ -231,7 +233,7 @@ func TestFormatTimePtr(t *testing.T) {
 
 func TestResolveMerchantUpdate_EmptyID(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -244,19 +246,20 @@ func TestResolveMerchantUpdate_EmptyID(t *testing.T) {
 
 func TestResolveMerchantUpdate_InvalidUUID(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
 	mockMerchant := new(mocks.MockMerchantServiceInterface)
 	_, _, err := resolveMerchantUpdate(c, mockMerchant, "not-a-uuid")
-	assert.Nil(t, err) // error is written to response, returns nil
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
 }
 
 func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -266,14 +269,15 @@ func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
 		Return((*models.Merchant)(nil), assert.AnError)
 
 	_, _, err := resolveMerchantUpdate(c, mockMerchant, merchantID.String())
-	assert.Nil(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant")
 	mockMerchant.AssertExpectations(t)
 }
 
 func TestResolveMerchantUpdate_Success(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -287,5 +291,91 @@ func TestResolveMerchantUpdate_Success(t *testing.T) {
 	assert.NotNil(t, mid)
 	assert.Equal(t, merchantID, *mid)
 	assert.Equal(t, "IKEA", name)
+	mockMerchant.AssertExpectations(t)
+}
+
+// ==================== resolveMerchant Tests ====================
+
+// assertErrorCode checks the error code of a JSON ErrorResponse body.
+func assertErrorCode(t *testing.T, rec *httptest.ResponseRecorder, code string) {
+	t.Helper()
+	var resp ErrorResponse
+	if assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &resp)) {
+		assert.Equal(t, code, resp.Error)
+	}
+}
+
+func newResolveMerchantContext(t *testing.T) (*echo.Context, *httptest.ResponseRecorder) {
+	t.Helper()
+	e := echo.New()
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
+	rec := httptest.NewRecorder()
+	return e.NewContext(req, rec), rec
+}
+
+func TestResolveMerchant_InvalidUUID(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	merchantID := "not-a-uuid"
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+}
+
+func TestResolveMerchant_MerchantNotFound(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	id := uuid.New()
+	merchantID := id.String()
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("GetMerchantByID", mock.Anything, id).Return((*models.Merchant)(nil), assert.AnError)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant")
+	mockMerchant.AssertExpectations(t)
+}
+
+func TestResolveMerchant_EmptyIDWithNewName(t *testing.T) {
+	c, _ := newResolveMerchantContext(t)
+	merchantID := ""
+	newName := "Neu"
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+
+	mid, name, err := resolveMerchant(c, mockMerchant, &merchantID, &newName)
+	assert.NoError(t, err)
+	assert.NotNil(t, mid)
+	assert.Equal(t, "Neu", name)
+	mockMerchant.AssertExpectations(t)
+}
+
+func TestResolveMerchant_EmptyIDNoName(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	merchantID := ""
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, &merchantID, nil)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_merchant")
+}
+
+func TestResolveMerchant_CreateFails(t *testing.T) {
+	c, rec := newResolveMerchantContext(t)
+	newName := "Neu"
+	mockMerchant := new(mocks.MockMerchantServiceInterface)
+	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(assert.AnError)
+
+	mid, _, err := resolveMerchant(c, mockMerchant, nil, &newName)
+	assert.Error(t, err)
+	assert.Nil(t, mid)
+	assert.Equal(t, http.StatusInternalServerError, rec.Code)
+	assertErrorCode(t, rec, "server_error")
 	mockMerchant.AssertExpectations(t)
 }

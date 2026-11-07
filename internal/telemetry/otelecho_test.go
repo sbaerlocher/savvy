@@ -1,6 +1,7 @@
 package telemetry_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,7 +39,7 @@ func TestOTelMiddleware_SkipperPreventsSpan(t *testing.T) {
 	}
 	mw := telemetry.OTelMiddleware("test-server", cfg)
 
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -60,7 +61,7 @@ func TestOTelMiddleware_SpanNameIncludesMethodAndRoute(t *testing.T) {
 	cfg := telemetry.OTelMiddlewareConfig{}
 	mw := telemetry.OTelMiddleware("test-server", cfg)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/123", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards/123", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/api/v1/cards/:id") // simulate matched route pattern
@@ -82,7 +83,7 @@ func TestOTelMiddleware_ResponseStatusAttribute(t *testing.T) {
 	cfg := telemetry.OTelMiddlewareConfig{}
 	mw := telemetry.OTelMiddleware("test-server", cfg)
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -114,7 +115,7 @@ func TestOTelMiddleware_ContextPropagation(t *testing.T) {
 
 	// Use a fixed, valid W3C trace ID injected via traceparent header
 	const fixedTraceID = "aaaabbbbccccdddd1111222233334444"
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("traceparent", "00-"+fixedTraceID+"-1234567890abcdef-01")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -138,7 +139,7 @@ func TestOTelMiddleware_UnknownMethodFallback(t *testing.T) {
 	cfg := telemetry.OTelMiddlewareConfig{}
 	mw := telemetry.OTelMiddleware("test-server", cfg)
 
-	req := httptest.NewRequest("CUSTOM", "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), "CUSTOM", "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -160,7 +161,7 @@ func TestOTelMiddleware_ErrorSetsSpanStatus(t *testing.T) {
 	cfg := telemetry.OTelMiddlewareConfig{}
 	mw := telemetry.OTelMiddleware("test-server", cfg)
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -173,4 +174,25 @@ func TestOTelMiddleware_ErrorSetsSpanStatus(t *testing.T) {
 	spans := recorder.Ended()
 	require.Len(t, spans, 1)
 	assert.Equal(t, codes.Error, spans[0].Status().Code, "error span status must be codes.Error")
+}
+
+func TestOTelMiddleware_ClientErrorKeepsSpanUnset(t *testing.T) {
+	recorder := setupTestTracer()
+
+	e := echo.New()
+	mw := telemetry.OTelMiddleware("test-server", telemetry.OTelMiddlewareConfig{})
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	// Handlers write a 400 and return a non-nil error to stop the chain
+	_ = mw(func(c *echo.Context) error {
+		_ = c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid_request"})
+		return errors.New("bad request: invalid_request")
+	})(c)
+
+	spans := recorder.Ended()
+	require.Len(t, spans, 1)
+	assert.Equal(t, codes.Unset, spans[0].Status().Code, "4xx must not mark the server span as error")
 }

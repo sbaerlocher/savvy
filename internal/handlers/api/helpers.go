@@ -70,32 +70,37 @@ func getFavoriteIDsForResources(
 	return favoriteIDs
 }
 
-// resolveMerchant resolves a merchant ID and name from request data
-// Either uses existing merchant_id or creates a new merchant from new_merchant_name
-// Returns merchantID, merchantName, and error (which is already an echo.HTTPError for direct return)
+// resolveMerchant resolves a merchant ID and name from request data.
+// Either uses an existing merchant_id or creates a new merchant from new_merchant_name;
+// an empty merchant_id counts as not set.
+// Returns (merchantID, merchantName, error). If error is non-nil, the error response
+// has been sent and callers should return the error directly.
 func resolveMerchant(
 	c *echo.Context,
 	merchantService services.MerchantServiceInterface,
 	merchantID *string,
 	newMerchantName *string,
 ) (*uuid.UUID, string, error) {
-	if merchantID != nil {
+	if merchantID != nil && *merchantID != "" {
 		// Use existing merchant
 		mid, err := uuid.Parse(*merchantID)
 		if err != nil {
-			return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
+			slog.ErrorContext(c.Request().Context(), "failed to parse merchant ID", "merchant_id", logsafe.String(*merchantID), "error", err)
+			_ = c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant_id",
 				Message: "Invalid merchant ID",
 			})
+			return nil, "", fmt.Errorf("resolve merchant: invalid merchant_id: %w", err)
 		}
 
 		merchant, err := merchantService.GetMerchantByID(c.Request().Context(), mid)
 		if err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "error", err)
-			return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
+			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
+			_ = c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "invalid_merchant",
 				Message: "Merchant not found",
 			})
+			return nil, "", fmt.Errorf("resolve merchant: get merchant: %w", err)
 		}
 
 		return &mid, merchant.Name, nil
@@ -104,20 +109,22 @@ func resolveMerchant(
 		merchant := &models.Merchant{Name: *newMerchantName}
 		if err := merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
 			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(*newMerchantName), "error", logsafe.Error(err))
-			return nil, "", c.JSON(http.StatusInternalServerError, ErrorResponse{
+			_ = c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "server_error",
 				Message: "Failed to create merchant",
 			})
+			return nil, "", fmt.Errorf("resolve merchant: create merchant: %w", err)
 		}
 
 		return &merchant.ID, merchant.Name, nil
 	}
 
 	// Neither merchant_id nor new_merchant_name provided
-	return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
+	_ = c.JSON(http.StatusBadRequest, ErrorResponse{
 		Error:   "missing_merchant",
 		Message: "Either merchant_id or new_merchant_name is required",
 	})
+	return nil, "", errors.New("resolve merchant: neither merchant_id nor new_merchant_name provided")
 }
 
 // resolveMerchantUpdate resolves a merchant update from a request field value.
@@ -134,18 +141,13 @@ func resolveMerchantUpdate(
 
 	mid, err := uuid.Parse(merchantIDStr)
 	if err != nil {
-		return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_merchant_id",
-			Message: "Invalid merchant ID format",
-		})
+		return nil, "", writeBadRequest(c, "invalid_merchant_id", "Invalid merchant ID format")
 	}
 
 	merchant, err := merchantService.GetMerchantByID(c.Request().Context(), mid)
 	if err != nil {
-		return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_merchant",
-			Message: "Merchant not found",
-		})
+		slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
+		return nil, "", writeBadRequest(c, "invalid_merchant", "Merchant not found")
 	}
 
 	return &mid, merchant.Name, nil
@@ -485,6 +487,13 @@ func parseUUIDParam(c *echo.Context, param string, errorCode string, errorMessag
 	return id, nil
 }
 
+// writeBadRequest sends a 400 JSON error response and returns a non-nil error.
+// Callers should return the error directly (response is already sent).
+func writeBadRequest(c *echo.Context, code, message string) error {
+	_ = c.JSON(http.StatusBadRequest, ErrorResponse{Error: code, Message: message})
+	return fmt.Errorf("bad request: %s", code)
+}
+
 // ==================== Enum Validation ====================
 
 // Package-level aliases for the shared validation maps (for convenience within handlers).
@@ -500,10 +509,7 @@ var (
 // Returns a 400 error response if invalid, nil if valid.
 func validateEnum(c *echo.Context, value string, allowed map[string]bool, fieldName string) error {
 	if err := validation.ValidateEnum(value, allowed, fieldName); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_" + fieldName,
-			Message: fmt.Sprintf("Invalid %s value: %q", fieldName, value),
-		})
+		return writeBadRequest(c, "invalid_"+fieldName, fmt.Sprintf("Invalid %s value: %q", fieldName, value))
 	}
 	return nil
 }

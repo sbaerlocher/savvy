@@ -31,7 +31,7 @@ func TestRegisterOpenAPIDocsServesSpec(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, tt.path, nil))
+			e.ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.path, nil))
 
 			if rec.Code != tt.want {
 				t.Errorf("GET %s = %d, want %d", tt.path, rec.Code, tt.want)
@@ -48,7 +48,7 @@ func TestGeneratedSpecIsRegistered(t *testing.T) {
 	registerOpenAPIDocs(e)
 
 	rec := httptest.NewRecorder()
-	e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/docs/doc.json", nil))
+	e.ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/docs/doc.json", nil))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("GET /api/v1/docs/doc.json = %d, want %d", rec.Code, http.StatusOK)

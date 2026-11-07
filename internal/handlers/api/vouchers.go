@@ -176,6 +176,41 @@ func (h *VouchersHandler) Show(c *echo.Context) error {
 	})
 }
 
+// validateVoucherCreate checks required fields, lengths, type, merchant and value of a
+// create request. A non-nil error means the error response has been sent; callers
+// should return it directly.
+func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
+	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
+		return writeBadRequest(c, "missing_fields", "Code, type, valid_from, and valid_until are required")
+	}
+
+	if err := validateStringLength(req.Code, "code"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.Description, "description"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+
+	if err := validateEnum(c, req.Type, validVoucherTypes, "type"); err != nil {
+		return err
+	}
+
+	// Either an existing merchant or a new merchant name is required
+	if (req.MerchantID == nil || *req.MerchantID == "") && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
+		return writeBadRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+	}
+
+	// Value > 0 (free vouchers are gratis and carry no value)
+	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
+		return writeBadRequest(c, "invalid_value", "Value must be greater than 0")
+	}
+
+	return nil
+}
+
 // Create creates a new voucher
 // POST /api/v1/vouchers
 func (h *VouchersHandler) Create(c *echo.Context) error {
@@ -183,73 +218,22 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 
 	var req VoucherCreateRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_request",
-			Message: "Invalid request body",
-		})
+		return writeBadRequest(c, "invalid_request", "Invalid request body")
 	}
 
-	// Validate required fields
-	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_fields",
-			Message: "Code, type, valid_from, and valid_until are required",
-		})
-	}
-
-	// Validate string lengths
-	if err := validateStringLength(req.Code, "code"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.Description, "description"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-
-	// Validate enum fields
-	if err := validateEnum(c, req.Type, validVoucherTypes, "type"); err != nil {
+	if err := validateVoucherCreate(c, &req); err != nil {
 		return err
-	}
-
-	// Validate merchant (either MerchantID or MerchantName required)
-	if req.MerchantID == nil && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_merchant",
-			Message: "Merchant is required: select an existing merchant or enter a new merchant name",
-		})
-	}
-
-	// Validate value > 0 (free vouchers are gratis and carry no value)
-	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_value",
-			Message: "Value must be greater than 0",
-		})
 	}
 
 	// Parse dates
 	validFrom, err := time.Parse(time.RFC3339, req.ValidFrom)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_date",
-			Message: "Invalid valid_from date format (use ISO 8601/RFC3339)",
-		})
+		return writeBadRequest(c, "invalid_date", "Invalid valid_from date format (use ISO 8601/RFC3339)")
 	}
 
 	validUntil, err := time.Parse(time.RFC3339, req.ValidUntil)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_date",
-			Message: "Invalid valid_until date format (use ISO 8601/RFC3339)",
-		})
-	}
-
-	// Handle merchant
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
+		return writeBadRequest(c, "invalid_date", "Invalid valid_until date format (use ISO 8601/RFC3339)")
 	}
 
 	// Validate optional enum fields
@@ -259,6 +243,12 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 	usageLimitType := stringOrDefault(req.UsageLimitType, "single_use")
 	if err := validateEnum(c, usageLimitType, validUsageLimitTypes, "usage_limit_type"); err != nil {
+		return err
+	}
+
+	// Handle merchant last: it may create a merchant
+	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+	if err != nil {
 		return err
 	}
 

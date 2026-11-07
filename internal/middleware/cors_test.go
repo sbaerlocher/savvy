@@ -39,7 +39,7 @@ func TestCORSMiddleware_AllowedOrigin(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	rec := httptest.NewRecorder()
 
@@ -64,7 +64,7 @@ func TestCORSMiddleware_DisallowedOrigin(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://evil.com")
 	rec := httptest.NewRecorder()
 
@@ -90,7 +90,7 @@ func TestCORSMiddleware_WildcardOrigin(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://any-domain.com")
 	rec := httptest.NewRecorder()
 
@@ -114,7 +114,7 @@ func TestCORSMiddleware_PreflightRequest(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	rec := httptest.NewRecorder()
 
@@ -145,7 +145,7 @@ func TestCORSMiddleware_PreflightDisallowedOrigin(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodOptions, "/test", nil)
 	req.Header.Set("Origin", "http://evil.com")
 	rec := httptest.NewRecorder()
 
@@ -165,7 +165,7 @@ func TestCORSMiddleware_NoOriginHeader(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	// No Origin header
 	rec := httptest.NewRecorder()
 
@@ -189,7 +189,7 @@ func TestCORSMiddleware_CredentialsDisabled(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	rec := httptest.NewRecorder()
 
@@ -255,7 +255,7 @@ func TestCORSMiddleware_WildcardWithCredentials(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("Origin", "http://any-domain.com")
 	rec := httptest.NewRecorder()
 
@@ -284,7 +284,7 @@ func TestCORSMiddleware_MultipleOrigins(t *testing.T) {
 	// Test each allowed origin
 	allowedOrigins := []string{"http://localhost:5173", "http://localhost:3000", "https://example.com"}
 	for _, origin := range allowedOrigins {
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("Origin", origin)
 		rec := httptest.NewRecorder()
 

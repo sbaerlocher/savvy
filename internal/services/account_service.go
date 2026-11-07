@@ -176,7 +176,7 @@ func (s *AccountService) DeleteAccount(ctx context.Context, userID uuid.UUID) er
 	// Send confirmation email (async, non-blocking)
 	if s.emailService != nil {
 		go func() {
-			if sendErr := s.emailService.SendAccountDeletionConfirmation(context.Background(), userEmail, userName, userLanguage); sendErr != nil {
+			if sendErr := s.emailService.SendAccountDeletionConfirmation(context.WithoutCancel(ctx), userEmail, userName, userLanguage); sendErr != nil {
 				slog.Error("Failed to send account deletion confirmation", "email", userEmail, "error", sendErr)
 			}
 		}()

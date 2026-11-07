@@ -269,7 +269,7 @@ func destHasKey(db *gorm.DB) bool {
 		return false
 	}
 	v := reflect.ValueOf(db.Statement.Dest)
-	for v.Kind() == reflect.Ptr {
+	for v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return false
 		}

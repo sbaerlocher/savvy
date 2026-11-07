@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -46,7 +47,7 @@ func setupCardsTest() (*CardsHandler, *mocks.MockCardServiceInterface, *mocks.Mo
 
 func createTestContext(method, path string, body string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	req := httptest.NewRequestWithContext(context.Background(), method, path, strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -283,7 +284,7 @@ func TestCardsHandler_Create_WithNewMerchant(t *testing.T) {
 }
 
 func TestCardsHandler_Create_MissingMerchant(t *testing.T) {
-	handler, _, _, _, _, _, _, _, _ := setupCardsTest()
+	handler, mockCardService, _, _, _, _, _, _, _ := setupCardsTest()
 	body := `{"card_number":"1234567890"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
 	user := createTestUser()
@@ -291,12 +292,36 @@ func TestCardsHandler_Create_MissingMerchant(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_merchant")
+	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
+}
+
+func TestCardsHandler_Create_EmptyMerchantIDWithNewName(t *testing.T) {
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	body := `{"merchant_id":"","new_merchant_name":"New Merchant","card_number":"1234567890"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
+	mockCardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(nil)
+	mockCardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	mockMerchantService.AssertExpectations(t)
+	mockCardService.AssertExpectations(t)
 }
 
 func TestCardsHandler_Create_InvalidMerchantID(t *testing.T) {
-	handler, _, _, _, _, _, _, _, _ := setupCardsTest()
+	handler, mockCardService, _, _, _, _, _, _, _ := setupCardsTest()
 	body := `{"merchant_id":"invalid-uuid","card_number":"1234567890"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
 	user := createTestUser()
@@ -304,12 +329,14 @@ func TestCardsHandler_Create_InvalidMerchantID(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 }
 
 func TestCardsHandler_Create_MerchantNotFound(t *testing.T) {
-	handler, _, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
 	merchantID := uuid.New()
 	body := `{"merchant_id":"` + merchantID.String() + `","card_number":"1234567890"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
@@ -320,9 +347,26 @@ func TestCardsHandler_Create_MerchantNotFound(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant")
 	mockMerchantService.AssertExpectations(t)
+	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
+}
+
+func TestCardsHandler_Create_InvalidStatus_DoesNotCreateMerchant(t *testing.T) {
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	body := `{"new_merchant_name":"New Merchant","card_number":"1234567890","status":"bogus"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_status")
+	mockMerchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 }
 
 // ==================== Update Tests ====================
@@ -358,6 +402,27 @@ func TestCardsHandler_Update_Success(t *testing.T) {
 	mockCardService.AssertExpectations(t)
 	mockFavoriteService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Update_InvalidMerchantID_DoesNotUpdate(t *testing.T) {
+	handler, mockCardService, mockAuthzService, _, _, _, _, _, _ := setupCardsTest()
+	card := createTestCard()
+	body := `{"merchant_id":"not-a-uuid"}`
+	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: card.ID.String()}})
+
+	perms := &services.ResourcePermissions{CanView: true, CanEdit: true, IsOwner: true}
+	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, card.ID).Return(perms, nil)
+	mockCardService.On("GetCard", mock.Anything, card.ID).Return(card, nil)
+
+	err := handler.Update(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockCardService.AssertNotCalled(t, "UpdateCard", mock.Anything, mock.Anything)
 }
 
 func TestCardsHandler_Update_InvalidID(t *testing.T) {

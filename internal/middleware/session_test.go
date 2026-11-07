@@ -17,7 +17,7 @@ func TestInitSessionStore_Development(t *testing.T) {
 
 	// Verify we can create and retrieve sessions
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -34,7 +34,7 @@ func TestInitSessionStore_Production(t *testing.T) {
 
 	// Verify store produces sessions with correct options
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -47,7 +47,7 @@ func TestGetSession_NewSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -62,7 +62,7 @@ func TestGetSession_ExistingSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -85,7 +85,7 @@ func TestGetSession_ExistingSession(t *testing.T) {
 	assert.NotNil(t, sessionCookie)
 
 	// Create new request with session cookie
-	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req2.AddCookie(sessionCookie)
 	rec2 := httptest.NewRecorder()
 	c2 := e.NewContext(req2, rec2)
@@ -101,7 +101,7 @@ func TestGetSession_SessionValues(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -126,7 +126,7 @@ func TestRegenerateSession_CreatesNewSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -148,7 +148,7 @@ func TestRegenerateSession_CreatesNewSession(t *testing.T) {
 	}
 
 	// Create new request with old cookie
-	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req2.AddCookie(oldSessionCookie)
 	rec2 := httptest.NewRecorder()
 	c2 := e.NewContext(req2, rec2)
@@ -173,7 +173,7 @@ func TestRegenerateSession_PreservesOptions(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -190,7 +190,7 @@ func TestRegenerateSession_DeletesOldSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -213,7 +213,7 @@ func TestRegenerateSession_SessionFixationPrevention(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/login", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/login", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -235,7 +235,7 @@ func TestRegenerateSession_SessionFixationPrevention(t *testing.T) {
 	}
 
 	// Victim logs in with attacker's session cookie
-	req2 := httptest.NewRequest(http.MethodPost, "/login", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/login", nil)
 	req2.AddCookie(attackerCookie)
 	rec2 := httptest.NewRecorder()
 	c2 := e.NewContext(req2, rec2)
@@ -256,7 +256,7 @@ func TestSessionCookie_HttpOnly(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -283,7 +283,7 @@ func TestSessionCookie_SameSite(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -310,7 +310,7 @@ func TestSessionStore_MultipleValues(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -357,7 +357,7 @@ func TestSessionStore_MaxAge(t *testing.T) {
 	Store = cookieStore
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -384,7 +384,7 @@ func TestRegenerateSession_NoExistingSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -399,7 +399,7 @@ func TestGetSession_SessionName(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -412,7 +412,7 @@ func TestRegenerateSession_SavesNewSession(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -435,7 +435,7 @@ func TestRegenerateSession_ErrorHandling(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -458,7 +458,7 @@ func TestRegenerateSession_WithCookie(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	// Create initial session with cookie
@@ -481,7 +481,7 @@ func TestRegenerateSession_WithCookie(t *testing.T) {
 	assert.NotNil(t, sessionCookie)
 
 	// Make new request with old session cookie
-	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req2.AddCookie(sessionCookie)
 	rec2 := httptest.NewRecorder()
 	c2 := e.NewContext(req2, rec2)
@@ -497,7 +497,7 @@ func TestSaveSession_SecureFlag_HTTPS_XForwardedProto(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -528,7 +528,7 @@ func TestSaveSession_SecureFlag_HTTP(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	// No X-Forwarded-Proto, no TLS → plain HTTP
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

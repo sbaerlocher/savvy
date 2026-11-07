@@ -202,6 +202,20 @@ func TestGiftCardsHandler_Create_Success(t *testing.T) {
 	mockGiftCardService.AssertExpectations(t)
 }
 
+func TestGiftCardsHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
+	handler, mockGiftCardService, _, _, _, _, _, _ := setupGiftCardsTest()
+	body := `{"merchant_id":"not-a-uuid","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockGiftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
+}
+
 func TestGiftCardsHandler_Create_MissingFields(t *testing.T) {
 	handler, _, _, _, _, _, _, _ := setupGiftCardsTest()
 	body := `{"card_number":"1234567890"}`
@@ -223,15 +237,28 @@ func TestGiftCardsHandler_Create_InvalidExpiresAt(t *testing.T) {
 	user := createTestUser()
 	c.Set("current_user", user)
 
-	// Mock merchant lookup (happens before date validation)
-	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
-	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
-
 	err := handler.Create(c)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	mockMerchantService.AssertExpectations(t)
+	assertErrorCode(t, rec, "invalid_date")
+	// Dates are validated before the merchant is resolved
+	mockMerchantService.AssertNotCalled(t, "GetMerchantByID", mock.Anything, mock.Anything)
+}
+
+func TestGiftCardsHandler_Create_InvalidBarcodeType_DoesNotCreateMerchant(t *testing.T) {
+	handler, mockGiftCardService, _, mockMerchantService, _, _, _, _ := setupGiftCardsTest()
+	body := `{"new_merchant_name":"New Merchant","card_number":"1234567890","initial_balance":100,"currency":"EUR","barcode_type":"BOGUS"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_barcode_type")
+	mockMerchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+	mockGiftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
 }
 
 // ==================== Update Tests ====================

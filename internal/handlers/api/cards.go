@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
-	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"strings"
@@ -256,51 +255,6 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
 	}
 
-	// Handle merchant (existing or new)
-	var merchantID *uuid.UUID
-	var merchantName string
-
-	if req.MerchantID != nil && *req.MerchantID != "" {
-		// Use existing merchant
-		mid, err := uuid.Parse(*req.MerchantID)
-		if err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to parse merchant ID", "error", err)
-			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   "invalid_merchant_id",
-				Message: "Invalid merchant ID",
-			})
-		}
-		merchantID = &mid
-
-		// Get merchant name
-		merchant, err := h.merchantService.GetMerchantByID(c.Request().Context(), mid)
-		if err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
-			return c.JSON(http.StatusBadRequest, ErrorResponse{
-				Error:   "invalid_merchant",
-				Message: "Merchant not found",
-			})
-		}
-		merchantName = merchant.Name
-	} else if req.NewMerchantName != nil && *req.NewMerchantName != "" {
-		// Create new merchant
-		merchant := &models.Merchant{Name: *req.NewMerchantName}
-		if err := h.merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(*req.NewMerchantName), "error", logsafe.Error(err))
-			return c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Error:   "server_error",
-				Message: "Failed to create merchant",
-			})
-		}
-		merchantID = &merchant.ID
-		merchantName = merchant.Name
-	} else {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_merchant",
-			Message: "Either merchant_id or new_merchant_name is required",
-		})
-	}
-
 	// Validate enum fields
 	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
 	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
@@ -308,6 +262,12 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	}
 	status := stringOrDefault(req.Status, "active")
 	if err := validateEnum(c, status, validStatuses, "status"); err != nil {
+		return err
+	}
+
+	// Handle merchant (existing or new) last: it may create a merchant
+	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+	if err != nil {
 		return err
 	}
 

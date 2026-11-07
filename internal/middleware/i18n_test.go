@@ -84,7 +84,7 @@ func TestSetLanguage_ValidLanguage(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/set-language?lang=en", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=en", nil)
 	req.Header.Set("Referer", "/cards")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -114,7 +114,7 @@ func TestSetLanguage_InvalidLanguage(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/set-language?lang=invalid", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=invalid", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -139,7 +139,7 @@ func TestSetLanguage_NoReferer(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/set-language?lang=fr", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=fr", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -155,7 +155,7 @@ func TestSetLanguage_RefererWithQueryParams(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/set-language?lang=en", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=en", nil)
 	req.Header.Set("Referer", "/cards?page=2&sort=name")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -186,7 +186,7 @@ func TestSetLanguage_OpenRedirectPrevention(t *testing.T) {
 			setupTestAuth()
 
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, "/set-language?lang=en", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=en", nil)
 			req.Header.Set("Referer", tt.referer)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
@@ -209,7 +209,7 @@ func TestSetLanguage_AllSupportedLanguages(t *testing.T) {
 			setupTestAuth()
 
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, "/set-language?lang="+lang, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang="+lang, nil)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
@@ -257,7 +257,7 @@ func TestSetLanguage_CookieProperties(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/set-language?lang=en", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/set-language?lang=en", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 

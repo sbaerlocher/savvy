@@ -43,7 +43,7 @@ func StartMetricsServer(ctx context.Context, port string) *http.Server {
 	// Handle graceful shutdown
 	go func() {
 		<-ctx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			slog.Error("Error shutting down metrics server", "error", err)

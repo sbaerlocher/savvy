@@ -89,9 +89,11 @@ func configureMiddleware(e *echo.Echo, sc *ServerConfig) {
 				attrs = append(attrs, "error", v.Error)
 			}
 
-			// Log 5xx responses at ERROR level regardless of whether v.Error is set
-			// (handlers that write responses directly via c.String/c.JSON return nil)
-			if v.Status >= 500 || v.Error != nil {
+			// Classify by status: 5xx is a server error whether or not v.Error is set
+			// (handlers that write responses directly via c.String/c.JSON return nil);
+			// 4xx handlers may return an error after writing the response, which is a
+			// client error and logged at INFO with the error attribute.
+			if v.Status >= 500 {
 				slog.Error("request", attrs...)
 			} else {
 				slog.Info("request", attrs...)

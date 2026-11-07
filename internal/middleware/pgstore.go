@@ -44,7 +44,7 @@ const (
 	// subsequent Save calls on the same request can refresh the cookie with the
 	// correct value. Without this, the sliding-session refresh reads the stale
 	// cookie from the original request, which breaks after RegenerateSession.
-	sessionRawTokenKey = "__pgstore_raw_token"
+	sessionRawTokenKey = "__pgstore_raw_token" //nolint:gosec // session context key name, not a credential
 
 	// lastActiveThrottle is the minimum interval between LastActiveAt updates.
 	lastActiveThrottle = 60 * time.Second

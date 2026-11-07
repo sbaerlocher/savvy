@@ -15,7 +15,7 @@ func TestRequireImpersonationOrAdmin_AdminUser(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -43,7 +43,7 @@ func TestRequireImpersonationOrAdmin_RegularUserNotImpersonating(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -74,7 +74,7 @@ func TestRequireImpersonationOrAdmin_RegularUserImpersonating(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -110,7 +110,7 @@ func TestRequireImpersonationOrAdmin_NoUser(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -133,7 +133,7 @@ func TestRequireImpersonationOrAdmin_InvalidUserType(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -165,7 +165,7 @@ func TestRequireImpersonationOrAdmin_SessionError(t *testing.T) {
 	}()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -257,7 +257,7 @@ func TestRequireImpersonationOrAdmin_MultipleScenarios(t *testing.T) {
 			setupTestAuth()
 
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
@@ -293,7 +293,7 @@ func TestRequireImpersonationOrAdmin_NilOriginalUserID(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin/merchants", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin/merchants", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
