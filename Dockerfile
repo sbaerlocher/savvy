@@ -11,7 +11,7 @@
 # ==============================================================================
 # BASE STAGE - Shared dependencies for dev targets
 # ==============================================================================
-FROM golang:1.27-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS base-dev
+FROM golang:1.27-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS base-dev
 
 # Install build tools and utilities
 RUN apk add --no-cache \
@@ -60,7 +60,7 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 # FRONTEND-DEV STAGE (Vite Dev Server with HMR)
 # ==============================================================================
-FROM node:26.13.0-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS frontend-dev
+FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS frontend-dev
 
 # Install wget for healthcheck and su-exec to drop the dev server to the dde
 # user (dde's overlay forces the container to start as root; see CMD below)
@@ -96,7 +96,7 @@ CMD ["sh", "-c", "exec su-exec \"$DDE_UID:$DDE_GID\" npm run dev -- --host 0.0.0
 # ==============================================================================
 # FRONTEND BUILDER STAGE (Build SvelteKit)
 # ==============================================================================
-FROM node:26.13.0-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS frontend-builder
+FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS frontend-builder
 
 WORKDIR /app/client
 
@@ -120,7 +120,7 @@ RUN ls -la build/ && echo "✅ Frontend build complete"
 # ==============================================================================
 # GO BUILDER STAGE (Build Go Binaries)
 # ==============================================================================
-FROM golang:1.27-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS go-builder
+FROM golang:1.27-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS go-builder
 
 ARG VERSION=dev
 
