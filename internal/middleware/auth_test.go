@@ -58,7 +58,7 @@ func TestSetCurrentUserWithService_ValidSession(t *testing.T) {
 
 	// Create Echo instance
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -97,7 +97,7 @@ func TestSetCurrentUserWithService_NoSession(t *testing.T) {
 	mockUserService := new(MockUserService)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -122,7 +122,7 @@ func TestSetCurrentUserWithService_InvalidUserID(t *testing.T) {
 	mockUserService := new(MockUserService)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -156,7 +156,7 @@ func TestSetCurrentUserWithService_UserNotFound(t *testing.T) {
 	mockUserService.On("GetUserByID", mock.Anything, testUserID).Return(nil, assert.AnError)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -198,7 +198,7 @@ func TestSetCurrentUserWithService_Impersonation(t *testing.T) {
 	mockUserService.On("GetUserByID", mock.Anything, testUserID).Return(testUser, nil)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -226,7 +226,7 @@ func TestSetCurrentUserWithService_Impersonation(t *testing.T) {
 
 func TestRequireAuth_Authenticated(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/protected", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -253,7 +253,7 @@ func TestRequireAuth_NotAuthenticatedHTMLRoute(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/protected", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -271,7 +271,7 @@ func TestRequireAuth_NotAuthenticatedHTMLRoute(t *testing.T) {
 
 func TestRequireAuth_NotAuthenticatedAPIRoute(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/protected", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/protected", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -292,7 +292,7 @@ func TestRequireAdmin_AdminUser(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -319,7 +319,7 @@ func TestRequireAdmin_RegularUser(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -349,7 +349,7 @@ func TestRequireAdmin_NotAuthenticated(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -369,7 +369,7 @@ func TestRequireAdmin_InvalidUserType(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/admin", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -392,7 +392,7 @@ func TestRequireAuth_SessionSaveError(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/protected", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -444,7 +444,7 @@ func TestRequireAuth_APIRouteVariations(t *testing.T) {
 			setupTestAuth()
 
 			e := echo.New()
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.path, nil)
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 

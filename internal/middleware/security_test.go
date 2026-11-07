@@ -92,7 +92,7 @@ func TestSecurityHeaders(t *testing.T) {
 			})
 
 			// Make request
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
 
@@ -263,7 +263,7 @@ func TestSecurityHeadersIntegration(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
@@ -295,7 +295,7 @@ func TestSecurityHeadersWithMultipleRequests(t *testing.T) {
 
 	// Make multiple requests
 	for range 3 {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 

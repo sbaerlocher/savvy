@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +22,7 @@ func (errorReader) Read(_ []byte) (int, error) {
 
 func createOTelTestContext(path, body string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, path, strings.NewReader(body))
 	req.Header.Set(echo.HeaderContentType, "application/x-protobuf")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -241,7 +242,7 @@ func TestOTelProxy_ContentTypeForwarding(t *testing.T) {
 	handler := NewOTelProxyHandler(cfg)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/otel/traces", strings.NewReader(`{}`))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v1/otel/traces", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -260,7 +261,7 @@ func TestOTelProxy_RequestBodyReadError(t *testing.T) {
 	handler := NewOTelProxyHandler(cfg)
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/otel/traces", errorReader{})
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/v1/otel/traces", errorReader{})
 	req.Header.Set("Content-Type", "application/x-protobuf")
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

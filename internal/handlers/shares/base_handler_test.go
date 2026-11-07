@@ -128,7 +128,7 @@ func newTestUser() *models.User {
 
 func newEchoContext(method, path string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(method, path, strings.NewReader(""))
+	req := httptest.NewRequestWithContext(context.Background(), method, path, strings.NewReader(""))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -137,7 +137,7 @@ func newEchoContext(method, path string) (*echo.Context, *httptest.ResponseRecor
 
 func newFormContext(method string, formData string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(method, "/shares", strings.NewReader(formData))
+	req := httptest.NewRequestWithContext(context.Background(), method, "/shares", strings.NewReader(formData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -146,7 +146,7 @@ func newFormContext(method string, formData string) (*echo.Context, *httptest.Re
 
 func newHTMXContext(method, path string, formData string) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
-	req := httptest.NewRequest(method, path, strings.NewReader(formData))
+	req := httptest.NewRequestWithContext(context.Background(), method, path, strings.NewReader(formData))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()

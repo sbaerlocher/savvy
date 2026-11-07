@@ -21,7 +21,7 @@ func TestRequireCardsEnabled_Enabled(t *testing.T) {
 		return c.String(http.StatusOK, "Cards page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/cards", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -41,7 +41,7 @@ func TestRequireCardsEnabled_Disabled(t *testing.T) {
 		return c.String(http.StatusOK, "Cards page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/cards", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -61,7 +61,7 @@ func TestRequireVouchersEnabled_Enabled(t *testing.T) {
 		return c.String(http.StatusOK, "Vouchers page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/vouchers", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/vouchers", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -81,7 +81,7 @@ func TestRequireVouchersEnabled_Disabled(t *testing.T) {
 		return c.String(http.StatusOK, "Vouchers page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/vouchers", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/vouchers", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -101,7 +101,7 @@ func TestRequireGiftCardsEnabled_Enabled(t *testing.T) {
 		return c.String(http.StatusOK, "Gift cards page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/gift-cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/gift-cards", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -121,7 +121,7 @@ func TestRequireGiftCardsEnabled_Disabled(t *testing.T) {
 		return c.String(http.StatusOK, "Gift cards page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/gift-cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/gift-cards", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -141,7 +141,7 @@ func TestRequireLocalLoginEnabled_Enabled(t *testing.T) {
 		return c.String(http.StatusOK, "Login page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/login", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/login", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -161,7 +161,7 @@ func TestRequireLocalLoginEnabled_Disabled(t *testing.T) {
 		return c.String(http.StatusOK, "Login page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/login", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/login", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -181,7 +181,7 @@ func TestRequireRegistrationEnabled_Enabled(t *testing.T) {
 		return c.String(http.StatusOK, "Registration page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/register", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/register", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -201,7 +201,7 @@ func TestRequireRegistrationEnabled_Disabled(t *testing.T) {
 		return c.String(http.StatusOK, "Registration page")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/register", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/register", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -238,19 +238,19 @@ func TestMultipleFeatureToggles(t *testing.T) {
 	})
 
 	// Test cards (should work)
-	req1 := httptest.NewRequest(http.MethodGet, "/cards", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/cards", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Test vouchers (should fail)
-	req2 := httptest.NewRequest(http.MethodGet, "/vouchers", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/vouchers", nil)
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 	assert.Equal(t, http.StatusForbidden, rec2.Code)
 
 	// Test gift cards (should work)
-	req3 := httptest.NewRequest(http.MethodGet, "/gift-cards", nil)
+	req3 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/gift-cards", nil)
 	rec3 := httptest.NewRecorder()
 	e.ServeHTTP(rec3, req3)
 	assert.Equal(t, http.StatusOK, rec3.Code)
@@ -283,7 +283,7 @@ func TestFeatureToggle_AllDisabled(t *testing.T) {
 			return c.String(http.StatusOK, "OK")
 		}, route.middleware)
 
-		req := httptest.NewRequest(http.MethodGet, route.path, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, route.path, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -318,7 +318,7 @@ func TestFeatureToggle_AllEnabled(t *testing.T) {
 			return c.String(http.StatusOK, "OK")
 		}, route.middleware)
 
-		req := httptest.NewRequest(http.MethodGet, route.path, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, route.path, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 

@@ -18,7 +18,7 @@ func TestRegisterOpenAPIDocsIsNoOpInProduction(t *testing.T) {
 	registerOpenAPIDocs(e)
 
 	rec := httptest.NewRecorder()
-	e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/docs/index.html", nil))
+	e.ServeHTTP(rec, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/docs/index.html", nil))
 
 	if rec.Code != http.StatusNotFound {
 		t.Errorf("GET /api/v1/docs/index.html = %d, want %d", rec.Code, http.StatusNotFound)

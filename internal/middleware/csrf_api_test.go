@@ -48,7 +48,7 @@ func TestCSRFApiMiddleware_GET_SetsToken(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -85,7 +85,7 @@ func TestCSRFApiMiddleware_POST_ValidToken(t *testing.T) {
 	})
 
 	// First GET request to establish session and get CSRF token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -95,7 +95,7 @@ func TestCSRFApiMiddleware_POST_ValidToken(t *testing.T) {
 	require.NotEmpty(t, sessionCookie)
 
 	// POST request with session cookie and CSRF header
-	req2 := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	req2.Header.Set("Cookie", sessionCookie+"; "+CSRFCookieName+"="+csrfToken)
 	req2.Header.Set(CSRFHeaderName, csrfToken)
 	rec2 := httptest.NewRecorder()
@@ -114,7 +114,7 @@ func TestCSRFApiMiddleware_POST_MissingToken(t *testing.T) {
 		return c.String(http.StatusOK, "Created")
 	})
 
-	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -137,7 +137,7 @@ func TestCSRFApiMiddleware_POST_InvalidToken(t *testing.T) {
 	})
 
 	// GET to establish session
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -145,7 +145,7 @@ func TestCSRFApiMiddleware_POST_InvalidToken(t *testing.T) {
 	require.NotEmpty(t, sessionCookie)
 
 	// POST with wrong CSRF token (session has a different one)
-	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	req.Header.Set("Cookie", sessionCookie)
 	req.Header.Set(CSRFHeaderName, "invalid-token")
 	rec := httptest.NewRecorder()
@@ -169,7 +169,7 @@ func TestCSRFApiMiddleware_PUT_ValidToken(t *testing.T) {
 	})
 
 	// GET to get token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -177,7 +177,7 @@ func TestCSRFApiMiddleware_PUT_ValidToken(t *testing.T) {
 	sessionCookie := extractSessionCookie(rec1)
 
 	// PUT request with token
-	req2 := httptest.NewRequest(http.MethodPut, "/test", strings.NewReader("data"))
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/test", strings.NewReader("data"))
 	req2.Header.Set("Cookie", sessionCookie+"; "+CSRFCookieName+"="+csrfToken)
 	req2.Header.Set(CSRFHeaderName, csrfToken)
 	rec2 := httptest.NewRecorder()
@@ -200,7 +200,7 @@ func TestCSRFApiMiddleware_PATCH_ValidToken(t *testing.T) {
 	})
 
 	// GET to get token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -208,7 +208,7 @@ func TestCSRFApiMiddleware_PATCH_ValidToken(t *testing.T) {
 	sessionCookie := extractSessionCookie(rec1)
 
 	// PATCH request with token
-	req2 := httptest.NewRequest(http.MethodPatch, "/test", strings.NewReader("data"))
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/test", strings.NewReader("data"))
 	req2.Header.Set("Cookie", sessionCookie+"; "+CSRFCookieName+"="+csrfToken)
 	req2.Header.Set(CSRFHeaderName, csrfToken)
 	rec2 := httptest.NewRecorder()
@@ -231,7 +231,7 @@ func TestCSRFApiMiddleware_DELETE_ValidToken(t *testing.T) {
 	})
 
 	// GET to get token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -239,7 +239,7 @@ func TestCSRFApiMiddleware_DELETE_ValidToken(t *testing.T) {
 	sessionCookie := extractSessionCookie(rec1)
 
 	// DELETE request with token
-	req2 := httptest.NewRequest(http.MethodDelete, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/test", nil)
 	req2.Header.Set("Cookie", sessionCookie+"; "+CSRFCookieName+"="+csrfToken)
 	req2.Header.Set(CSRFHeaderName, csrfToken)
 	rec2 := httptest.NewRecorder()
@@ -258,7 +258,7 @@ func TestCSRFApiMiddleware_DELETE_MissingToken(t *testing.T) {
 		return c.NoContent(http.StatusNoContent)
 	})
 
-	req := httptest.NewRequest(http.MethodDelete, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -276,7 +276,7 @@ func TestCSRFApiMiddleware_SecureCookie_HTTPS(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("X-Forwarded-Proto", "https")
 	rec := httptest.NewRecorder()
 
@@ -303,7 +303,7 @@ func TestCSRFApiMiddleware_InsecureCookie_HTTP(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -330,7 +330,7 @@ func TestCSRFApiMiddleware_ReuseExistingToken(t *testing.T) {
 	})
 
 	// First request — establishes session with CSRF token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -340,7 +340,7 @@ func TestCSRFApiMiddleware_ReuseExistingToken(t *testing.T) {
 	require.NotEmpty(t, sessionCookie)
 
 	// Second request with same session — token should be reused
-	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req2.Header.Set("Cookie", sessionCookie)
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
@@ -365,7 +365,7 @@ func TestCSRFApiMiddleware_CookieAloneNotSufficient(t *testing.T) {
 
 	// Attacker injects a cookie with their own token (subdomain injection)
 	// but doesn't have the session, so the session token will be different
-	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	req.Header.Set("Cookie", CSRFCookieName+"=attacker-injected-token")
 	req.Header.Set(CSRFHeaderName, "attacker-injected-token")
 	rec := httptest.NewRecorder()
@@ -396,7 +396,7 @@ func TestGetOrGenerateSessionCSRFToken_CreatesNewToken(t *testing.T) {
 	initTestSessionStore()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -425,7 +425,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	})
 
 	// 1. GET to establish session + CSRF token
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 
@@ -435,7 +435,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	require.NotEmpty(t, oldSessionCookie)
 
 	// 2. Verify old token works for POST
-	reqPost := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	reqPost := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	reqPost.Header.Set("Cookie", oldSessionCookie+"; "+CSRFCookieName+"="+oldToken)
 	reqPost.Header.Set(CSRFHeaderName, oldToken)
 	recPost := httptest.NewRecorder()
@@ -443,7 +443,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, recPost.Code, "old token should work before regeneration")
 
 	// 3. Simulate login: regenerate session (this destroys the old session incl. CSRF token)
-	reqLogin := httptest.NewRequest(http.MethodGet, "/test", nil)
+	reqLogin := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	reqLogin.Header.Set("Cookie", oldSessionCookie)
 	recLogin := httptest.NewRecorder()
 	cLogin := e.NewContext(reqLogin, recLogin)
@@ -458,7 +458,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	require.NotEmpty(t, newSessionCookie)
 
 	// 4. GET with new session — should get a NEW CSRF token
-	reqGet2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	reqGet2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	reqGet2.Header.Set("Cookie", newSessionCookie)
 	recGet2 := httptest.NewRecorder()
 	e.ServeHTTP(recGet2, reqGet2)
@@ -468,7 +468,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	assert.NotEqual(t, oldToken, newToken, "CSRF token must change after session regeneration")
 
 	// 5. Old token must be rejected with new session
-	reqOld := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	reqOld := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	newSessionCookie2 := extractSessionCookie(recGet2)
 	reqOld.Header.Set("Cookie", newSessionCookie2+"; "+CSRFCookieName+"="+oldToken)
 	reqOld.Header.Set(CSRFHeaderName, oldToken)
@@ -477,7 +477,7 @@ func TestCSRFTokenRotatesOnSessionRegeneration(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, recOld.Code, "old CSRF token must be rejected after session regeneration")
 
 	// 6. New token must work with new session
-	reqNew := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("data"))
+	reqNew := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", strings.NewReader("data"))
 	reqNew.Header.Set("Cookie", newSessionCookie2+"; "+CSRFCookieName+"="+newToken)
 	reqNew.Header.Set(CSRFHeaderName, newToken)
 	recNew := httptest.NewRecorder()
@@ -489,7 +489,7 @@ func TestGetOrGenerateSessionCSRFToken_ReusesExistingToken(t *testing.T) {
 	initTestSessionStore()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 

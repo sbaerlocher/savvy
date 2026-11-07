@@ -23,7 +23,7 @@ func TestMiddleware(t *testing.T) {
 		return c.String(http.StatusOK, "test")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -57,7 +57,7 @@ func TestMiddleware_DifferentStatusCodes(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tt.path, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -76,7 +76,7 @@ func TestMiddleware_RecordsDuration(t *testing.T) {
 		return c.String(http.StatusOK, "slow")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/slow", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/slow", nil)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
@@ -96,7 +96,7 @@ func TestMiddleware_NormalizedPaths(t *testing.T) {
 
 	// Make multiple requests with different IDs
 	for i := 1; i <= 3; i++ {
-		req := httptest.NewRequest(http.MethodGet, "/users/"+string(rune('0'+i)), nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/users/"+string(rune('0'+i)), nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -181,7 +181,7 @@ func TestMetricsExport(t *testing.T) {
 	handler := promhttp.Handler()
 
 	// Create request
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()
 
 	// Serve metrics
@@ -343,7 +343,7 @@ func TestMiddleware_ErrorHandling(t *testing.T) {
 		return echo.NewHTTPError(http.StatusInternalServerError, "test error")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/error", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/error", nil)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
@@ -361,8 +361,8 @@ func TestMiddleware_PathNormalization(t *testing.T) {
 	})
 
 	// Make requests with different IDs
-	req1 := httptest.NewRequest(http.MethodGet, "/api/users/123", nil)
-	req2 := httptest.NewRequest(http.MethodGet, "/api/users/456", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/users/123", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/users/456", nil)
 
 	rec1 := httptest.NewRecorder()
 	rec2 := httptest.NewRecorder()
@@ -449,7 +449,7 @@ func TestStatusClassification(t *testing.T) {
 			return c.String(tt.status, "response")
 		})
 
-		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
 
@@ -488,7 +488,7 @@ func TestMiddleware_ChainedHandlers(t *testing.T) {
 		return c.String(http.StatusOK, "chained")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/chained", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/chained", nil)
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 

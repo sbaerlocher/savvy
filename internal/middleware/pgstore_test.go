@@ -148,7 +148,7 @@ func TestNewPGStore_DefaultOptions(t *testing.T) {
 
 func TestNew_NoCookie_ReturnsNewEmptySession(t *testing.T) {
 	store, _ := newTestPGStore()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
 	session, err := store.New(req, "session")
 
@@ -162,7 +162,7 @@ func TestNew_CookieExistsButNotInDB_ReturnsNewEmptySession(t *testing.T) {
 	store, repo := newTestPGStore()
 	repo.findErr = errors.New("session not found")
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{Name: "session", Value: "nonexistent-token"})
 
 	session, err := store.New(req, "session")
@@ -197,7 +197,7 @@ func TestNew_CookieExistsAndFoundInDB_LoadsSessionData(t *testing.T) {
 		ExpiresAt:    now.Add(time.Hour),
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{Name: "session", Value: rawToken})
 
 	session, err := store.New(req, "session")
@@ -226,7 +226,7 @@ func TestNew_CorruptedGobData_ReturnsNewEmptySession(t *testing.T) {
 		ExpiresAt:    time.Now().Add(time.Hour),
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{Name: "session", Value: rawToken})
 
 	session, err := store.New(req, "session")
@@ -240,7 +240,7 @@ func TestNew_CorruptedGobData_ReturnsNewEmptySession(t *testing.T) {
 func TestNew_EmptyCookieValue_ReturnsNewSession(t *testing.T) {
 	store, _ := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{Name: "session", Value: ""})
 
 	session, err := store.New(req, "session")
@@ -254,7 +254,7 @@ func TestNew_EmptyCookieValue_ReturnsNewSession(t *testing.T) {
 func TestSave_NewSession_GeneratesTokenAndCreates(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -301,7 +301,7 @@ func TestSave_ExistingSession_UpdatesRepo(t *testing.T) {
 	dbID := uuid.New()
 	tokenHash := "existing-hash-abc"
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.RemoteAddr = "10.0.0.1:12345"
 	req.Header.Set("User-Agent", "TestBrowser/1.0")
 	rec := httptest.NewRecorder()
@@ -342,7 +342,7 @@ func TestSave_ExistingSession_RefreshesCookie(t *testing.T) {
 	tokenHash := "existing-hash-abc"
 	rawToken := "raw-token-value"
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.RemoteAddr = "10.0.0.1:12345"
 	req.Header.Set("User-Agent", "TestBrowser/1.0")
 	req.AddCookie(&http.Cookie{Name: "session", Value: rawToken})
@@ -376,7 +376,7 @@ func TestSave_DeleteSession_CallsDeleteByTokenHash(t *testing.T) {
 
 	tokenHash := "to-delete-hash"
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -407,7 +407,7 @@ func TestSave_DeleteSession_CallsDeleteByTokenHash(t *testing.T) {
 func TestSave_DeleteSession_NoTokenHash_StillSetsExpiredCookie(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -437,7 +437,7 @@ func TestSave_DeleteSession_NoTokenHash_StillSetsExpiredCookie(t *testing.T) {
 func TestSave_ExistingSession_MissingMetadata_ReturnsError(t *testing.T) {
 	store, _ := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -453,7 +453,7 @@ func TestSave_ExistingSession_MissingMetadata_ReturnsError(t *testing.T) {
 func TestSave_ExistingSession_InvalidDBID_ReturnsError(t *testing.T) {
 	store, _ := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -470,7 +470,7 @@ func TestSave_ExistingSession_InvalidDBID_ReturnsError(t *testing.T) {
 func TestSave_NewSession_WithUserID_PassesUserIDToRepo(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -491,7 +491,7 @@ func TestSave_NewSession_WithUserID_PassesUserIDToRepo(t *testing.T) {
 func TestSave_NewSession_WithoutUserID_NilUserID(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -509,7 +509,7 @@ func TestSave_CreateError_ReturnsError(t *testing.T) {
 	store, repo := newTestPGStore()
 	repo.createErr = errors.New("database connection lost")
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -525,7 +525,7 @@ func TestSave_UpdateError_ReturnsError(t *testing.T) {
 	repo.updateErr = errors.New("update failed")
 
 	dbID := uuid.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -544,7 +544,7 @@ func TestSave_UpdateError_ReturnsError(t *testing.T) {
 func TestGet_DelegatesToGetRegistry(t *testing.T) {
 	store, _ := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
 	session, err := store.Get(req, "session")
 	require.NoError(t, err)
@@ -661,7 +661,7 @@ func TestGobDecode_UsesLimitReader(t *testing.T) {
 // --- extractIP Tests ---
 
 func TestExtractIP_XForwardedFor_SingleIP(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-For", "203.0.113.50")
 
 	ip := extractIP(req)
@@ -669,7 +669,7 @@ func TestExtractIP_XForwardedFor_SingleIP(t *testing.T) {
 }
 
 func TestExtractIP_XForwardedFor_MultipleIPs(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-For", "203.0.113.50, 70.41.3.18, 150.172.238.178")
 
 	ip := extractIP(req)
@@ -677,7 +677,7 @@ func TestExtractIP_XForwardedFor_MultipleIPs(t *testing.T) {
 }
 
 func TestExtractIP_XRealIP(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Real-IP", "198.51.100.1")
 
 	ip := extractIP(req)
@@ -685,7 +685,7 @@ func TestExtractIP_XRealIP(t *testing.T) {
 }
 
 func TestExtractIP_XForwardedFor_TakesPrecedenceOverXRealIP(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-For", "203.0.113.50")
 	req.Header.Set("X-Real-IP", "198.51.100.1")
 
@@ -694,7 +694,7 @@ func TestExtractIP_XForwardedFor_TakesPrecedenceOverXRealIP(t *testing.T) {
 }
 
 func TestExtractIP_FallbackToRemoteAddr_StripsPort(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.RemoteAddr = "192.168.1.1:54321"
 
 	ip := extractIP(req)
@@ -702,7 +702,7 @@ func TestExtractIP_FallbackToRemoteAddr_StripsPort(t *testing.T) {
 }
 
 func TestExtractIP_RemoteAddr_NoPort(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.RemoteAddr = "192.168.1.1"
 
 	ip := extractIP(req)
@@ -710,7 +710,7 @@ func TestExtractIP_RemoteAddr_NoPort(t *testing.T) {
 }
 
 func TestExtractIP_IPv6_RemoteAddr(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.RemoteAddr = "[::1]:8080"
 
 	ip := extractIP(req)
@@ -758,7 +758,7 @@ func TestGetMaxAge_ReturnsConfiguredMaxAge(t *testing.T) {
 func TestSave_StripsInternalKeysFromSerializedData(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -789,7 +789,7 @@ func TestNew_Then_Save_Then_Load_RoundTrip(t *testing.T) {
 	store, _ := newTestPGStore()
 
 	// 1. Create and save a new session
-	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec1 := httptest.NewRecorder()
 
 	session1, err := store.New(req1, "session")
@@ -812,7 +812,7 @@ func TestNew_Then_Save_Then_Load_RoundTrip(t *testing.T) {
 	require.NotNil(t, sessionCookie)
 
 	// 3. Load session with cookie
-	req2 := httptest.NewRequest(http.MethodGet, "/", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req2.AddCookie(sessionCookie)
 
 	session2, err := store.New(req2, "session")
@@ -828,7 +828,7 @@ func TestSave_ExpiresAtIsSetCorrectly(t *testing.T) {
 	repo := newMockSessionRepo()
 	store := NewPGStore(repo, maxAge)
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -852,7 +852,7 @@ func TestSave_ExpiresAtIsSetCorrectly(t *testing.T) {
 }
 
 func TestExtractIP_XForwardedFor_WithSpaces(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-For", "203.0.113.50, 70.41.3.18")
 
 	ip := extractIP(req)
@@ -862,7 +862,7 @@ func TestExtractIP_XForwardedFor_WithSpaces(t *testing.T) {
 
 func TestNew_SessionOptionsAreCopied(t *testing.T) {
 	store, _ := newTestPGStore()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
 	session, err := store.New(req, "session")
 	require.NoError(t, err)
@@ -876,7 +876,7 @@ func TestSave_DeleteSession_RepoError_StillSetsCookie(t *testing.T) {
 	store, repo := newTestPGStore()
 	repo.deleteErr = errors.New("delete failed")
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")
@@ -931,7 +931,7 @@ func TestSetCookie_SetsCorrectAttributes(t *testing.T) {
 func TestSave_NewSession_IPAndUserAgentCaptured(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	req.Header.Set("X-Forwarded-For", "10.20.30.40")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Test)")
 	rec := httptest.NewRecorder()
@@ -950,7 +950,7 @@ func TestSave_NewSession_IPAndUserAgentCaptured(t *testing.T) {
 func TestSave_NewSession_InvalidUserID_IgnoredGracefully(t *testing.T) {
 	store, repo := newTestPGStore()
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	session, err := store.New(req, "session")

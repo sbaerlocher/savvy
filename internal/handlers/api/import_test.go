@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"mime/multipart"
@@ -152,7 +153,7 @@ func createCSVTestContext(url, filename, csvContent string) (*echo.Context, *htt
 	_, _ = part.Write([]byte(csvContent))
 	_ = writer.Close()
 
-	req := httptest.NewRequest(http.MethodPost, url, body)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, url, body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	rec := httptest.NewRecorder()
 	e := echo.New()

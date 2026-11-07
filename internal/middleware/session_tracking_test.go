@@ -19,7 +19,7 @@ func TestSessionTracking_NoSession(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)
@@ -31,7 +31,7 @@ func TestSessionTracking_WithUserID(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	// Create session with user_id
@@ -61,7 +61,7 @@ func TestSessionTracking_EmptyUserID(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	// Create session with empty user_id
@@ -90,7 +90,7 @@ func TestSessionTracking_InvalidUserIDType(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	// Create session with invalid user_id type
@@ -154,7 +154,7 @@ func TestCleanupInactiveSessions_EmptySessions(t *testing.T) {
 	sessionsMutex.RUnlock()
 }
 
-func TestSessionTracking_ConcurrentAccess(_ *testing.T) {
+func TestSessionTracking_ConcurrentAccess(t *testing.T) {
 	setupTestAuth()
 
 	e := echo.New()
@@ -167,7 +167,7 @@ func TestSessionTracking_ConcurrentAccess(_ *testing.T) {
 	done := make(chan bool, 10)
 	for i := 0; i < 10; i++ {
 		go func() {
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
 			done <- true
@@ -194,7 +194,7 @@ func TestSessionTracking_PassesRequest(t *testing.T) {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 
 	e.ServeHTTP(rec, req)

@@ -118,7 +118,7 @@ func TestRateLimitMiddleware_AllowedRequests(t *testing.T) {
 
 	// Make requests within rate limit
 	for i := 0; i < 10; i++ {
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("X-Real-IP", "192.168.1.1")
 		rec := httptest.NewRecorder()
 
@@ -143,14 +143,14 @@ func TestRateLimitMiddleware_RateLimitExceeded(t *testing.T) {
 	})
 
 	// First request should succeed
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req1.Header.Set("X-Real-IP", "192.168.1.1")
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Second immediate request should be rate limited
-	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req2.Header.Set("X-Real-IP", "192.168.1.1")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
@@ -173,14 +173,14 @@ func TestRateLimitMiddleware_DifferentIPs(t *testing.T) {
 	})
 
 	// Request from IP 1
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req1.RemoteAddr = "192.168.1.1:1234"
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Immediate request from IP 2 should succeed (different limiter)
-	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req2.RemoteAddr = "192.168.1.2:1234"
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
@@ -200,7 +200,7 @@ func TestRateLimitMiddleware_BurstSize(t *testing.T) {
 
 	// First 5 requests should succeed (burst)
 	for i := 0; i < 5; i++ {
-		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 		req.Header.Set("X-Real-IP", "192.168.1.1")
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
@@ -208,7 +208,7 @@ func TestRateLimitMiddleware_BurstSize(t *testing.T) {
 	}
 
 	// 6th request should be rate limited
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req.Header.Set("X-Real-IP", "192.168.1.1")
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -227,14 +227,14 @@ func TestRateLimitMiddleware_Recovery(t *testing.T) {
 	})
 
 	// First request succeeds
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req1.Header.Set("X-Real-IP", "192.168.1.1")
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Second immediate request is rate limited
-	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req2.Header.Set("X-Real-IP", "192.168.1.1")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
@@ -244,7 +244,7 @@ func TestRateLimitMiddleware_Recovery(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 
 	// Third request should succeed
-	req3 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req3 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req3.Header.Set("X-Real-IP", "192.168.1.1")
 	rec3 := httptest.NewRecorder()
 	e.ServeHTTP(rec3, req3)
@@ -262,14 +262,14 @@ func TestRateLimitMiddleware_RealIP(t *testing.T) {
 	})
 
 	// Test with X-Real-IP header
-	req1 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req1 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req1.Header.Set("X-Real-IP", "10.0.0.1")
 	rec1 := httptest.NewRecorder()
 	e.ServeHTTP(rec1, req1)
 	assert.Equal(t, http.StatusOK, rec1.Code)
 
 	// Second request with same X-Real-IP should be rate limited
-	req2 := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req2 := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	req2.Header.Set("X-Real-IP", "10.0.0.1")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)

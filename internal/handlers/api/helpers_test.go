@@ -19,7 +19,7 @@ import (
 
 func TestParsePaginationParams_NoPagination(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -32,7 +32,7 @@ func TestParsePaginationParams_NoPagination(t *testing.T) {
 
 func TestParsePaginationParams_WithPageOnly(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=3", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=3", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -45,7 +45,7 @@ func TestParsePaginationParams_WithPageOnly(t *testing.T) {
 
 func TestParsePaginationParams_WithPerPageOnly(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?per_page=50", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?per_page=50", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -58,7 +58,7 @@ func TestParsePaginationParams_WithPerPageOnly(t *testing.T) {
 
 func TestParsePaginationParams_BothParams(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=2&per_page=10", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=2&per_page=10", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -71,7 +71,7 @@ func TestParsePaginationParams_BothParams(t *testing.T) {
 
 func TestParsePaginationParams_CapsPerPageAt100(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?per_page=999", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?per_page=999", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -83,7 +83,7 @@ func TestParsePaginationParams_CapsPerPageAt100(t *testing.T) {
 
 func TestParsePaginationParams_InvalidValues(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=abc&per_page=-1", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=abc&per_page=-1", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -96,7 +96,7 @@ func TestParsePaginationParams_InvalidValues(t *testing.T) {
 
 func TestParsePaginationParams_ZeroValues(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards?page=0&per_page=0", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards?page=0&per_page=0", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -122,7 +122,7 @@ func TestCapitalizeFirst(t *testing.T) {
 
 func TestParseResourceID_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
@@ -136,7 +136,7 @@ func TestParseResourceID_Valid(t *testing.T) {
 
 func TestParseResourceID_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/cards/:id", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/v1/cards/:id", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPathValues(echo.PathValues{{Name: "id", Value: "not-a-uuid"}})
@@ -151,7 +151,7 @@ func TestParseResourceID_Invalid(t *testing.T) {
 
 func TestParseUUIDParam_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	expectedID := "550e8400-e29b-41d4-a716-446655440000"
@@ -165,7 +165,7 @@ func TestParseUUIDParam_Valid(t *testing.T) {
 
 func TestParseUUIDParam_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPathValues(echo.PathValues{{Name: "sharedWithID", Value: "invalid"}})
@@ -180,7 +180,7 @@ func TestParseUUIDParam_Invalid(t *testing.T) {
 
 func TestValidateEnum_Valid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -191,7 +191,7 @@ func TestValidateEnum_Valid(t *testing.T) {
 
 func TestValidateEnum_Invalid(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/test", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -231,7 +231,7 @@ func TestFormatTimePtr(t *testing.T) {
 
 func TestResolveMerchantUpdate_EmptyID(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -244,7 +244,7 @@ func TestResolveMerchantUpdate_EmptyID(t *testing.T) {
 
 func TestResolveMerchantUpdate_InvalidUUID(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -256,7 +256,7 @@ func TestResolveMerchantUpdate_InvalidUUID(t *testing.T) {
 
 func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
@@ -273,7 +273,7 @@ func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
 
 func TestResolveMerchantUpdate_Success(t *testing.T) {
 	e := echo.New()
-	req := httptest.NewRequest(http.MethodPatch, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
