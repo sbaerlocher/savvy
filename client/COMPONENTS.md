@@ -4,28 +4,28 @@ How a page gets its frame, and where to put a new one.
 
 ## The layers, outside in
 
-| Layer          | Lives in                                              | Owns                                                                  |
-| -------------- | ----------------------------------------------------- | --------------------------------------------------------------------- |
-| Root layout    | `src/routes/+layout.svelte`                           | HTML shell, global styles, providers, the `<main>` container           |
-| App shell      | `src/lib/components/shell/`, `MobileNav`, `Toast`, …  | Navigation, footer, toasts, offline banner, the global "New" dialog    |
-| **Page shell** | `src/lib/components/layout/PageShell.svelte`          | **Content width, horizontal padding, page title**                      |
-| Sections       | `ResourceDetail`, `WalletView`, `SettingsTabs`, …     | A screen's inner content structure                                         |
-| Atoms          | `src/lib/components/ui/`                              | `Button`, `EmptyState`, `Skeleton`, `Modal`, …                         |
+| Layer          | Lives in                                             | Owns                                                                |
+| -------------- | ---------------------------------------------------- | ------------------------------------------------------------------- |
+| Root layout    | `src/routes/+layout.svelte`                          | HTML shell, global styles, providers, the `<main>` container        |
+| App shell      | `src/lib/components/shell/`, `MobileNav`, `Toast`, … | Navigation, footer, toasts, offline banner, the global "New" dialog |
+| **Page shell** | `src/lib/components/layout/PageShell.svelte`         | **Content width, horizontal padding, page title**                   |
+| Sections       | `ResourceDetail`, `WalletView`, `SettingsTabs`, …    | A screen's inner content structure                                  |
+| Atoms          | `src/lib/components/ui/`                             | `Button`, `EmptyState`, `Skeleton`, `Modal`, …                      |
 
 ## Writing a new page
 
 ```svelte
 <script lang="ts">
-	import PageShell from '#lib/components/layout/PageShell.svelte';
-	import { t } from '#lib/stores/i18n.js';
+  import PageShell from '#lib/components/layout/PageShell.svelte';
+  import { t } from '#lib/stores/i18n.js';
 </script>
 
 <svelte:head>
-	<title>{$t('thing.title')} - {$t('common.appName')}</title>
+  <title>{$t('thing.title')} - {$t('common.appName')}</title>
 </svelte:head>
 
 <PageShell title={$t('thing.title')}>
-	<!-- content only -->
+  <!-- content only -->
 </PageShell>
 ```
 
@@ -49,16 +49,16 @@ container cleanup.
 
 ## PageShell props
 
-| Prop            | Default     | Purpose                                                    |
-| --------------- | ----------- | ---------------------------------------------------------- |
+| Prop            | Default     | Purpose                                                     |
+| --------------- | ----------- | ----------------------------------------------------------- |
 | `title`         | –           | The page's single `<h1>`, rendered through `PageHeader`     |
-| `subtitle`      | –           | Supporting line under the title                            |
-| `eyebrow`       | –           | Small line above the title (greeting, section kicker)      |
-| `width`         | `'default'` | `default` · `narrow` · `full` · `bleed` — see below        |
-| `header`        | `true`      | `false` when a section component renders the header itself |
-| `mobileActions` | `true`      | Bell + New on the title row; `false` on sub-screens        |
-| `actions`       | –           | Snippet: trailing controls on the title row                |
-| `onBack`        | –           | Back chevron left of the title                             |
+| `subtitle`      | –           | Supporting line under the title                             |
+| `eyebrow`       | –           | Small line above the title (greeting, section kicker)       |
+| `width`         | `'default'` | `default` · `narrow` · `full` · `bleed` — see below         |
+| `header`        | `true`      | `false` when a section component renders the header itself  |
+| `mobileActions` | `true`      | Bell + New on the title row; `false` on sub-screens         |
+| `actions`       | –           | Snippet: trailing controls on the title row                 |
+| `onBack`        | –           | Back chevron left of the title                              |
 | `back`          | –           | Snippet: back-to-overview line under the title (form pages) |
 
 ### `width`
