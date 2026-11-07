@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-11-07
+
+### Changed
+
+- **4xx responses log at INFO (#510)** - The request logger and the
+  OpenTelemetry middleware classify by status: 4xx handler errors are logged at
+  INFO and leave the server span status unset, while 5xx stays ERROR and
+  `codes.Error`. Alerts or panels counting ERROR logs or span errors drop after
+  the upgrade.
+- **Git hooks run in the dde containers (#508)** - lefthook runs its
+  checks inside the dde stack, so a commit or push fails while the stack is
+  down; skip a single check with `LEFTHOOK_EXCLUDE=<command>`.
+
+### Fixed
+
+- **Invalid input no longer saved (#510)** - Merchant and enum validation wrote
+  the 400 response but let the handler continue. Invalid enum values
+  (`barcode_type`, `status`, `currency`, voucher `type`, `usage_limit_type`)
+  were saved on create and update, and an invalid `merchant_id` on update
+  cleared the existing merchant link of cards, vouchers and gift cards. A
+  rejected create also no longer leaves an orphaned merchant behind, and an
+  empty `merchant_id` counts as unset. Data written with 1.8.0 or earlier may
+  contain such values.
+
+### Security
+
+- Updated `golang.org/x/net` to 0.62.0 (#489, `GO-2026-6860`, `GO-2026-6866`)
+  and `github.com/go-jose/go-jose/v4` to 4.1.6 (#488, `GHSA-mgcc-cww5-fp2q`, a
+  DoS via crafted JWKs).
+
+### Dependencies
+
+- Updated all non-major dependencies (#492, #497, #499, #502, #505, #513),
+  `go-i18n` 2.7.0 (#494), `@types/node` 26 (#490, #495), Node.js 26 in the
+  Docker images and `.nvmrc` (#491, #500, #501) and lock file maintenance
+  (#514).
+- Updated Docker images: `golang` and `node` digests (#496, #504),
+  `alpine:3.24` digest (#511), Docker Compose images (#493, #515) including
+  opentelemetry-collector-contrib 0.165.0 and Prometheus 3.16.0.
+- Updated `sbaerlocher/.github` to v2026-10-25 (#487), v2026-11-01 (#498),
+  v2026-11-05 (#503) and v2026-11-07 (#512), and the Renovate presets (#507).
+
 ## [1.8.0] - 2026-10-24
 
 ### Added
@@ -872,7 +914,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service Worker path and registration issues resolved
 - PWA update banner i18n translations corrected
 
-[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/sbaerlocher/savvy/compare/v1.8.1...HEAD
+[1.8.1]: https://github.com/sbaerlocher/savvy/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/sbaerlocher/savvy/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/sbaerlocher/savvy/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/sbaerlocher/savvy/compare/v1.6.1...v1.7.0
