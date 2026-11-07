@@ -141,18 +141,13 @@ func resolveMerchantUpdate(
 
 	mid, err := uuid.Parse(merchantIDStr)
 	if err != nil {
-		return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_merchant_id",
-			Message: "Invalid merchant ID format",
-		})
+		return nil, "", writeBadRequest(c, "invalid_merchant_id", "Invalid merchant ID format")
 	}
 
 	merchant, err := merchantService.GetMerchantByID(c.Request().Context(), mid)
 	if err != nil {
-		return nil, "", c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_merchant",
-			Message: "Merchant not found",
-		})
+		slog.ErrorContext(c.Request().Context(), "failed to get merchant", "merchant_id", mid, "error", err)
+		return nil, "", writeBadRequest(c, "invalid_merchant", "Merchant not found")
 	}
 
 	return &mid, merchant.Name, nil
@@ -514,10 +509,7 @@ var (
 // Returns a 400 error response if invalid, nil if valid.
 func validateEnum(c *echo.Context, value string, allowed map[string]bool, fieldName string) error {
 	if err := validation.ValidateEnum(value, allowed, fieldName); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_" + fieldName,
-			Message: fmt.Sprintf("Invalid %s value: %q", fieldName, value),
-		})
+		return writeBadRequest(c, "invalid_"+fieldName, fmt.Sprintf("Invalid %s value: %q", fieldName, value))
 	}
 	return nil
 }

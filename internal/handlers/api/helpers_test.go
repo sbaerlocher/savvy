@@ -198,8 +198,9 @@ func TestValidateEnum_Invalid(t *testing.T) {
 
 	err := validateEnum(c, "unknown", map[string]bool{"active": true, "inactive": true}, "status")
 
-	assert.Nil(t, err) // validateEnum returns the c.JSON result, not an error
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_status")
 }
 
 // ==================== stringPtrValue Tests ====================
@@ -251,8 +252,9 @@ func TestResolveMerchantUpdate_InvalidUUID(t *testing.T) {
 
 	mockMerchant := new(mocks.MockMerchantServiceInterface)
 	_, _, err := resolveMerchantUpdate(c, mockMerchant, "not-a-uuid")
-	assert.Nil(t, err) // error is written to response, returns nil
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
 }
 
 func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
@@ -267,8 +269,9 @@ func TestResolveMerchantUpdate_MerchantNotFound(t *testing.T) {
 		Return((*models.Merchant)(nil), assert.AnError)
 
 	_, _, err := resolveMerchantUpdate(c, mockMerchant, merchantID.String())
-	assert.Nil(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant")
 	mockMerchant.AssertExpectations(t)
 }
 

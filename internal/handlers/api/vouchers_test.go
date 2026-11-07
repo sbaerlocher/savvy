@@ -226,8 +226,9 @@ func TestVouchersHandler_Create_InvalidRequest(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_request")
 }
 
 func TestVouchersHandler_Create_MissingFields(t *testing.T) {
@@ -253,7 +254,7 @@ func TestVouchersHandler_Create_InvalidDateFormat(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "invalid_date")
 }
@@ -317,6 +318,39 @@ func TestVouchersHandler_Create_MissingMerchant(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "missing_merchant")
+	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
+}
+
+func TestVouchersHandler_Create_InvalidType_DoesNotCreate(t *testing.T) {
+	handler, mockVoucherService, _, _, _, _, _, _ := setupVouchersTest()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"new_merchant_name":"New Merchant","code":"VOUCHER123","type":"bogus","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_type")
+	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
+}
+
+func TestVouchersHandler_Create_InvalidBarcodeType_DoesNotCreateMerchant(t *testing.T) {
+	handler, mockVoucherService, _, mockMerchantService, _, _, _, _ := setupVouchersTest()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"new_merchant_name":"New Merchant","code":"VOUCHER123","type":"percentage","value":10,"barcode_type":"BOGUS","valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_barcode_type")
+	mockMerchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
 	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
 }
 

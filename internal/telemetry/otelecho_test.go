@@ -1,6 +1,7 @@
 package telemetry_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -173,4 +174,25 @@ func TestOTelMiddleware_ErrorSetsSpanStatus(t *testing.T) {
 	spans := recorder.Ended()
 	require.Len(t, spans, 1)
 	assert.Equal(t, codes.Error, spans[0].Status().Code, "error span status must be codes.Error")
+}
+
+func TestOTelMiddleware_ClientErrorKeepsSpanUnset(t *testing.T) {
+	recorder := setupTestTracer()
+
+	e := echo.New()
+	mw := telemetry.OTelMiddleware("test-server", telemetry.OTelMiddlewareConfig{})
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/test", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	// Handlers write a 400 and return a non-nil error to stop the chain
+	_ = mw(func(c *echo.Context) error {
+		_ = c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid_request"})
+		return errors.New("bad request: invalid_request")
+	})(c)
+
+	spans := recorder.Ended()
+	require.Len(t, spans, 1)
+	assert.Equal(t, codes.Unset, spans[0].Status().Code, "4xx must not mark the server span as error")
 }

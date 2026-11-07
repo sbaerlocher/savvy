@@ -79,11 +79,17 @@ func OTelMiddleware(serverName string, cfg OTelMiddlewareConfig) echo.Middleware
 			_, status := echo.ResolveResponseStatus(c.Response(), err)
 			span.SetAttributes(semconv.HTTPResponseStatusCode(status))
 
+			// Server spans are errors only for 5xx (OTel HTTP semantic conventions);
+			// a 4xx handler error stays an attribute.
 			if err != nil {
 				span.SetAttributes(attribute.String("echo.error", err.Error()))
-				span.SetStatus(codes.Error, err.Error())
-			} else if status >= 500 {
-				span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", status))
+			}
+			if status >= 500 {
+				msg := fmt.Sprintf("HTTP %d", status)
+				if err != nil {
+					msg = err.Error()
+				}
+				span.SetStatus(codes.Error, msg)
 			}
 
 			return err

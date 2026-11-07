@@ -249,12 +249,6 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid_amount", Message: err.Error()})
 	}
 
-	// Handle merchant
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
-	}
-
 	// Parse expires_at if provided
 	var expiresAt *time.Time
 	if req.ExpiresAt != nil {
@@ -266,6 +260,17 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 			})
 		}
 		expiresAt = &expTime
+	}
+
+	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
+	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
+		return err
+	}
+
+	// Handle merchant last: it may create a merchant
+	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+	if err != nil {
+		return err
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
@@ -305,11 +310,6 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 				Deleted:        true,
 			},
 		})
-	}
-
-	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
-	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
-		return err
 	}
 
 	// Create gift card

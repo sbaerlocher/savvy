@@ -255,12 +255,6 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
 	}
 
-	// Handle merchant (existing or new)
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
-	}
-
 	// Validate enum fields
 	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
 	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
@@ -268,6 +262,12 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	}
 	status := stringOrDefault(req.Status, "active")
 	if err := validateEnum(c, status, validStatuses, "status"); err != nil {
+		return err
+	}
+
+	// Handle merchant (existing or new) last: it may create a merchant
+	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+	if err != nil {
 		return err
 	}
 

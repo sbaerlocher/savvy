@@ -354,6 +354,21 @@ func TestCardsHandler_Create_MerchantNotFound(t *testing.T) {
 	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 }
 
+func TestCardsHandler_Create_InvalidStatus_DoesNotCreateMerchant(t *testing.T) {
+	handler, mockCardService, _, mockMerchantService, _, _, _, _, _ := setupCardsTest()
+	body := `{"new_merchant_name":"New Merchant","card_number":"1234567890","status":"bogus"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_status")
+	mockMerchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
+}
+
 // ==================== Update Tests ====================
 
 func TestCardsHandler_Update_Success(t *testing.T) {
@@ -387,6 +402,27 @@ func TestCardsHandler_Update_Success(t *testing.T) {
 	mockCardService.AssertExpectations(t)
 	mockFavoriteService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Update_InvalidMerchantID_DoesNotUpdate(t *testing.T) {
+	handler, mockCardService, mockAuthzService, _, _, _, _, _, _ := setupCardsTest()
+	card := createTestCard()
+	body := `{"merchant_id":"not-a-uuid"}`
+	c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+	c.SetPathValues(echo.PathValues{{Name: "id", Value: card.ID.String()}})
+
+	perms := &services.ResourcePermissions{CanView: true, CanEdit: true, IsOwner: true}
+	mockAuthzService.On("CheckCardAccess", mock.Anything, user.ID, card.ID).Return(perms, nil)
+	mockCardService.On("GetCard", mock.Anything, card.ID).Return(card, nil)
+
+	err := handler.Update(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockCardService.AssertNotCalled(t, "UpdateCard", mock.Anything, mock.Anything)
 }
 
 func TestCardsHandler_Update_InvalidID(t *testing.T) {

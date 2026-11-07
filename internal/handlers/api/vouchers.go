@@ -178,8 +178,7 @@ func (h *VouchersHandler) Show(c *echo.Context) error {
 
 // validateVoucherCreate checks required fields, lengths, type, merchant and value of a
 // create request. A non-nil error means the error response has been sent; callers
-// should return it directly. An invalid type is the exception: validateEnum still
-// returns nil after writing its response.
+// should return it directly.
 func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
 	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
 		return writeBadRequest(c, "missing_fields", "Code, type, valid_from, and valid_until are required")
@@ -219,10 +218,7 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 
 	var req VoucherCreateRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_request",
-			Message: "Invalid request body",
-		})
+		return writeBadRequest(c, "invalid_request", "Invalid request body")
 	}
 
 	if err := validateVoucherCreate(c, &req); err != nil {
@@ -232,24 +228,12 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	// Parse dates
 	validFrom, err := time.Parse(time.RFC3339, req.ValidFrom)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_date",
-			Message: "Invalid valid_from date format (use ISO 8601/RFC3339)",
-		})
+		return writeBadRequest(c, "invalid_date", "Invalid valid_from date format (use ISO 8601/RFC3339)")
 	}
 
 	validUntil, err := time.Parse(time.RFC3339, req.ValidUntil)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_date",
-			Message: "Invalid valid_until date format (use ISO 8601/RFC3339)",
-		})
-	}
-
-	// Handle merchant
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
+		return writeBadRequest(c, "invalid_date", "Invalid valid_until date format (use ISO 8601/RFC3339)")
 	}
 
 	// Validate optional enum fields
@@ -259,6 +243,12 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 	usageLimitType := stringOrDefault(req.UsageLimitType, "single_use")
 	if err := validateEnum(c, usageLimitType, validUsageLimitTypes, "usage_limit_type"); err != nil {
+		return err
+	}
+
+	// Handle merchant last: it may create a merchant
+	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+	if err != nil {
 		return err
 	}
 
