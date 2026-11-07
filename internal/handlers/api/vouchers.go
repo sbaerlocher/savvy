@@ -7,6 +7,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"savvy/internal/models"
@@ -176,6 +177,48 @@ func (h *VouchersHandler) Show(c *echo.Context) error {
 	})
 }
 
+// validateVoucherCreate checks required fields, lengths, type, merchant and value of a
+// create request. A non-nil error means the error response has been sent; callers
+// should return it directly. An invalid type is the exception: validateEnum still
+// returns nil after writing its response.
+func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
+	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
+		return badVoucherRequest(c, "missing_fields", "Code, type, valid_from, and valid_until are required")
+	}
+
+	if err := validateStringLength(req.Code, "code"); err != nil {
+		return badVoucherRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.Description, "description"); err != nil {
+		return badVoucherRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
+		return badVoucherRequest(c, "field_too_long", err.Error())
+	}
+
+	if err := validateEnum(c, req.Type, validVoucherTypes, "type"); err != nil {
+		return err
+	}
+
+	// Either an existing merchant or a new merchant name is required
+	if (req.MerchantID == nil || *req.MerchantID == "") && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
+		return badVoucherRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+	}
+
+	// Value > 0 (free vouchers are gratis and carry no value)
+	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
+		return badVoucherRequest(c, "invalid_value", "Value must be greater than 0")
+	}
+
+	return nil
+}
+
+// badVoucherRequest sends a 400 error response and returns a non-nil error.
+func badVoucherRequest(c *echo.Context, code, message string) error {
+	_ = c.JSON(http.StatusBadRequest, ErrorResponse{Error: code, Message: message})
+	return fmt.Errorf("invalid voucher request: %s", code)
+}
+
 // Create creates a new voucher
 // POST /api/v1/vouchers
 func (h *VouchersHandler) Create(c *echo.Context) error {
@@ -189,44 +232,8 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Validate required fields
-	if req.Code == "" || req.Type == "" || req.ValidFrom == "" || req.ValidUntil == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_fields",
-			Message: "Code, type, valid_from, and valid_until are required",
-		})
-	}
-
-	// Validate string lengths
-	if err := validateStringLength(req.Code, "code"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.Description, "description"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-
-	// Validate enum fields
-	if err := validateEnum(c, req.Type, validVoucherTypes, "type"); err != nil {
+	if err := validateVoucherCreate(c, &req); err != nil {
 		return err
-	}
-
-	// Validate merchant (either MerchantID or MerchantName required)
-	if req.MerchantID == nil && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_merchant",
-			Message: "Merchant is required: select an existing merchant or enter a new merchant name",
-		})
-	}
-
-	// Validate value > 0 (free vouchers are gratis and carry no value)
-	if validation.VoucherValueRequired(req.Type) && req.Value <= 0 {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_value",
-			Message: "Value must be greater than 0",
-		})
 	}
 
 	// Parse dates

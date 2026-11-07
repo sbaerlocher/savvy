@@ -239,13 +239,14 @@ func TestVouchersHandler_Create_MissingFields(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_fields")
 }
 
 func TestVouchersHandler_Create_InvalidDateFormat(t *testing.T) {
 	handler, _, _, _, _, _, _, _ := setupVouchersTest()
-	body := `{"code":"VOUCHER123","type":"percentage","value":10,"valid_from":"invalid-date","valid_until":"2025-12-31"}`
+	body := `{"new_merchant_name":"New Merchant","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"invalid-date","valid_until":"2025-12-31"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
 	user := createTestUser()
 	c.Set("current_user", user)
@@ -254,6 +255,7 @@ func TestVouchersHandler_Create_InvalidDateFormat(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "invalid_date")
 }
 
 func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
@@ -277,6 +279,45 @@ func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	mockMerchantService.AssertExpectations(t)
 	mockVoucherService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_Create_EmptyMerchantIDWithNewName(t *testing.T) {
+	handler, mockVoucherService, _, mockMerchantService, _, _, _, _ := setupVouchersTest()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"merchant_id":"","new_merchant_name":"New Merchant","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	user := createTestUser()
+	c.Set("current_user", user)
+
+	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
+	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
+	mockVoucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(nil)
+	mockVoucherService.On("GetVoucher", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestVoucher(), nil)
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	mockMerchantService.AssertExpectations(t)
+	mockVoucherService.AssertExpectations(t)
+}
+
+func TestVouchersHandler_Create_MissingMerchant(t *testing.T) {
+	handler, mockVoucherService, _, _, _, _, _, _ := setupVouchersTest()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"merchant_id":"","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_merchant")
+	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
 }
 
 func TestVouchersHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
