@@ -39,7 +39,7 @@ func CSRFApiMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Set CSRF cookie (non-HttpOnly so JavaScript can read it)
-		cookie := &http.Cookie{
+		cookie := &http.Cookie{ //nolint:gosec // cookie must be JS-readable (double-submit), Secure set per request
 			Name:     CSRFCookieName,
 			Value:    token,
 			Path:     "/",

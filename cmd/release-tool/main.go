@@ -229,7 +229,7 @@ func copyDir(src, dst string) error {
 			if err != nil {
 				return err
 			}
-			if err := os.WriteFile(dstPath, data, 0600); err != nil {
+			if err := os.WriteFile(dstPath, data, 0600); err != nil { //nolint:gosec // dstPath built from internal copyDir walk
 				return err
 			}
 		}

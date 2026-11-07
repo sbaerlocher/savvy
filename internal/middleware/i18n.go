@@ -49,7 +49,7 @@ func LanguageDetection(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// 6. Set language cookie if not already set
 		if cookie, err := c.Cookie(LanguageCookieName); err != nil || cookie.Value != lang {
-			c.SetCookie(&http.Cookie{
+			c.SetCookie(&http.Cookie{ //nolint:gosec // language cookie read by JS language switcher, Secure set per request
 				Name:     LanguageCookieName,
 				Value:    lang,
 				Path:     "/",
@@ -106,7 +106,7 @@ func SetLanguage(c *echo.Context) error {
 	}
 
 	// Set cookie
-	c.SetCookie(&http.Cookie{
+	c.SetCookie(&http.Cookie{ //nolint:gosec // language cookie read by JS language switcher, Secure set per request
 		Name:     LanguageCookieName,
 		Value:    lang,
 		Path:     "/",
