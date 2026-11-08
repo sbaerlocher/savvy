@@ -310,7 +310,6 @@ func TestVouchersHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
 			if tc.deleted {
 				voucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return(duplicate, nil)
 			}
-			merchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil).Maybe()
 
 			assert.NoError(t, handler.Create(c))
 			assert.Equal(t, http.StatusConflict, rec.Code)
@@ -407,14 +406,13 @@ func TestVouchersHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
-	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 
 	err := handler.Create(c)
 
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockVoucherService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	mockVoucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
 }
 
@@ -877,6 +875,8 @@ func TestVouchersHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *te
 	deletedVoucher.Code = "VOUCHER123"
 	deletedVoucher.MerchantName = "Test Merchant"
 
+	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
+	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	// No active duplicate
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
 	// Soft-deleted duplicate found
@@ -893,7 +893,7 @@ func TestVouchersHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *te
 	assert.NotNil(t, response.Duplicate)
 	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
 	assert.Equal(t, deletedVoucher.ID.String(), response.Duplicate.ExistingID)
-	mockMerchantService.AssertNotCalled(t, "GetMerchantByID", mock.Anything, mock.Anything)
+	mockMerchantService.AssertExpectations(t)
 	mockVoucherService.AssertExpectations(t)
 }
 
