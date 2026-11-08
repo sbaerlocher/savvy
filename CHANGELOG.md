@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **pre-push `go-test` only runs for affected files** - The hook skips pushes
-  that only touch Markdown or files under `client/`, so a docs-only push no
+  that only touch Markdown or files under `client/`, so a Markdown-only push no
   longer needs a running `api` stack. Go sources, `go.mod`/`go.sum` and files
-  embedded via `go:embed` still trigger it.
+  embedded via `go:embed` still trigger it. `lefthook.yml` now requires
+  lefthook 2.0 or newer (`min_version`).
 
 ## [1.8.1] - 2026-11-07
 

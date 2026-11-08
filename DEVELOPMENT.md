@@ -70,7 +70,10 @@ non-root user, so rewritten files stay owned by the host user.
 
 The pre-push hooks only run for affected files: `go-test` for everything except
 `client/` and Markdown, the frontend checks for files under `client/`. A
-docs-only push therefore needs no running stack.
+Markdown-only push therefore needs no running stack; other files such as
+`LICENSE`, `deploy/**` or `.github/**` still trigger `go-test`. The file list
+comes from the checked-out branch, so pushing a different ref
+(`git push origin <branch>`) is gated by the current checkout.
 
 dde resolves the stack from the current directory, so a **git worktree needs
 its own stack** (`dde project:up` in the worktree): the main clone's

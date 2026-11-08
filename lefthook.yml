@@ -8,6 +8,9 @@
 #
 # Install locally with: `brew install lefthook && lefthook install`
 ---
+# 2.0 made `exclude` glob-only; the go-test gate below relies on that.
+min_version: 2.0.0
+
 pre-commit:
   parallel: true
   commands:
@@ -60,10 +63,12 @@ pre-push:
     # DB tests (and the full -race sweep) against its own Postgres.
     # Gated by exclusion rather than `*.go`: the tests also load files via
     # go:embed (email/reset templates, locales) and depend on go.mod/go.sum,
-    # so only the frontend and Markdown are left out. A docs-only push then
-    # needs no running `api` stack.
+    # so only the frontend and Markdown are left out. A Markdown-only push then
+    # needs no running `api` stack. Limitation: lefthook derives the push files
+    # from the checked-out HEAD, not from the pushed ref, so
+    # `git push origin <other-branch>` from a Markdown-only checkout skips the
+    # suite for that branch too. CI still runs it.
     go-test:
-      glob: '*'
       exclude:
         - 'client/**'
         - '*.md'
