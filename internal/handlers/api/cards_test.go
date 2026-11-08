@@ -235,6 +235,34 @@ func TestCardsHandler_Create_Success(t *testing.T) {
 	mockCardService.AssertExpectations(t)
 }
 
+func TestCardsHandler_Create_LostAndBlockedStatus(t *testing.T) {
+	for _, status := range []string{"lost", "blocked"} {
+		t.Run(status, func(t *testing.T) {
+			handler, cardService, _, merchantService, _, _, _, _, _ := setupCardsTest()
+			merchantID := uuid.New()
+			body := `{"merchant_id":"` + merchantID.String() + `","card_number":"1234567890","status":"` + status + `"}`
+			c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+			user := createTestUser()
+			c.Set("current_user", user)
+
+			merchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(&models.Merchant{ID: merchantID, Name: "Test Merchant"}, nil)
+			cardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
+			cardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
+			cardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
+			cardService.On("CreateCard", mock.Anything, mock.MatchedBy(func(card *models.Card) bool {
+				return card.Status == status
+			})).Return(nil)
+			cardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
+
+			err := handler.Create(c)
+
+			assert.NoError(t, err)
+			assert.Equal(t, http.StatusCreated, rec.Code)
+			cardService.AssertExpectations(t)
+		})
+	}
+}
+
 func TestCardsHandler_Create_InvalidRequest(t *testing.T) {
 	handler, _, _, _, _, _, _, _, _ := setupCardsTest()
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", "invalid-json")
@@ -402,6 +430,33 @@ func TestCardsHandler_Update_Success(t *testing.T) {
 	mockCardService.AssertExpectations(t)
 	mockFavoriteService.AssertExpectations(t)
 	mockShareService.AssertExpectations(t)
+}
+
+func TestCardsHandler_Update_LostAndBlockedStatus(t *testing.T) {
+	for _, status := range []string{"lost", "blocked"} {
+		t.Run(status, func(t *testing.T) {
+			handler, cardService, authzService, _, _, favoriteService, shareService, _, _ := setupCardsTest()
+			card := createTestCard()
+			c, rec := createTestContext(http.MethodPut, "/api/v1/cards/:id", `{"status":"`+status+`"}`)
+			user := createTestUser()
+			c.Set("current_user", user)
+			c.SetPathValues(echo.PathValues{{Name: "id", Value: card.ID.String()}})
+
+			authzService.On("CheckCardAccess", mock.Anything, user.ID, card.ID).Return(&services.ResourcePermissions{CanView: true, CanEdit: true, IsOwner: true}, nil)
+			cardService.On("GetCard", mock.Anything, card.ID).Return(card, nil).Twice()
+			cardService.On("UpdateCard", mock.Anything, mock.MatchedBy(func(updated *models.Card) bool {
+				return updated.Status == status
+			})).Return(nil)
+			favoriteService.On("IsFavorite", mock.Anything, user.ID, "card", card.ID).Return(false, nil)
+			shareService.On("GetCardShares", mock.Anything, card.ID).Return([]models.CardShare{}, nil)
+
+			err := handler.Update(c)
+
+			assert.NoError(t, err)
+			assert.Equal(t, http.StatusOK, rec.Code)
+			cardService.AssertExpectations(t)
+		})
+	}
 }
 
 func TestCardsHandler_Update_InvalidMerchantID_DoesNotUpdate(t *testing.T) {

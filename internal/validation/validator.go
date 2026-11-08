@@ -13,9 +13,10 @@ import (
 
 // ==================== Enum Allowed Values ====================
 
-// ValidStatuses defines the allowed values for card/resource status fields.
+// ValidStatuses defines the allowed values for card status fields.
 var ValidStatuses = map[string]bool{
 	"active": true, "inactive": true, "expired": true,
+	"lost": true, "blocked": true,
 }
 
 // ValidBarcodeTypes defines the allowed barcode type values.
