@@ -68,6 +68,10 @@ non-root user, so rewritten files stay owned by the host user.
 - **dde not installed** — the hooks are skipped with a notice. CI does not run
   lefthook; it runs its own gates.
 
+The pre-push hooks only run for affected files: `go-test` for everything except
+`client/` and Markdown, the frontend checks for files under `client/`. A
+docs-only push therefore needs no running stack.
+
 dde resolves the stack from the current directory, so a **git worktree needs
 its own stack** (`dde project:up` in the worktree): the main clone's
 containers mount the main clone's files and would check the wrong tree. In
