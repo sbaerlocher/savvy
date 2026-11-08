@@ -252,12 +252,18 @@ func TestCardsHandler_Create_LostAndBlockedStatus(t *testing.T) {
 			cardService.On("CreateCard", mock.Anything, mock.MatchedBy(func(card *models.Card) bool {
 				return card.Status == status
 			})).Return(nil)
-			cardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestCard(), nil)
+			createdCard := createTestCard()
+			createdCard.Status = status
+			cardService.On("GetCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createdCard, nil)
 
 			err := handler.Create(c)
 
 			assert.NoError(t, err)
 			assert.Equal(t, http.StatusCreated, rec.Code)
+			var response CardDetailResponse
+			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+			assert.Equal(t, status, response.Card.Status)
+			merchantService.AssertExpectations(t)
 			cardService.AssertExpectations(t)
 		})
 	}

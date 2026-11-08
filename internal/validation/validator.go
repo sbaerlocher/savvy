@@ -13,8 +13,8 @@ import (
 
 // ==================== Enum Allowed Values ====================
 
-// ValidStatuses defines the allowed values for card status fields.
-var ValidStatuses = map[string]bool{
+// ValidCardStatuses defines the allowed values for card status fields.
+var ValidCardStatuses = map[string]bool{
 	"active": true, "inactive": true, "expired": true,
 	"lost": true, "blocked": true,
 }
@@ -129,7 +129,7 @@ type CardRequest struct {
 	CardNumber   string `validate:"required,max=255"`
 	BarcodeType  string `validate:"required,oneof=CODE128 CODE39 CODE93 CODABAR QR EAN13 EAN8 UPCA UPCE ITF ITF14 ISBN13 ISBN10 ISSN PDF417 DATAMATRIX AZTEC MAXICODE"`
 	Notes        string `validate:"max=1000"`
-	Status       string `validate:"required,oneof=active inactive expired"`
+	Status       string `validate:"required,oneof=active inactive expired lost blocked"`
 }
 
 // VoucherRequest represents voucher creation/update validation

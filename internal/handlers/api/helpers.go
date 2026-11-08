@@ -498,7 +498,7 @@ func writeBadRequest(c *echo.Context, code, message string) error {
 
 // Package-level aliases for the shared validation maps (for convenience within handlers).
 var (
-	validStatuses        = validation.ValidStatuses
+	validCardStatuses    = validation.ValidCardStatuses
 	validBarcodeTypes    = validation.ValidBarcodeTypes
 	validVoucherTypes    = validation.ValidVoucherTypes
 	validUsageLimitTypes = validation.ValidUsageLimitTypes

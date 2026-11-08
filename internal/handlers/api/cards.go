@@ -261,7 +261,7 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return err
 	}
 	status := stringOrDefault(req.Status, "active")
-	if err := validateEnum(c, status, validStatuses, "status"); err != nil {
+	if err := validateEnum(c, status, validCardStatuses, "status"); err != nil {
 		return err
 	}
 
@@ -509,7 +509,7 @@ func (h *CardsHandler) Update(c *echo.Context) error {
 		card.Notes = *req.Notes
 	}
 	if req.Status != nil {
-		if err := validateEnum(c, *req.Status, validStatuses, "status"); err != nil {
+		if err := validateEnum(c, *req.Status, validCardStatuses, "status"); err != nil {
 			return err
 		}
 		card.Status = *req.Status

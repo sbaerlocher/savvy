@@ -536,7 +536,7 @@ func validateCard(barcodeType, status, cardNumber, program, notes string) []stri
 	if err := validation.ValidateEnum(barcodeType, validation.ValidBarcodeTypes, "barcode_type"); err != nil {
 		errs = append(errs, err.Error())
 	}
-	if err := validation.ValidateEnum(status, validation.ValidStatuses, "status"); err != nil {
+	if err := validation.ValidateEnum(status, validation.ValidCardStatuses, "status"); err != nil {
 		errs = append(errs, err.Error())
 	}
 	return errs
