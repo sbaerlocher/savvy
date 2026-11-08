@@ -282,6 +282,51 @@ func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
 	mockVoucherService.AssertExpectations(t)
 }
 
+func TestVouchersHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		deleted bool
+	}{
+		{name: "active"},
+		{name: "soft-deleted", deleted: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, voucherService, _, merchantService, _, _, _, _ := setupVouchersTest()
+			validFrom := time.Now().Format(time.RFC3339)
+			validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+			body := `{"new_merchant_name":"New Merchant","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+			c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+			user := createTestUser()
+			c.Set("current_user", user)
+
+			duplicate := createTestVoucher()
+			duplicate.UserID = &user.ID
+			voucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return(func() *models.Voucher {
+				if tc.deleted {
+					return nil
+				}
+				return duplicate
+			}(), nil)
+			if tc.deleted {
+				voucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return(duplicate, nil)
+			}
+			merchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil).Maybe()
+
+			assert.NoError(t, handler.Create(c))
+			assert.Equal(t, http.StatusConflict, rec.Code)
+			var response DuplicateErrorResponse
+			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+			assert.Equal(t, "duplicate_barcode", response.Error)
+			if assert.NotNil(t, response.Duplicate) {
+				assert.Equal(t, tc.deleted, response.Duplicate.Deleted)
+			}
+			merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+			voucherService.AssertNotCalled(t, "CreateVoucher", mock.Anything, mock.Anything)
+			voucherService.AssertExpectations(t)
+		})
+	}
+}
+
 func TestVouchersHandler_Create_EmptyMerchantIDWithNewName(t *testing.T) {
 	handler, mockVoucherService, _, mockMerchantService, _, _, _, _ := setupVouchersTest()
 	validFrom := time.Now().Format(time.RFC3339)
@@ -360,7 +405,10 @@ func TestVouchersHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
 	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
 	body := `{"merchant_id":"not-a-uuid","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
-	c.Set("current_user", createTestUser())
+	user := createTestUser()
+	c.Set("current_user", user)
+	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
+	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 
 	err := handler.Create(c)
 
@@ -829,8 +877,6 @@ func TestVouchersHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *te
 	deletedVoucher.Code = "VOUCHER123"
 	deletedVoucher.MerchantName = "Test Merchant"
 
-	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
-	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	// No active duplicate
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
 	// Soft-deleted duplicate found
@@ -847,7 +893,7 @@ func TestVouchersHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *te
 	assert.NotNil(t, response.Duplicate)
 	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
 	assert.Equal(t, deletedVoucher.ID.String(), response.Duplicate.ExistingID)
-	mockMerchantService.AssertExpectations(t)
+	mockMerchantService.AssertNotCalled(t, "GetMerchantByID", mock.Anything, mock.Anything)
 	mockVoucherService.AssertExpectations(t)
 }
 

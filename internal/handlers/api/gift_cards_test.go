@@ -202,11 +202,57 @@ func TestGiftCardsHandler_Create_Success(t *testing.T) {
 	mockGiftCardService.AssertExpectations(t)
 }
 
+func TestGiftCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		deleted bool
+	}{
+		{name: "active"},
+		{name: "soft-deleted", deleted: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, giftCardService, _, merchantService, _, _, _, _ := setupGiftCardsTest()
+			body := `{"new_merchant_name":"New Merchant","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
+			c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
+			user := createTestUser()
+			c.Set("current_user", user)
+
+			duplicate := createTestGiftCard()
+			duplicate.UserID = &user.ID
+			giftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(func() *models.GiftCard {
+				if tc.deleted {
+					return nil
+				}
+				return duplicate
+			}(), nil)
+			if tc.deleted {
+				giftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(duplicate, nil)
+			}
+			merchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil).Maybe()
+
+			assert.NoError(t, handler.Create(c))
+			assert.Equal(t, http.StatusConflict, rec.Code)
+			var response DuplicateErrorResponse
+			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+			assert.Equal(t, "duplicate_barcode", response.Error)
+			if assert.NotNil(t, response.Duplicate) {
+				assert.Equal(t, tc.deleted, response.Duplicate.Deleted)
+			}
+			merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+			giftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
+			giftCardService.AssertExpectations(t)
+		})
+	}
+}
+
 func TestGiftCardsHandler_Create_InvalidMerchantID_DoesNotCreate(t *testing.T) {
 	handler, mockGiftCardService, _, _, _, _, _, _ := setupGiftCardsTest()
 	body := `{"merchant_id":"not-a-uuid","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
-	c.Set("current_user", createTestUser())
+	user := createTestUser()
+	c.Set("current_user", user)
+	mockGiftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil)
+	mockGiftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.GiftCard)(nil), nil)
 
 	err := handler.Create(c)
 
@@ -927,8 +973,6 @@ func TestGiftCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *t
 	deletedGiftCard.CardNumber = "1234567890"
 	deletedGiftCard.MerchantName = "Test Merchant"
 
-	merchant := &models.Merchant{ID: merchantID, Name: "Test Merchant"}
-	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	// No active duplicate
 	mockGiftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil)
 	// Soft-deleted duplicate found
@@ -945,7 +989,7 @@ func TestGiftCardsHandler_Create_DeletedDuplicate_Returns409WithDeletedFlag(t *t
 	assert.NotNil(t, response.Duplicate)
 	assert.True(t, response.Duplicate.Deleted, "expected duplicate.deleted == true")
 	assert.Equal(t, deletedGiftCard.ID.String(), response.Duplicate.ExistingID)
-	mockMerchantService.AssertExpectations(t)
+	mockMerchantService.AssertNotCalled(t, "GetMerchantByID", mock.Anything, mock.Anything)
 	mockGiftCardService.AssertExpectations(t)
 }
 
