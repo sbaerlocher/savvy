@@ -246,10 +246,15 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Handle merchant last: it may create a merchant
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
+	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
+	// Only a new merchant must wait until the checks have passed.
+	var merchantID *uuid.UUID
+	var merchantName string
+	if req.MerchantID != nil && *req.MerchantID != "" {
+		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
@@ -289,6 +294,13 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 				Deleted:        true,
 			},
 		})
+	}
+
+	if merchantID == nil {
+		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Create voucher
