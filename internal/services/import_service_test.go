@@ -369,6 +369,30 @@ func TestImportService_ImportJSON_Success(t *testing.T) {
 	s.giftCardService.AssertExpectations(t)
 }
 
+func TestImportService_ImportJSON_LostAndBlockedCards(t *testing.T) {
+	for _, status := range []string{"lost", "blocked"} {
+		t.Run(status, func(t *testing.T) {
+			s := newImportTestSetup()
+			ctx := context.Background()
+			s.setupMerchantFound("IKEA", uuid.New())
+			s.cardService.On("CreateCard", ctx, mock.MatchedBy(func(card *models.Card) bool {
+				return card.Status == status
+			})).Return(nil)
+
+			data := &ExportData{Cards: []ExportCard{{CardNumber: "111", MerchantName: "IKEA", Status: status}}}
+			result, err := s.service.ImportJSON(ctx, uuid.New(), data)
+
+			assert.NoError(t, err)
+			if assert.NotNil(t, result) {
+				assert.Equal(t, 1, result.CardsImported)
+				assert.Equal(t, 0, result.Skipped)
+				assert.Empty(t, result.Errors)
+			}
+			s.cardService.AssertExpectations(t)
+		})
+	}
+}
+
 func TestImportService_ImportJSON_NilData(t *testing.T) {
 	s := newImportTestSetup()
 	ctx := context.Background()
@@ -787,6 +811,30 @@ func TestImportService_ImportCardsCSV_Success(t *testing.T) {
 	assert.Equal(t, 2, result.CardsImported)
 	assert.Equal(t, 0, result.Skipped)
 	assert.Empty(t, result.Errors)
+}
+
+func TestImportService_ImportCardsCSV_LostAndBlockedCards(t *testing.T) {
+	for _, status := range []string{"lost", "blocked"} {
+		t.Run(status, func(t *testing.T) {
+			s := newImportTestSetup()
+			ctx := context.Background()
+			s.setupMerchantFound("IKEA", uuid.New())
+			s.cardService.On("CreateCard", ctx, mock.MatchedBy(func(card *models.Card) bool {
+				return card.Status == status
+			})).Return(nil)
+
+			csvData := "merchant_name,card_number,status\nIKEA,111," + status + "\n"
+			result, err := s.service.ImportCardsCSV(ctx, uuid.New(), strings.NewReader(csvData))
+
+			assert.NoError(t, err)
+			if assert.NotNil(t, result) {
+				assert.Equal(t, 1, result.CardsImported)
+				assert.Equal(t, 0, result.Skipped)
+				assert.Empty(t, result.Errors)
+			}
+			s.cardService.AssertExpectations(t)
+		})
+	}
 }
 
 func TestImportService_ImportCardsCSV_EmptyCSV(t *testing.T) {

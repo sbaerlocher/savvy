@@ -176,6 +176,26 @@ func TestValidateStruct_CardRequest(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "lost card",
+			request: CardRequest{
+				MerchantName: "IKEA",
+				Program:      "IKEA Family",
+				CardNumber:   "1234567890",
+				BarcodeType:  "CODE128",
+				Status:       "lost",
+			},
+		},
+		{
+			name: "blocked card",
+			request: CardRequest{
+				MerchantName: "IKEA",
+				Program:      "IKEA Family",
+				CardNumber:   "1234567890",
+				BarcodeType:  "CODE128",
+				Status:       "blocked",
+			},
+		},
+		{
 			name: "invalid barcode type",
 			request: CardRequest{
 				MerchantName: "IKEA",
@@ -242,6 +262,15 @@ func TestValidateStruct_CardRequest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidCardStatuses(t *testing.T) {
+	for _, status := range []string{"active", "inactive", "expired", "lost", "blocked"} {
+		t.Run(status, func(t *testing.T) {
+			assert.NoError(t, ValidateEnum(status, ValidCardStatuses, "status"))
+		})
+	}
+	assert.Error(t, ValidateEnum("invalid_status", ValidCardStatuses, "status"))
 }
 
 func TestValidateStruct_VoucherRequest(t *testing.T) {
