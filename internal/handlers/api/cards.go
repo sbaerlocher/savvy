@@ -233,7 +233,7 @@ func (h *CardsHandler) sharedDuplicateWarning(ctx context.Context, cardNumber st
 // validateCardCreate checks required fields and string lengths for a card create request.
 // A non-nil error means the error response has been sent; callers should return it directly.
 func validateCardCreate(c *echo.Context, req *CardCreateRequest) error {
-	if req.CardNumber == "" {
+	if strings.TrimSpace(req.CardNumber) == "" {
 		return writeBadRequest(c, "missing_fields", "Card number is required")
 	}
 
@@ -250,8 +250,15 @@ func validateCardCreate(c *echo.Context, req *CardCreateRequest) error {
 		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 
-	if (req.MerchantID == nil || *req.MerchantID == "") && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
-		return writeBadRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
+		return err
+	}
+
+	if err := validateEnum(c, stringOrDefault(req.BarcodeType, "CODE128"), validBarcodeTypes, "barcode_type"); err != nil {
+		return err
+	}
+	if err := validateEnum(c, stringOrDefault(req.Status, "active"), validCardStatuses, "status"); err != nil {
+		return err
 	}
 
 	return nil
@@ -280,25 +287,14 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 
 	var req CardCreateRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_request",
-			Message: "Invalid request body",
-		})
+		return writeBadRequest(c, "invalid_request", "Invalid request body")
 	}
 
 	if err := validateCardCreate(c, &req); err != nil {
 		return err
 	}
-
-	// Validate enum fields
 	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
-	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
-		return err
-	}
 	status := stringOrDefault(req.Status, "active")
-	if err := validateEnum(c, status, validCardStatuses, "status"); err != nil {
-		return err
-	}
 
 	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
 	// Only a new merchant must wait until the checks have passed.
