@@ -199,8 +199,8 @@ func validateVoucherCreate(c *echo.Context, req *VoucherCreateRequest) error {
 	}
 
 	// Either an existing merchant or a new merchant name is required
-	if (req.MerchantID == nil || *req.MerchantID == "") && (req.NewMerchantName == nil || *req.NewMerchantName == "") {
-		return writeBadRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
+		return err
 	}
 
 	// Value > 0 (free vouchers are gratis and carry no value)
