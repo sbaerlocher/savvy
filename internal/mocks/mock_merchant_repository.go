@@ -350,65 +350,6 @@ func (_c *MockMerchantRepository_GetByName_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
-// RestoreByName provides a mock function with given fields: ctx, name
-func (_m *MockMerchantRepository) RestoreByName(ctx context.Context, name string) (*models.Merchant, error) {
-	ret := _m.Called(ctx, name)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RestoreByName")
-	}
-
-	var r0 *models.Merchant
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Merchant, error)); ok {
-		return rf(ctx, name)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Merchant); ok {
-		r0 = rf(ctx, name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Merchant)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockMerchantRepository_RestoreByName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RestoreByName'
-type MockMerchantRepository_RestoreByName_Call struct {
-	*mock.Call
-}
-
-// RestoreByName is a helper method to define mock.On call
-//   - ctx context.Context
-//   - name string
-func (_e *MockMerchantRepository_Expecter) RestoreByName(ctx interface{}, name interface{}) *MockMerchantRepository_RestoreByName_Call {
-	return &MockMerchantRepository_RestoreByName_Call{Call: _e.mock.On("RestoreByName", ctx, name)}
-}
-
-func (_c *MockMerchantRepository_RestoreByName_Call) Run(run func(ctx context.Context, name string)) *MockMerchantRepository_RestoreByName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockMerchantRepository_RestoreByName_Call) Return(_a0 *models.Merchant, _a1 error) *MockMerchantRepository_RestoreByName_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockMerchantRepository_RestoreByName_Call) RunAndReturn(run func(context.Context, string) (*models.Merchant, error)) *MockMerchantRepository_RestoreByName_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Search provides a mock function with given fields: ctx, query
 func (_m *MockMerchantRepository) Search(ctx context.Context, query string) ([]models.Merchant, error) {
 	ret := _m.Called(ctx, query)

@@ -16,6 +16,8 @@ func partialUniqueIndexMerchantName() *gormigrate.Migration {
 			}
 			return createIndex(tx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_merchants_name ON merchants (name) WHERE deleted_at IS NULL")
 		},
+		// Rollback restores global uniqueness. It intentionally fails if active
+		// and soft-deleted rows now share a name, preserving existing data.
 		Rollback: func(tx *gorm.DB) error {
 			if err := dropIndex(tx, "idx_merchants_name"); err != nil {
 				return err
