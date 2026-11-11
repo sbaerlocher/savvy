@@ -6,10 +6,10 @@ package api
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
+	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"savvy/internal/validation"
@@ -17,7 +17,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
-	"gorm.io/gorm"
 )
 
 // GiftCardsHandler handles gift card API endpoints.
@@ -342,7 +341,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.giftCardService.CreateGiftCard(c.Request().Context(), giftCard); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
 			if existing, _ := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil); existing != nil {
 				return c.JSON(http.StatusConflict, DuplicateErrorResponse{

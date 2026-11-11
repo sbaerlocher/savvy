@@ -168,7 +168,7 @@ func (s *MerchantService) UpdateMerchant(ctx context.Context, merchant *models.M
 	// Check if another merchant with same name already exists
 	existing, err := s.repo.GetByName(ctx, merchant.Name)
 	if err == nil && existing != nil && existing.ID != merchant.ID {
-		return errors.New("merchant with this name already exists")
+		return ErrMerchantExists
 	}
 
 	if err := s.repo.Update(ctx, merchant); err != nil {

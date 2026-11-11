@@ -5,6 +5,7 @@ package api
 //nolint:revive // "api" is a meaningful package name for API handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
@@ -124,7 +125,7 @@ func (h *MerchantsHandler) Create(c *echo.Context) error {
 		slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(req.Name), "error", logsafe.Error(err))
 
 		// Check for duplicate name error
-		if err.Error() == "merchant with this name already exists" {
+		if errors.Is(err, services.ErrMerchantExists) {
 			return c.JSON(http.StatusConflict, ErrorResponse{
 				Error:   "duplicate_name",
 				Message: "A merchant with this name already exists",
@@ -196,7 +197,7 @@ func (h *MerchantsHandler) Update(c *echo.Context) error {
 		slog.ErrorContext(c.Request().Context(), "failed to update merchant", "merchant_id", merchantID, "error", err)
 
 		// Check for duplicate name error
-		if err.Error() == "merchant with this name already exists" {
+		if errors.Is(err, services.ErrMerchantExists) {
 			return c.JSON(http.StatusConflict, ErrorResponse{
 				Error:   "duplicate_name",
 				Message: "A merchant with this name already exists",

@@ -6,17 +6,16 @@ package api //nolint:revive // "api" is a meaningful package name for API handle
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
+	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
-	"gorm.io/gorm"
 )
 
 // CardsHandler handles card API endpoints.
@@ -369,7 +368,7 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.cardService.CreateCard(c.Request().Context(), card); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		if database.IsDuplicateError(err) {
 			// TOCTOU race: two concurrent requests with the same barcode — re-fetch to return details
 			if existing, _ := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil); existing != nil {
 				return c.JSON(http.StatusConflict, DuplicateErrorResponse{

@@ -218,6 +218,30 @@ func TestVouchersHandler_Create_Success(t *testing.T) {
 	mockVoucherService.AssertExpectations(t)
 }
 
+func TestVouchersHandler_Create_RaceDuplicateKey_Returns409(t *testing.T) {
+	handler, voucherService, _, merchantService, _, _, _, _ := setupVouchersTest()
+	merchantID := uuid.New()
+	user := createTestUser()
+	validFrom := time.Now().Format(time.RFC3339)
+	validUntil := time.Now().Add(30 * 24 * time.Hour).Format(time.RFC3339)
+	body := `{"merchant_id":"` + merchantID.String() + `","code":"VOUCHER123","type":"percentage","value":10,"valid_from":"` + validFrom + `","valid_until":"` + validUntil + `"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", body)
+	c.Set("current_user", user)
+	merchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(&models.Merchant{ID: merchantID, Name: "Test Merchant"}, nil)
+	existing := &models.Voucher{ID: uuid.New(), Code: "VOUCHER123", MerchantName: "Test Merchant"}
+	voucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil).Once()
+	voucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return(existing, nil).Once()
+	voucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
+	voucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(errors.New("duplicate key value violates unique constraint (SQLSTATE 23505)"))
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+	assertErrorCode(t, rec, "duplicate_barcode")
+	voucherService.AssertExpectations(t)
+}
+
 func TestVouchersHandler_Create_InvalidRequest(t *testing.T) {
 	handler, _, _, _, _, _, _, _ := setupVouchersTest()
 	c, rec := createTestContext(http.MethodPost, "/api/v1/vouchers", "invalid-json")

@@ -235,6 +235,28 @@ func TestCardsHandler_Create_Success(t *testing.T) {
 	mockCardService.AssertExpectations(t)
 }
 
+func TestCardsHandler_Create_RaceDuplicateKey_Returns409(t *testing.T) {
+	handler, cardService, _, merchantService, _, _, _, _, _ := setupCardsTest()
+	merchantID := uuid.New()
+	user := createTestUser()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", `{"merchant_id":"`+merchantID.String()+`","card_number":"1234567890"}`)
+	c.Set("current_user", user)
+	merchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(&models.Merchant{ID: merchantID, Name: "Test Merchant"}, nil)
+	existing := &models.Card{ID: uuid.New(), CardNumber: "1234567890", MerchantName: "Test Merchant"}
+	cardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil).Once()
+	cardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(existing, nil).Once()
+	cardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
+	cardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
+	cardService.On("CreateCard", mock.Anything, mock.AnythingOfType("*models.Card")).Return(errors.New("duplicate key value violates unique constraint (SQLSTATE 23505)"))
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+	assertErrorCode(t, rec, "duplicate_barcode")
+	cardService.AssertExpectations(t)
+}
+
 func TestCardsHandler_Create_LostAndBlockedStatus(t *testing.T) {
 	for _, status := range []string{"lost", "blocked"} {
 		t.Run(status, func(t *testing.T) {

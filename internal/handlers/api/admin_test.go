@@ -1034,6 +1034,25 @@ func TestAdminHandler_RestoreResource_ServiceError(t *testing.T) {
 	mockAdminService.AssertExpectations(t)
 }
 
+func TestAdminHandler_RestoreResource_UniqueConflict_Returns409(t *testing.T) {
+	handler, mockAdminService, _, _, _, _ := setupAdminTest()
+	resourceID := uuid.New()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/restore/cards/"+resourceID.String(), "")
+	c.SetPathValues(echo.PathValues{{Name: "resource_type", Value: "cards"}, {Name: "resource_id", Value: resourceID.String()}})
+	mockAdminService.On("RestoreResource", mock.Anything, "cards", resourceID).
+		Return(errors.New(`ERROR: duplicate key value violates unique constraint (SQLSTATE 23505)`))
+
+	err := handler.RestoreResource(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+	var response ErrorResponse
+	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+	assert.Equal(t, "restore_conflict", response.Error)
+	assert.Equal(t, "An active resource with the same unique value exists", response.Message)
+	mockAdminService.AssertExpectations(t)
+}
+
 // ==================== GetSystemHealth Tests ====================
 
 func TestAdminHandler_GetSystemHealth_Success(t *testing.T) {

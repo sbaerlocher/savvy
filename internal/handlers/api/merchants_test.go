@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 
 	"savvy/internal/mocks"
 	"savvy/internal/models"
+	"savvy/internal/services"
 )
 
 // ==================== Helper Functions ====================
@@ -215,7 +217,7 @@ func TestMerchantsHandler_Create_DuplicateName(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/admin/merchants", body)
 
 	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).
-		Return(errors.New("merchant with this name already exists"))
+		Return(fmt.Errorf("wrapped: %w", services.ErrMerchantExists))
 
 	err := handler.Create(c)
 
@@ -285,7 +287,7 @@ func TestMerchantsHandler_Update_DuplicateName(t *testing.T) {
 	merchant := &models.Merchant{ID: merchantID, Name: "Old Merchant"}
 	mockMerchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(merchant, nil)
 	mockMerchantService.On("UpdateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).
-		Return(errors.New("merchant with this name already exists"))
+		Return(fmt.Errorf("wrapped: %w", services.ErrMerchantExists))
 
 	err := handler.Update(c)
 

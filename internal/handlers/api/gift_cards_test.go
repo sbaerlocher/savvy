@@ -202,6 +202,27 @@ func TestGiftCardsHandler_Create_Success(t *testing.T) {
 	mockGiftCardService.AssertExpectations(t)
 }
 
+func TestGiftCardsHandler_Create_RaceDuplicateKey_Returns409(t *testing.T) {
+	handler, giftCardService, _, merchantService, _, _, _, _ := setupGiftCardsTest()
+	merchantID := uuid.New()
+	user := createTestUser()
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", `{"merchant_id":"`+merchantID.String()+`","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`)
+	c.Set("current_user", user)
+	merchantService.On("GetMerchantByID", mock.Anything, merchantID).Return(&models.Merchant{ID: merchantID, Name: "Test Merchant"}, nil)
+	existing := &models.GiftCard{ID: uuid.New(), CardNumber: "1234567890", MerchantName: "Test Merchant"}
+	giftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil).Once()
+	giftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(existing, nil).Once()
+	giftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.GiftCard)(nil), nil)
+	giftCardService.On("CreateGiftCard", mock.Anything, mock.AnythingOfType("*models.GiftCard")).Return(errors.New("duplicate key value violates unique constraint (SQLSTATE 23505)"))
+
+	err := handler.Create(c)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusConflict, rec.Code)
+	assertErrorCode(t, rec, "duplicate_barcode")
+	giftCardService.AssertExpectations(t)
+}
+
 func TestGiftCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
 	for _, tc := range []struct {
 		name    string

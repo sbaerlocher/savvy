@@ -139,8 +139,7 @@ func TestMerchantService_CreateMerchant_DuplicateName(t *testing.T) {
 
 	err := service.CreateMerchant(ctx, newMerchant)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "merchant with this name already exists")
+	assert.ErrorIs(t, err, ErrMerchantExists)
 	mockRepo.AssertNotCalled(t, "Create")
 }
 
@@ -322,8 +321,7 @@ func TestMerchantService_UpdateMerchant_DuplicateName(t *testing.T) {
 
 	err := service.UpdateMerchant(ctx, merchantToUpdate)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "merchant with this name already exists")
+	assert.ErrorIs(t, err, ErrMerchantExists)
 	mockRepo.AssertNotCalled(t, "Update")
 }
 
