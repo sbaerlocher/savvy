@@ -204,55 +204,30 @@ func (h *CardsHandler) Show(c *echo.Context) error {
 	})
 }
 
-// createsNewMerchant reports whether a create request will create a new merchant
-// (no merchant_id, but a new_merchant_name) rather than reference an existing one.
-func createsNewMerchant(merchantID, newMerchantName *string) bool {
-	return (merchantID == nil || *merchantID == "") && newMerchantName != nil && *newMerchantName != ""
-}
-
-// blockingDuplicate returns the 409 response for an active or soft-deleted card with
-// the same number owned by the user, or nil when creation may proceed. Lookup errors
-// are logged only — worst case the DB unique constraint catches the duplicate.
-func (h *CardsHandler) blockingDuplicate(ctx context.Context, cardNumber string, userID uuid.UUID) *DuplicateErrorResponse {
-	duplicate, err := h.cardService.CheckDuplicate(ctx, cardNumber, userID, nil)
+// sharedDuplicateWarning reports a card with this number that another owner already
+// shared with the user. This is advisory only — a shared card belongs to a different
+// user_id and violates no unique constraint, so creation proceeds (family cards are
+// intentionally allowed). Lookup errors are logged and yield no warning.
+func (h *CardsHandler) sharedDuplicateWarning(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) *DuplicateWarning {
+	sharedDup, err := h.cardService.CheckSharedDuplicate(ctx, cardNumber, merchantID, userID)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to check duplicate", "error", err)
+		slog.ErrorContext(ctx, "failed to check shared duplicate", "error", err)
 	}
-	if duplicate != nil {
-		slog.InfoContext(ctx, "duplicate card blocked", "existing_id", duplicate.ID)
-		return &DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A card with this number already exists",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   duplicate.MerchantName,
-				ResourceNumber: duplicate.CardNumber,
-				ExistingID:     duplicate.ID.String(),
-			},
-		}
+	if sharedDup == nil {
+		return nil
 	}
-
-	// Soft-deleted twin owned by this user → offer restore instead of a hard failure.
-	// Checked before the shared-duplicate advisory: restoring one's own card is the
-	// more actionable path and must not be shadowed by a same-numbered shared card.
-	deletedDup, err := h.cardService.FindDeletedDuplicate(ctx, cardNumber, userID)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to check deleted duplicate", "error", err)
+	warning := &DuplicateWarning{
+		HasDuplicate:   true,
+		MerchantName:   sharedDup.MerchantName,
+		ResourceNumber: sharedDup.CardNumber,
+		ExistingID:     sharedDup.ID.String(),
+		IsShared:       true,
 	}
-	if deletedDup != nil {
-		return &DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A soft-deleted card with this number exists and can be restored",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   deletedDup.MerchantName,
-				ResourceNumber: deletedDup.CardNumber,
-				ExistingID:     deletedDup.ID.String(),
-				Deleted:        true,
-			},
-		}
+	if sharedDup.User != nil {
+		owner := ToUserDTO(sharedDup.User)
+		warning.SharedBy = &owner
 	}
-	return nil
+	return warning
 }
 
 // Create creates a new card
@@ -316,56 +291,70 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Resolve the merchant before duplicate checks to preserve merchant errors.
-	// Only creating a new merchant must wait until the blocking checks have passed.
-	createsMerchant := createsNewMerchant(req.MerchantID, req.NewMerchantName)
+	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
+	// Only a new merchant must wait until the checks have passed.
 	var merchantID *uuid.UUID
 	var merchantName string
-	if !createsMerchant {
-		var err error
+	var err error
+	if req.MerchantID != nil && *req.MerchantID != "" {
 		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Active or soft-deleted duplicate — blocks creation to prevent DB unique constraint violation
-	if conflict := h.blockingDuplicate(c.Request().Context(), req.CardNumber, user.ID); conflict != nil {
-		return c.JSON(http.StatusConflict, conflict)
+	// Check for duplicates — blocks creation to prevent DB unique constraint violation
+	duplicate, err := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
+		// Don't fail the request, just log — worst case the DB constraint catches it
+	}
+	if duplicate != nil {
+		slog.InfoContext(c.Request().Context(), "duplicate card blocked", "existing_id", duplicate.ID)
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A card with this number already exists",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   duplicate.MerchantName,
+				ResourceNumber: duplicate.CardNumber,
+				ExistingID:     duplicate.ID.String(),
+			},
+		})
+	}
+
+	// Soft-deleted twin owned by this user → offer restore instead of a hard failure.
+	// Checked before the shared-duplicate advisory: restoring one's own card is the
+	// more actionable path and must not be shadowed by a same-numbered shared card.
+	deletedDup, err := h.cardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+	if err != nil {
+		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	}
+	if deletedDup != nil {
+		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
+			Error:   "duplicate_barcode",
+			Message: "A soft-deleted card with this number exists and can be restored",
+			Duplicate: &DuplicateWarning{
+				HasDuplicate:   true,
+				MerchantName:   deletedDup.MerchantName,
+				ResourceNumber: deletedDup.CardNumber,
+				ExistingID:     deletedDup.ID.String(),
+				Deleted:        true,
+			},
+		})
 	}
 
 	// The shared-duplicate check below needs the merchant ID, so a new merchant is
 	// created here — after the blocking checks, before the advisory one.
-	if createsMerchant {
-		var err error
+	if merchantID == nil {
 		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Shared duplicate: a card with this number was already shared with the user by
-	// another owner. This is advisory only — a shared card belongs to a different
-	// user_id and violates no unique constraint, so creation proceeds (family cards
-	// are intentionally allowed). The warning is attached to the created response.
-	var sharedWarning *DuplicateWarning
-	sharedDup, err := h.cardService.CheckSharedDuplicate(c.Request().Context(), req.CardNumber, merchantID, user.ID)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check shared duplicate", "error", err)
-	}
-	if sharedDup != nil {
-		sharedWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   sharedDup.MerchantName,
-			ResourceNumber: sharedDup.CardNumber,
-			ExistingID:     sharedDup.ID.String(),
-			IsShared:       true,
-		}
-		if sharedDup.User != nil {
-			owner := ToUserDTO(sharedDup.User)
-			sharedWarning.SharedBy = &owner
-		}
-	}
+	// Shared duplicate: advisory only, attached to the created response.
+	sharedWarning := h.sharedDuplicateWarning(c.Request().Context(), req.CardNumber, merchantID, user.ID)
 
 	// Create card
 	card := &models.Card{

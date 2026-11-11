@@ -323,6 +323,8 @@ func TestCardsHandler_Create_MissingMerchant(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
 	user := createTestUser()
 	c.Set("current_user", user)
+	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(nil, nil)
+	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(nil, nil)
 
 	err := handler.Create(c)
 
