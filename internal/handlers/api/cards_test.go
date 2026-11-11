@@ -366,7 +366,51 @@ func TestCardsHandler_Create_InvalidMerchantID(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "invalid_merchant_id")
+	mockCardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
+}
+
+func TestCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		deleted bool
+	}{
+		{name: "active"},
+		{name: "soft-deleted", deleted: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, cardService, _, merchantService, _, _, _, _, _ := setupCardsTest()
+			body := `{"new_merchant_name":"New Merchant","card_number":"1234567890"}`
+			c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
+			user := createTestUser()
+			c.Set("current_user", user)
+
+			duplicate := createTestCard()
+			duplicate.UserID = &user.ID
+			cardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(func() *models.Card {
+				if tc.deleted {
+					return nil
+				}
+				return duplicate
+			}(), nil)
+			if tc.deleted {
+				cardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(duplicate, nil)
+			}
+
+			assert.NoError(t, handler.Create(c))
+			assert.Equal(t, http.StatusConflict, rec.Code)
+			var response DuplicateErrorResponse
+			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+			assert.Equal(t, "duplicate_barcode", response.Error)
+			if assert.NotNil(t, response.Duplicate) {
+				assert.Equal(t, tc.deleted, response.Duplicate.Deleted)
+			}
+			merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+			cardService.AssertNotCalled(t, "CheckSharedDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			cardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
+			cardService.AssertExpectations(t)
+		})
+	}
 }
 
 func TestCardsHandler_Create_MerchantNotFound(t *testing.T) {
