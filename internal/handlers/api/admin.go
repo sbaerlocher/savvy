@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"savvy/internal/audit"
+	"savvy/internal/database"
 	"savvy/internal/email"
 	"savvy/internal/logsafe"
 	"savvy/internal/middleware"
@@ -533,6 +534,12 @@ func (h *AdminHandler) RestoreResource(c *echo.Context) error {
 
 	// Restore resource
 	if err := h.adminService.RestoreResource(c.Request().Context(), resourceType, resourceID); err != nil {
+		if database.IsDuplicateError(err) {
+			return c.JSON(http.StatusConflict, ErrorResponse{
+				Error:   "restore_conflict",
+				Message: "An active resource with the same unique value exists",
+			})
+		}
 		if err.Error() == "resource is not deleted" {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{
 				Error:   "resource_not_deleted",

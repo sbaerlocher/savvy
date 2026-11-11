@@ -6,9 +6,9 @@ package api
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
+	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"savvy/internal/validation"
@@ -17,7 +17,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
-	"gorm.io/gorm"
 )
 
 // VouchersHandler handles voucher API endpoints.
@@ -321,7 +320,7 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), voucher); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
 			if existing, _ := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil); existing != nil {
 				return c.JSON(http.StatusConflict, DuplicateErrorResponse{

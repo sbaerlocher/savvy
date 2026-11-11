@@ -76,6 +76,9 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 	}
 
 	if err := s.repo.Create(ctx, merchant); err != nil {
+		if database.IsDuplicateError(err) {
+			return ErrMerchantExists
+		}
 		return fmt.Errorf("create merchant: %w", err)
 	}
 
@@ -83,10 +86,8 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 	return nil
 }
 
-// GetOrCreateByName returns the merchant with this name. It creates the
-// merchant if none exists. If the insert hits the unique index on name, the
-// row is either a soft-deleted merchant or a concurrent create; the existing
-// row is returned, restored if it was soft-deleted.
+// GetOrCreateByName returns the active merchant with this name or creates it.
+// If a concurrent request creates it first, the existing active row is returned.
 func (s *MerchantService) GetOrCreateByName(ctx context.Context, name string) (*models.Merchant, error) {
 	if name == "" {
 		return nil, errors.New("merchant name is required")
@@ -105,11 +106,14 @@ func (s *MerchantService) GetOrCreateByName(ctx context.Context, name string) (*
 		if !database.IsDuplicateError(err) {
 			return nil, fmt.Errorf("create merchant: %w", err)
 		}
-		restored, rerr := s.repo.RestoreByName(ctx, name)
-		if rerr != nil {
-			return nil, fmt.Errorf("restore merchant %q: %w", name, rerr)
+		existing, lookupErr := s.repo.GetByName(ctx, name)
+		if lookupErr != nil {
+			return nil, fmt.Errorf("get merchant after duplicate create %q: %w", name, lookupErr)
 		}
-		return restored, nil
+		if existing == nil {
+			return nil, fmt.Errorf("get merchant after duplicate create %q: %w", name, err)
+		}
+		return existing, nil
 	}
 
 	slog.Info("Merchant created", "merchant_id", logsafe.UUID(merchant.ID), "name", logsafe.String(merchant.Name))
@@ -168,10 +172,13 @@ func (s *MerchantService) UpdateMerchant(ctx context.Context, merchant *models.M
 	// Check if another merchant with same name already exists
 	existing, err := s.repo.GetByName(ctx, merchant.Name)
 	if err == nil && existing != nil && existing.ID != merchant.ID {
-		return errors.New("merchant with this name already exists")
+		return ErrMerchantExists
 	}
 
 	if err := s.repo.Update(ctx, merchant); err != nil {
+		if database.IsDuplicateError(err) {
+			return ErrMerchantExists
+		}
 		return fmt.Errorf("update merchant %s: %w", merchant.ID, err)
 	}
 

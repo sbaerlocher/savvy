@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
+	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/testutil"
 )
@@ -57,6 +58,33 @@ func TestMerchantRepository_Create(t *testing.T) {
 	assert.Equal(t, "Test Merchant Create", found.Name)
 	assert.Equal(t, "#FF0000", found.Color)
 
+}
+
+func TestMerchantRepository_CreateSameNameAsSoftDeleted(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+	name := "Test Merchant Reuse Soft Deleted Name"
+
+	deleted := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
+	assert.NoError(t, repo.Create(ctx, deleted))
+	assert.NoError(t, repo.Delete(ctx, deleted.ID))
+
+	replacement := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
+	assert.NoError(t, repo.Create(ctx, replacement))
+	assert.NotEqual(t, deleted.ID, replacement.ID)
+}
+
+func TestMerchantRepository_CreateDuplicateLiveName_Fails(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+	name := "Test Merchant Duplicate Live Name"
+
+	assert.NoError(t, repo.Create(ctx, &models.Merchant{Name: name, Color: models.DefaultMerchantColor}))
+	err := repo.Create(ctx, &models.Merchant{Name: name, Color: models.DefaultMerchantColor})
+	assert.Error(t, err)
+	assert.True(t, database.IsDuplicateError(err))
 }
 
 func TestMerchantRepository_GetByID(t *testing.T) {
@@ -269,56 +297,4 @@ func TestMerchantRepository_GetByName_Exact(t *testing.T) {
 	assert.Equal(t, merchant1.ID, found.ID)
 	assert.Equal(t, "Test Exact Name", found.Name)
 	assert.NotEqual(t, merchant2.ID, found.ID)
-}
-
-func TestMerchantRepository_RestoreByName_SoftDeleted(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewMerchantRepository(db)
-	ctx := context.Background()
-
-	merchant := &models.Merchant{
-		Name:    "Test RestoreByName Deleted",
-		Color:   "#AABBCC",
-		LogoURL: "https://example.com/logo.png",
-		Website: "https://example.com",
-	}
-	db.Create(merchant)
-	assert.NoError(t, repo.Delete(ctx, merchant.ID))
-
-	restored, err := repo.RestoreByName(ctx, "Test RestoreByName Deleted")
-	assert.NoError(t, err)
-	assert.Equal(t, merchant.ID, restored.ID)
-	assert.False(t, restored.DeletedAt.Valid)
-
-	// Admin-only fields of the deleted merchant must not come back.
-	found, err := repo.GetByName(ctx, "Test RestoreByName Deleted")
-	assert.NoError(t, err)
-	assert.Equal(t, merchant.ID, found.ID)
-	assert.Empty(t, found.LogoURL)
-	assert.Empty(t, found.Website)
-	assert.Equal(t, models.DefaultMerchantColor, found.Color)
-}
-
-func TestMerchantRepository_RestoreByName_Live(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewMerchantRepository(db)
-	ctx := context.Background()
-
-	merchant := &models.Merchant{Name: "Test RestoreByName Live", Color: "#AABBCC", Website: "https://example.com"}
-	db.Create(merchant)
-
-	// A live merchant (concurrent create) is returned unchanged.
-	found, err := repo.RestoreByName(ctx, "Test RestoreByName Live")
-	assert.NoError(t, err)
-	assert.Equal(t, merchant.ID, found.ID)
-	assert.Equal(t, "#AABBCC", found.Color)
-	assert.Equal(t, "https://example.com", found.Website)
-}
-
-func TestMerchantRepository_RestoreByName_NotFound(t *testing.T) {
-	db := setupTestDB(t)
-	repo := NewMerchantRepository(db)
-
-	_, err := repo.RestoreByName(context.Background(), "NonExistent Restore XYZ123")
-	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 }

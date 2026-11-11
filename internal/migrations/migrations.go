@@ -147,5 +147,6 @@ func GetMigrations() []*gormigrate.Migration {
 		partialUniqueIndexesExcludeSoftDeleted(),
 		addNotificationsArchivedAt(),
 		addNotificationEmailDelivery(),
+		partialUniqueIndexMerchantName(),
 	}
 }

@@ -19,10 +19,6 @@ type MerchantRepository interface {
 	// GetByName retrieves a merchant by name.
 	GetByName(ctx context.Context, name string) (*models.Merchant, error)
 
-	// RestoreByName returns the merchant with this name, including a
-	// soft-deleted one, which it restores first.
-	RestoreByName(ctx context.Context, name string) (*models.Merchant, error)
-
 	// GetAll retrieves all merchants.
 	GetAll(ctx context.Context) ([]models.Merchant, error)
 

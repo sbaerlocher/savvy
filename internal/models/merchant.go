@@ -14,7 +14,7 @@ const DefaultMerchantColor = "#3B82F6"
 // Merchant represents a retailer or brand in the system
 type Merchant struct {
 	ID        uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
+	Name      string         `gorm:"uniqueIndex:idx_merchants_name,where:deleted_at IS NULL;not null" json:"name"`
 	LogoURL   string         `gorm:"type:text" json:"logo_url"`
 	Website   string         `gorm:"type:text" json:"website"`
 	Color     string         `gorm:"default:#0066CC" json:"color"`

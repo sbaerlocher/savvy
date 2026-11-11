@@ -38,14 +38,6 @@ func (m *MockMerchantRepository) GetByName(ctx context.Context, name string) (*m
 	return args.Get(0).(*models.Merchant), args.Error(1)
 }
 
-func (m *MockMerchantRepository) RestoreByName(ctx context.Context, name string) (*models.Merchant, error) {
-	args := m.Called(ctx, name)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.Merchant), args.Error(1)
-}
-
 func (m *MockMerchantRepository) GetAll(ctx context.Context) ([]models.Merchant, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
@@ -139,9 +131,23 @@ func TestMerchantService_CreateMerchant_DuplicateName(t *testing.T) {
 
 	err := service.CreateMerchant(ctx, newMerchant)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "merchant with this name already exists")
+	assert.ErrorIs(t, err, ErrMerchantExists)
 	mockRepo.AssertNotCalled(t, "Create")
+}
+
+func TestMerchantService_CreateMerchant_DuplicateNameRace(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+	merchant := &models.Merchant{Name: "Concurrent Merchant"}
+
+	mockRepo.On("GetByName", ctx, merchant.Name).Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("Create", ctx, merchant).Return(errors.New("duplicate key value violates unique constraint (SQLSTATE 23505)"))
+
+	err := service.CreateMerchant(ctx, merchant)
+
+	assert.ErrorIs(t, err, ErrMerchantExists)
+	mockRepo.AssertExpectations(t)
 }
 
 func TestMerchantService_CreateMerchant_DefaultColor(t *testing.T) {
@@ -322,9 +328,23 @@ func TestMerchantService_UpdateMerchant_DuplicateName(t *testing.T) {
 
 	err := service.UpdateMerchant(ctx, merchantToUpdate)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "merchant with this name already exists")
+	assert.ErrorIs(t, err, ErrMerchantExists)
 	mockRepo.AssertNotCalled(t, "Update")
+}
+
+func TestMerchantService_UpdateMerchant_DuplicateNameRace(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+	merchant := &models.Merchant{ID: uuid.New(), Name: "Concurrent Merchant", Color: models.DefaultMerchantColor}
+
+	mockRepo.On("GetByName", ctx, merchant.Name).Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("Update", ctx, merchant).Return(errors.New("duplicate key value violates unique constraint (SQLSTATE 23505)"))
+
+	err := service.UpdateMerchant(ctx, merchant)
+
+	assert.ErrorIs(t, err, ErrMerchantExists)
+	mockRepo.AssertExpectations(t)
 }
 
 func TestMerchantService_DeleteMerchant_Success(t *testing.T) {
@@ -424,23 +444,23 @@ func TestMerchantService_GetOrCreateByName_Creates(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// A soft-deleted merchant (or a concurrent create) still holds the unique
-// name, so the insert fails and the existing row is restored and reused.
-func TestMerchantService_GetOrCreateByName_DuplicateRestores(t *testing.T) {
+// A concurrent create can win after the initial lookup; the active row is
+// looked up and reused after the duplicate-key response.
+func TestMerchantService_GetOrCreateByName_RaceDuplicateKey(t *testing.T) {
 	mockRepo := new(MockMerchantRepository)
 	service := NewMerchantService(mockRepo)
 	ctx := context.Background()
-	restored := &models.Merchant{ID: uuid.New(), Name: "IKEA"}
+	existing := &models.Merchant{ID: uuid.New(), Name: "IKEA"}
 
-	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound).Once()
 	mockRepo.On("Create", ctx, mock.AnythingOfType("*models.Merchant")).
 		Return(errors.New(`ERROR: duplicate key value violates unique constraint "idx_merchants_name" (SQLSTATE 23505)`))
-	mockRepo.On("RestoreByName", ctx, "IKEA").Return(restored, nil)
+	mockRepo.On("GetByName", ctx, "IKEA").Return(existing, nil).Once()
 
 	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
 
 	assert.NoError(t, err)
-	assert.Equal(t, restored, merchant)
+	assert.Equal(t, existing, merchant)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -457,7 +477,7 @@ func TestMerchantService_GetOrCreateByName_CreateErrorNoRestore(t *testing.T) {
 
 	assert.ErrorIs(t, err, context.Canceled)
 	assert.Nil(t, merchant)
-	mockRepo.AssertNotCalled(t, "RestoreByName", mock.Anything, mock.Anything)
+	mockRepo.AssertNumberOfCalls(t, "GetByName", 1)
 }
 
 func TestMerchantService_GetOrCreateByName_LookupError(t *testing.T) {
