@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
+	"savvy/internal/database"
 	"savvy/internal/models"
 	"savvy/internal/testutil"
 )
@@ -57,6 +58,33 @@ func TestMerchantRepository_Create(t *testing.T) {
 	assert.Equal(t, "Test Merchant Create", found.Name)
 	assert.Equal(t, "#FF0000", found.Color)
 
+}
+
+func TestMerchantRepository_CreateSameNameAsSoftDeleted(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+	name := "Test Merchant Reuse Soft Deleted Name"
+
+	deleted := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
+	assert.NoError(t, repo.Create(ctx, deleted))
+	assert.NoError(t, repo.Delete(ctx, deleted.ID))
+
+	replacement := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
+	assert.NoError(t, repo.Create(ctx, replacement))
+	assert.NotEqual(t, deleted.ID, replacement.ID)
+}
+
+func TestMerchantRepository_CreateDuplicateLiveName_Fails(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+	name := "Test Merchant Duplicate Live Name"
+
+	assert.NoError(t, repo.Create(ctx, &models.Merchant{Name: name, Color: models.DefaultMerchantColor}))
+	err := repo.Create(ctx, &models.Merchant{Name: name, Color: models.DefaultMerchantColor})
+	assert.Error(t, err)
+	assert.True(t, database.IsDuplicateError(err))
 }
 
 func TestMerchantRepository_GetByID(t *testing.T) {
