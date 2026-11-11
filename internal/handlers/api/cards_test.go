@@ -302,7 +302,7 @@ func TestCardsHandler_Create_WithNewMerchant(t *testing.T) {
 	user := createTestUser()
 	c.Set("current_user", user)
 
-	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockMerchantService.On("GetOrCreateByName", mock.Anything, mock.AnythingOfType("string")).Return(&models.Merchant{ID: uuid.New(), Name: "New Merchant"}, nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
 	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
@@ -341,7 +341,7 @@ func TestCardsHandler_Create_EmptyMerchantIDWithNewName(t *testing.T) {
 	user := createTestUser()
 	c.Set("current_user", user)
 
-	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockMerchantService.On("GetOrCreateByName", mock.Anything, mock.AnythingOfType("string")).Return(&models.Merchant{ID: uuid.New(), Name: "New Merchant"}, nil)
 	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.Card)(nil), nil)
 	mockCardService.On("CheckSharedDuplicate", mock.Anything, "1234567890", mock.Anything, user.ID).Return((*models.Card)(nil), nil)
 	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.Card)(nil), nil)
@@ -407,7 +407,7 @@ func TestCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
 			if assert.NotNil(t, response.Duplicate) {
 				assert.Equal(t, tc.deleted, response.Duplicate.Deleted)
 			}
-			merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+			merchantService.AssertNotCalled(t, "GetOrCreateByName", mock.Anything, mock.Anything)
 			cardService.AssertNotCalled(t, "CheckSharedDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 			cardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 			cardService.AssertExpectations(t)
@@ -445,7 +445,7 @@ func TestCardsHandler_Create_InvalidStatus_DoesNotCreateMerchant(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "invalid_status")
-	mockMerchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+	mockMerchantService.AssertNotCalled(t, "GetOrCreateByName", mock.Anything, mock.Anything)
 	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 }
 

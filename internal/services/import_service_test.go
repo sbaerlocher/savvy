@@ -203,6 +203,19 @@ func (m *mockImportMerchantService) CreateMerchant(ctx context.Context, merchant
 	return m.Called(ctx, merchant).Error(0)
 }
 
+// GetOrCreateByName mirrors the real lookup-then-create flow on top of the
+// mocked GetMerchantByName and CreateMerchant, so tests keep their expectations.
+func (m *mockImportMerchantService) GetOrCreateByName(ctx context.Context, name string) (*models.Merchant, error) {
+	if existing, err := m.GetMerchantByName(ctx, name); err == nil && existing != nil {
+		return existing, nil
+	}
+	merchant := &models.Merchant{Name: name}
+	if err := m.CreateMerchant(ctx, merchant); err != nil {
+		return nil, err
+	}
+	return merchant, nil
+}
+
 func (m *mockImportMerchantService) GetMerchantByID(_ context.Context, _ uuid.UUID) (*models.Merchant, error) {
 	return nil, nil
 }

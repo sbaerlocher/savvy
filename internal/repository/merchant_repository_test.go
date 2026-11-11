@@ -270,3 +270,43 @@ func TestMerchantRepository_GetByName_Exact(t *testing.T) {
 	assert.Equal(t, "Test Exact Name", found.Name)
 	assert.NotEqual(t, merchant2.ID, found.ID)
 }
+
+func TestMerchantRepository_RestoreByName_SoftDeleted(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+
+	merchant := &models.Merchant{Name: "Test RestoreByName Deleted", Color: "#AABBCC"}
+	db.Create(merchant)
+	assert.NoError(t, repo.Delete(ctx, merchant.ID))
+
+	restored, err := repo.RestoreByName(ctx, "Test RestoreByName Deleted")
+	assert.NoError(t, err)
+	assert.Equal(t, merchant.ID, restored.ID)
+	assert.False(t, restored.DeletedAt.Valid)
+
+	found, err := repo.GetByName(ctx, "Test RestoreByName Deleted")
+	assert.NoError(t, err)
+	assert.Equal(t, merchant.ID, found.ID)
+}
+
+func TestMerchantRepository_RestoreByName_Live(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+	ctx := context.Background()
+
+	merchant := &models.Merchant{Name: "Test RestoreByName Live", Color: "#AABBCC"}
+	db.Create(merchant)
+
+	found, err := repo.RestoreByName(ctx, "Test RestoreByName Live")
+	assert.NoError(t, err)
+	assert.Equal(t, merchant.ID, found.ID)
+}
+
+func TestMerchantRepository_RestoreByName_NotFound(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewMerchantRepository(db)
+
+	_, err := repo.RestoreByName(context.Background(), "NonExistent Restore XYZ123")
+	assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+}

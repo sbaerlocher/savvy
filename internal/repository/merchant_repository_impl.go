@@ -44,6 +44,23 @@ func (r *GormMerchantRepository) GetByName(ctx context.Context, name string) (*m
 	return &merchant, nil
 }
 
+// RestoreByName returns the merchant with this name, including a soft-deleted
+// one, which it restores first. The unique index on name also covers
+// soft-deleted rows, so such a row blocks creating a new merchant.
+func (r *GormMerchantRepository) RestoreByName(ctx context.Context, name string) (*models.Merchant, error) {
+	var merchant models.Merchant
+	if err := r.db.WithContext(ctx).Unscoped().Where("name = ?", name).First(&merchant).Error; err != nil {
+		return nil, err
+	}
+	if merchant.DeletedAt.Valid {
+		if err := r.db.WithContext(ctx).Unscoped().Model(&merchant).Update("deleted_at", nil).Error; err != nil {
+			return nil, err
+		}
+		merchant.DeletedAt = gorm.DeletedAt{}
+	}
+	return &merchant, nil
+}
+
 // GetAll retrieves all merchants ordered by name.
 func (r *GormMerchantRepository) GetAll(ctx context.Context) ([]models.Merchant, error) {
 	var merchants []models.Merchant

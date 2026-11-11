@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 	"savvy/internal/models"
 )
 
@@ -29,6 +31,14 @@ func (m *MockMerchantRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 }
 
 func (m *MockMerchantRepository) GetByName(ctx context.Context, name string) (*models.Merchant, error) {
+	args := m.Called(ctx, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Merchant), args.Error(1)
+}
+
+func (m *MockMerchantRepository) RestoreByName(ctx context.Context, name string) (*models.Merchant, error) {
 	args := m.Called(ctx, name)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -380,4 +390,97 @@ func TestMerchantService_GetMerchantByName_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, merchant)
 	mockRepo.AssertExpectations(t)
+}
+
+func TestMerchantService_GetOrCreateByName_Existing(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+	existing := &models.Merchant{ID: uuid.New(), Name: "IKEA"}
+
+	mockRepo.On("GetByName", ctx, "IKEA").Return(existing, nil)
+
+	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
+
+	assert.NoError(t, err)
+	assert.Equal(t, existing, merchant)
+	mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+}
+
+func TestMerchantService_GetOrCreateByName_Creates(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+
+	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("Create", ctx, mock.MatchedBy(func(m *models.Merchant) bool {
+		return m.Name == "IKEA" && m.Color == defaultMerchantColor
+	})).Return(nil)
+
+	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "IKEA", merchant.Name)
+	mockRepo.AssertExpectations(t)
+}
+
+// A soft-deleted merchant (or a concurrent create) still holds the unique
+// name, so the insert fails and the existing row is restored and reused.
+func TestMerchantService_GetOrCreateByName_DuplicateRestores(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+	restored := &models.Merchant{ID: uuid.New(), Name: "IKEA"}
+
+	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*models.Merchant")).
+		Return(errors.New(`ERROR: duplicate key value violates unique constraint "idx_merchants_name" (SQLSTATE 23505)`))
+	mockRepo.On("RestoreByName", ctx, "IKEA").Return(restored, nil)
+
+	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
+
+	assert.NoError(t, err)
+	assert.Equal(t, restored, merchant)
+	mockRepo.AssertExpectations(t)
+}
+
+// Unrelated failures (timeouts, cancelled context) must not trigger a restore.
+func TestMerchantService_GetOrCreateByName_CreateErrorNoRestore(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+
+	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
+	mockRepo.On("Create", ctx, mock.AnythingOfType("*models.Merchant")).Return(context.Canceled)
+
+	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
+
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.Nil(t, merchant)
+	mockRepo.AssertNotCalled(t, "RestoreByName", mock.Anything, mock.Anything)
+}
+
+func TestMerchantService_GetOrCreateByName_LookupError(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+	ctx := context.Background()
+
+	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), context.DeadlineExceeded)
+
+	merchant, err := service.GetOrCreateByName(ctx, "IKEA")
+
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.Nil(t, merchant)
+	mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+}
+
+func TestMerchantService_GetOrCreateByName_EmptyName(t *testing.T) {
+	mockRepo := new(MockMerchantRepository)
+	service := NewMerchantService(mockRepo)
+
+	merchant, err := service.GetOrCreateByName(context.Background(), "")
+
+	assert.Error(t, err)
+	assert.Nil(t, merchant)
+	mockRepo.AssertNotCalled(t, "GetByName", mock.Anything, mock.Anything)
 }

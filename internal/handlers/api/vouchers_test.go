@@ -268,7 +268,7 @@ func TestVouchersHandler_Create_WithNewMerchant(t *testing.T) {
 	user := createTestUser()
 	c.Set("current_user", user)
 
-	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockMerchantService.On("GetOrCreateByName", mock.Anything, mock.AnythingOfType("string")).Return(&models.Merchant{ID: uuid.New(), Name: "New Merchant"}, nil)
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(nil)
@@ -335,7 +335,7 @@ func TestVouchersHandler_Create_EmptyMerchantIDWithNewName(t *testing.T) {
 	user := createTestUser()
 	c.Set("current_user", user)
 
-	mockMerchantService.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockMerchantService.On("GetOrCreateByName", mock.Anything, mock.AnythingOfType("string")).Return(&models.Merchant{ID: uuid.New(), Name: "New Merchant"}, nil)
 	mockVoucherService.On("CheckDuplicate", mock.Anything, "VOUCHER123", user.ID, (*uuid.UUID)(nil)).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("FindDeletedDuplicate", mock.Anything, "VOUCHER123", user.ID).Return((*models.Voucher)(nil), nil)
 	mockVoucherService.On("CreateVoucher", mock.Anything, mock.AnythingOfType("*models.Voucher")).Return(nil)

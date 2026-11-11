@@ -345,7 +345,7 @@ func TestResolveMerchant_EmptyIDWithNewName(t *testing.T) {
 	merchantID := ""
 	newName := "Neu"
 	mockMerchant := new(mocks.MockMerchantServiceInterface)
-	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(nil)
+	mockMerchant.On("GetOrCreateByName", mock.Anything, "Neu").Return(&models.Merchant{ID: uuid.New(), Name: "Neu"}, nil)
 
 	mid, name, err := resolveMerchant(c, mockMerchant, &merchantID, &newName)
 	assert.NoError(t, err)
@@ -370,28 +370,12 @@ func TestResolveMerchant_CreateFails(t *testing.T) {
 	c, rec := newResolveMerchantContext(t)
 	newName := "Neu"
 	mockMerchant := new(mocks.MockMerchantServiceInterface)
-	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(assert.AnError)
-	mockMerchant.On("GetMerchantByName", mock.Anything, "Neu").Return(nil, assert.AnError)
+	mockMerchant.On("GetOrCreateByName", mock.Anything, "Neu").Return((*models.Merchant)(nil), assert.AnError)
 
 	mid, _, err := resolveMerchant(c, mockMerchant, nil, &newName)
 	assert.Error(t, err)
 	assert.Nil(t, mid)
 	assert.Equal(t, http.StatusInternalServerError, rec.Code)
 	assertErrorCode(t, rec, "server_error")
-	mockMerchant.AssertExpectations(t)
-}
-
-func TestResolveMerchant_NameTakenReusesExisting(t *testing.T) {
-	c, _ := newResolveMerchantContext(t)
-	newName := "Neu"
-	existing := &models.Merchant{ID: uuid.New(), Name: "Neu"}
-	mockMerchant := new(mocks.MockMerchantServiceInterface)
-	mockMerchant.On("CreateMerchant", mock.Anything, mock.AnythingOfType("*models.Merchant")).Return(assert.AnError)
-	mockMerchant.On("GetMerchantByName", mock.Anything, "Neu").Return(existing, nil)
-
-	mid, name, err := resolveMerchant(c, mockMerchant, nil, &newName)
-	assert.NoError(t, err)
-	assert.Equal(t, &existing.ID, mid)
-	assert.Equal(t, "Neu", name)
 	mockMerchant.AssertExpectations(t)
 }
