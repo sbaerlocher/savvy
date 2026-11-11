@@ -276,7 +276,12 @@ func TestMerchantRepository_RestoreByName_SoftDeleted(t *testing.T) {
 	repo := NewMerchantRepository(db)
 	ctx := context.Background()
 
-	merchant := &models.Merchant{Name: "Test RestoreByName Deleted", Color: "#AABBCC"}
+	merchant := &models.Merchant{
+		Name:    "Test RestoreByName Deleted",
+		Color:   "#AABBCC",
+		LogoURL: "https://example.com/logo.png",
+		Website: "https://example.com",
+	}
 	db.Create(merchant)
 	assert.NoError(t, repo.Delete(ctx, merchant.ID))
 
@@ -285,9 +290,13 @@ func TestMerchantRepository_RestoreByName_SoftDeleted(t *testing.T) {
 	assert.Equal(t, merchant.ID, restored.ID)
 	assert.False(t, restored.DeletedAt.Valid)
 
+	// Admin-only fields of the deleted merchant must not come back.
 	found, err := repo.GetByName(ctx, "Test RestoreByName Deleted")
 	assert.NoError(t, err)
 	assert.Equal(t, merchant.ID, found.ID)
+	assert.Empty(t, found.LogoURL)
+	assert.Empty(t, found.Website)
+	assert.Equal(t, models.DefaultMerchantColor, found.Color)
 }
 
 func TestMerchantRepository_RestoreByName_Live(t *testing.T) {
@@ -295,12 +304,15 @@ func TestMerchantRepository_RestoreByName_Live(t *testing.T) {
 	repo := NewMerchantRepository(db)
 	ctx := context.Background()
 
-	merchant := &models.Merchant{Name: "Test RestoreByName Live", Color: "#AABBCC"}
+	merchant := &models.Merchant{Name: "Test RestoreByName Live", Color: "#AABBCC", Website: "https://example.com"}
 	db.Create(merchant)
 
+	// A live merchant (concurrent create) is returned unchanged.
 	found, err := repo.RestoreByName(ctx, "Test RestoreByName Live")
 	assert.NoError(t, err)
 	assert.Equal(t, merchant.ID, found.ID)
+	assert.Equal(t, "#AABBCC", found.Color)
+	assert.Equal(t, "https://example.com", found.Website)
 }
 
 func TestMerchantRepository_RestoreByName_NotFound(t *testing.T) {

@@ -414,7 +414,7 @@ func TestMerchantService_GetOrCreateByName_Creates(t *testing.T) {
 
 	mockRepo.On("GetByName", ctx, "IKEA").Return((*models.Merchant)(nil), gorm.ErrRecordNotFound)
 	mockRepo.On("Create", ctx, mock.MatchedBy(func(m *models.Merchant) bool {
-		return m.Name == "IKEA" && m.Color == defaultMerchantColor
+		return m.Name == "IKEA" && m.Color == models.DefaultMerchantColor
 	})).Return(nil)
 
 	merchant, err := service.GetOrCreateByName(ctx, "IKEA")

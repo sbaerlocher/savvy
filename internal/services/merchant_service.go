@@ -18,9 +18,6 @@ import (
 // ErrMerchantExists is returned when a merchant with the same name exists.
 var ErrMerchantExists = errors.New("merchant with this name already exists")
 
-// defaultMerchantColor is used when a merchant is created without a color.
-const defaultMerchantColor = "#3B82F6"
-
 // MerchantServiceInterface defines the interface for merchant business logic.
 type MerchantServiceInterface interface {
 	// CreateMerchant creates a new merchant.
@@ -69,7 +66,7 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 		return errors.New("merchant name is required")
 	}
 	if merchant.Color == "" {
-		merchant.Color = defaultMerchantColor
+		merchant.Color = models.DefaultMerchantColor
 	}
 
 	// Check if merchant with same name already exists
@@ -103,7 +100,7 @@ func (s *MerchantService) GetOrCreateByName(ctx context.Context, name string) (*
 		return nil, fmt.Errorf("get merchant by name %q: %w", name, err)
 	}
 
-	merchant := &models.Merchant{Name: name, Color: defaultMerchantColor}
+	merchant := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
 	if err := s.repo.Create(ctx, merchant); err != nil {
 		if !database.IsDuplicateError(err) {
 			return nil, fmt.Errorf("create merchant: %w", err)
