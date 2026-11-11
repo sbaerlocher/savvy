@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   embedded via `go:embed` still trigger it. `lefthook.yml` now requires
   lefthook 2.0 or newer (`min_version`).
 
+### Security
+
+- **Go 1.27.4 (#530)** - Fixes `GO-2026-6859` (net/http, HTTP/1 server crash via
+  `MaxBytesReader` header race), which govulncheck reported as reachable
+  against Go 1.27.3. The bump covers `go.mod`, the CI workflows and the
+  `golang:1.27-alpine` build stages.
+
+### Dependencies
+
+- Updated all non-major dependencies (#530) including Go 1.27.4, pgx 5.13.0,
+  `@sveltejs/kit` 3.2.0 and Node.js 26.13.1, and `golang.org/x/oauth2` 0.38.0
+  (#522).
+- Updated Docker images: `golang:1.27-alpine` digest (#530) and
+  `grafana/grafana:13.0` digest (#523).
+- Updated `sbaerlocher/.github` to v2026-11-10 (#521).
+
 ## [1.8.1] - 2026-11-07
 
 ### Changed
