@@ -204,6 +204,32 @@ func (h *CardsHandler) Show(c *echo.Context) error {
 	})
 }
 
+// sharedDuplicateWarning reports a card with this number that another owner already
+// shared with the user. This is advisory only — a shared card belongs to a different
+// user_id and violates no unique constraint, so creation proceeds (family cards are
+// intentionally allowed). Lookup errors are logged and yield no warning.
+func (h *CardsHandler) sharedDuplicateWarning(ctx context.Context, cardNumber string, merchantID *uuid.UUID, userID uuid.UUID) *DuplicateWarning {
+	sharedDup, err := h.cardService.CheckSharedDuplicate(ctx, cardNumber, merchantID, userID)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to check shared duplicate", "error", err)
+	}
+	if sharedDup == nil {
+		return nil
+	}
+	warning := &DuplicateWarning{
+		HasDuplicate:   true,
+		MerchantName:   sharedDup.MerchantName,
+		ResourceNumber: sharedDup.CardNumber,
+		ExistingID:     sharedDup.ID.String(),
+		IsShared:       true,
+	}
+	if sharedDup.User != nil {
+		owner := ToUserDTO(sharedDup.User)
+		warning.SharedBy = &owner
+	}
+	return warning
+}
+
 // Create creates a new card
 // POST /api/v1/cards
 //
@@ -265,10 +291,16 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		return err
 	}
 
-	// Handle merchant (existing or new) last: it may create a merchant
-	merchantID, merchantName, err := resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
-	if err != nil {
-		return err
+	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
+	// Only a new merchant must wait until the checks have passed.
+	var merchantID *uuid.UUID
+	var merchantName string
+	var err error
+	if req.MerchantID != nil && *req.MerchantID != "" {
+		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
@@ -312,28 +344,17 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Shared duplicate: a card with this number was already shared with the user by
-	// another owner. This is advisory only — a shared card belongs to a different
-	// user_id and violates no unique constraint, so creation proceeds (family cards
-	// are intentionally allowed). The warning is attached to the created response.
-	var sharedWarning *DuplicateWarning
-	sharedDup, err := h.cardService.CheckSharedDuplicate(c.Request().Context(), req.CardNumber, merchantID, user.ID)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check shared duplicate", "error", err)
-	}
-	if sharedDup != nil {
-		sharedWarning = &DuplicateWarning{
-			HasDuplicate:   true,
-			MerchantName:   sharedDup.MerchantName,
-			ResourceNumber: sharedDup.CardNumber,
-			ExistingID:     sharedDup.ID.String(),
-			IsShared:       true,
-		}
-		if sharedDup.User != nil {
-			owner := ToUserDTO(sharedDup.User)
-			sharedWarning.SharedBy = &owner
+	// The shared-duplicate check below needs the merchant ID, so a new merchant is
+	// created here — after the blocking checks, before the advisory one.
+	if merchantID == nil {
+		merchantID, merchantName, err = resolveMerchant(c, h.merchantService, req.MerchantID, req.NewMerchantName)
+		if err != nil {
+			return err
 		}
 	}
+
+	// Shared duplicate: advisory only, attached to the created response.
+	sharedWarning := h.sharedDuplicateWarning(c.Request().Context(), req.CardNumber, merchantID, user.ID)
 
 	// Create card
 	card := &models.Card{
