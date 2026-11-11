@@ -6,17 +6,26 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"savvy/internal/database"
 	"savvy/internal/logsafe"
 	"savvy/internal/models"
 	"savvy/internal/repository"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// ErrMerchantExists is returned when a merchant with the same name exists.
+var ErrMerchantExists = errors.New("merchant with this name already exists")
 
 // MerchantServiceInterface defines the interface for merchant business logic.
 type MerchantServiceInterface interface {
 	// CreateMerchant creates a new merchant.
 	CreateMerchant(ctx context.Context, merchant *models.Merchant) error
+
+	// GetOrCreateByName returns the merchant with this name, creating it or
+	// restoring a soft-deleted one if needed.
+	GetOrCreateByName(ctx context.Context, name string) (*models.Merchant, error)
 
 	// GetMerchantByID retrieves a merchant by ID.
 	GetMerchantByID(ctx context.Context, id uuid.UUID) (*models.Merchant, error)
@@ -57,13 +66,13 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 		return errors.New("merchant name is required")
 	}
 	if merchant.Color == "" {
-		merchant.Color = "#3B82F6" // Default blue color
+		merchant.Color = models.DefaultMerchantColor
 	}
 
 	// Check if merchant with same name already exists
 	existing, err := s.repo.GetByName(ctx, merchant.Name)
 	if err == nil && existing != nil {
-		return errors.New("merchant with this name already exists")
+		return ErrMerchantExists
 	}
 
 	if err := s.repo.Create(ctx, merchant); err != nil {
@@ -72,6 +81,39 @@ func (s *MerchantService) CreateMerchant(ctx context.Context, merchant *models.M
 
 	slog.Info("Merchant created", "merchant_id", logsafe.UUID(merchant.ID), "name", logsafe.String(merchant.Name))
 	return nil
+}
+
+// GetOrCreateByName returns the merchant with this name. It creates the
+// merchant if none exists. If the insert hits the unique index on name, the
+// row is either a soft-deleted merchant or a concurrent create; the existing
+// row is returned, restored if it was soft-deleted.
+func (s *MerchantService) GetOrCreateByName(ctx context.Context, name string) (*models.Merchant, error) {
+	if name == "" {
+		return nil, errors.New("merchant name is required")
+	}
+
+	existing, err := s.repo.GetByName(ctx, name)
+	if err == nil {
+		return existing, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("get merchant by name %q: %w", name, err)
+	}
+
+	merchant := &models.Merchant{Name: name, Color: models.DefaultMerchantColor}
+	if err := s.repo.Create(ctx, merchant); err != nil {
+		if !database.IsDuplicateError(err) {
+			return nil, fmt.Errorf("create merchant: %w", err)
+		}
+		restored, rerr := s.repo.RestoreByName(ctx, name)
+		if rerr != nil {
+			return nil, fmt.Errorf("restore merchant %q: %w", name, rerr)
+		}
+		return restored, nil
+	}
+
+	slog.Info("Merchant created", "merchant_id", logsafe.UUID(merchant.ID), "name", logsafe.String(merchant.Name))
+	return merchant, nil
 }
 
 // GetMerchantByID retrieves a merchant by ID.

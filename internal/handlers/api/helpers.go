@@ -105,14 +105,8 @@ func resolveMerchant(
 
 		return &mid, merchant.Name, nil
 	} else if newMerchantName != nil && *newMerchantName != "" {
-		// Create new merchant
-		merchant := &models.Merchant{Name: *newMerchantName}
-		if err := merchantService.CreateMerchant(c.Request().Context(), merchant); err != nil {
-			// Name taken (e.g. a merchant left behind by an earlier failed create):
-			// merchant names are unique, so reuse it instead of failing the request.
-			if existing, lookupErr := merchantService.GetMerchantByName(c.Request().Context(), *newMerchantName); lookupErr == nil && existing != nil {
-				return &existing.ID, existing.Name, nil
-			}
+		merchant, err := merchantService.GetOrCreateByName(c.Request().Context(), *newMerchantName)
+		if err != nil {
 			slog.ErrorContext(c.Request().Context(), "failed to create merchant", "name", logsafe.String(*newMerchantName), "error", logsafe.Error(err))
 			_ = c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "server_error",

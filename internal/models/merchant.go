@@ -8,6 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// DefaultMerchantColor is used when a merchant has no color of its own.
+const DefaultMerchantColor = "#3B82F6"
+
 // Merchant represents a retailer or brand in the system
 type Merchant struct {
 	ID        uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`

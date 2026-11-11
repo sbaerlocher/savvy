@@ -604,18 +604,11 @@ func (s *ImportService) resolveMerchant(ctx context.Context, name string) (*uuid
 		return nil, nil
 	}
 
-	// Try to find existing merchant
-	merchant, err := s.merchantService.GetMerchantByName(ctx, name)
-	if err == nil && merchant != nil {
-		return &merchant.ID, nil
-	}
-
-	// Create new merchant
-	newMerchant := &models.Merchant{Name: name}
-	if err := s.merchantService.CreateMerchant(ctx, newMerchant); err != nil {
+	merchant, err := s.merchantService.GetOrCreateByName(ctx, name)
+	if err != nil {
 		return nil, fmt.Errorf("failed to create merchant %q: %w", name, err)
 	}
-	return &newMerchant.ID, nil
+	return &merchant.ID, nil
 }
 
 // sanitizeImportError replaces raw database errors with user-friendly messages.
