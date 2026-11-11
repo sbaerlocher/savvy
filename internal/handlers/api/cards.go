@@ -230,6 +230,40 @@ func (h *CardsHandler) sharedDuplicateWarning(ctx context.Context, cardNumber st
 	return warning
 }
 
+// validateCardCreate checks required fields and string lengths for a card create request.
+// A non-nil error means the error response has been sent; callers should return it directly.
+func validateCardCreate(c *echo.Context, req *CardCreateRequest) error {
+	if strings.TrimSpace(req.CardNumber) == "" {
+		return writeBadRequest(c, "missing_fields", "Card number is required")
+	}
+
+	if err := validateStringLength(req.CardNumber, "card_number"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.Notes, "notes"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.Program, "program"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+
+	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
+		return err
+	}
+
+	if err := validateEnum(c, stringOrDefault(req.BarcodeType, "CODE128"), validBarcodeTypes, "barcode_type"); err != nil {
+		return err
+	}
+	if err := validateEnum(c, stringOrDefault(req.Status, "active"), validCardStatuses, "status"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Create creates a new card
 // POST /api/v1/cards
 //
@@ -253,43 +287,14 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 
 	var req CardCreateRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "invalid_request",
-			Message: "Invalid request body",
-		})
+		return writeBadRequest(c, "invalid_request", "Invalid request body")
 	}
 
-	// Validate required fields
-	if req.CardNumber == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_fields",
-			Message: "Card number is required",
-		})
+	if err := validateCardCreate(c, &req); err != nil {
+		return err
 	}
-
-	// Validate string lengths
-	if err := validateStringLength(req.CardNumber, "card_number"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.Notes, "notes"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.Program, "program"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-
-	// Validate enum fields
 	barcodeType := stringOrDefault(req.BarcodeType, "CODE128")
-	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
-		return err
-	}
 	status := stringOrDefault(req.Status, "active")
-	if err := validateEnum(c, status, validCardStatuses, "status"); err != nil {
-		return err
-	}
 
 	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
 	// Only a new merchant must wait until the checks have passed.

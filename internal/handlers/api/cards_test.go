@@ -277,7 +277,7 @@ func TestCardsHandler_Create_InvalidRequest(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
@@ -291,7 +291,7 @@ func TestCardsHandler_Create_MissingCardNumber(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
@@ -323,14 +323,13 @@ func TestCardsHandler_Create_MissingMerchant(t *testing.T) {
 	c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
 	user := createTestUser()
 	c.Set("current_user", user)
-	mockCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(nil, nil)
-	mockCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return(nil, nil)
 
 	err := handler.Create(c)
 
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assertErrorCode(t, rec, "missing_merchant")
+	mockCardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	mockCardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 }
 
@@ -374,15 +373,20 @@ func TestCardsHandler_Create_InvalidMerchantID(t *testing.T) {
 
 func TestCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
 	for _, tc := range []struct {
-		name    string
-		deleted bool
+		name            string
+		deleted         bool
+		emptyMerchantID bool
 	}{
 		{name: "active"},
+		{name: "active with empty merchant id", emptyMerchantID: true},
 		{name: "soft-deleted", deleted: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			handler, cardService, _, merchantService, _, _, _, _, _ := setupCardsTest()
 			body := `{"new_merchant_name":"New Merchant","card_number":"1234567890"}`
+			if tc.emptyMerchantID {
+				body = `{"merchant_id":"","new_merchant_name":"New Merchant","card_number":"1234567890"}`
+			}
 			c, rec := createTestContext(http.MethodPost, "/api/v1/cards", body)
 			user := createTestUser()
 			c.Set("current_user", user)
@@ -411,6 +415,34 @@ func TestCardsHandler_Create_DuplicateDoesNotCreateMerchant(t *testing.T) {
 			cardService.AssertNotCalled(t, "CheckSharedDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 			cardService.AssertNotCalled(t, "CreateCard", mock.Anything, mock.Anything)
 			cardService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestCardsHandler_Create_ValidationBeforeServiceCalls(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		body string
+		code string
+	}{
+		{"missing card number", `{"new_merchant_name":"New Merchant"}`, "missing_fields"},
+		{"whitespace card number", `{"new_merchant_name":"New Merchant","card_number":"  "}`, "missing_fields"},
+		{"whitespace merchant name", `{"new_merchant_name":"   ","card_number":"1234567890"}`, "missing_merchant"},
+		{"notes too long", `{"new_merchant_name":"New Merchant","card_number":"1234567890","notes":"` + strings.Repeat("x", 100000) + `"}`, "field_too_long"},
+		{"merchant name too long", `{"new_merchant_name":"` + strings.Repeat("x", 100000) + `","card_number":"1234567890"}`, "field_too_long"},
+		{"invalid status and no merchant", `{"card_number":"1234567890","status":"bogus"}`, "missing_merchant"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, cardService, _, merchantService, _, _, _, _, _ := setupCardsTest()
+			c, rec := createTestContext(http.MethodPost, "/api/v1/cards", tc.body)
+			c.Set("current_user", createTestUser())
+
+			assert.Error(t, handler.Create(c))
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assertErrorCode(t, rec, tc.code)
+			// Any service call would panic on the unconfigured mocks; assert explicitly too.
+			cardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			merchantService.AssertNotCalled(t, "GetOrCreateByName", mock.Anything, mock.Anything)
 		})
 	}
 }

@@ -493,6 +493,15 @@ func writeBadRequest(c *echo.Context, code, message string) error {
 	return fmt.Errorf("bad request: %s", code)
 }
 
+// validateMerchantPresence requires an existing merchant_id or a non-blank new_merchant_name.
+// A non-nil error means the error response has been sent; callers should return it directly.
+func validateMerchantPresence(c *echo.Context, merchantID, newMerchantName *string) error {
+	if strings.TrimSpace(stringOrDefault(merchantID, "")) == "" && strings.TrimSpace(stringOrDefault(newMerchantName, "")) == "" {
+		return writeBadRequest(c, "missing_merchant", "Merchant is required: select an existing merchant or enter a new merchant name")
+	}
+	return nil
+}
+
 // ==================== Enum Validation ====================
 
 // Package-level aliases for the shared validation maps (for convenience within handlers).
