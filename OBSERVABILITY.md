@@ -75,12 +75,9 @@ Savvy uses a modern observability stack based on OpenTelemetry and Grafana:
 ### 1. Start Observability Stack
 
 ```bash
-# Start with observability stack (Loki, Tempo, Prometheus, Grafana)
-docker compose --profile observability up
-
-# Or set as default
-export COMPOSE_PROFILES=observability
-docker compose up
+# Start the development stack, then observability services (Loki, Tempo, Prometheus, Grafana)
+dde project:up
+dde project:observability
 ```
 
 ### 2. Enable OpenTelemetry

@@ -1,7 +1,7 @@
 # Savvy - AI Agent Documentation
 
-**Last Updated**: 2026-03-20
-**Version**: 2.0.0
+**Last Updated**: 2026-11-11
+**Version**: 1.8.1
 **Project Type**: Full-Stack Web Application
 **Tech Stack**: Go + Echo + SvelteKit + TypeScript + GORM + PostgreSQL
 **Purpose**: Digital management of customer cards, vouchers, and gift cards with sharing functionality
@@ -82,8 +82,8 @@ Client (Browser) → SvelteKit SPA (TypeScript) → JSON API (/api/v1/*) → Go 
 **⚠️ CRITICAL RULE: ALWAYS use Docker for Development**
 
 ```bash
-# ✅ CORRECT: Start everything with Docker Compose
-docker compose up
+# ✅ CORRECT: Start the development stack with dde
+dde project:up
 
 # ❌ WRONG: NEVER start local dev servers!
 npm run dev          # NEVER! Causes proxy errors
@@ -93,7 +93,7 @@ air                  # NEVER! Go backend must run in Docker
 
 **Why Docker?**
 
-- ✅ Vite proxy only works in Docker network (`http://api:8080`)
+- ✅ `dde project:up` creates the network required by the Vite proxy (`http://api:8080`)
 - ✅ Consistent development environment (PostgreSQL, Go, Node.js)
 - ✅ Prevents port conflicts and network issues
 - ❌ Local processes cannot access Docker containers (`api:8080` is only resolvable in Docker network)
@@ -287,7 +287,6 @@ client/                               # SvelteKit Frontend
   │   │   ├── BatchPanel.svelte      # Batch Operations Panel
   │   │   ├── MerchantFilters.svelte # Merchant overview filter panel
   │   │   ├── TypeFilterButtons.svelte # Resource type filter buttons
-  │   │   ├── PushNotificationSettings.svelte  # Push Settings
   │   │   ├── settings/              # Settings Sub-Components
   │   │   │   ├── ProfileSection.svelte      # Name editing
   │   │   │   ├── SecuritySection.svelte     # Account info, export, deletion
@@ -743,7 +742,7 @@ if (barcodes.length > 0) {
 
 **Build System**:
 
-- **Development**: `docker compose up` (Vite dev server on port 5173 in Docker)
+- **Development**: `dde project:up` (Vite dev server on port 5173 in Docker)
 - **Production**: `npm run build:embed` → copies to `internal/assets/client/`
 - **Go Embedding**: `//go:embed` in main.go serves SvelteKit build
 - **PWA**: SvelteKit builds the service worker natively from `src/service-worker/index.ts`
@@ -905,14 +904,13 @@ Client (HTTPS) → Traefik (TLS Termination) → Savvy App (HTTP:3000) → Postg
 - Docker Compose for Development ([docker-compose.yml](docker-compose.yml))
   - **api**: Go backend with Air hot reload (port 8080)
   - **client**: Vite dev server (port 5173)
-  - **postgres**: PostgreSQL 16 (port 5432)
+  - PostgreSQL runs as a dde stock service (see [.dde/config.yml](.dde/config.yml))
 
 **Development Workflow**:
 
 ```bash
-# Local Development (separate frontend + backend)
-docker compose up              # Vite (5173) + Go API (8080)
-cd client && npm run dev       # Or: manual Vite dev server
+# Local Development (separate frontend + backend containers)
+dde project:up                 # Serve the app through dde Traefik
 
 # Production Build (embedded frontend)
 cd client && npm run build:embed  # Build + copy to internal/assets/client/
@@ -1260,7 +1258,7 @@ type TOTPServiceInterface interface {
 **Files**:
 
 - Handler: [internal/handlers/api/batch.go](internal/handlers/api/batch.go)
-- DTOs: [internal/models/batch.go](internal/models/batch.go)
+- DTOs: [internal/handlers/api/dto.go](internal/handlers/api/dto.go)
 
 ### 8. Web Push Notifications
 
@@ -1289,7 +1287,7 @@ type PushServiceInterface interface {
 
 - Service: [internal/services/push_service.go](internal/services/push_service.go)
 - Model: [internal/models/push_subscription.go](internal/models/push_subscription.go)
-- Frontend: [client/src/lib/components/PushNotificationSettings.svelte](client/src/lib/components/PushNotificationSettings.svelte)
+- Frontend: [client/src/lib/components/settings/NotificationsSection.svelte](client/src/lib/components/settings/NotificationsSection.svelte)
 
 ### 9. Expiry Reminders
 
@@ -1668,7 +1666,7 @@ that production has no use for, so the route lives behind the same
 - ✅ **Email Verification & Password Reset**: Token-based, SMTP
 - ✅ **Account Management**: Profile, password change, GDPR deletion
 - ✅ **Voucher Status**: Active/inactive/expired lifecycle
-- ✅ **CI/CD Pipeline**: 3 GitHub Actions workflows (pull-request.yml, tag.yml, weekly-security.yml)
+- ✅ **CI/CD Pipeline**: 4 GitHub Actions workflows (pull-request.yml, merge.yml, tag.yml, weekly-security.yml)
 - ✅ **Security Headers**: X-XSS-Protection, X-Content-Type-Options, X-Frame-Options, HSTS
 - ✅ **E2E Testing**: 23 Playwright test files covering all major features
 - ✅ **AuthzService**: Fully integrated in ALL 27 handlers
@@ -1686,8 +1684,8 @@ Check the build logs for errors. The build process includes client build and Go 
 ### "Database connection refused"
 
 ```bash
-docker compose ps
-docker compose logs postgres
+dde project:service:list
+dde project:db
 ```
 
 ### "Barcode scanner not working"

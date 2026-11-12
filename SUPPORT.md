@@ -108,14 +108,10 @@ lsof -ti:3000 | xargs kill -9
 **Solution**:
 
 ```bash
-# Check if PostgreSQL is running
-docker compose ps
-
-# View PostgreSQL logs
-docker compose logs postgres
-
-# Restart services
-docker compose restart
+# Check configured services and restart the development stack
+dde project:service:list
+dde project:down
+dde project:up
 ```
 
 #### Issue: "Frontend not loading / 404 errors"
@@ -165,9 +161,6 @@ docker compose logs -f api
 # Frontend only
 docker compose logs -f client
 
-# Database only
-docker compose logs -f postgres
-
 # Last 100 lines
 docker compose logs --tail=100
 ```
@@ -182,9 +175,8 @@ docker compose logs --tail=100
 ### Debug Mode
 
 ```bash
-# Enable debug logging
-export LOG_LEVEL=debug
-docker compose up -d
+# Development already defaults to DEBUG logging; view the API logs
+dde project:logs --service=api --follow
 ```
 
 ## 📖 Additional Resources

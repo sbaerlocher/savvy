@@ -122,11 +122,11 @@ container; after a crash or a plain `docker stop`, run
 
 ## Quick Start
 
-### Docker Compose (Required for Development)
+### dde (Required for Development)
 
 ```bash
 # Start all services (PostgreSQL + Backend + Frontend)
-docker compose up
+dde project:up
 
 # Access (routed by dde traefik on a single origin):
 # - App (Frontend + API): https://savvy.test
@@ -314,7 +314,7 @@ npm run build:embed  # Build + copy to Go assets
 
 ```bash
 # Start all services with hot reload
-docker compose up
+dde project:up
 
 # Air (Go) and Vite (SvelteKit) automatically detect changes
 # No manual rebuild needed during development
@@ -353,8 +353,9 @@ docker build -t savvy:latest .
 grep "poll = " .air.toml
 # Should show: poll = true
 
-# Restart Docker Compose
-docker compose restart
+# Restart the development stack
+dde project:down
+dde project:up
 ```
 
 ### Frontend not loading / 404 errors
@@ -367,8 +368,8 @@ docker compose restart
 # Restart the client container (Vite dev server)
 docker compose restart client
 
-# Or rebuild if needed
-docker compose up --build client
+# Or rebuild only the client service (after dde project:up)
+docker compose up -d --build client
 ```
 
 **Solution (Production/Embedded Build)**:
@@ -391,7 +392,7 @@ docker compose restart api
 **Solution**: This happens when running Vite **outside Docker**. You MUST use:
 
 ```bash
-docker compose up  # ✅ Correct - Vite runs inside Docker
+dde project:up  # ✅ Correct - Vite runs inside Docker
 ```
 
 **Why?** Vite's proxy config points to `http://api:8080`, which is only
@@ -404,8 +405,8 @@ resolvable inside the Docker network.
 **Solution**:
 
 ```bash
-# Stop Docker containers (recommended)
-docker compose down
+# Stop the development stack (recommended)
+dde project:down
 
 # Or manually check what's using the port
 lsof -i :5173  # Frontend (Vite)
@@ -423,14 +424,10 @@ kill -9 <PID>
 **Solution**:
 
 ```bash
-# Check PostgreSQL is running
-docker compose ps
-
-# View PostgreSQL logs
-docker compose logs postgres
-
-# Restart services
-docker compose restart
+# Check configured services and restart the development stack
+dde project:service:list
+dde project:down
+dde project:up
 ```
 
 ### Changes not reflecting after edit
@@ -447,8 +444,9 @@ docker compose logs -f api
 docker compose logs -f client
 
 # If still not working, rebuild
-docker compose down
-docker compose up --build
+dde project:down
+docker compose build --no-cache
+dde project:up
 ```
 
 ---
@@ -457,7 +455,7 @@ docker compose up --build
 
 ### ✅ DO
 
-- **ALWAYS use Docker Compose** for development (required, not optional)
+- **ALWAYS use `dde project:up`** for development (required, not optional)
 - Edit files locally, let Air/Vite in Docker handle reloads
 - Run tests before committing (`go test ./...`, `npm run test:e2e`)
 - Write tests for new features (handlers, services, repositories)
@@ -489,12 +487,11 @@ just ps                      # Show running containers
 # Logs
 just logs                    # API logs (api container)
 just logs-client             # Frontend logs (client container)
-just logs-db                 # Database logs (postgres container)
 just logs-all                # All logs (all containers)
 
 # Shell Access
 just shell                   # Open shell in API container
-dde project:db:open          # Open PostgreSQL shell
+dde project:db               # Open PostgreSQL shell
 
 # Testing
 just test                    # Run all Go tests

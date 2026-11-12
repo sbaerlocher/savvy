@@ -1,7 +1,7 @@
 # ==============================================================================
 # Air Configuration for Backend-Only Development (No Frontend Build)
 # ==============================================================================
-# Used for: docker compose up (dev mode with separate frontend container)
+# Used for: dde project:up (dev mode with separate frontend container)
 
 root = "."
 testdata_dir = "testdata"

@@ -45,7 +45,7 @@ help:
     @echo "  dde project:db:migrate-status  Show applied migrations"
     @echo "  dde project:db:migrate-to      Migrate to version (-- TARGET_VERSION)"
     @echo "  dde project:db:seed            Seed database with test data"
-    @echo "  dde project:db:open            Open PostgreSQL shell"
+    @echo "  dde project:db                 Open PostgreSQL shell"
     @echo ""
     @echo "Observability + mail (via dde):"
     @echo "  dde project:observability      Start Grafana/Prometheus/Loki/Tempo"
@@ -154,29 +154,28 @@ up:
         echo "✓ No E2E container running"; \
     fi
     @echo ""
-    docker compose up -d
+    dde project:up
     @echo "✓ Containers started"
-    @echo "  Frontend: http://localhost:5173 (Vite dev server)"
-    @echo "  Backend:  http://localhost:8080 (Go API)"
-    @echo "  Mailpit:  http://localhost:8025 (Mail catcher)"
+    @echo "  App URL:"
+    @dde project:open --url-only
     @echo ""
     @echo "💡 View logs: just logs (API) | just logs-client (Frontend)"
 
 # Stop Docker containers
 down:
     @echo "⏹️  Stopping containers..."
-    docker compose down
+    dde project:down
     @echo "✓ Containers stopped"
 
 # Restart Docker containers
 restart: down up
 
-# Rebuild Docker containers from scratch
+# Update and rebuild development containers
 rebuild:
     @echo "🔄 Rebuilding development containers..."
-    docker compose down
+    dde project:down
     docker compose build --no-cache
-    docker compose up -d
+    dde project:up
     @echo "✓ Rebuild complete"
     @echo "💡 View logs: just logs"
 
@@ -188,10 +187,6 @@ logs:
 logs-client:
     docker compose logs -f client
 
-# Show database logs
-logs-db:
-    docker compose logs -f postgres
-
 # Show all logs
 logs-all:
     docker compose logs -f
@@ -200,7 +195,7 @@ logs-all:
 shell:
     docker exec -it {{ APP_CONTAINER }} sh
 
-# Database shell: use `dde project:db:open` (dde stock postgres, db savvy)
+# Database shell: use `dde project:db` (dde stock postgres, db savvy)
 
 # Show running containers
 ps:
