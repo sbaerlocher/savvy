@@ -279,42 +279,25 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
-	duplicate, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
-		// Don't fail the request, just log — worst case the DB constraint catches it
-	}
-	if duplicate != nil {
-		slog.InfoContext(c.Request().Context(), "duplicate gift card blocked", "existing_id", duplicate.ID)
-		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A gift card with this number already exists",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   duplicate.MerchantName,
-				ResourceNumber: duplicate.CardNumber,
-				ExistingID:     duplicate.ID.String(),
-			},
-		})
+	activeLookup := func() (*duplicateInfo, error) {
+		giftCard, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
+		if giftCard == nil {
+			return nil, err
+		}
+		return &duplicateInfo{giftCard.ID, giftCard.MerchantName, giftCard.CardNumber}, err
 	}
 
 	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
-	deletedDup, err := h.giftCardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	deletedLookup := func() (*duplicateInfo, error) {
+		giftCard, err := h.giftCardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+		if giftCard == nil {
+			return nil, err
+		}
+		return &duplicateInfo{giftCard.ID, giftCard.MerchantName, giftCard.CardNumber}, err
 	}
-	if deletedDup != nil {
-		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A soft-deleted gift card with this number exists and can be restored",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   deletedDup.MerchantName,
-				ResourceNumber: deletedDup.CardNumber,
-				ExistingID:     deletedDup.ID.String(),
-				Deleted:        true,
-			},
-		})
+	if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, deletedLookup, "gift card",
+		"A gift card with this number already exists", "A soft-deleted gift card with this number exists and can be restored"); conflict != nil {
+		return c.JSON(http.StatusConflict, conflict)
 	}
 
 	if merchantID == nil {
@@ -343,17 +326,9 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	if err := h.giftCardService.CreateGiftCard(c.Request().Context(), giftCard); err != nil {
 		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
-			if existing, _ := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil); existing != nil {
-				return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-					Error:   "duplicate_barcode",
-					Message: "A gift card with this number already exists",
-					Duplicate: &DuplicateWarning{
-						HasDuplicate:   true,
-						MerchantName:   existing.MerchantName,
-						ResourceNumber: existing.CardNumber,
-						ExistingID:     existing.ID.String(),
-					},
-				})
+			if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, nil, "gift card",
+				"A gift card with this number already exists", ""); conflict != nil {
+				return c.JSON(http.StatusConflict, conflict)
 			}
 		}
 		slog.ErrorContext(c.Request().Context(), "failed to create gift card", "error", err)
@@ -364,7 +339,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	}
 
 	// Reload with merchant relation
-	giftCard, err = h.giftCardService.GetGiftCard(c.Request().Context(), giftCard.ID)
+	giftCard, err := h.giftCardService.GetGiftCard(c.Request().Context(), giftCard.ID)
 	if err != nil {
 		slog.ErrorContext(c.Request().Context(), "failed to reload gift card after creation", "gift_card_id", giftCard.ID, "error", err)
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
