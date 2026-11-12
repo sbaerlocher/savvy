@@ -24,8 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-- Kept `github.com/pquerna/otp` v1.5.0 and disabled Renovate updates because no
-  actively maintained compatible replacement was identified.
+- Kept `github.com/pquerna/otp` v1.5.0 because no actively maintained
+  compatible replacement was identified. Renovate replacement PRs for it are
+  suppressed; normal and security updates stay enabled.
 - Updated all non-major dependencies (#530) including Go 1.27.4, pgx 5.13.0,
   `@sveltejs/kit` 3.2.0 and Node.js 26.13.1, and `golang.org/x/oauth2` 0.38.0
   (#522).
