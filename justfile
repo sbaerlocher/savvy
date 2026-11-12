@@ -45,7 +45,7 @@ help:
     @echo "  dde project:db:migrate-status  Show applied migrations"
     @echo "  dde project:db:migrate-to      Migrate to version (-- TARGET_VERSION)"
     @echo "  dde project:db:seed            Seed database with test data"
-    @echo "  dde project:db:open            Open PostgreSQL shell"
+    @echo "  dde project:db                 Open PostgreSQL shell"
     @echo ""
     @echo "Observability + mail (via dde):"
     @echo "  dde project:observability      Start Grafana/Prometheus/Loki/Tempo"
@@ -195,7 +195,7 @@ logs-all:
 shell:
     docker exec -it {{ APP_CONTAINER }} sh
 
-# Database shell: use `dde project:db:open` (dde stock postgres, db savvy)
+# Database shell: use `dde project:db` (dde stock postgres, db savvy)
 
 # Show running containers
 ps:

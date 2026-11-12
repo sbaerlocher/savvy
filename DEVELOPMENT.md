@@ -445,7 +445,8 @@ docker compose logs -f client
 
 # If still not working, rebuild
 dde project:down
-dde project:up --build
+docker compose build --no-cache
+dde project:up
 ```
 
 ---
@@ -490,7 +491,7 @@ just logs-all                # All logs (all containers)
 
 # Shell Access
 just shell                   # Open shell in API container
-dde project:db:open          # Open PostgreSQL shell
+dde project:db               # Open PostgreSQL shell
 
 # Testing
 just test                    # Run all Go tests
