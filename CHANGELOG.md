@@ -15,12 +15,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   embedded via `go:embed` still trigger it. `lefthook.yml` now requires
   lefthook 2.0 or newer (`min_version`).
 
+### Fixed
+
+- **Duplicate checks run before merchant creation (#519, #525)** - Creating a
+  card, voucher or gift card with a `new_merchant_name` created the merchant
+  before the duplicate checks returned 409, leaving an orphaned merchant that
+  made a retry with the same name fail. The duplicate checks now run first, and
+  an existing merchant with that name is reused.
+- **Card create validates before merchant handling (#528)** - Card creation
+  now checks required fields, merchant presence and enum values before any
+  duplicate check or merchant lookup, in the same order as vouchers. A
+  whitespace-only `new_merchant_name` is rejected with 400 for cards and
+  vouchers instead of creating a merchant with a blank name.
+- **Lost and blocked card statuses accepted (#520)** - Card creation, updates
+  and imports rejected the `lost` and `blocked` statuses even though the card
+  form offers them; both are now accepted in the API, JSON import and CSV
+  import.
+- **Names of deleted merchants can be reused (#524, #529)** - Reusing the name
+  of a soft-deleted merchant returned 500 because the unique index on
+  `merchants.name` also covered soft-deleted rows. The index now only covers
+  active merchants (migration
+  `202611110034_partial_unique_index_merchant_name`), so a new merchant takes
+  the name and the deleted one stays deleted. Restoring a deleted merchant
+  whose name an active merchant holds returns 409 `restore_conflict`, and
+  concurrent creates that hit a unique index return 409 instead of 500.
+
 ### Security
 
 - **Go 1.27.4 (#530)** - Fixes `GO-2026-6859` (net/http, HTTP/1 server crash via
   `MaxBytesReader` header race), which govulncheck reported as reachable
   against Go 1.27.3. The bump covers `go.mod`, the CI workflows and the
   `golang:1.27-alpine` build stages.
+- Updated `golang.org/x/crypto` to 0.59.0 (#526).
 
 ### Dependencies
 
