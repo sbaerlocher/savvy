@@ -38,7 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `202611110034_partial_unique_index_merchant_name`), so a new merchant takes
   the name and the deleted one stays deleted. Restoring a deleted merchant
   whose name an active merchant holds returns 409 `restore_conflict`, and
-  concurrent creates that hit a unique index return 409 instead of 500.
+  concurrent admin merchant creates and resource inserts that hit a unique
+  index return 409 instead of 500. Concurrent `new_merchant_name` requests
+  reuse the existing active merchant.
 
 ### Security
 
@@ -46,7 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MaxBytesReader` header race), which govulncheck reported as reachable
   against Go 1.27.3. The bump covers `go.mod`, the CI workflows and the
   `golang:1.27-alpine` build stages.
-- Updated `golang.org/x/crypto` to 0.59.0 (#526).
+- Updated `golang.org/x/crypto` to 0.59.0 (#526), tagged as a security update
+  by Renovate.
 
 ### Dependencies
 
