@@ -257,42 +257,27 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
-	duplicate, err := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check duplicate", "error", err)
-		// Don't fail the request, just log — worst case the DB constraint catches it
+	voucherInfo := func(voucher *models.Voucher) duplicateInfo {
+		return duplicateInfo{ID: voucher.ID, MerchantName: voucher.MerchantName, Number: voucher.Code}
 	}
-	if duplicate != nil {
-		slog.InfoContext(c.Request().Context(), "duplicate voucher blocked", "existing_id", duplicate.ID)
-		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A voucher with this code already exists",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   duplicate.MerchantName,
-				ResourceNumber: duplicate.Code,
-				ExistingID:     duplicate.ID.String(),
-			},
-		})
-	}
+	activeLookup := adaptDuplicateLookup(func() (*models.Voucher, error) {
+		return h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
+	}, voucherInfo)
 
 	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
-	deletedDup, err := h.voucherService.FindDeletedDuplicate(c.Request().Context(), req.Code, user.ID)
-	if err != nil {
-		slog.ErrorContext(c.Request().Context(), "failed to check deleted duplicate", "error", err)
+	deletedLookup := adaptDuplicateLookup(func() (*models.Voucher, error) {
+		return h.voucherService.FindDeletedDuplicate(c.Request().Context(), req.Code, user.ID)
+	}, voucherInfo)
+	guard := duplicateGuard{
+		ctx:            c.Request().Context(),
+		active:         activeLookup,
+		deleted:        deletedLookup,
+		resource:       "voucher",
+		activeMessage:  "A voucher with this code already exists",
+		deletedMessage: "A soft-deleted voucher with this code exists and can be restored",
 	}
-	if deletedDup != nil {
-		return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-			Error:   "duplicate_barcode",
-			Message: "A soft-deleted voucher with this code exists and can be restored",
-			Duplicate: &DuplicateWarning{
-				HasDuplicate:   true,
-				MerchantName:   deletedDup.MerchantName,
-				ResourceNumber: deletedDup.Code,
-				ExistingID:     deletedDup.ID.String(),
-				Deleted:        true,
-			},
-		})
+	if conflict := guard.check(); conflict != nil {
+		return c.JSON(http.StatusConflict, conflict)
 	}
 
 	if merchantID == nil {
@@ -322,17 +307,8 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), voucher); err != nil {
 		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
-			if existing, _ := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil); existing != nil {
-				return c.JSON(http.StatusConflict, DuplicateErrorResponse{
-					Error:   "duplicate_barcode",
-					Message: "A voucher with this code already exists",
-					Duplicate: &DuplicateWarning{
-						HasDuplicate:   true,
-						MerchantName:   existing.MerchantName,
-						ResourceNumber: existing.Code,
-						ExistingID:     existing.ID.String(),
-					},
-				})
+			if conflict := guard.race(); conflict != nil {
+				return c.JSON(http.StatusConflict, conflict)
 			}
 		}
 		slog.ErrorContext(c.Request().Context(), "failed to create voucher", "error", err)
