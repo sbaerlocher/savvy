@@ -147,8 +147,8 @@ function loadAuthFromStorage(): AuthState { ... }
 #### Backend (Go)
 
 ```bash
-# ✅ RECOMMENDED: Start with Docker Compose (includes hot reload)
-docker compose up
+# ✅ RECOMMENDED: Start with dde (includes hot reload)
+dde project:up
 
 # Run all tests
 go test ./...  # Runs ALL tests (services, handlers, models)
@@ -183,9 +183,9 @@ just fmt
 #### Frontend (SvelteKit + TypeScript)
 
 ```bash
-# ⚠️ ALWAYS use Docker Compose for frontend development
+# ⚠️ ALWAYS use dde for frontend development
 # Local `npm run dev` does NOT work (Vite proxy requires Docker network)
-docker compose up
+dde project:up
 
 # Run type checking
 npm run check

@@ -154,7 +154,7 @@ up:
         echo "✓ No E2E container running"; \
     fi
     @echo ""
-    docker compose up -d
+    dde project:up
     @echo "✓ Containers started"
     @echo "  Frontend: http://localhost:5173 (Vite dev server)"
     @echo "  Backend:  http://localhost:8080 (Go API)"
@@ -165,18 +165,17 @@ up:
 # Stop Docker containers
 down:
     @echo "⏹️  Stopping containers..."
-    docker compose down
+    dde project:down
     @echo "✓ Containers stopped"
 
 # Restart Docker containers
-restart: down up
+restart:
+    dde project:restart
 
-# Rebuild Docker containers from scratch
+# Update and rebuild development containers
 rebuild:
     @echo "🔄 Rebuilding development containers..."
-    docker compose down
-    docker compose build --no-cache
-    docker compose up -d
+    dde project:update
     @echo "✓ Rebuild complete"
     @echo "💡 View logs: just logs"
 

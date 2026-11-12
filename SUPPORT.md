@@ -184,7 +184,7 @@ docker compose logs --tail=100
 ```bash
 # Enable debug logging
 export LOG_LEVEL=debug
-docker compose up -d
+dde project:up
 ```
 
 ## 📖 Additional Resources

@@ -122,11 +122,11 @@ container; after a crash or a plain `docker stop`, run
 
 ## Quick Start
 
-### Docker Compose (Required for Development)
+### dde (Required for Development)
 
 ```bash
 # Start all services (PostgreSQL + Backend + Frontend)
-docker compose up
+dde project:up
 
 # Access (routed by dde traefik on a single origin):
 # - App (Frontend + API): https://savvy.test
@@ -314,7 +314,7 @@ npm run build:embed  # Build + copy to Go assets
 
 ```bash
 # Start all services with hot reload
-docker compose up
+dde project:up
 
 # Air (Go) and Vite (SvelteKit) automatically detect changes
 # No manual rebuild needed during development
@@ -368,7 +368,7 @@ docker compose restart
 docker compose restart client
 
 # Or rebuild if needed
-docker compose up --build client
+dde project:up --build
 ```
 
 **Solution (Production/Embedded Build)**:
@@ -391,7 +391,7 @@ docker compose restart api
 **Solution**: This happens when running Vite **outside Docker**. You MUST use:
 
 ```bash
-docker compose up  # ✅ Correct - Vite runs inside Docker
+dde project:up  # ✅ Correct - Vite runs inside Docker
 ```
 
 **Why?** Vite's proxy config points to `http://api:8080`, which is only
@@ -447,8 +447,8 @@ docker compose logs -f api
 docker compose logs -f client
 
 # If still not working, rebuild
-docker compose down
-docker compose up --build
+dde project:down
+dde project:up --build
 ```
 
 ---
@@ -457,7 +457,7 @@ docker compose up --build
 
 ### ✅ DO
 
-- **ALWAYS use Docker Compose** for development (required, not optional)
+- **ALWAYS use `dde project:up`** for development (required, not optional)
 - Edit files locally, let Air/Vite in Docker handle reloads
 - Run tests before committing (`go test ./...`, `npm run test:e2e`)
 - Write tests for new features (handlers, services, repositories)
