@@ -44,6 +44,12 @@
       "matchManagers": ["npm"],
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<6.1.0"
+    },
+    {
+      "description": "pquerna/otp: intentionally retained; no actively maintained compatible replacement identified",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["github.com/pquerna/otp"],
+      "enabled": false
     }
   ]
 }

@@ -12,6 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.13.0
 	github.com/labstack/echo/v5 v5.4.4
 	github.com/nicksnyder/go-i18n/v2 v2.7.0
+	// renovate: ignore — intentionally retained; no actively maintained compatible replacement identified.
 	github.com/pquerna/otp v1.5.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/stretchr/testify v1.12.1
