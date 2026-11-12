@@ -353,8 +353,9 @@ docker build -t savvy:latest .
 grep "poll = " .air.toml
 # Should show: poll = true
 
-# Restart Docker Compose
-docker compose restart
+# Restart the development stack
+dde project:down
+dde project:up
 ```
 
 ### Frontend not loading / 404 errors
@@ -367,8 +368,8 @@ docker compose restart
 # Restart the client container (Vite dev server)
 docker compose restart client
 
-# Or rebuild if needed
-dde project:up --build
+# Or rebuild only the client service (after dde project:up)
+docker compose up -d --build client
 ```
 
 **Solution (Production/Embedded Build)**:
@@ -404,8 +405,8 @@ resolvable inside the Docker network.
 **Solution**:
 
 ```bash
-# Stop Docker containers (recommended)
-docker compose down
+# Stop the development stack (recommended)
+dde project:down
 
 # Or manually check what's using the port
 lsof -i :5173  # Frontend (Vite)
@@ -423,14 +424,10 @@ kill -9 <PID>
 **Solution**:
 
 ```bash
-# Check PostgreSQL is running
-docker compose ps
-
-# View PostgreSQL logs
-docker compose logs postgres
-
-# Restart services
-docker compose restart
+# Check configured services and restart the development stack
+dde project:service:list
+dde project:down
+dde project:up
 ```
 
 ### Changes not reflecting after edit
@@ -489,7 +486,6 @@ just ps                      # Show running containers
 # Logs
 just logs                    # API logs (api container)
 just logs-client             # Frontend logs (client container)
-just logs-db                 # Database logs (postgres container)
 just logs-all                # All logs (all containers)
 
 # Shell Access

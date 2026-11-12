@@ -910,7 +910,7 @@ Client (HTTPS) → Traefik (TLS Termination) → Savvy App (HTTP:3000) → Postg
 
 ```bash
 # Local Development (separate frontend + backend containers)
-dde project:up                 # Vite (5173) + Go API (8080)
+dde project:up                 # Serve the app through dde Traefik
 
 # Production Build (embedded frontend)
 cd client && npm run build:embed  # Build + copy to internal/assets/client/
@@ -1684,8 +1684,8 @@ Check the build logs for errors. The build process includes client build and Go 
 ### "Database connection refused"
 
 ```bash
-docker compose ps
-docker compose logs postgres
+dde project:service:list
+dde project:db
 ```
 
 ### "Barcode scanner not working"

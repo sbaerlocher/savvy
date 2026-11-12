@@ -156,9 +156,8 @@ up:
     @echo ""
     dde project:up
     @echo "✓ Containers started"
-    @echo "  Frontend: http://localhost:5173 (Vite dev server)"
-    @echo "  Backend:  http://localhost:8080 (Go API)"
-    @echo "  Mailpit:  http://localhost:8025 (Mail catcher)"
+    @echo "  App URL:"
+    @dde project:open --url-only
     @echo ""
     @echo "💡 View logs: just logs (API) | just logs-client (Frontend)"
 
@@ -169,13 +168,14 @@ down:
     @echo "✓ Containers stopped"
 
 # Restart Docker containers
-restart:
-    dde project:restart
+restart: down up
 
 # Update and rebuild development containers
 rebuild:
     @echo "🔄 Rebuilding development containers..."
-    dde project:update
+    dde project:down
+    docker compose build --no-cache
+    dde project:up
     @echo "✓ Rebuild complete"
     @echo "💡 View logs: just logs"
 
@@ -186,10 +186,6 @@ logs:
 # Show client logs
 logs-client:
     docker compose logs -f client
-
-# Show database logs
-logs-db:
-    docker compose logs -f postgres
 
 # Show all logs
 logs-all:
