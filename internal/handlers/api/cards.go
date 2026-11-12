@@ -308,26 +308,28 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
-	activeLookup := func() (*duplicateInfo, error) {
-		card, err := h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
-		if card == nil {
-			return nil, err
-		}
-		return &duplicateInfo{card.ID, card.MerchantName, card.CardNumber}, err
+	cardInfo := func(card *models.Card) duplicateInfo {
+		return duplicateInfo{ID: card.ID, MerchantName: card.MerchantName, Number: card.CardNumber}
 	}
+	activeLookup := adaptDuplicateLookup(func() (*models.Card, error) {
+		return h.cardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
+	}, cardInfo)
 
 	// Soft-deleted twin owned by this user → offer restore instead of a hard failure.
 	// Checked before the shared-duplicate advisory: restoring one's own card is the
 	// more actionable path and must not be shadowed by a same-numbered shared card.
-	deletedLookup := func() (*duplicateInfo, error) {
-		card, err := h.cardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
-		if card == nil {
-			return nil, err
-		}
-		return &duplicateInfo{card.ID, card.MerchantName, card.CardNumber}, err
+	deletedLookup := adaptDuplicateLookup(func() (*models.Card, error) {
+		return h.cardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+	}, cardInfo)
+	guard := duplicateGuard{
+		ctx:            c.Request().Context(),
+		active:         activeLookup,
+		deleted:        deletedLookup,
+		resource:       "card",
+		activeMessage:  "A card with this number already exists",
+		deletedMessage: "A soft-deleted card with this number exists and can be restored",
 	}
-	if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, deletedLookup, "card",
-		"A card with this number already exists", "A soft-deleted card with this number exists and can be restored"); conflict != nil {
+	if conflict := guard.check(); conflict != nil {
 		return c.JSON(http.StatusConflict, conflict)
 	}
 
@@ -358,8 +360,7 @@ func (h *CardsHandler) Create(c *echo.Context) error {
 	if err := h.cardService.CreateCard(c.Request().Context(), card); err != nil {
 		if database.IsDuplicateError(err) {
 			// TOCTOU race: two concurrent requests with the same barcode — re-fetch to return details
-			if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, nil, "card",
-				"A card with this number already exists", ""); conflict != nil {
+			if conflict := guard.race(); conflict != nil {
 				return c.JSON(http.StatusConflict, conflict)
 			}
 		}

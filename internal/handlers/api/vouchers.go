@@ -257,24 +257,26 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
-	activeLookup := func() (*duplicateInfo, error) {
-		voucher, err := h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
-		if voucher == nil {
-			return nil, err
-		}
-		return &duplicateInfo{voucher.ID, voucher.MerchantName, voucher.Code}, err
+	voucherInfo := func(voucher *models.Voucher) duplicateInfo {
+		return duplicateInfo{ID: voucher.ID, MerchantName: voucher.MerchantName, Number: voucher.Code}
 	}
+	activeLookup := adaptDuplicateLookup(func() (*models.Voucher, error) {
+		return h.voucherService.CheckDuplicate(c.Request().Context(), req.Code, user.ID, nil)
+	}, voucherInfo)
 
 	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
-	deletedLookup := func() (*duplicateInfo, error) {
-		voucher, err := h.voucherService.FindDeletedDuplicate(c.Request().Context(), req.Code, user.ID)
-		if voucher == nil {
-			return nil, err
-		}
-		return &duplicateInfo{voucher.ID, voucher.MerchantName, voucher.Code}, err
+	deletedLookup := adaptDuplicateLookup(func() (*models.Voucher, error) {
+		return h.voucherService.FindDeletedDuplicate(c.Request().Context(), req.Code, user.ID)
+	}, voucherInfo)
+	guard := duplicateGuard{
+		ctx:            c.Request().Context(),
+		active:         activeLookup,
+		deleted:        deletedLookup,
+		resource:       "voucher",
+		activeMessage:  "A voucher with this code already exists",
+		deletedMessage: "A soft-deleted voucher with this code exists and can be restored",
 	}
-	if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, deletedLookup, "voucher",
-		"A voucher with this code already exists", "A soft-deleted voucher with this code exists and can be restored"); conflict != nil {
+	if conflict := guard.check(); conflict != nil {
 		return c.JSON(http.StatusConflict, conflict)
 	}
 
@@ -305,8 +307,7 @@ func (h *VouchersHandler) Create(c *echo.Context) error {
 	if err := h.voucherService.CreateVoucher(c.Request().Context(), voucher); err != nil {
 		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
-			if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, nil, "voucher",
-				"A voucher with this code already exists", ""); conflict != nil {
+			if conflict := guard.race(); conflict != nil {
 				return c.JSON(http.StatusConflict, conflict)
 			}
 		}

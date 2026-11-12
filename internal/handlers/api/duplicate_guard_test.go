@@ -1,8 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,20 +12,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCheckDuplicateConflict_ActiveTakesPrecedence(t *testing.T) {
+func TestDuplicateGuard_ActiveTakesPrecedence(t *testing.T) {
 	id := uuid.New()
 	deletedCalled := false
-	response := checkDuplicateConflict(
-		context.Background(),
-		func() (*duplicateInfo, error) {
+	response := (duplicateGuard{
+		ctx: context.Background(),
+		active: func() (*duplicateInfo, error) {
 			return &duplicateInfo{ID: id, MerchantName: "Merchant", Number: "123"}, nil
 		},
-		func() (*duplicateInfo, error) {
+		deleted: func() (*duplicateInfo, error) {
 			deletedCalled = true
 			return &duplicateInfo{ID: uuid.New(), Number: "123"}, nil
 		},
-		"card", "Active card", "Deleted card",
-	)
+		resource: "card", activeMessage: "Active card", deletedMessage: "Deleted card",
+	}).check()
 
 	require.NotNil(t, response)
 	assert.Equal(t, "duplicate_barcode", response.Error)
@@ -37,16 +39,16 @@ func TestCheckDuplicateConflict_ActiveTakesPrecedence(t *testing.T) {
 	assert.False(t, deletedCalled)
 }
 
-func TestCheckDuplicateConflict_DeletedDuplicate(t *testing.T) {
+func TestDuplicateGuard_DeletedDuplicate(t *testing.T) {
 	id := uuid.New()
-	response := checkDuplicateConflict(
-		context.Background(),
-		func() (*duplicateInfo, error) { return nil, nil },
-		func() (*duplicateInfo, error) {
+	response := (duplicateGuard{
+		ctx:    context.Background(),
+		active: func() (*duplicateInfo, error) { return nil, nil },
+		deleted: func() (*duplicateInfo, error) {
 			return &duplicateInfo{ID: id, MerchantName: "Merchant", Number: "123"}, nil
 		},
-		"voucher", "Active voucher", "Deleted voucher",
-	)
+		resource: "voucher", activeMessage: "Active voucher", deletedMessage: "Deleted voucher",
+	}).check()
 
 	require.NotNil(t, response)
 	assert.Equal(t, "duplicate_barcode", response.Error)
@@ -59,23 +61,23 @@ func TestCheckDuplicateConflict_DeletedDuplicate(t *testing.T) {
 	assert.True(t, response.Duplicate.Deleted)
 }
 
-func TestCheckDuplicateConflict_LookupErrorsAreIgnored(t *testing.T) {
+func TestDuplicateGuard_LookupErrorsAreIgnored(t *testing.T) {
 	deletedCalled := false
-	response := checkDuplicateConflict(
-		context.Background(),
-		func() (*duplicateInfo, error) { return nil, errors.New("active lookup failed") },
-		func() (*duplicateInfo, error) {
+	response := (duplicateGuard{
+		ctx:    context.Background(),
+		active: func() (*duplicateInfo, error) { return nil, errors.New("active lookup failed") },
+		deleted: func() (*duplicateInfo, error) {
 			deletedCalled = true
 			return nil, errors.New("deleted lookup failed")
 		},
-		"gift card", "Active gift card", "Deleted gift card",
-	)
+		resource: "gift card", activeMessage: "Active gift card", deletedMessage: "Deleted gift card",
+	}).check()
 
 	assert.Nil(t, response)
 	assert.True(t, deletedCalled)
 }
 
-func TestCheckDuplicateConflict_DuplicateWinsOverLookupError(t *testing.T) {
+func TestDuplicateGuard_DuplicateWinsOverLookupError(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
 		deleted bool
@@ -95,7 +97,10 @@ func TestCheckDuplicateConflict_DuplicateWinsOverLookupError(t *testing.T) {
 				return &duplicateInfo{ID: id, Number: "123"}, errors.New("deleted lookup failed")
 			})
 
-			response := checkDuplicateConflict(context.Background(), active, deleted, "card", "Active card", "Deleted card")
+			response := (duplicateGuard{
+				ctx: context.Background(), active: active, deleted: deleted,
+				resource: "card", activeMessage: "Active card", deletedMessage: "Deleted card",
+			}).check()
 			require.NotNil(t, response)
 			require.NotNil(t, response.Duplicate)
 			assert.Equal(t, id.String(), response.Duplicate.ExistingID)
@@ -104,19 +109,57 @@ func TestCheckDuplicateConflict_DuplicateWinsOverLookupError(t *testing.T) {
 	}
 }
 
-func TestCheckDuplicateConflict_ActiveOnlyForRace(t *testing.T) {
+func TestDuplicateGuard_RaceDoesNotCallDeletedLookup(t *testing.T) {
 	id := uuid.New()
-	response := checkDuplicateConflict(
-		context.Background(),
-		func() (*duplicateInfo, error) {
+	deletedCalled := false
+	response := (duplicateGuard{
+		ctx: context.Background(),
+		active: func() (*duplicateInfo, error) {
 			return &duplicateInfo{ID: id, Number: "123"}, nil
 		},
-		nil,
-		"card", "Active card", "Deleted card",
-	)
+		deleted: func() (*duplicateInfo, error) {
+			deletedCalled = true
+			return nil, nil
+		},
+		resource: "card", activeMessage: "Active card", deletedMessage: "Deleted card",
+	}).race()
 
 	require.NotNil(t, response)
 	require.NotNil(t, response.Duplicate)
 	assert.Equal(t, id.String(), response.Duplicate.ExistingID)
 	assert.False(t, response.Duplicate.Deleted)
+	assert.False(t, deletedCalled)
+}
+
+func TestDuplicateGuard_RaceDoesNotLog(t *testing.T) {
+	previousLogger := slog.Default()
+	var logs bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	t.Cleanup(func() { slog.SetDefault(previousLogger) })
+
+	for _, tc := range []struct {
+		name string
+		info *duplicateInfo
+		err  error
+	}{
+		{name: "lookup error", err: errors.New("lookup failed")},
+		{name: "duplicate found", info: &duplicateInfo{ID: uuid.New(), Number: "123"}},
+		{name: "duplicate and error", info: &duplicateInfo{ID: uuid.New(), Number: "123"}, err: errors.New("lookup failed")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			logs.Reset()
+			response := (duplicateGuard{
+				ctx:      context.Background(),
+				active:   func() (*duplicateInfo, error) { return tc.info, tc.err },
+				resource: "card", activeMessage: "Active card",
+			}).race()
+			if tc.info == nil {
+				assert.Nil(t, response)
+			} else {
+				require.NotNil(t, response)
+				assert.Equal(t, tc.info.ID.String(), response.Duplicate.ExistingID)
+			}
+			assert.Empty(t, logs.String())
+		})
+	}
 }

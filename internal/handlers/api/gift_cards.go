@@ -279,24 +279,26 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	}
 
 	// Check for duplicates — blocks creation to prevent DB unique constraint violation
-	activeLookup := func() (*duplicateInfo, error) {
-		giftCard, err := h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
-		if giftCard == nil {
-			return nil, err
-		}
-		return &duplicateInfo{giftCard.ID, giftCard.MerchantName, giftCard.CardNumber}, err
+	giftCardInfo := func(giftCard *models.GiftCard) duplicateInfo {
+		return duplicateInfo{ID: giftCard.ID, MerchantName: giftCard.MerchantName, Number: giftCard.CardNumber}
 	}
+	activeLookup := adaptDuplicateLookup(func() (*models.GiftCard, error) {
+		return h.giftCardService.CheckDuplicate(c.Request().Context(), req.CardNumber, user.ID, nil)
+	}, giftCardInfo)
 
 	// Soft-deleted twin owned by this user → offer restore instead of a hard failure
-	deletedLookup := func() (*duplicateInfo, error) {
-		giftCard, err := h.giftCardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
-		if giftCard == nil {
-			return nil, err
-		}
-		return &duplicateInfo{giftCard.ID, giftCard.MerchantName, giftCard.CardNumber}, err
+	deletedLookup := adaptDuplicateLookup(func() (*models.GiftCard, error) {
+		return h.giftCardService.FindDeletedDuplicate(c.Request().Context(), req.CardNumber, user.ID)
+	}, giftCardInfo)
+	guard := duplicateGuard{
+		ctx:            c.Request().Context(),
+		active:         activeLookup,
+		deleted:        deletedLookup,
+		resource:       "gift card",
+		activeMessage:  "A gift card with this number already exists",
+		deletedMessage: "A soft-deleted gift card with this number exists and can be restored",
 	}
-	if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, deletedLookup, "gift card",
-		"A gift card with this number already exists", "A soft-deleted gift card with this number exists and can be restored"); conflict != nil {
+	if conflict := guard.check(); conflict != nil {
 		return c.JSON(http.StatusConflict, conflict)
 	}
 
@@ -326,8 +328,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	if err := h.giftCardService.CreateGiftCard(c.Request().Context(), giftCard); err != nil {
 		if database.IsDuplicateError(err) {
 			// TOCTOU race: re-fetch to return details
-			if conflict := checkDuplicateConflict(c.Request().Context(), activeLookup, nil, "gift card",
-				"A gift card with this number already exists", ""); conflict != nil {
+			if conflict := guard.race(); conflict != nil {
 				return c.JSON(http.StatusConflict, conflict)
 			}
 		}
