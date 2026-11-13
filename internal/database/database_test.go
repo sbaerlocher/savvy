@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"savvy/internal/testutil"
 )
 
 // migrateMutex prevents concurrent AutoMigrate calls that can cause PostgreSQL deadlocks
@@ -17,9 +17,9 @@ var migrateMutex sync.Mutex
 
 func testDatabaseURL(t *testing.T) string {
 	t.Helper()
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		t.Skip("DATABASE_URL not set")
+	dbURL, err := testutil.DatabaseURL()
+	if err != nil {
+		t.Skip(err)
 	}
 	return dbURL
 }
