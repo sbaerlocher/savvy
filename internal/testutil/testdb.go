@@ -52,7 +52,8 @@ var allModels = []interface{}{
 func initSharedDB() {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential
+		initErr = fmt.Errorf("DATABASE_URL not set")
+		return
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{
@@ -127,9 +128,6 @@ func NewTestDBDirect(t *testing.T) *gorm.DB {
 
 	// Open a new connection with this schema as search_path
 	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential
-	}
 	if strings.Contains(dbURL, "?") {
 		dbURL += fmt.Sprintf("&search_path=%s,public", schemaName)
 	} else {

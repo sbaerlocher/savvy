@@ -15,11 +15,17 @@ import (
 // migrateMutex prevents concurrent AutoMigrate calls that can cause PostgreSQL deadlocks
 var migrateMutex sync.Mutex
 
-func TestConnect_Success(t *testing.T) {
+func testDatabaseURL(t *testing.T) string {
+	t.Helper()
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credentials
+		t.Skip("DATABASE_URL not set")
 	}
+	return dbURL
+}
+
+func TestConnect_Success(t *testing.T) {
+	dbURL := testDatabaseURL(t)
 
 	// Reset global DB
 	DB = nil
@@ -65,10 +71,7 @@ func TestConnect_EmptyURL(t *testing.T) {
 }
 
 func TestConnect_VerifyConnectionPoolSettings(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential, not real
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -96,10 +99,7 @@ func TestConnect_VerifyConnectionPoolSettings(t *testing.T) {
 }
 
 func TestConnect_VerifyNowFuncUTC(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential, not real
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -124,10 +124,7 @@ func TestEnableTelemetry_WithoutDB(t *testing.T) {
 }
 
 func TestEnableTelemetry_WithDB(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credentials
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -154,10 +151,7 @@ func TestEnableAuditLogging_WithoutDB(t *testing.T) {
 }
 
 func TestEnableAuditLogging_WithDB(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential, not real
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -173,10 +167,7 @@ func TestEnableAuditLogging_WithDB(t *testing.T) {
 }
 
 func TestAutoMigrate(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -278,10 +269,7 @@ func TestErrDuplicateKey(t *testing.T) {
 }
 
 func TestConnect_PrepareStmtEnabled(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -297,10 +285,7 @@ func TestConnect_PrepareStmtEnabled(t *testing.T) {
 }
 
 func TestConnect_ConnectionLifetime(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
@@ -324,10 +309,7 @@ func TestConnect_ConnectionLifetime(t *testing.T) {
 }
 
 func TestConnect_MultipleConnections(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
-	}
+	dbURL := testDatabaseURL(t)
 
 	// Connect multiple times (simulating reconnection)
 	for i := 0; i < 3; i++ {
@@ -350,10 +332,7 @@ func TestConnect_MultipleConnections(t *testing.T) {
 }
 
 func TestAutoMigrate_Idempotent(t *testing.T) {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable"
-	}
+	dbURL := testDatabaseURL(t)
 
 	DB = nil
 	err := Connect(dbURL, "WARN")
