@@ -290,7 +290,7 @@ func TestGiftCardsHandler_Create_MissingFields(t *testing.T) {
 
 	err := handler.Create(c)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 

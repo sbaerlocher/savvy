@@ -204,29 +204,26 @@ func (h *GiftCardsHandler) Show(c *echo.Context) error {
 	})
 }
 
-// Create creates a new gift card
-// POST /api/v1/gift-cards
-func validateGiftCardCreate(c *echo.Context, req *GiftCardCreateRequest) (bool, error) {
+// validateGiftCardCreate checks required fields, lengths, and merchant presence.
+// A non-nil error means the error response has been sent; callers should return it directly.
+func validateGiftCardCreate(c *echo.Context, req *GiftCardCreateRequest) error {
 	// Validate required fields
 	if req.CardNumber == "" || req.Currency == "" {
-		return true, c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_fields",
-			Message: "Card number and currency are required",
-		})
+		return writeBadRequest(c, "missing_fields", "Card number and currency are required")
 	}
 
 	// Validate string lengths
 	if err := validateStringLength(req.CardNumber, "card_number"); err != nil {
-		return true, c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if err := validateStringLengthPtr(req.PIN, "pin"); err != nil {
-		return true, c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if err := validateStringLengthPtr(req.Notes, "notes"); err != nil {
-		return true, c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return true, c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
+		return writeBadRequest(c, "field_too_long", err.Error())
 	}
 	if req.MerchantID != nil {
 		merchantID := strings.TrimSpace(*req.MerchantID)
@@ -237,12 +234,14 @@ func validateGiftCardCreate(c *echo.Context, req *GiftCardCreateRequest) (bool, 
 		req.NewMerchantName = &merchantName
 	}
 	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
-		return true, err
+		return err
 	}
 
-	return false, nil
+	return nil
 }
 
+// Create creates a new gift card
+// POST /api/v1/gift-cards
 func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	user := c.Get("current_user").(*models.User)
 
@@ -254,7 +253,7 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	if shouldReturn, err := validateGiftCardCreate(c, &req); shouldReturn {
+	if err := validateGiftCardCreate(c, &req); err != nil {
 		return err
 	}
 
