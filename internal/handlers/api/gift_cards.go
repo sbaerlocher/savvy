@@ -265,6 +265,9 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
 		return err
 	}
+	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
+		return err
+	}
 
 	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
 	// Only a new merchant must wait until the checks have passed.

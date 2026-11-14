@@ -294,6 +294,23 @@ func TestGiftCardsHandler_Create_MissingFields(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
+func TestGiftCardsHandler_Create_MissingMerchant(t *testing.T) {
+	handler, giftCardService, _, merchantService, _, _, _, _ := setupGiftCardsTest()
+	body := `{"card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
+	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
+	c.Set("current_user", createTestUser())
+
+	err := handler.Create(c)
+
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assertErrorCode(t, rec, "missing_merchant")
+	giftCardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	giftCardService.AssertNotCalled(t, "FindDeletedDuplicate", mock.Anything, mock.Anything, mock.Anything)
+	giftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
+	merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+}
+
 func TestGiftCardsHandler_Create_InvalidExpiresAt(t *testing.T) {
 	handler, _, _, mockMerchantService, _, _, _, _ := setupGiftCardsTest()
 	merchantID := uuid.New()
