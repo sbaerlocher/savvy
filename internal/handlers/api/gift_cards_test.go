@@ -294,21 +294,62 @@ func TestGiftCardsHandler_Create_MissingFields(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
-func TestGiftCardsHandler_Create_MissingMerchant(t *testing.T) {
+func TestGiftCardsHandler_Create_MissingMerchantBeforeDuplicateChecks(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		body string
+	}{
+		{
+			name: "duplicate number without merchant",
+			body: `{"card_number":"1234567890","initial_balance":100,"currency":"EUR"}`,
+		},
+		{
+			name: "whitespace-only new merchant name",
+			body: `{"new_merchant_name":"   ","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`,
+		},
+		{
+			name: "missing merchant precedes enum validation",
+			body: `{"card_number":"1234567890","initial_balance":100,"currency":"EUR","barcode_type":"BOGUS"}`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			handler, giftCardService, _, merchantService, _, _, _, _ := setupGiftCardsTest()
+			user := createTestUser()
+			c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", tc.body)
+			c.Set("current_user", user)
+			giftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return(createTestGiftCard(), nil)
+
+			err := handler.Create(c)
+
+			assert.Error(t, err)
+			assert.Equal(t, http.StatusBadRequest, rec.Code)
+			assertErrorCode(t, rec, "missing_merchant")
+			giftCardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+			giftCardService.AssertNotCalled(t, "FindDeletedDuplicate", mock.Anything, mock.Anything, mock.Anything)
+			giftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
+			merchantService.AssertNotCalled(t, "GetOrCreateByName", mock.Anything, mock.Anything)
+		})
+	}
+}
+
+func TestGiftCardsHandler_Create_WhitespaceMerchantIDWithNewName(t *testing.T) {
 	handler, giftCardService, _, merchantService, _, _, _, _ := setupGiftCardsTest()
-	body := `{"card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
+	merchant := &models.Merchant{ID: uuid.New(), Name: "New Merchant"}
+	user := createTestUser()
+	body := `{"merchant_id":"  ","new_merchant_name":" New Merchant ","card_number":"1234567890","initial_balance":100,"currency":"EUR"}`
 	c, rec := createTestContext(http.MethodPost, "/api/v1/gift-cards", body)
-	c.Set("current_user", createTestUser())
+	c.Set("current_user", user)
 
-	err := handler.Create(c)
+	merchantService.On("GetOrCreateByName", mock.Anything, "New Merchant").Return(merchant, nil)
+	giftCardService.On("CheckDuplicate", mock.Anything, "1234567890", user.ID, (*uuid.UUID)(nil)).Return((*models.GiftCard)(nil), nil)
+	giftCardService.On("FindDeletedDuplicate", mock.Anything, "1234567890", user.ID).Return((*models.GiftCard)(nil), nil)
+	giftCardService.On("CreateGiftCard", mock.Anything, mock.AnythingOfType("*models.GiftCard")).Return(nil)
+	giftCardService.On("GetGiftCard", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(createTestGiftCard(), nil)
 
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assertErrorCode(t, rec, "missing_merchant")
-	giftCardService.AssertNotCalled(t, "CheckDuplicate", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
-	giftCardService.AssertNotCalled(t, "FindDeletedDuplicate", mock.Anything, mock.Anything, mock.Anything)
-	giftCardService.AssertNotCalled(t, "CreateGiftCard", mock.Anything, mock.Anything)
-	merchantService.AssertNotCalled(t, "CreateMerchant", mock.Anything, mock.Anything)
+	assert.NoError(t, handler.Create(c))
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	merchantService.AssertExpectations(t)
+	giftCardService.AssertExpectations(t)
 }
 
 func TestGiftCardsHandler_Create_InvalidExpiresAt(t *testing.T) {
