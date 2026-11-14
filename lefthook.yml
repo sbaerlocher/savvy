@@ -58,9 +58,9 @@ pre-push:
   commands:
     # Go unit suites. DATABASE_URL points at an unresolvable host (.invalid,
     # RFC 2606) so the DB-backed tests skip instead of migrating and cleaning
-    # the dev database the api container points at. Unsetting it is not
-    # enough: the test helpers then fall back to localhost:5432. CI gates the
-    # DB tests (and the full -race sweep) against its own Postgres.
+    # the dev database the api container points at. The helpers skip when
+    # DATABASE_URL is unset. CI gates DB tests and the full -race sweep
+    # against its own Postgres.
     # Gated by exclusion rather than `*.go`: the tests also load files via
     # go:embed (email/reset templates, locales) and depend on go.mod/go.sum,
     # so only the frontend and Markdown are left out. A Markdown-only push then

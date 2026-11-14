@@ -84,8 +84,8 @@ container's `node_modules`.
 Notes:
 
 - `go-test` points `DATABASE_URL` at an unresolvable `.invalid` host, so the
-  DB-backed tests skip instead of migrating and cleaning the dev database. DB
-  and E2E gates remain CI-only.
+  DB-backed tests skip instead of migrating and cleaning the dev database.
+  Tests also skip when `DATABASE_URL` is unset. DB and E2E gates remain CI-only.
 - `golangci-lint` is not part of the api image. The hook builds the version
   pinned in `lefthook.yml` (`GOLANGCI_LINT_VERSION`, bumped by Renovate) with
   `go run` on first use; the build cache lives in the container, so the first

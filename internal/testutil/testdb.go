@@ -21,10 +21,20 @@ import (
 )
 
 var (
-	sharedDB *gorm.DB
-	once     sync.Once
-	initErr  error
+	sharedDB    *gorm.DB
+	sharedDBURL string
+	once        sync.Once
+	initErr     error
 )
+
+// DatabaseURL returns the database URL configured for DB-backed tests.
+func DatabaseURL() (string, error) {
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		return "", fmt.Errorf("DATABASE_URL not set")
+	}
+	return dbURL, nil
+}
 
 // allModels lists every model that needs to exist in the test database.
 var allModels = []interface{}{
@@ -50,10 +60,12 @@ var allModels = []interface{}{
 // initSharedDB opens ONE connection to the test database and runs migrations.
 // Called once per process via sync.Once.
 func initSharedDB() {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential
+	dbURL, err := DatabaseURL()
+	if err != nil {
+		initErr = err
+		return
 	}
+	sharedDBURL = dbURL
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -126,10 +138,7 @@ func NewTestDBDirect(t *testing.T) *gorm.DB {
 	sharedDB.Exec(fmt.Sprintf("CREATE SCHEMA %s", schemaName))
 
 	// Open a new connection with this schema as search_path
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://savvy:savvy_dev_password@localhost:5432/savvy?sslmode=disable" // #nosec G101 -- test credential
-	}
+	dbURL := sharedDBURL
 	if strings.Contains(dbURL, "?") {
 		dbURL += fmt.Sprintf("&search_path=%s,public", schemaName)
 	} else {
