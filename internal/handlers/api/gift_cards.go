@@ -13,6 +13,7 @@ import (
 	"savvy/internal/models"
 	"savvy/internal/services"
 	"savvy/internal/validation"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -203,6 +204,42 @@ func (h *GiftCardsHandler) Show(c *echo.Context) error {
 	})
 }
 
+// validateGiftCardCreate checks required fields, lengths, and merchant presence.
+// A non-nil error means the error response has been sent; callers should return it directly.
+func validateGiftCardCreate(c *echo.Context, req *GiftCardCreateRequest) error {
+	// Validate required fields
+	if req.CardNumber == "" || req.Currency == "" {
+		return writeBadRequest(c, "missing_fields", "Card number and currency are required")
+	}
+
+	// Validate string lengths
+	if err := validateStringLength(req.CardNumber, "card_number"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.PIN, "pin"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.Notes, "notes"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
+		return writeBadRequest(c, "field_too_long", err.Error())
+	}
+	if req.MerchantID != nil {
+		merchantID := strings.TrimSpace(*req.MerchantID)
+		req.MerchantID = &merchantID
+	}
+	if req.NewMerchantName != nil {
+		merchantName := strings.TrimSpace(*req.NewMerchantName)
+		req.NewMerchantName = &merchantName
+	}
+	if err := validateMerchantPresence(c, req.MerchantID, req.NewMerchantName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Create creates a new gift card
 // POST /api/v1/gift-cards
 func (h *GiftCardsHandler) Create(c *echo.Context) error {
@@ -216,26 +253,8 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 		})
 	}
 
-	// Validate required fields
-	if req.CardNumber == "" || req.Currency == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Error:   "missing_fields",
-			Message: "Card number and currency are required",
-		})
-	}
-
-	// Validate string lengths
-	if err := validateStringLength(req.CardNumber, "card_number"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.PIN, "pin"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.Notes, "notes"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
-	}
-	if err := validateStringLengthPtr(req.NewMerchantName, "name"); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "field_too_long", Message: err.Error()})
+	if err := validateGiftCardCreate(c, &req); err != nil {
+		return err
 	}
 
 	// Validate enum fields
@@ -265,7 +284,6 @@ func (h *GiftCardsHandler) Create(c *echo.Context) error {
 	if err := validateEnum(c, barcodeType, validBarcodeTypes, "barcode_type"); err != nil {
 		return err
 	}
-
 	// Resolve an existing merchant before duplicate checks to preserve merchant errors.
 	// Only a new merchant must wait until the checks have passed.
 	var merchantID *uuid.UUID
