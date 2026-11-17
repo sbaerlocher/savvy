@@ -60,7 +60,7 @@ CMD ["/go/bin/air", "-c", ".air.toml"]
 # ==============================================================================
 # FRONTEND-DEV STAGE (Vite Dev Server with HMR)
 # ==============================================================================
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS frontend-dev
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS frontend-dev
 
 # Install wget for healthcheck and su-exec to drop the dev server to the dde
 # user (dde's overlay forces the container to start as root; see CMD below)
@@ -96,7 +96,7 @@ CMD ["sh", "-c", "exec su-exec \"$DDE_UID:$DDE_GID\" npm run dev -- --host 0.0.0
 # ==============================================================================
 # FRONTEND BUILDER STAGE (Build SvelteKit)
 # ==============================================================================
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS frontend-builder
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS frontend-builder
 
 WORKDIR /app/client
 
