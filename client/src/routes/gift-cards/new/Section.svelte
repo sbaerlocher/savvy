@@ -226,13 +226,13 @@
 										: ''}"
 								>
 									<div class="flex flex-col">
-										<span class="text-sm font-medium text-text"
-											>{suggestion.first_name}
-											{suggestion.last_name}</span
-										>
-										<span class="text-xs text-text-subtle"
-											>{suggestion.email}</span
-										>
+										<span class="text-sm font-medium text-text">
+											{suggestion.first_name}
+											{suggestion.last_name}
+										</span>
+										<span class="text-xs text-text-subtle">
+											{suggestion.email}
+										</span>
 									</div>
 								</button>
 							{/each}
@@ -249,9 +249,9 @@
 							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-text"
-								>{tr('giftCards.sharing.canEdit')}</span
-							>
+							<span class="block text-sm font-medium text-text">
+								{tr('giftCards.sharing.canEdit')}
+							</span>
 							<span class="text-xs text-text-subtle">
 								{tr('giftCards.sharing.canEditDesc')}
 							</span>
@@ -264,12 +264,12 @@
 							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-text"
-								>{tr('giftCards.sharing.canDelete')}</span
-							>
-							<span class="text-xs text-text-subtle"
-								>{tr('giftCards.sharing.canDeleteDesc')}</span
-							>
+							<span class="block text-sm font-medium text-text">
+								{tr('giftCards.sharing.canDelete')}
+							</span>
+							<span class="text-xs text-text-subtle">
+								{tr('giftCards.sharing.canDeleteDesc')}
+							</span>
 						</div>
 					</label>
 					<label class="flex items-start">
@@ -279,9 +279,9 @@
 							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-text"
-								>{tr('giftCards.sharing.canManageTransactions')}</span
-							>
+							<span class="block text-sm font-medium text-text">
+								{tr('giftCards.sharing.canManageTransactions')}
+							</span>
 							<span class="text-xs text-text-subtle">
 								{tr('giftCards.sharing.canManageTransactionsDesc')}
 							</span>

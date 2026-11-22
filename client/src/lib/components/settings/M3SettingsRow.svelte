@@ -68,14 +68,18 @@
 		<span
 			class="text-subheading block font-normal {danger
 				? 'text-danger-600'
-				: 'text-text'}">{title}</span
+				: 'text-text'}"
 		>
+			{title}
+		</span>
 		{#if subtitle}
 			<span
 				class="mt-px block text-label font-normal {danger
 					? 'text-danger-400'
-					: 'text-text-muted'}">{subtitle}</span
+					: 'text-text-muted'}"
 			>
+				{subtitle}
+			</span>
 		{/if}
 	</span>
 	{#if trailing}

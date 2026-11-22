@@ -50,8 +50,10 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 			viewBox="0 0 24 24"
-			aria-hidden="true"><path d={ICON_PLUS}></path></svg
+			aria-hidden="true"
 		>
+			<path d={ICON_PLUS}></path>
+		</svg>
 	</a>
 {/snippet}
 

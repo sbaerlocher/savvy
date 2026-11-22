@@ -151,8 +151,10 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					viewBox="0 0 24 24"
-					aria-hidden="true"><path d={ICON_PENCIL}></path></svg
+					aria-hidden="true"
 				>
+					<path d={ICON_PENCIL}></path>
+				</svg>
 			{/if}
 			{tr('common.edit')}
 		</a>
@@ -170,8 +172,9 @@
 			<a
 				href={resolve('merchants')}
 				class="text-text-subtle hover:text-text-ink2"
-				>{tr('common.backToOverview')}</a
 			>
+				{tr('common.backToOverview')}
+			</a>
 		{/snippet}
 		<WalletView
 			{filters}
@@ -229,8 +232,10 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"><path d={ICON_SEARCH}></path></svg
+							aria-hidden="true"
 						>
+							<path d={ICON_SEARCH}></path>
+						</svg>
 
 						<input
 							type="search"
@@ -253,8 +258,10 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"><path d={ICON_SEARCH}></path></svg
+							aria-hidden="true"
 						>
+							<path d={ICON_SEARCH}></path>
+						</svg>
 
 						<input
 							type="search"

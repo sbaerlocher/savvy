@@ -29,5 +29,6 @@
 	mobileActions={false}
 	back={IS_ANDROID ? undefined : backLine}
 	onBack={IS_ANDROID ? () => goto(resolve('admin/merchants')) : undefined}
-	><Section /></PageShell
 >
+	<Section />
+</PageShell>

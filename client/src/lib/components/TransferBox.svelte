@@ -126,9 +126,9 @@
 				>
 					<path d="M20 6L9 17l-5-5" />
 				</svg>
-				<span class="text-label text-text-ink2 font-normal"
-					>{stripGlyph(detail)}</span
-				>
+				<span class="text-label text-text-ink2 font-normal">
+					{stripGlyph(detail)}
+				</span>
 			</li>
 		{/each}
 	</ul>
@@ -242,9 +242,9 @@
 								d={ICON_CHECK}
 							/>
 						</svg>
-						<span class="text-label font-normal text-text-ink2"
-							>{stripGlyph(detail)}</span
-						>
+						<span class="text-label font-normal text-text-ink2">
+							{stripGlyph(detail)}
+						</span>
 					</li>
 				{/each}
 			</ul>

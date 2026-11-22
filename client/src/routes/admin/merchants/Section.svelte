@@ -272,9 +272,9 @@
 													style="background-color: {merchant.color ||
 														MERCHANT_DEFAULT_COLOR}"
 												></span>
-												<span class="truncate text-body font-medium text-text"
-													>{merchant.name}</span
-												>
+												<span class="truncate text-body font-medium text-text">
+													{merchant.name}
+												</span>
 											</span>
 										</td>
 										<td
@@ -321,25 +321,30 @@
 															<div class="md:col-span-2">
 																<span
 																	class="text-xs font-medium text-text-subtle"
-																	>{$t('common.description')}:</span
 																>
+																	{$t('common.description')}:
+																</span>
 																<p class="text-sm text-text">
 																	{merchant.description}
 																</p>
 															</div>
 														{/if}
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.id')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.id')}:
+															</span>
 															<p class="font-mono text-sm break-all text-text">
 																{merchant.id}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.color')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.color')}:
+															</span>
 															<p
 																class="flex items-center gap-2 font-mono text-sm text-text"
 															>
@@ -424,22 +429,23 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
-								>{$t('common.sort')}</label
 							>
+								{$t('common.sort')}
+							</label>
 
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
-								<option value="name-asc"
-									>{$t('admin.merchants.sortNameAsc')}</option
-								>
-								<option value="name-desc"
-									>{$t('admin.merchants.sortNameDesc')}</option
-								>
-								<option value="newest"
-									>{$t('admin.merchants.sortNewest')}</option
-								>
-								<option value="oldest"
-									>{$t('admin.merchants.sortOldest')}</option
-								>
+								<option value="name-asc">
+									{$t('admin.merchants.sortNameAsc')}
+								</option>
+								<option value="name-desc">
+									{$t('admin.merchants.sortNameDesc')}
+								</option>
+								<option value="newest">
+									{$t('admin.merchants.sortNewest')}
+								</option>
+								<option value="oldest">
+									{$t('admin.merchants.sortOldest')}
+								</option>
 							</select>
 						</div>
 
@@ -474,8 +480,10 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d={ICON_SEARCH}></path></svg
+				aria-hidden="true"
 			>
+				<path d={ICON_SEARCH}></path>
+			</svg>
 
 			<input
 				type="search"
@@ -503,8 +511,10 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d={ICON_FILTER_LINES}></path></svg
+				aria-hidden="true"
 			>
+				<path d={ICON_FILTER_LINES}></path>
+			</svg>
 
 			{#if hasActiveFilters}
 				<span
@@ -542,15 +552,16 @@
 								MERCHANT_DEFAULT_COLOR}"
 						></span>
 						<span class="min-w-0 flex-1">
-							<span class="block truncate text-body font-semibold text-text"
-								>{merchant.name}</span
-							>
+							<span class="block truncate text-body font-semibold text-text">
+								{merchant.name}
+							</span>
 
 							<span
 								class="mt-px block truncate text-chip font-normal text-text-subtle"
-								>{merchant.website ||
-									new Date(merchant.created_at).toLocaleDateString()}</span
 							>
+								{merchant.website ||
+									new Date(merchant.created_at).toLocaleDateString()}
+							</span>
 						</span>
 						<svg
 							class="h-4 w-4 shrink-0 text-text-faint transition-transform {isExpanded
@@ -562,8 +573,10 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"><path d={ICON_CHEVRON_DOWN}></path></svg
+							aria-hidden="true"
 						>
+							<path d={ICON_CHEVRON_DOWN}></path>
+						</svg>
 					</button>
 
 					{#if isExpanded}
@@ -636,8 +649,10 @@
 									href={resolve(`admin/merchants/${merchant.id}/edit`)}
 									class="inline-flex h-9 items-center rounded-full bg-accent px-4 text-chip text-on-accent {isOffline
 										? 'pointer-events-none opacity-45'
-										: ''}">{$t('common.edit')}</a
+										: ''}"
 								>
+									{$t('common.edit')}
+								</a>
 
 								<button
 									type="button"
@@ -673,8 +688,10 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 			viewBox="0 0 24 24"
-			aria-hidden="true"><path d={ICON_PLUS}></path></svg
+			aria-hidden="true"
 		>
+			<path d={ICON_PLUS}></path>
+		</svg>
 	</a>
 
 	<!-- Docked search pill plus the round filter button carrying the active
@@ -756,13 +773,13 @@
 								MERCHANT_DEFAULT_COLOR}"
 						></span>
 						<span class="min-w-0 flex-1">
-							<span class="text-body text-text block truncate font-semibold"
-								>{merchant.name}</span
-							>
-							<span class="text-body-sm text-text-muted mt-px block truncate"
-								>{merchant.website ||
-									new Date(merchant.created_at).toLocaleDateString()}</span
-							>
+							<span class="text-body text-text block truncate font-semibold">
+								{merchant.name}
+							</span>
+							<span class="text-body-sm text-text-muted mt-px block truncate">
+								{merchant.website ||
+									new Date(merchant.created_at).toLocaleDateString()}
+							</span>
 						</span>
 						<svg
 							class="text-text-subtle h-4 w-4 shrink-0 transition-transform {expanded
@@ -850,8 +867,10 @@
 										href={resolve(`admin/merchants/${merchant.id}/edit`)}
 										class="bg-accent text-on-accent rounded-m3-full text-body-sm inline-flex h-9 items-center px-4 font-semibold {isOffline
 											? 'pointer-events-none opacity-45'
-											: ''}">{$t('common.edit')}</a
+											: ''}"
 									>
+										{$t('common.edit')}
+									</a>
 
 									<button
 										type="button"
@@ -1094,17 +1113,20 @@
 															<div class="md:col-span-2">
 																<span
 																	class="text-xs font-medium text-text-subtle"
-																	>{$t('common.description')}:</span
 																>
+																	{$t('common.description')}:
+																</span>
 																<p class="text-sm text-text">
 																	{merchant.description}
 																</p>
 															</div>
 														{/if}
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.website')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.website')}:
+															</span>
 															<p class="text-sm text-text">
 																{#if merchant.website}
 																	<!-- eslint-disable svelte/no-navigation-without-resolve -- external merchant website URL, not an app route -->
@@ -1123,25 +1145,31 @@
 															</p>
 														</div>
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.createdAt')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.createdAt')}:
+															</span>
 															<p class="text-sm text-text">
 																{new Date(merchant.created_at).toLocaleString()}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.id')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.id')}:
+															</span>
 															<p class="text-sm text-text font-mono break-all">
 																{merchant.id}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.merchants.color')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.merchants.color')}:
+															</span>
 															<p
 																class="text-sm text-text font-mono flex items-center gap-2"
 															>
@@ -1226,22 +1254,23 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
-								>{$t('common.sort')}</label
 							>
+								{$t('common.sort')}
+							</label>
 
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
-								<option value="name-asc"
-									>{$t('admin.merchants.sortNameAsc')}</option
-								>
-								<option value="name-desc"
-									>{$t('admin.merchants.sortNameDesc')}</option
-								>
-								<option value="newest"
-									>{$t('admin.merchants.sortNewest')}</option
-								>
-								<option value="oldest"
-									>{$t('admin.merchants.sortOldest')}</option
-								>
+								<option value="name-asc">
+									{$t('admin.merchants.sortNameAsc')}
+								</option>
+								<option value="name-desc">
+									{$t('admin.merchants.sortNameDesc')}
+								</option>
+								<option value="newest">
+									{$t('admin.merchants.sortNewest')}
+								</option>
+								<option value="oldest">
+									{$t('admin.merchants.sortOldest')}
+								</option>
 							</select>
 						</div>
 
@@ -1312,8 +1341,10 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
+						aria-hidden="true"
 					>
+						<path d={ICON_CHEVRON_RIGHT}></path>
+					</svg>
 				</button>
 
 				{#if sortExpanded}
@@ -1348,8 +1379,10 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										viewBox="0 0 24 24"
-										aria-hidden="true"><path d={ICON_CHECK}></path></svg
+										aria-hidden="true"
 									>
+										<path d={ICON_CHECK}></path>
+									</svg>
 								{/if}
 							</button>
 						{/each}
@@ -1390,8 +1423,9 @@
 						stroke="currentColor"
 						stroke-width="2"
 						viewBox="0 0 24 24"
-						><path stroke-linecap="round" d={ICON_CLOSE}></path></svg
 					>
+						<path stroke-linecap="round" d={ICON_CLOSE}></path>
+					</svg>
 				</button>
 			</div>
 
@@ -1485,15 +1519,17 @@
 					<label
 						for="sortByMobile"
 						class="block text-sm font-medium text-text-ink2 mb-2"
-						>{$t('common.sort')}</label
 					>
+						{$t('common.sort')}
+					</label>
 
 					<select id="sortByMobile" bind:value={sortBy} class="input bg-white">
-						<option value="name-asc">{$t('admin.merchants.sortNameAsc')}</option
-						>
-						<option value="name-desc"
-							>{$t('admin.merchants.sortNameDesc')}</option
-						>
+						<option value="name-asc">
+							{$t('admin.merchants.sortNameAsc')}
+						</option>
+						<option value="name-desc">
+							{$t('admin.merchants.sortNameDesc')}
+						</option>
 						<option value="newest">{$t('admin.merchants.sortNewest')}</option>
 						<option value="oldest">{$t('admin.merchants.sortOldest')}</option>
 					</select>

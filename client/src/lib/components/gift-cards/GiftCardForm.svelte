@@ -122,9 +122,9 @@
 	{/if}
 
 	<div>
-		<label for="initialBalance" class="label"
-			>{$t('giftCards.initialBalance')} *</label
-		>
+		<label for="initialBalance" class="label">
+			{$t('giftCards.initialBalance')} *
+		</label>
 		<div
 			class="flex gap-2 {$locale?.startsWith('en')
 				? 'flex-row-reverse'
@@ -193,9 +193,9 @@
 		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-ghost"
-			>{$t('common.cancel')}</button
-		>
+		<button type="button" onclick={onCancel} class="btn btn-ghost">
+			{$t('common.cancel')}
+		</button>
 		{#if trailingActions}
 			<div class="ms-auto">{@render trailingActions()}</div>
 		{/if}

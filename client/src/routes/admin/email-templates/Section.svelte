@@ -111,9 +111,9 @@
 						d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
 					/>
 				</svg>
-				<label for="language" class="text-sm text-text-subtle shrink-0"
-					>{$t('admin.emailTemplates.language')}:</label
-				>
+				<label for="language" class="text-sm text-text-subtle shrink-0">
+					{$t('admin.emailTemplates.language')}:
+				</label>
 				<select
 					id="language"
 					bind:value={selectedLanguage}
@@ -169,9 +169,9 @@
 											/>
 										</svg>
 									</div>
-									<span class="text-body font-medium text-text"
-										>{template.name}</span
-									>
+									<span class="text-body font-medium text-text">
+										{template.name}
+									</span>
 								</div>
 							</td>
 							<td class="px-7.5 py-3.5 text-body text-text-ink2">
@@ -215,9 +215,9 @@
 	<div
 		class="liquid-glass-card ios-glass-form mb-3.5 rounded-[var(--radius-inset)] p-3.75"
 	>
-		<label for="language" class="label"
-			>{$t('admin.emailTemplates.language')}</label
-		>
+		<label for="language" class="label">
+			{$t('admin.emailTemplates.language')}
+		</label>
 		<select id="language" bind:value={selectedLanguage} class="input">
 			<option value="de">Deutsch (DE)</option>
 			<option value="en">English (EN)</option>
@@ -259,8 +259,9 @@
 					</span>
 					<span
 						class="min-w-0 flex-1 truncate text-body font-semibold text-text"
-						>{template.name}</span
 					>
+						{template.name}
+					</span>
 					<svg
 						class="h-4 w-4 shrink-0 text-text-faint transition-transform {expanded
 							? 'rotate-180'
@@ -317,9 +318,9 @@
 	<!-- Language selector inside its own M3 card; the shared input/label
 	     classes carry the field styling. -->
 	<div class="rounded-m3-lg bg-m3-card border-border mb-3.5 border p-4">
-		<label for="language" class="label"
-			>{$t('admin.emailTemplates.language')}</label
-		>
+		<label for="language" class="label">
+			{$t('admin.emailTemplates.language')}
+		</label>
 		<select id="language" bind:value={selectedLanguage} class="input">
 			<option value="de">Deutsch (DE)</option>
 			<option value="en">English (EN)</option>
@@ -361,8 +362,9 @@
 					</span>
 					<span
 						class="text-body text-text min-w-0 flex-1 truncate font-semibold"
-						>{template.name}</span
 					>
+						{template.name}
+					</span>
 					<svg
 						class="text-text-subtle h-4 w-4 shrink-0 transition-transform {expanded
 							? 'rotate-180'
@@ -436,9 +438,9 @@
 					d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
 				/>
 			</svg>
-			<label for="language" class="text-sm text-text-subtle shrink-0"
-				>{$t('admin.emailTemplates.language')}:</label
-			>
+			<label for="language" class="text-sm text-text-subtle shrink-0">
+				{$t('admin.emailTemplates.language')}:
+			</label>
 			<select
 				id="language"
 				bind:value={selectedLanguage}
@@ -473,8 +475,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1">{template.name}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{template.name}
+				</span>
 				<svg
 					class="w-4 h-4 text-text-faint transition-transform {expandedTemplate ===
 					template.id
@@ -566,9 +569,9 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{template.name}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{template.name}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 text-sm text-text-subtle">

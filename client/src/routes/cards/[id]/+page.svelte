@@ -230,9 +230,9 @@
 	{/snippet}
 	{#if isRefreshing}
 		<div class="mb-6 flex justify-end">
-			<span class="text-xs text-text-faint animate-pulse"
-				>{tr('common.refreshing')}</span
-			>
+			<span class="text-xs text-text-faint animate-pulse">
+				{tr('common.refreshing')}
+			</span>
 		</div>
 	{/if}
 

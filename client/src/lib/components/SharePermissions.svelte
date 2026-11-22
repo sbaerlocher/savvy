@@ -140,13 +140,13 @@
 					class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 				/>
 				<div class="ml-2">
-					<span class="block text-sm font-medium text-text"
-						>{labelEditTransactions}</span
-					>
+					<span class="block text-sm font-medium text-text">
+						{labelEditTransactions}
+					</span>
 					{#if labelEditTransactionsDesc}
-						<span class="text-xs text-text-subtle"
-							>{labelEditTransactionsDesc}</span
-						>
+						<span class="text-xs text-text-subtle">
+							{labelEditTransactionsDesc}
+						</span>
 					{/if}
 				</div>
 			</label>

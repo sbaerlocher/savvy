@@ -155,9 +155,9 @@
 		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-ghost"
-			>{$t('common.cancel')}</button
-		>
+		<button type="button" onclick={onCancel} class="btn btn-ghost">
+			{$t('common.cancel')}
+		</button>
 		{#if trailingActions}
 			<div class="ms-auto">{@render trailingActions()}</div>
 		{/if}

@@ -126,13 +126,13 @@
 							class="btn btn-primary"
 						>
 							{#if isSavingProfile}
-								<span class="relative inline-flex h-3 w-3 mr-2"
-									><span
+								<span class="relative inline-flex h-3 w-3 mr-2">
+									<span
 										class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 									></span><span
 										class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-									></span></span
-								>
+									></span>
+								</span>
 								{tr('settings.profile.saving')}
 							{:else}
 								{tr('settings.profile.saveButton')}

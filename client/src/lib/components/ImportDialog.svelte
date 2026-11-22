@@ -448,13 +448,13 @@
 			{:else if step === 'importing'}
 				<!-- Importing Progress -->
 				<div class="flex flex-col items-center {importingPadClass}">
-					<span class="relative inline-flex h-6 w-6 mb-4"
-						><span
+					<span class="relative inline-flex h-6 w-6 mb-4">
+						<span
 							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 						></span><span
 							class="relative inline-flex rounded-full h-6 w-6 bg-accent"
-						></span></span
-					>
+						></span>
+					</span>
 					<p class="{copyClass} text-text-muted">
 						{tr('settings.import.importing')}
 					</p>

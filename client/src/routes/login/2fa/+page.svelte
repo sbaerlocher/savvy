@@ -341,8 +341,10 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"></path></svg
+						viewBox="0 0 24 24"
 					>
+						<path d="M4 7h16M4 12h10M4 17h7"></path>
+					</svg>
 
 					{useBackup
 						? tr('auth.twoFactor.useAuthenticator')
@@ -490,13 +492,13 @@
 							: ''}"
 					>
 						{#if isLoading}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
+							<span class="relative inline-flex h-3 w-3 mr-2">
+								<span
 									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
 									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-								></span></span
-							>
+								></span>
+							</span>
 							{tr('auth.twoFactor.verifying')}
 						{:else}
 							{tr('auth.twoFactor.verifyButton')}
@@ -523,8 +525,9 @@
 								stroke-width="2"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								><path d="M4 7h16M4 12h10M4 17h7"></path></svg
 							>
+								<path d="M4 7h16M4 12h10M4 17h7"></path>
+							</svg>
 						{/if}
 						{#if useBackup}
 							{tr('auth.twoFactor.useAuthenticator')}
@@ -537,8 +540,10 @@
 						href={resolve('login')}
 						class="block w-full text-sm text-text-subtle hover:text-text-ink2 text-center {isDesktop
 							? 'lg:text-label lg:font-normal'
-							: ''}">{tr('auth.twoFactor.backToLogin')}</a
+							: ''}"
 					>
+						{tr('auth.twoFactor.backToLogin')}
+					</a>
 				</div>
 			</div>
 		</div>

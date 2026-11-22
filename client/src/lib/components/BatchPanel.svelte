@@ -91,9 +91,9 @@
 		>
 			<path stroke-linecap="round" stroke-linejoin="round" {d} />
 		</svg>
-		<span class="text-eyebrow font-medium normal-case tracking-normal"
-			>{label}</span
-		>
+		<span class="text-eyebrow font-medium normal-case tracking-normal">
+			{label}
+		</span>
 	</button>
 {/snippet}
 
@@ -408,9 +408,9 @@
 						d={ICON_TRANSFER}
 					/>
 				</svg>
-				<span class="text-[length:var(--text-tag)]"
-					>{tr('common.transferOwnership')}</span
-				>
+				<span class="text-[length:var(--text-tag)]">
+					{tr('common.transferOwnership')}
+				</span>
 			</button>
 			<button
 				type="button"
@@ -593,9 +593,9 @@
 						d="M4 6h16M4 10h16M4 14h16M4 18h16"
 					></path>
 				</svg>
-				<span class="text-[length:var(--text-tag)] font-medium"
-					>{allSelected ? tr('batch.deselectAll') : tr('batch.selectAll')}</span
-				>
+				<span class="text-[length:var(--text-tag)] font-medium">
+					{allSelected ? tr('batch.deselectAll') : tr('batch.selectAll')}
+				</span>
 			</button>
 
 			<button
@@ -617,9 +617,9 @@
 						d={ICON_SHARE}
 					></path>
 				</svg>
-				<span class="text-[length:var(--text-tag)] font-medium"
-					>{tr('common.share')}</span
-				>
+				<span class="text-[length:var(--text-tag)] font-medium">
+					{tr('common.share')}
+				</span>
 			</button>
 
 			<button
@@ -642,9 +642,9 @@
 						d={ICON_TRANSFER}
 					></path>
 				</svg>
-				<span class="text-[length:var(--text-tag)] font-medium"
-					>{tr('common.transferOwnership')}</span
-				>
+				<span class="text-[length:var(--text-tag)] font-medium">
+					{tr('common.transferOwnership')}
+				</span>
 			</button>
 
 			<button
@@ -666,9 +666,9 @@
 						d={ICON_TRASH}
 					></path>
 				</svg>
-				<span class="text-[length:var(--text-tag)] font-medium"
-					>{tr('common.delete')}</span
-				>
+				<span class="text-[length:var(--text-tag)] font-medium">
+					{tr('common.delete')}
+				</span>
 			</button>
 		</div>
 	{/if}

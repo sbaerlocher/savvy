@@ -351,9 +351,9 @@
 											{#if log.user}
 												{log.user.email}
 											{:else}
-												<span class="text-text-faint italic"
-													>{$t('admin.auditLog.systemAction')}</span
-												>
+												<span class="text-text-faint italic">
+													{$t('admin.auditLog.systemAction')}
+												</span>
 											{/if}
 										</td>
 										<td
@@ -729,9 +729,9 @@
 							{log.resource_type.charAt(0).toUpperCase()}
 						</span>
 						<span class="min-w-0 flex-1">
-							<span class="text-body text-text block truncate font-semibold"
-								>{log.resource_type}</span
-							>
+							<span class="text-body text-text block truncate font-semibold">
+								{log.resource_type}
+							</span>
 							<span class="text-body-sm text-text-muted mt-px block truncate">
 								{#if log.user}
 									{log.user.email}
@@ -955,9 +955,9 @@
 							{log.resource_type.charAt(0).toUpperCase()}
 						</span>
 						<span class="min-w-0 flex-1">
-							<span class="block truncate text-body font-semibold text-text"
-								>{log.resource_type}</span
-							>
+							<span class="block truncate text-body font-semibold text-text">
+								{log.resource_type}
+							</span>
 							<span
 								class="mt-px block truncate text-chip font-normal text-text-subtle"
 							>
@@ -1211,9 +1211,9 @@
 													>
 														{log.action}
 													</span>
-													<span class="md:hidden text-sm font-medium text-text"
-														>{log.resource_type}</span
-													>
+													<span class="md:hidden text-sm font-medium text-text">
+														{log.resource_type}
+													</span>
 												</div>
 												<svg
 													class="w-4 h-4 text-text-faint ml-2 md:hidden flex-shrink-0 transition-transform {expandedLogId ===
@@ -1244,9 +1244,9 @@
 											{#if log.user}
 												{log.user.email}
 											{:else}
-												<span class="text-text-faint italic"
-													>{$t('admin.auditLog.systemAction')}</span
-												>
+												<span class="text-text-faint italic">
+													{$t('admin.auditLog.systemAction')}
+												</span>
 											{/if}
 										</td>
 										<td
@@ -1283,9 +1283,9 @@
 																{#if log.user}
 																	{log.user.email}
 																{:else}
-																	<span class="text-text-faint italic"
-																		>{$t('admin.auditLog.systemAction')}</span
-																	>
+																	<span class="text-text-faint italic">
+																		{$t('admin.auditLog.systemAction')}
+																	</span>
 																{/if}
 															</p>
 														</div>

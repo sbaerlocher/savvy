@@ -125,8 +125,9 @@
 
 	{#snippet descriptionField()}
 		<div>
-			<label for="description" class="label">{$t('vouchers.description')}</label
-			>
+			<label for="description" class="label">
+				{$t('vouchers.description')}
+			</label>
 			<textarea
 				id="description"
 				bind:value={description}
@@ -158,9 +159,9 @@
 				<select id="type" bind:value={type} required class="input">
 					<option value="percentage">{$t('vouchers.typePercentage')}</option>
 					<option value="fixed_amount">{$t('vouchers.typeFixedAmount')}</option>
-					<option value="points_multiplier"
-						>{$t('vouchers.typePointsMultiplier')}</option
-					>
+					<option value="points_multiplier">
+						{$t('vouchers.typePointsMultiplier')}
+					</option>
 					<option value="bonus_points">{$t('vouchers.typeBonusPoints')}</option>
 					<option value="free">{$t('vouchers.typeFree')}</option>
 				</select>
@@ -178,15 +179,15 @@
 					<label for="type" class="label">{$t('vouchers.type')} *</label>
 					<select id="type" bind:value={type} required class="input">
 						<option value="percentage">{$t('vouchers.typePercentage')}</option>
-						<option value="fixed_amount"
-							>{$t('vouchers.typeFixedAmount')}</option
-						>
-						<option value="points_multiplier"
-							>{$t('vouchers.typePointsMultiplier')}</option
-						>
-						<option value="bonus_points"
-							>{$t('vouchers.typeBonusPoints')}</option
-						>
+						<option value="fixed_amount">
+							{$t('vouchers.typeFixedAmount')}
+						</option>
+						<option value="points_multiplier">
+							{$t('vouchers.typePointsMultiplier')}
+						</option>
+						<option value="bonus_points">
+							{$t('vouchers.typeBonusPoints')}
+						</option>
 						<option value="free">{$t('vouchers.typeFree')}</option>
 					</select>
 				</div>
@@ -249,9 +250,9 @@
 	<!-- Mindesteinkauf / Verwendungsart -->
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 		<div>
-			<label for="minPurchaseAmount" class="label"
-				>{$t('vouchers.minPurchaseAmount')}</label
-			>
+			<label for="minPurchaseAmount" class="label">
+				{$t('vouchers.minPurchaseAmount')}
+			</label>
 			<div class="flex gap-2">
 				<input
 					id="minPurchaseAmount"
@@ -278,22 +279,22 @@
 		</div>
 
 		<div>
-			<label for="usageLimitType" class="label"
-				>{$t('vouchers.usageLimitType')}</label
-			>
+			<label for="usageLimitType" class="label">
+				{$t('vouchers.usageLimitType')}
+			</label>
 			<select id="usageLimitType" bind:value={usageLimitType} class="input">
-				<option value="single_use"
-					>{$t('vouchers.usageLimitTypes.single_use')}</option
-				>
-				<option value="one_per_customer"
-					>{$t('vouchers.usageLimitTypes.one_per_customer')}</option
-				>
-				<option value="multiple_use_with_card"
-					>{$t('vouchers.usageLimitTypes.multiple_use_with_card')}</option
-				>
-				<option value="multiple_use_without_card"
-					>{$t('vouchers.usageLimitTypes.multiple_use_without_card')}</option
-				>
+				<option value="single_use">
+					{$t('vouchers.usageLimitTypes.single_use')}
+				</option>
+				<option value="one_per_customer">
+					{$t('vouchers.usageLimitTypes.one_per_customer')}
+				</option>
+				<option value="multiple_use_with_card">
+					{$t('vouchers.usageLimitTypes.multiple_use_with_card')}
+				</option>
+				<option value="multiple_use_without_card">
+					{$t('vouchers.usageLimitTypes.multiple_use_without_card')}
+				</option>
 			</select>
 			<p class="text-sm text-text-subtle mt-1">
 				{$t('vouchers.usageLimitTypeHint')}
@@ -381,9 +382,9 @@
 		>
 			{isLoading ? $t('common.saving') : submitLabel || $t('common.save')}
 		</button>
-		<button type="button" onclick={onCancel} class="btn btn-ghost"
-			>{$t('common.cancel')}</button
-		>
+		<button type="button" onclick={onCancel} class="btn btn-ghost">
+			{$t('common.cancel')}
+		</button>
 		{#if trailingActions}
 			<div class="ms-auto">{@render trailingActions()}</div>
 		{/if}

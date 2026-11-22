@@ -417,19 +417,20 @@
 				<div
 					class="grid grid-cols-[1.4fr_2.4fr_1.4fr_1fr] border-b border-border-soft bg-surface-1 px-7.5 py-3"
 				>
-					<span class="text-section-eyebrow uppercase text-text-subtle"
-						>{$t('admin.systemHealth.service')}</span
-					>
-					<span class="text-section-eyebrow uppercase text-text-subtle"
-						>{$t('admin.systemHealth.details')}</span
-					>
-					<span class="text-section-eyebrow uppercase text-text-subtle"
-						>{$t('admin.users.actions')}</span
-					>
+					<span class="text-section-eyebrow uppercase text-text-subtle">
+						{$t('admin.systemHealth.service')}
+					</span>
+					<span class="text-section-eyebrow uppercase text-text-subtle">
+						{$t('admin.systemHealth.details')}
+					</span>
+					<span class="text-section-eyebrow uppercase text-text-subtle">
+						{$t('admin.users.actions')}
+					</span>
 					<span
 						class="text-section-eyebrow text-right uppercase text-text-subtle"
-						>{$t('admin.systemHealth.statusLabel')}</span
 					>
+						{$t('admin.systemHealth.statusLabel')}
+					</span>
 				</div>
 
 				{#each serviceRows as row (row.key)}
@@ -462,8 +463,10 @@
 						<span
 							class="text-label font-normal {row.check.status === 'unhealthy'
 								? 'text-danger-600'
-								: 'text-text-muted'}">{row.detail}</span
+								: 'text-text-muted'}"
 						>
+							{row.detail}
+						</span>
 
 						<span>
 							{#if row.test && row.check.enabled}
@@ -646,9 +649,9 @@
 					? $t('admin.systemHealth.autoRefreshEvery')
 					: $t('admin.systemHealth.paused')}
 			</button>
-			<span class="font-mono text-mono-sm text-text-faint"
-				>{getTimeAgo(lastRefresh)}</span
-			>
+			<span class="font-mono text-mono-sm text-text-faint">
+				{getTimeAgo(lastRefresh)}
+			</span>
 		</div>
 
 		<div class="flex flex-col gap-2.5">
@@ -684,9 +687,9 @@
 							</svg>
 						</span>
 						<span class="min-w-0 flex-1">
-							<span class="block truncate text-subheading text-text"
-								>{service.name}</span
-							>
+							<span class="block truncate text-subheading text-text">
+								{service.name}
+							</span>
 							<span class="mt-px block text-chip font-normal text-text-subtle">
 								{check.enabled
 									? $t('admin.systemHealth.serviceEnabled')
@@ -882,9 +885,9 @@
 					)
 				: $t('admin.systemHealth.paused')}
 		</button>
-		<span class="text-mono-sm text-text-faint font-mono"
-			>{getTimeAgo(lastRefresh)}</span
-		>
+		<span class="text-mono-sm text-text-faint font-mono">
+			{getTimeAgo(lastRefresh)}
+		</span>
 	</div>
 
 	<!-- One tonal card per service, expanding into detail plus test action. -->
@@ -910,9 +913,9 @@
 						d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					/>
 				</svg>
-				<span class="text-label text-danger-800 font-normal"
-					>{$t('admin.systemHealth.loadErrorRetry')}</span
-				>
+				<span class="text-label text-danger-800 font-normal">
+					{$t('admin.systemHealth.loadErrorRetry')}
+				</span>
 			</div>
 		{:else}
 			{#each serviceRows as service (service.key)}
@@ -953,9 +956,9 @@
 						     "Nicht konfiguriert" pill cannot both keep their natural width.
 						     The name is given the floor and the pill truncates instead. -->
 						<span class="min-w-0 grow basis-auto overflow-hidden">
-							<span class="text-subheading text-text block truncate"
-								>{service.name}</span
-							>
+							<span class="text-subheading text-text block truncate">
+								{service.name}
+							</span>
 							<span class="text-body-sm text-text-muted mt-px block truncate">
 								{check.enabled
 									? $t('admin.systemHealth.serviceEnabled')
@@ -1072,9 +1075,9 @@
 							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-success-600"
-						>{$t('admin.systemHealth.ready')}</span
-					>
+					<span class="text-sm font-medium text-success-600">
+						{$t('admin.systemHealth.ready')}
+					</span>
 				{:else if health.status === 'degraded'}
 					<svg
 						class="w-5 h-5 text-warning-600 shrink-0"
@@ -1089,9 +1092,9 @@
 							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-warning-600"
-						>{$t('admin.systemHealth.degraded')}</span
-					>
+					<span class="text-sm font-medium text-warning-600">
+						{$t('admin.systemHealth.degraded')}
+					</span>
 				{:else}
 					<svg
 						class="w-5 h-5 text-danger-600 shrink-0"
@@ -1106,14 +1109,14 @@
 							d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 						/>
 					</svg>
-					<span class="text-sm font-medium text-danger-600"
-						>{$t('admin.systemHealth.notReady')}</span
-					>
+					<span class="text-sm font-medium text-danger-600">
+						{$t('admin.systemHealth.notReady')}
+					</span>
 				{/if}
 				{#if lastRefresh}
-					<span class="text-xs text-text-faint ml-auto"
-						>{getTimeAgo(lastRefresh)}</span
-					>
+					<span class="text-xs text-text-faint ml-auto">
+						{getTimeAgo(lastRefresh)}
+					</span>
 				{/if}
 			{:else}
 				<span class="text-sm text-text-faint">—</span>
@@ -1213,9 +1216,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{$t('admin.systemHealth.database')}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{$t('admin.systemHealth.database')}
+				</span>
 				<span
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 						.database.enabled
@@ -1280,9 +1283,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{$t('admin.systemHealth.smtp')}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{$t('admin.systemHealth.smtp')}
+				</span>
 				<span
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.smtp
 						.enabled
@@ -1368,9 +1371,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{$t('admin.systemHealth.oauth')}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{$t('admin.systemHealth.oauth')}
+				</span>
 				<span
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.oauth
 						.enabled
@@ -1430,9 +1433,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{$t('admin.systemHealth.pushNotifications')}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{$t('admin.systemHealth.pushNotifications')}
+				</span>
 				<span
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks.vapid
 						.enabled
@@ -1518,9 +1521,9 @@
 						/>
 					</svg>
 				</div>
-				<span class="text-sm font-medium text-text flex-1"
-					>{$t('admin.systemHealth.totp')}</span
-				>
+				<span class="text-sm font-medium text-text flex-1">
+					{$t('admin.systemHealth.totp')}
+				</span>
 				<span
 					class="px-2 py-1 text-xs font-medium rounded-full {health.checks
 						.totp_encryption.enabled
@@ -1551,9 +1554,9 @@
 			{#if expandedService === 'totp'}
 				<div class="px-4 py-3 bg-surface-1 text-sm text-text-muted">
 					{#if health.checks.totp_encryption.error}
-						<span class="text-danger-600"
-							>{health.checks.totp_encryption.error}</span
-						>
+						<span class="text-danger-600">
+							{health.checks.totp_encryption.error}
+						</span>
 					{:else if health.checks.totp_encryption.enabled}
 						{$t('admin.systemHealth.encryptionValid')}
 					{:else}
@@ -1610,16 +1613,16 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{$t('admin.systemHealth.database')}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{$t('admin.systemHealth.database')}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.database.error}
-								<span class="text-danger-600"
-									>{health.checks.database.error}</span
-								>
+								<span class="text-danger-600">
+									{health.checks.database.error}
+								</span>
 							{:else if health.checks.database.latency_ms !== undefined}
 								{$t('admin.systemHealth.latency').replace(
 									'{ms}',
@@ -1665,9 +1668,9 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{$t('admin.systemHealth.smtp')}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{$t('admin.systemHealth.smtp')}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
@@ -1738,9 +1741,9 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{$t('admin.systemHealth.oauth')}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{$t('admin.systemHealth.oauth')}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
@@ -1786,9 +1789,9 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{$t('admin.systemHealth.pushNotifications')}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{$t('admin.systemHealth.pushNotifications')}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
@@ -1859,16 +1862,16 @@
 										/>
 									</svg>
 								</div>
-								<span class="text-sm font-medium text-text"
-									>{$t('admin.systemHealth.totp')}</span
-								>
+								<span class="text-sm font-medium text-text">
+									{$t('admin.systemHealth.totp')}
+								</span>
 							</div>
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-text-subtle">
 							{#if health.checks.totp_encryption.error}
-								<span class="text-danger-600"
-									>{health.checks.totp_encryption.error}</span
-								>
+								<span class="text-danger-600">
+									{health.checks.totp_encryption.error}
+								</span>
 							{:else if health.checks.totp_encryption.enabled}
 								{$t('admin.systemHealth.encryptionValid')}
 							{:else}
@@ -1909,9 +1912,9 @@
 						d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					/>
 				</svg>
-				<span class="text-danger-800"
-					>{$t('admin.systemHealth.loadErrorRetry')}</span
-				>
+				<span class="text-danger-800">
+					{$t('admin.systemHealth.loadErrorRetry')}
+				</span>
 			</div>
 		</div>
 	{/if}

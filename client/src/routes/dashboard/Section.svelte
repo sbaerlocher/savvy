@@ -121,9 +121,9 @@
 {#if error}
 	<div class="rounded-xl border border-border/80 bg-white p-6 text-center">
 		<p class="mb-4 text-danger-600">{error}</p>
-		<button onclick={loadDashboard} class="btn btn-primary"
-			>{$t('common.retry')}</button
-		>
+		<button onclick={loadDashboard} class="btn btn-primary">
+			{$t('common.retry')}
+		</button>
 	</div>
 {:else if isLoading}
 	<!-- Block skeleton mirroring the loaded layout: content first, then the

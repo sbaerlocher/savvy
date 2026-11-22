@@ -288,8 +288,10 @@
 		stroke-width="2"
 		stroke-linecap="round"
 		stroke-linejoin="round"
-		aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg
+		aria-hidden="true"
 	>
+		<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+	</svg>
 {/snippet}
 
 <!-- Desktop row (mockup board B). `unread` drives dot, tint and title weight. -->
@@ -360,8 +362,10 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg
+						aria-hidden="true"
 					>
+						<path d="M20 6L9 17l-5-5"></path>
+					</svg>
 				</button>
 			{/if}
 			<button
@@ -496,8 +500,10 @@
 						stroke="currentColor"
 						stroke-width="2"
 						stroke-linecap="round"
-						stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg
+						stroke-linejoin="round"
 					>
+						<path d="M20 6L9 17l-5-5"></path>
+					</svg>
 
 					{tr('notifications.ios.swipeRead')}
 				</button>
@@ -518,8 +524,9 @@
 					stroke-width="2"
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg
 				>
+					<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+				</svg>
 
 				{tr('notifications.ios.swipeDelete')}
 			</button>
@@ -842,9 +849,9 @@
 		{/if}
 
 		{#if readNotifications.length > 0}
-			<SectionLabel inset spaced
-				>{tr('notifications.sectionEarlier')}</SectionLabel
-			>
+			<SectionLabel inset spaced>
+				{tr('notifications.sectionEarlier')}
+			</SectionLabel>
 			<div class="overflow-hidden rounded-inset bg-surface">
 				{#each readNotifications as notification (notification.id)}
 					{@render row(notification)}

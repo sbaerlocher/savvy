@@ -70,9 +70,9 @@
 
 				<!-- Password -->
 				<div>
-					<label for="password" class="label"
-						>{tr('admin.users.password')} *</label
-					>
+					<label for="password" class="label">
+						{tr('admin.users.password')} *
+					</label>
 					<input
 						type="password"
 						id="password"
@@ -85,9 +85,9 @@
 
 				<!-- First Name -->
 				<div>
-					<label for="firstName" class="label"
-						>{tr('admin.users.firstName')} *</label
-					>
+					<label for="firstName" class="label">
+						{tr('admin.users.firstName')} *
+					</label>
 					<input
 						type="text"
 						id="firstName"
@@ -99,9 +99,9 @@
 
 				<!-- Last Name -->
 				<div>
-					<label for="lastName" class="label"
-						>{tr('admin.users.lastName')} *</label
-					>
+					<label for="lastName" class="label">
+						{tr('admin.users.lastName')} *
+					</label>
 					<input
 						type="text"
 						id="lastName"
@@ -126,12 +126,13 @@
 						type="submit"
 						disabled={isLoading}
 						class="btn btn-sm btn-primary flex-1"
-						>{isLoading ? tr('common.loading') : tr('common.save')}</button
 					>
+						{isLoading ? tr('common.loading') : tr('common.save')}
+					</button>
 
-					<a href={resolve('admin/users')} class="btn btn-sm btn-ghost"
-						>{tr('common.cancel')}</a
-					>
+					<a href={resolve('admin/users')} class="btn btn-sm btn-ghost">
+						{tr('common.cancel')}
+					</a>
 				</div>
 			</form>
 		</div>
