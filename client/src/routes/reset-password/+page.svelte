@@ -191,9 +191,9 @@
 				</button>
 
 				<div class="pt-1 text-center">
-					<a href={resolve('login')} class="text-label text-accent-600"
-						>{tr('auth.resetPassword.goToLogin')}</a
-					>
+					<a href={resolve('login')} class="text-label text-accent-600">
+						{tr('auth.resetPassword.goToLogin')}
+					</a>
 				</div>
 			</form>
 		{/if}
@@ -215,8 +215,10 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg
+						viewBox="0 0 24 24"
 					>
+						<path d="M5 13l4 4L19 7"></path>
+					</svg>
 				</span>
 				<h1 class="text-heading text-text mb-2">
 					{tr('auth.resetPassword.success')}
@@ -245,8 +247,10 @@
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg
+						viewBox="0 0 24 24"
 					>
+						<path d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
 				</span>
 				<h1 class="text-heading text-text mb-2">
 					{tr('auth.resetPassword.error')}
@@ -556,13 +560,13 @@
 									: ''}"
 							>
 								{#if isLoading}
-									<span class="relative inline-flex h-3 w-3 mr-2"
-										><span
+									<span class="relative inline-flex h-3 w-3 mr-2">
+										<span
 											class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 										></span><span
 											class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-										></span></span
-									>
+										></span>
+									</span>
 									{tr('auth.resetPassword.submitting')}
 								{:else}
 									{tr('auth.resetPassword.submitButton')}
@@ -575,8 +579,10 @@
 								href={resolve('login')}
 								class="font-medium text-accent hover:text-accent {isDesktop
 									? 'lg:text-body lg:font-semibold'
-									: ''}">{tr('auth.resetPassword.goToLogin')}</a
+									: ''}"
 							>
+								{tr('auth.resetPassword.goToLogin')}
+							</a>
 						</div>
 					</form>
 				{/if}

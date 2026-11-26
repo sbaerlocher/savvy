@@ -18,8 +18,8 @@
 <PageShell title={tr('cards.newCard')} mobileActions={false}>
 	<Section />
 	{#snippet back()}
-		<a href={resolve('cards')} class="text-text-subtle hover:text-text-ink2"
-			>{tr('common.backToOverview')}</a
-		>
+		<a href={resolve('cards')} class="text-text-subtle hover:text-text-ink2">
+			{tr('common.backToOverview')}
+		</a>
 	{/snippet}
 </PageShell>

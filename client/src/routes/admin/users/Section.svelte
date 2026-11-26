@@ -351,30 +351,31 @@
 						<div
 							class="grid grid-cols-[2.4fr_1.6fr_1fr_1fr_1.4fr_1.2fr] border-b border-border-soft bg-surface-1 px-7.5 py-3"
 						>
-							<span class="text-section-eyebrow uppercase text-text-subtle"
-								>{$t('admin.users.email')}</span
-							>
+							<span class="text-section-eyebrow uppercase text-text-subtle">
+								{$t('admin.users.email')}
+							</span>
 
-							<span class="text-section-eyebrow uppercase text-text-subtle"
-								>{$t('admin.users.name')}</span
-							>
+							<span class="text-section-eyebrow uppercase text-text-subtle">
+								{$t('admin.users.name')}
+							</span>
 
-							<span class="text-section-eyebrow uppercase text-text-subtle"
-								>{$t('admin.users.role')}</span
-							>
+							<span class="text-section-eyebrow uppercase text-text-subtle">
+								{$t('admin.users.role')}
+							</span>
 
-							<span class="text-section-eyebrow uppercase text-text-subtle"
-								>{$t('admin.users.provider')}</span
-							>
+							<span class="text-section-eyebrow uppercase text-text-subtle">
+								{$t('admin.users.provider')}
+							</span>
 
-							<span class="text-section-eyebrow uppercase text-text-subtle"
-								>{$t('admin.users.createdAt')}</span
-							>
+							<span class="text-section-eyebrow uppercase text-text-subtle">
+								{$t('admin.users.createdAt')}
+							</span>
 
 							<span
 								class="text-section-eyebrow text-right uppercase text-text-subtle"
-								>{$t('admin.users.actions')}</span
 							>
+								{$t('admin.users.actions')}
+							</span>
 						</div>
 
 						{#each filteredUsers as user (user.id)}
@@ -394,16 +395,17 @@
 										<span
 											aria-hidden="true"
 											class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent-50 text-body-sm font-semibold text-accent-800"
-											>{initials(user)}</span
 										>
-										<span class="truncate text-body font-medium text-text"
-											>{user.email}</span
-										>
+											{initials(user)}
+										</span>
+										<span class="truncate text-body font-medium text-text">
+											{user.email}
+										</span>
 									</span>
-									<span class="text-body text-text-ink2"
-										>{user.first_name || ''}
-										{user.last_name || ''}</span
-									>
+									<span class="text-body text-text-ink2">
+										{user.first_name || ''}
+										{user.last_name || ''}
+									</span>
 									<span>
 										<span
 											class="inline-flex flex-none items-center rounded-full px-2.5 py-0.5 text-eyebrow whitespace-nowrap {user.role ===
@@ -416,20 +418,20 @@
 												: $t('admin.users.roleUser')}
 										</span>
 									</span>
-									<span class="text-body text-text-ink2"
-										>{isOAuth
+									<span class="text-body text-text-ink2">
+										{isOAuth
 											? $t('admin.users.providerOAuth')
-											: $t('admin.users.providerLocal')}</span
-									>
-									<span class="text-body text-text-ink2"
-										>{new Date(user.created_at).toLocaleDateString()}</span
-									>
+											: $t('admin.users.providerLocal')}
+									</span>
+									<span class="text-body text-text-ink2">
+										{new Date(user.created_at).toLocaleDateString()}
+									</span>
 									<span class="flex items-center justify-end gap-2">
-										<span class="text-label text-accent"
-											>{expanded
+										<span class="text-label text-accent">
+											{expanded
 												? $t('common.close')
-												: $t('admin.users.showDetails')}</span
-										>
+												: $t('admin.users.showDetails')}
+										</span>
 										<svg
 											class="h-3.75 w-3.75 flex-none text-text-faint transition-transform {expanded
 												? 'rotate-180'
@@ -610,16 +612,17 @@
 							<label
 								for="sortBy"
 								class="block text-sm font-medium text-text-ink2 mb-2"
-								>{$t('common.sort')}</label
 							>
+								{$t('common.sort')}
+							</label>
 
 							<select id="sortBy" bind:value={sortBy} class="input text-sm">
-								<option value="email-asc"
-									>{$t('admin.users.sortEmailAsc')}</option
-								>
-								<option value="email-desc"
-									>{$t('admin.users.sortEmailDesc')}</option
-								>
+								<option value="email-asc">
+									{$t('admin.users.sortEmailAsc')}
+								</option>
+								<option value="email-desc">
+									{$t('admin.users.sortEmailDesc')}
+								</option>
 								<option value="newest">{$t('admin.users.sortNewest')}</option>
 								<option value="oldest">{$t('admin.users.sortOldest')}</option>
 							</select>
@@ -658,8 +661,10 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d={ICON_SEARCH}></path></svg
+				aria-hidden="true"
 			>
+				<path d={ICON_SEARCH}></path>
+			</svg>
 
 			<input
 				type="search"
@@ -687,8 +692,10 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d={ICON_FILTER_LINES}></path></svg
+				aria-hidden="true"
 			>
+				<path d={ICON_FILTER_LINES}></path>
+			</svg>
 
 			{#if hasActiveFilters}
 				<span
@@ -727,12 +734,12 @@
 							{initials(user)}
 						</span>
 						<span class="min-w-0 flex-1">
-							<span class="block truncate text-body font-semibold text-text"
-								>{user.email}</span
-							>
-							<span class="mt-px block text-chip font-normal text-text-subtle"
-								>{fullName(user)}</span
-							>
+							<span class="block truncate text-body font-semibold text-text">
+								{user.email}
+							</span>
+							<span class="mt-px block text-chip font-normal text-text-subtle">
+								{fullName(user)}
+							</span>
 						</span>
 						<span
 							class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-eyebrow whitespace-nowrap {user.role ===
@@ -754,8 +761,10 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"><path d={ICON_CHEVRON_DOWN}></path></svg
+							aria-hidden="true"
 						>
+							<path d={ICON_CHEVRON_DOWN}></path>
+						</svg>
 					</button>
 
 					{#if isExpanded}
@@ -856,8 +865,10 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d={ICON_PLUS}></path></svg
+				aria-hidden="true"
 			>
+				<path d={ICON_PLUS}></path>
+			</svg>
 		</a>
 	{/if}
 
@@ -941,12 +952,12 @@
 							{initials(user)}
 						</span>
 						<span class="min-w-0 flex-1">
-							<span class="text-body text-text block truncate font-semibold"
-								>{user.email}</span
-							>
-							<span class="text-body-sm text-text-muted mt-px block truncate"
-								>{fullName(user)}</span
-							>
+							<span class="text-body text-text block truncate font-semibold">
+								{user.email}
+							</span>
+							<span class="text-body-sm text-text-muted mt-px block truncate">
+								{fullName(user)}
+							</span>
 						</span>
 						<span
 							class="rounded-m3-full text-eyebrow inline-flex shrink-0 items-center px-2.5 py-0.5 font-semibold whitespace-nowrap {user.role ===
@@ -1274,18 +1285,22 @@
 													<!-- User Details -->
 													<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.users.name')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.users.name')}:
+															</span>
 															<p class="text-sm text-text">
 																{user.first_name || ''}
 																{user.last_name || ''}
 															</p>
 														</div>
 														<div class="md:hidden">
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.users.role')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.users.role')}:
+															</span>
 															<p class="text-sm">
 																<span
 																	class="px-2 py-1 text-xs font-medium rounded-full {user.role ===
@@ -1300,25 +1315,31 @@
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.users.userId')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.users.userId')}:
+															</span>
 															<p class="text-sm text-text font-mono">
 																{user.id}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.users.provider')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.users.provider')}:
+															</span>
 															<p class="text-sm text-text">
 																{user.auth_provider}
 															</p>
 														</div>
 														<div>
-															<span class="text-xs font-medium text-text-subtle"
-																>{$t('admin.users.createdAt')}:</span
+															<span
+																class="text-xs font-medium text-text-subtle"
 															>
+																{$t('admin.users.createdAt')}:
+															</span>
 															<p class="text-sm text-text">
 																{new Date(user.created_at).toLocaleString()}
 															</p>
@@ -1483,8 +1504,10 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
+						aria-hidden="true"
 					>
+						<path d={ICON_CHEVRON_RIGHT}></path>
+					</svg>
 				</button>
 
 				{#if sortExpanded}
@@ -1519,8 +1542,10 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										viewBox="0 0 24 24"
-										aria-hidden="true"><path d={ICON_CHECK}></path></svg
+										aria-hidden="true"
 									>
+										<path d={ICON_CHECK}></path>
+									</svg>
 								{/if}
 							</button>
 						{/each}
@@ -1564,8 +1589,9 @@
 						stroke="currentColor"
 						stroke-width="2"
 						viewBox="0 0 24 24"
-						><path stroke-linecap="round" d={ICON_CLOSE}></path></svg
 					>
+						<path stroke-linecap="round" d={ICON_CLOSE}></path>
+					</svg>
 				</button>
 			</div>
 
@@ -1698,13 +1724,15 @@
 					<label
 						for="sortByMobile"
 						class="block text-sm font-medium text-text-ink2 mb-2"
-						>{$t('common.sort')}</label
 					>
+						{$t('common.sort')}
+					</label>
 
 					<select id="sortByMobile" bind:value={sortBy} class="input bg-white">
 						<option value="email-asc">{$t('admin.users.sortEmailAsc')}</option>
-						<option value="email-desc">{$t('admin.users.sortEmailDesc')}</option
-						>
+						<option value="email-desc">
+							{$t('admin.users.sortEmailDesc')}
+						</option>
 						<option value="newest">{$t('admin.users.sortNewest')}</option>
 						<option value="oldest">{$t('admin.users.sortOldest')}</option>
 					</select>

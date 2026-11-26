@@ -168,22 +168,22 @@
 						class="btn btn-ghost text-sm w-full mt-3"
 					>
 						{#if isSendingVerification}
-							<span class="relative inline-flex h-3 w-3 mr-2"
-								><span
+							<span class="relative inline-flex h-3 w-3 mr-2">
+								<span
 									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
 									class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-								></span></span
-							>
+								></span>
+							</span>
 							{tr('settings.emailVerification.sending')}
 						{:else}
 							{tr('settings.emailVerification.verifyButton')}
 						{/if}
 					</button>
 				{:else}
-					<span class="text-xs text-text-faint mt-2 block"
-						>{tr('settings.emailVerification.smtpDisabled')}</span
-					>
+					<span class="text-xs text-text-faint mt-2 block">
+						{tr('settings.emailVerification.smtpDisabled')}
+					</span>
 				{/if}
 			{/if}
 		</div>
@@ -299,13 +299,13 @@
 			class="btn btn-ghost w-full"
 		>
 			{#if isExporting}
-				<span class="relative inline-flex h-3 w-3 mr-2"
-					><span
+				<span class="relative inline-flex h-3 w-3 mr-2">
+					<span
 						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 					></span><span
 						class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-					></span></span
-				>
+					></span>
+				</span>
 				{tr('settings.export.downloading')}
 			{:else}
 				<svg

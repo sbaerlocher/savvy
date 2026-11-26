@@ -70,8 +70,9 @@
 						/>
 						<span
 							class="hidden sm:inline text-heading font-bold tracking-tight text-text"
-							>{$t('common.appName')}</span
 						>
+							{$t('common.appName')}
+						</span>
 					</a>
 				</div>
 

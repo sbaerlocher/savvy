@@ -187,12 +187,13 @@
 						class="btn btn-primary px-6 {isSubmitting || isOffline
 							? 'opacity-50 cursor-not-allowed'
 							: ''}"
-						>{isSubmitting ? $t('common.saving') : $t('common.create')}</button
 					>
+						{isSubmitting ? $t('common.saving') : $t('common.create')}
+					</button>
 
-					<a href={resolve('merchants')} class="btn btn-ghost"
-						>{$t('common.cancel')}</a
-					>
+					<a href={resolve('merchants')} class="btn btn-ghost">
+						{$t('common.cancel')}
+					</a>
 				</div>
 
 				{#if isOffline}

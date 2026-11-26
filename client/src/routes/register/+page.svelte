@@ -195,13 +195,13 @@
 				</button>
 
 				<div class="pt-0.5 text-center">
-					<span class="text-label font-normal text-text-muted"
-						>{tr('auth.register.hasAccount')}</span
-					>
+					<span class="text-label font-normal text-text-muted">
+						{tr('auth.register.hasAccount')}
+					</span>
 
-					<a href={resolve('login')} class="text-label text-accent-600"
-						>{tr('auth.register.loginNow')}</a
-					>
+					<a href={resolve('login')} class="text-label text-accent-600">
+						{tr('auth.register.loginNow')}
+					</a>
 				</div>
 			</form>
 		</AuthCardIOS>
@@ -387,9 +387,9 @@
 												: 'text-sm'}"
 										>
 											{tr('auth.register.firstName')}
-											<span class={isDesktop ? 'lg:text-text-faint' : ''}
-												>*</span
-											>
+											<span class={isDesktop ? 'lg:text-text-faint' : ''}>
+												*
+											</span>
 										</label>
 										<input
 											id="first_name"
@@ -414,9 +414,9 @@
 												: 'text-sm'}"
 										>
 											{tr('auth.register.lastName')}
-											<span class={isDesktop ? 'lg:text-text-faint' : ''}
-												>*</span
-											>
+											<span class={isDesktop ? 'lg:text-text-faint' : ''}>
+												*
+											</span>
 										</label>
 										<input
 											id="last_name"
@@ -518,13 +518,13 @@
 											: ''}"
 									>
 										{#if isLoading}
-											<span class="relative inline-flex h-3 w-3 mr-2"
-												><span
+											<span class="relative inline-flex h-3 w-3 mr-2">
+												<span
 													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 												></span><span
 													class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-												></span></span
-											>
+												></span>
+											</span>
 											{tr('auth.register.registering')}
 										{:else}
 											{tr('auth.register.registerButton')}
@@ -537,8 +537,10 @@
 										href={resolve('login')}
 										class="font-medium text-accent hover:text-accent {isDesktop
 											? 'lg:text-body lg:font-semibold'
-											: ''}">{tr('auth.register.hasAccount')}</a
+											: ''}"
 									>
+										{tr('auth.register.hasAccount')}
+									</a>
 								</div>
 							</form>
 						</div>
@@ -677,8 +679,9 @@
 											d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
 										></path>
 									</svg>
-									<span class="text-xs">{tr('auth.register.securityNote')}</span
-									>
+									<span class="text-xs">
+										{tr('auth.register.securityNote')}
+									</span>
 								</div>
 							</div>
 						</div>

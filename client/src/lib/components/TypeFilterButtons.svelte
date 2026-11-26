@@ -188,8 +188,9 @@
 			>
 				{tr(entry.label)}
 				{#if SHOW_COUNT && entry.count !== undefined}
-					<span class={countClass(typeFilter === entry.key)}>{entry.count}</span
-					>
+					<span class={countClass(typeFilter === entry.key)}>
+						{entry.count}
+					</span>
 				{/if}
 			</button>
 		{/each}

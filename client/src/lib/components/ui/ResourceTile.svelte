@@ -239,11 +239,11 @@
 							{#if model.shareState.kind === 'sharedWith'}
 								<span class="tabular-nums">{model.shareState.count}</span>
 							{:else}
-								<span class="truncate"
-									>{$t('tile.sharedFrom', {
+								<span class="truncate">
+									{$t('tile.sharedFrom', {
 										name: model.shareState.firstName
-									})}</span
-								>
+									})}
+								</span>
 							{/if}
 						{/if}
 					</span>

@@ -107,9 +107,9 @@
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href={resolve('login')} class="btn btn-primary w-full"
-									>{tr('unsubscribe.goToLogin')}</a
-								>
+								<a href={resolve('login')} class="btn btn-primary w-full">
+									{tr('unsubscribe.goToLogin')}
+								</a>
 							{/if}
 						</div>
 					{:else if status === 'error'}
@@ -141,9 +141,9 @@
 									{tr('unsubscribe.goToSettings')}
 								</a>
 							{:else}
-								<a href={resolve('login')} class="btn btn-ghost w-full"
-									>{tr('unsubscribe.goToLogin')}</a
-								>
+								<a href={resolve('login')} class="btn btn-ghost w-full">
+									{tr('unsubscribe.goToLogin')}
+								</a>
 							{/if}
 						</div>
 					{:else}
@@ -153,9 +153,9 @@
 								{tr('unsubscribe.invalidToken')}
 							</p>
 
-							<a href={resolve('login')} class="btn btn-primary w-full"
-								>{tr('unsubscribe.goToLogin')}</a
-							>
+							<a href={resolve('login')} class="btn btn-primary w-full">
+								{tr('unsubscribe.goToLogin')}
+							</a>
 						</div>
 					{/if}
 				</div>

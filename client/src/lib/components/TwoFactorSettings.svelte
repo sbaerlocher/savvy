@@ -166,12 +166,12 @@
 </script>
 
 {#snippet pingDot()}
-	<span class="relative inline-flex h-3 w-3 mr-2"
-		><span
+	<span class="relative inline-flex h-3 w-3 mr-2">
+		<span
 			class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 		></span><span class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-		></span></span
-	>
+		></span>
+	</span>
 {/snippet}
 
 <div class="overflow-hidden rounded-xl border border-border bg-white p-6">
@@ -184,13 +184,13 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-4">
-			<span class="relative inline-flex h-5 w-5"
-				><span
+			<span class="relative inline-flex h-5 w-5">
+				<span
 					class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 				></span><span
 					class="relative inline-flex rounded-full h-5 w-5 bg-accent"
-				></span></span
-			>
+				></span>
+			</span>
 		</div>
 	{:else if authProvider !== 'local'}
 		<p class="text-sm text-text-subtle">
@@ -425,9 +425,9 @@
 				bind:checked={backupCodesConfirmed}
 				class="rounded border-border-field text-accent focus:ring-accent"
 			/>
-			<span class="text-sm text-text-ink2"
-				>{tr('settings.twoFactor.backupCodesSaved')}</span
-			>
+			<span class="text-sm text-text-ink2">
+				{tr('settings.twoFactor.backupCodesSaved')}
+			</span>
 		</label>
 
 		<button

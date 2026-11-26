@@ -298,8 +298,10 @@
 				stroke-width="2.2"
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg
+				aria-hidden="true"
 			>
+				<path d="M9 6l6 6-6 6"></path>
+			</svg>
 		</a>
 	</div>
 {/if}
@@ -509,9 +511,9 @@
 									}}
 									aria-label={$t('notifications.markAsRead')}
 								>
-									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-										><circle cx="12" cy="12" r="5"></circle></svg
-									>
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+										<circle cx="12" cy="12" r="5"></circle>
+									</svg>
 								</button>
 							{/if}
 

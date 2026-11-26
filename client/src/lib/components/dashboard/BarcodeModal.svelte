@@ -157,17 +157,17 @@
 				{#if item.pin}
 					<div class="flex items-center justify-center gap-2">
 						<span class="text-sm text-text-muted">{$t('giftCards.pin')}:</span>
-						<span class="font-mono text-lg font-semibold text-text"
-							>{item.pin}</span
-						>
+						<span class="font-mono text-lg font-semibold text-text">
+							{item.pin}
+						</span>
 					</div>
 				{/if}
 				{#if item.displayValue || item.description}
 					<div class="flex items-baseline justify-center gap-4 flex-wrap">
 						{#if item.displayValue}
-							<span class="font-mono text-lg font-semibold text-text"
-								>{item.displayValue}</span
-							>
+							<span class="font-mono text-lg font-semibold text-text">
+								{item.displayValue}
+							</span>
 						{/if}
 						{#if item.description}
 							<span class="text-sm text-text-muted">{item.description}</span>

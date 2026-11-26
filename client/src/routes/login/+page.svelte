@@ -254,9 +254,9 @@
 
 					<div class="flex items-center justify-between pt-0.5">
 						{#if registrationEnabled}
-							<a href={resolve('register')} class="text-label text-accent-600"
-								>{tr('auth.register.title')}</a
-							>
+							<a href={resolve('register')} class="text-label text-accent-600">
+								{tr('auth.register.title')}
+							</a>
 						{:else}
 							<span></span>
 						{/if}
@@ -530,8 +530,10 @@
 											<span
 												class="px-2 text-text-subtle {isDesktop
 													? 'bg-surface lg:px-0'
-													: 'bg-white'}">{tr('auth.login.orDivider')}</span
+													: 'bg-white'}"
 											>
+												{tr('auth.login.orDivider')}
+											</span>
 										</div>
 										{#if isDesktop}
 											<div
@@ -690,9 +692,10 @@
 												class="font-medium text-accent hover:text-accent text-sm {isDesktop
 													? 'lg:text-body lg:font-semibold'
 													: ''}"
-												>{tr('auth.login.noAccountYet')}
-												{tr('auth.login.registerNow')}</a
 											>
+												{tr('auth.login.noAccountYet')}
+												{tr('auth.login.registerNow')}
+											</a>
 										{:else}
 											<span></span>
 										{/if}
@@ -700,8 +703,10 @@
 											href={resolve('forgot-password')}
 											class="font-medium text-accent hover:text-accent text-sm {isDesktop
 												? 'lg:text-body lg:font-semibold'
-												: ''}">{tr('auth.login.forgotPassword')}</a
+												: ''}"
 										>
+											{tr('auth.login.forgotPassword')}
+										</a>
 									</div>
 								</form>
 							{/if}

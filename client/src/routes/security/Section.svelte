@@ -274,13 +274,13 @@
 									class="btn btn-primary"
 								>
 									{#if isChangingPassword}
-										<span class="relative inline-flex h-3 w-3 mr-2"
-											><span
+										<span class="relative inline-flex h-3 w-3 mr-2">
+											<span
 												class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 											></span><span
 												class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-											></span></span
-										>
+											></span>
+										</span>
 										{tr('settings.password.changing')}
 									{:else}
 										{tr('settings.password.changeButton')}
@@ -352,13 +352,13 @@
 
 					{#if isLoadingSessions}
 						<div class="flex justify-center py-4">
-							<span class="relative inline-flex h-4 w-4"
-								><span
+							<span class="relative inline-flex h-4 w-4">
+								<span
 									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 								></span><span
 									class="relative inline-flex rounded-full h-4 w-4 bg-accent"
-								></span></span
-							>
+								></span>
+							</span>
 						</div>
 					{:else if sessions.length === 0}
 						<p class="text-sm text-text-subtle">
@@ -396,10 +396,10 @@
 											{#if session.ip_address}
 												<span>{session.ip_address}</span>
 											{/if}
-											<span
-												>{tr('settings.sessions.lastActive')}:
-												{formatRelativeTime(session.last_active_at)}</span
-											>
+											<span>
+												{tr('settings.sessions.lastActive')}:
+												{formatRelativeTime(session.last_active_at)}
+											</span>
 										</div>
 									</div>
 									{#if !session.is_current}
@@ -412,13 +412,13 @@
 											aria-label={tr('settings.sessions.revoke')}
 										>
 											{#if revokingSessionId === session.id}
-												<span class="relative inline-flex h-3 w-3"
-													><span
+												<span class="relative inline-flex h-3 w-3">
+													<span
 														class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 													></span><span
 														class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-													></span></span
-												>
+													></span>
+												</span>
 											{:else}
 												<svg
 													class="w-4 h-4"

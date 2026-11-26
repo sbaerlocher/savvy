@@ -153,9 +153,9 @@
 							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-text"
-								>{tr('cards.sharing.canEdit')}</span
-							>
+							<span class="block text-sm font-medium text-text">
+								{tr('cards.sharing.canEdit')}
+							</span>
 							<span class="text-xs text-text-subtle">
 								{tr('cards.sharing.canEditDesc')}
 							</span>
@@ -168,12 +168,12 @@
 							class="mt-0.5 h-4 w-4 text-accent focus:ring-accent border-border-field rounded"
 						/>
 						<div class="ml-2">
-							<span class="block text-sm font-medium text-text"
-								>{tr('cards.sharing.canDelete')}</span
-							>
-							<span class="text-xs text-text-subtle"
-								>{tr('cards.sharing.canDeleteDesc')}</span
-							>
+							<span class="block text-sm font-medium text-text">
+								{tr('cards.sharing.canDelete')}
+							</span>
+							<span class="text-xs text-text-subtle">
+								{tr('cards.sharing.canDeleteDesc')}
+							</span>
 						</div>
 					</label>
 				</div>

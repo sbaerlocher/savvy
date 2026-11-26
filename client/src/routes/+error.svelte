@@ -79,8 +79,8 @@
 			</Button>
 		{/if}
 
-		<Button variant="secondary" href={resolve('dashboard')} class="w-full"
-			>{$t('errors.toDashboard')}</Button
-		>
+		<Button variant="secondary" href={resolve('dashboard')} class="w-full">
+			{$t('errors.toDashboard')}
+		</Button>
 	{/snippet}
 </StateScreen>

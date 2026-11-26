@@ -21,9 +21,12 @@
 </svelte:head>
 
 {#snippet backLine()}
-	<a href={resolve('admin/users')} class="text-text-subtle hover:text-text-ink2"
-		>{tr('common.backToOverview')}</a
+	<a
+		href={resolve('admin/users')}
+		class="text-text-subtle hover:text-text-ink2"
 	>
+		{tr('common.backToOverview')}
+	</a>
 {/snippet}
 
 <PageShell
@@ -31,5 +34,6 @@
 	mobileActions={false}
 	back={IS_ANDROID ? undefined : backLine}
 	onBack={IS_ANDROID ? () => goto(resolve('admin/users')) : undefined}
-	><Section /></PageShell
 >
+	<Section />
+</PageShell>

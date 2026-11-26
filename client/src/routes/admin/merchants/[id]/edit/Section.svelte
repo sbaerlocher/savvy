@@ -268,12 +268,13 @@
 							class="btn btn-primary px-6 {isSubmitting || isOffline
 								? 'opacity-50 cursor-not-allowed'
 								: ''}"
-							>{isSubmitting ? $t('common.saving') : $t('common.save')}</button
 						>
+							{isSubmitting ? $t('common.saving') : $t('common.save')}
+						</button>
 
-						<a href={resolve('merchants')} class="btn btn-ghost"
-							>{$t('common.cancel')}</a
-						>
+						<a href={resolve('merchants')} class="btn btn-ghost">
+							{$t('common.cancel')}
+						</a>
 
 						<button
 							type="button"
@@ -435,11 +436,12 @@
 					type="button"
 					class="px-4 py-2 rounded-md border border-border-field hover:bg-surface-1 transition-colors text-text-ink2"
 					onclick={() => (showDeleteModal = false)}
-					>{$t('common.cancel')}</button
 				>
-				<button type="button" class="btn btn-danger" onclick={handleDelete}
-					>{$t('common.delete')}</button
-				>
+					{$t('common.cancel')}
+				</button>
+				<button type="button" class="btn btn-danger" onclick={handleDelete}>
+					{$t('common.delete')}
+				</button>
 			</div>
 		</div>
 	</div>

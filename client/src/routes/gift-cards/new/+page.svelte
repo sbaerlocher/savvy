@@ -21,7 +21,8 @@
 		<a
 			href={resolve('gift-cards')}
 			class="text-text-subtle hover:text-text-ink2"
-			>{tr('common.backToOverview')}</a
 		>
+			{tr('common.backToOverview')}
+		</a>
 	{/snippet}
 </PageShell>

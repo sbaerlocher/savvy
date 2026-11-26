@@ -122,9 +122,9 @@
 				</button>
 
 				<div class="pt-1 text-center">
-					<a href={resolve('login')} class="text-label text-accent-600"
-						>{tr('auth.forgotPassword.backToLogin')}</a
-					>
+					<a href={resolve('login')} class="text-label text-accent-600">
+						{tr('auth.forgotPassword.backToLogin')}
+					</a>
 				</div>
 			</form>
 		{/if}
@@ -371,13 +371,13 @@
 											: ''}"
 									>
 										{#if isLoading}
-											<span class="relative inline-flex h-3 w-3 mr-2"
-												><span
+											<span class="relative inline-flex h-3 w-3 mr-2">
+												<span
 													class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"
 												></span><span
 													class="relative inline-flex rounded-full h-3 w-3 bg-accent"
-												></span></span
-											>
+												></span>
+											</span>
 											{tr('auth.forgotPassword.submitting')}
 										{:else}
 											{tr('auth.forgotPassword.submitButton')}
@@ -390,8 +390,10 @@
 										href={resolve('login')}
 										class="font-medium text-accent hover:text-accent {isDesktop
 											? 'lg:text-body lg:font-semibold'
-											: ''}">{tr('auth.forgotPassword.backToLogin')}</a
+											: ''}"
 									>
+										{tr('auth.forgotPassword.backToLogin')}
+									</a>
 								</div>
 							</form>
 						{/if}
@@ -539,9 +541,9 @@
 										d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
 									></path>
 								</svg>
-								<span class="text-xs"
-									>{tr('auth.forgotPassword.securityNote')}</span
-								>
+								<span class="text-xs">
+									{tr('auth.forgotPassword.securityNote')}
+								</span>
 							</div>
 						</div>
 					</div>

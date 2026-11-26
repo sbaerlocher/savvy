@@ -488,8 +488,9 @@
 			<span class="flex min-w-0 items-center gap-2">
 				<span
 					class="truncate text-[length:var(--text-code)] font-normal text-text-muted"
-					>{displayName}</span
 				>
+					{displayName}
+				</span>
 				{#if isLocalAuth}
 					<svg
 						class="h-3.5 w-2 shrink-0 text-text-mono-faint"
@@ -563,8 +564,9 @@
 			<span class="flex min-w-0 items-center gap-2">
 				<span
 					class="truncate text-[length:var(--text-code)] font-normal text-text-muted"
-					>{profile.email}</span
 				>
+					{profile.email}
+				</span>
 				{#if profile.email_verified}
 					<span
 						class="inline-flex shrink-0 items-center gap-0.75 rounded-full bg-success-100 px-1.75 py-0.5 text-tag font-semibold text-success-800"
@@ -1049,9 +1051,9 @@
 						aria-hidden="true"
 					></span>
 				{/if}
-				<span class="text-[length:var(--text-code)] font-normal text-text"
-					>{lang.name}</span
-				>
+				<span class="text-[length:var(--text-code)] font-normal text-text">
+					{lang.name}
+				</span>
 				{#if $languageStore === lang.code}
 					<svg
 						class="h-4 w-4 shrink-0 text-accent"

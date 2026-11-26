@@ -72,13 +72,13 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-4">
-			<span class="relative inline-flex h-4 w-4"
-				><span
+			<span class="relative inline-flex h-4 w-4">
+				<span
 					class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75"
 				></span><span
 					class="relative inline-flex h-4 w-4 rounded-full bg-accent"
-				></span></span
-			>
+				></span>
+			</span>
 		</div>
 	{:else if sessions.length === 0}
 		<p class="text-body text-text-subtle">
@@ -160,13 +160,13 @@
 							aria-label={$t('settings.sessions.revoke')}
 						>
 							{#if revokingSessionId === session.id}
-								<span class="relative inline-flex h-3 w-3"
-									><span
+								<span class="relative inline-flex h-3 w-3">
+									<span
 										class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400 opacity-75"
 									></span><span
 										class="relative inline-flex h-3 w-3 rounded-full bg-accent"
-									></span></span
-								>
+									></span>
+								</span>
 							{:else}
 								<svg
 									class="h-3.5 w-3.5"

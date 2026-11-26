@@ -142,9 +142,9 @@
 								d={place.icon}
 							></path>
 						</svg>
-						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
-							>{$t(place.label)}</span
-						>
+						<span class="text-[length:var(--text-tag)] leading-tight mt-1">
+							{$t(place.label)}
+						</span>
 					</a>
 				{/each}
 			</nav>
@@ -293,8 +293,10 @@
 								place.path
 							)
 								? 'font-semibold text-text'
-								: 'font-medium text-text-subtle'}">{$t(place.label)}</span
+								: 'font-medium text-text-subtle'}"
 						>
+							{$t(place.label)}
+						</span>
 					</a>
 				{/each}
 			</div>
@@ -324,9 +326,9 @@
 								d={place.icon}
 							></path>
 						</svg>
-						<span class="text-[length:var(--text-tag)] leading-tight mt-1"
-							>{$t(place.label)}</span
-						>
+						<span class="text-[length:var(--text-tag)] leading-tight mt-1">
+							{$t(place.label)}
+						</span>
 					</a>
 				{/each}
 			</div>

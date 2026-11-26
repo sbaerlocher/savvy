@@ -914,8 +914,10 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"><path d={ICON_SHARE}></path></svg
+							stroke-linejoin="round"
 						>
+							<path d={ICON_SHARE}></path>
+						</svg>
 					</button>
 					<div class="h-px bg-[var(--color-glass-edge)]"></div>
 					<button
@@ -933,8 +935,10 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"><path d={ICON_TRANSFER}></path></svg
+							stroke-linejoin="round"
 						>
+							<path d={ICON_TRANSFER}></path>
+						</svg>
 					</button>
 					<div class="h-px bg-[var(--color-glass-edge)]"></div>
 					<button
@@ -952,8 +956,10 @@
 							stroke="currentColor"
 							stroke-width="1.9"
 							stroke-linecap="round"
-							stroke-linejoin="round"><path d={ICON_TRASH}></path></svg
+							stroke-linejoin="round"
 						>
+							<path d={ICON_TRASH}></path>
+						</svg>
 					</button>
 				</div>
 			</div>
@@ -979,9 +985,9 @@
 				>
 					{tr('common.cancel')}
 				</button>
-				<span class="text-[17px] font-semibold text-text"
-					>{tr(c.shareTitle)}</span
-				>
+				<span class="text-[17px] font-semibold text-text">
+					{tr(c.shareTitle)}
+				</span>
 				<span class="flex-1"></span>
 			</div>
 			<div class="px-[18px] pb-6 pt-4">
@@ -1014,9 +1020,9 @@
 				>
 					{tr('common.cancel')}
 				</button>
-				<span class="text-[17px] font-semibold text-transfer-900"
-					>{tr(c.transferTitle)}</span
-				>
+				<span class="text-[17px] font-semibold text-transfer-900">
+					{tr(c.transferTitle)}
+				</span>
 				<span class="flex-1"></span>
 			</div>
 			<div class="px-[18px] pb-6 pt-4">

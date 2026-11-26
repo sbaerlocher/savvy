@@ -607,9 +607,9 @@
 					<div class="debug-stats">
 						<div class="debug-stat">
 							<span class="debug-label">Method:</span>
-							<span class="debug-value"
-								>{scannerReady ? 'Polyfill' : 'Loading...'}</span
-							>
+							<span class="debug-value">
+								{scannerReady ? 'Polyfill' : 'Loading...'}
+							</span>
 						</div>
 						<div class="debug-stat">
 							<span class="debug-label">Attempts:</span>
@@ -617,10 +617,9 @@
 						</div>
 						<div class="debug-stat">
 							<span class="debug-label">Video:</span>
-							<span class="debug-value"
-								>{videoElement?.videoWidth || 0}x{videoElement?.videoHeight ||
-									0}</span
-							>
+							<span class="debug-value">
+								{videoElement?.videoWidth || 0}x{videoElement?.videoHeight || 0}
+							</span>
 						</div>
 					</div>
 					<div class="debug-logs">

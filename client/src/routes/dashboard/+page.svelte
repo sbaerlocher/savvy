@@ -75,16 +75,16 @@
 	     greeting eyebrow; desktop keeps it in the actions slot. -->
 	{#snippet eyebrowAside()}
 		{#if isRefreshing && platform !== 'other'}
-			<span class="animate-pulse {refreshHintClass} text-text-faint"
-				>{$t('common.refreshing')}</span
-			>
+			<span class="animate-pulse {refreshHintClass} text-text-faint">
+				{$t('common.refreshing')}
+			</span>
 		{/if}
 	{/snippet}
 	{#snippet actions()}
 		{#if isRefreshing && platform === 'other'}
-			<span class="animate-pulse text-xs text-text-faint"
-				>{$t('common.refreshing')}</span
-			>
+			<span class="animate-pulse text-xs text-text-faint">
+				{$t('common.refreshing')}
+			</span>
 		{/if}
 	{/snippet}
 	<Section bind:isRefreshing bind:stats={desktopStats} />

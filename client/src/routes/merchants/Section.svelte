@@ -347,8 +347,9 @@
 			stroke-width="2.1"
 			viewBox="0 0 24 24"
 			aria-hidden="true"
-			><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg
 		>
+			<path stroke-linecap="round" d="M12 5v14M5 12h14"></path>
+		</svg>
 	</a>
 {/snippet}
 
@@ -839,10 +840,10 @@
 									? 'max-sm:pt-1.25 max-sm:text-chip max-sm:font-normal pt-3 text-sm'
 									: 'pt-3 text-sm'}"
 							>
-								<span
-									>{getTotalItems(merchant)}
-									{tr('merchantOverview.items')}</span
-								>
+								<span>
+									{getTotalItems(merchant)}
+									{tr('merchantOverview.items')}
+								</span>
 								{#if merchant.total_gift_card_balance > 0}
 									<span
 										class="font-semibold text-text {IS_ANDROID || IOS

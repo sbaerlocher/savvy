@@ -57,9 +57,9 @@
 	     settings list, not a card. No identity card: the Profil section below
 	     already carries name and email. -->
 	<div class="flex items-center gap-2 px-6 pt-2.5 pb-2">
-		<span class="text-label text-purple-600 font-semibold"
-			>{tr('nav.admin')}</span
-		>
+		<span class="text-label text-purple-600 font-semibold">
+			{tr('nav.admin')}
+		</span>
 		<span
 			class="bg-purple-50 text-purple-600 rounded-m3-full text-tag inline-flex items-center px-2.25 py-0.5 font-semibold"
 		>
@@ -84,16 +84,18 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 					viewBox="0 0 24 24"
-					aria-hidden="true"><path d={item.icon}></path></svg
+					aria-hidden="true"
 				>
+					<path d={item.icon}></path>
+				</svg>
 			</span>
 			<span class="min-w-0 flex-1">
-				<span class="text-subheading text-text block font-normal"
-					>{tr(item.label)}</span
-				>
-				<span class="text-label text-text-muted mt-px block font-normal"
-					>{tr(item.sub)}</span
-				>
+				<span class="text-subheading text-text block font-normal">
+					{tr(item.label)}
+				</span>
+				<span class="text-label text-text-muted mt-px block font-normal">
+					{tr(item.sub)}
+				</span>
 			</span>
 			<svg
 				class="text-text-subtle h-5 w-5 shrink-0"
@@ -103,17 +105,19 @@
 				stroke-linecap="round"
 				stroke-linejoin="round"
 				viewBox="0 0 24 24"
-				aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg
+				aria-hidden="true"
 			>
+				<path d="M9 5l7 7-7 7"></path>
+			</svg>
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	{/each}
 {:else}
 	<section>
 		<div class="flex items-center gap-1.75 px-1.5 pb-2">
-			<span class="text-body-sm font-semibold text-purple-600 uppercase"
-				>{tr('nav.admin')}</span
-			>
+			<span class="text-body-sm font-semibold text-purple-600 uppercase">
+				{tr('nav.admin')}
+			</span>
 
 			<span
 				class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-tag font-semibold tracking-normal text-purple-600"
@@ -143,16 +147,18 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							viewBox="0 0 24 24"
-							aria-hidden="true"><path d={item.icon}></path></svg
+							aria-hidden="true"
 						>
+							<path d={item.icon}></path>
+						</svg>
 					</span>
 					<span class="min-w-0 flex-1">
-						<span class="block text-[length:var(--text-code)] text-text"
-							>{tr(item.label)}</span
-						>
-						<span class="mt-px block text-chip font-normal text-text-subtle"
-							>{tr(item.sub)}</span
-						>
+						<span class="block text-[length:var(--text-code)] text-text">
+							{tr(item.label)}
+						</span>
+						<span class="mt-px block text-chip font-normal text-text-subtle">
+							{tr(item.sub)}
+						</span>
 					</span>
 					<svg
 						class="h-3.5 w-2 shrink-0 text-text-mono-faint"
@@ -162,8 +168,10 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						viewBox="0 0 8 14"
-						aria-hidden="true"><path d={ICON_CHEVRON_RIGHT}></path></svg
+						aria-hidden="true"
 					>
+						<path d={ICON_CHEVRON_RIGHT}></path>
+					</svg>
 				</a>
 				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{/each}

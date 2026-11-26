@@ -164,8 +164,9 @@
 						class="{isAndroid
 							? 'text-body font-medium'
 							: 'text-sm font-medium'} text-text-ink2"
-						>{tr('common.favoritesOnly')}</span
 					>
+						{tr('common.favoritesOnly')}
+					</span>
 				</div>
 				<!-- Android M3 switch: 44x26 track with a 22px thumb (mockup). -->
 				<div
