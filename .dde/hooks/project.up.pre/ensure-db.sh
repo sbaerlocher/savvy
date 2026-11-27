@@ -66,28 +66,9 @@ if [ -n "$worktree_suffix" ]; then
 	db_name="${db_name}_$(printf '%s' "$worktree_suffix" | tr '-' '_')"
 fi
 
-postgres_container=$(docker ps \
-	--filter "label=dde.managed=true" \
-	--filter "label=dde.service=postgres" \
-	--format '{{.Names}}' | head -1)
-
-if [ -z "$postgres_container" ]; then
-	echo "ensure-db: dde stock postgres not found (label dde.service=postgres)" >&2
-	echo "ensure-db: run 'dde system:up' first" >&2
-	exit 1
-fi
-
-# Postgres is normally already healthy (dde system service); wait briefly.
-for i in $(seq 1 10); do
-	if docker exec "$postgres_container" pg_isready -U postgres -q; then
-		break
-	fi
-	if [ "$i" = "10" ]; then
-		echo "ensure-db: postgres did not become ready within 20s" >&2
-		exit 1
-	fi
-	sleep 2
-done
+# shellcheck source=.dde/lib/postgres.sh
+. "$hook_dir/../../lib/postgres.sh"
+postgres_container=$(dde_postgres ensure-db) || exit 1
 
 # CREATE DATABASE has no IF NOT EXISTS, so guard on pg_database. The name is
 # a branch-derived identifier; quote it so hyphens/leading digits stay valid.
