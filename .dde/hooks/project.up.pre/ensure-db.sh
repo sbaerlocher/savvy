@@ -66,14 +66,25 @@ if [ -n "$worktree_suffix" ]; then
 	db_name="${db_name}_$(printf '%s' "$worktree_suffix" | tr '-' '_')"
 fi
 
-postgres_container=$(docker ps \
-	--filter "label=dde.managed=true" \
-	--filter "label=dde.service=postgres" \
-	--format '{{.Names}}' | head -1)
+find_postgres() {
+	docker ps \
+		--filter "label=dde.managed=true" \
+		--filter "label=dde.service=postgres" \
+		--format '{{.Names}}' | head -1
+}
+
+# Postgres is not one of dde's global services, so `dde system:up` never
+# starts it; start the stock service here instead of failing.
+postgres_container=$(find_postgres)
+if [ -z "$postgres_container" ]; then
+	echo "ensure-db: dde stock postgres not running, starting it"
+	dde system:service:up postgres
+	postgres_container=$(find_postgres)
+fi
 
 if [ -z "$postgres_container" ]; then
 	echo "ensure-db: dde stock postgres not found (label dde.service=postgres)" >&2
-	echo "ensure-db: run 'dde system:up' first" >&2
+	echo "ensure-db: run 'dde system:service:up postgres' manually" >&2
 	exit 1
 fi
 
