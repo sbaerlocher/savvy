@@ -31,28 +31,9 @@ if [ -z "$db_name" ]; then
 	exit 1
 fi
 
-postgres_container=$(docker ps \
-	--filter "label=dde.managed=true" \
-	--filter "label=dde.service=postgres" \
-	--format '{{.Names}}' | head -1)
-
-if [ -z "$postgres_container" ]; then
-	echo "db:ensure: dde stock postgres container not found (label dde.service=postgres)" >&2
-	echo "db:ensure: run 'dde system:up' or 'dde project:up' first" >&2
-	exit 1
-fi
-
-# Wait briefly for postgres to accept connections (typically already healthy).
-for i in $(seq 1 10); do
-	if docker exec "$postgres_container" pg_isready -U postgres -q; then
-		break
-	fi
-	if [ "$i" = "10" ]; then
-		echo "db:ensure: postgres did not become ready within 20s" >&2
-		exit 1
-	fi
-	sleep 2
-done
+# shellcheck source=.dde/lib/postgres.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/postgres.sh"
+postgres_container=$(dde_postgres db:ensure) || exit 1
 
 # CREATE DATABASE has no IF NOT EXISTS, so guard on pg_database.
 exists=$(docker exec "$postgres_container" psql -U postgres -tAc \

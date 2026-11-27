@@ -8,27 +8,9 @@ DB_NAME=savvy
 plugin_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd "$plugin_dir/../.." && pwd)"
 
-postgres_container=$(docker ps \
-	--filter "label=dde.managed=true" \
-	--filter "label=dde.service=postgres" \
-	--format '{{.Names}}' | head -1)
-
-if [ -z "$postgres_container" ]; then
-	echo "structure:reset-db: dde stock postgres container not found" >&2
-	echo "structure:reset-db: run 'dde project:up' first" >&2
-	exit 1
-fi
-
-for i in $(seq 1 10); do
-	if docker exec "$postgres_container" pg_isready -U postgres -q; then
-		break
-	fi
-	if [ "$i" = "10" ]; then
-		echo "structure:reset-db: postgres did not become ready within 20s" >&2
-		exit 1
-	fi
-	sleep 2
-done
+# shellcheck source=.dde/lib/postgres.sh
+. "$plugin_dir/../lib/postgres.sh"
+postgres_container=$(dde_postgres structure:reset-db) || exit 1
 
 # `db:migrate-reset` prompts for confirmation and dies on EOF, so it cannot be
 # used non-interactively. DROP ... WITH (FORCE) needs PG 13+; dde ships 18.x.
